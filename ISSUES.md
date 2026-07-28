@@ -64,6 +64,27 @@ so completed requests survive a crash and a re-run only redoes failures.
 - **SSH target:** use the `warpcore` alias, not the FQDN (`csi370295.alcf.anl.gov`) — the FQDN isn't in
   `known_hosts` and fails SSH host-key verification (it does work for the HTTP endpoint on :8000).
 
+## 6. Orphaned benchmark process polluted the throughput sweep
+**Symptom:** during the concurrency sweep, `curl .../metrics | grep num_requests_running` showed MORE
+in-flight requests than the current `--max-concurrency` (e.g. 2 when running c=1). The c=1 result came
+out low (29 tok/s vs the expected ~34).
+**Root cause:** a `vllm bench serve` started via a foreground `ssh warpcore 'docker exec ...'` that
+*timed out client-side* did NOT die — the `docker exec` kept running inside the container and its
+requests kept hitting the engine, competing with the real sweep. Killing the host-side `docker exec`
+wrapper does not stop the in-container process.
+**Fix:** kill it *inside* the container:
+`docker exec vllm_prebuilt bash -c 'ps -eo pid,args | grep "bench serve" | grep -v grep'` → `docker exec
+vllm_prebuilt kill <PID>`. Then re-run the polluted level (c=1 clean → 34.1 tok/s, matching baseline).
+**Prevention:** run sweeps via a persistent background session (not a foreground call that can time out),
+and assert `num_requests_running == 0` before each level.
+
+## 7. `vllm bench serve --result-dir` writes INSIDE the container
+Results saved to a path under `--result-dir` land in the **container** filesystem, not the host. Pull
+them with `docker cp <container>:/path/file ./`. (The per-level metrics also print to stdout, so the
+run log captures them regardless.)
+
+---
+
 ## Non-issues (ruled out — don't chase)
 - The GB10 `nvidia-smi` memory `N/A` is normal (unified memory), not a broken GPU.
 - The `fatal: not a git repository` line lm-eval prints at the end is harmless (it tries to record a

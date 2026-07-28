@@ -55,21 +55,52 @@ to 50 agent steps):
 Aggregate model time (c=32): 1890.2 s across 5 concurrent tasks (`total_model_time_s`). This is
 wall-clock-under-concurrency, **not** a clean tok/s measurement — see Throughput below.
 
-## Throughput / latency — **TODO**
+## Throughput / latency — `vllm bench serve` concurrency sweep
 
-The quality harnesses above record **no tok/s, TTFT, or ITL**. lm-eval measures only correctness;
-AutomationBench records token *counts* and aggregate model time but not per-request latency or
-sustained tok/s.
+Measured 2026-07-28, **on-box** (inside `vllm_prebuilt` against `localhost:8000` → server ceiling,
+network excluded). Raw-completions path (`--backend openai --endpoint /v1/completions --ignore-eos`)
+so gpt-oss generates the full length (the chat path lets it stop early and understates tok/s).
+Fixed shape: **512 input / 256 output tokens** per request. Concurrency was increased until output
+throughput **plateaued** (not capped at an arbitrary number).
 
-Planned: run `vllm bench serve` inside the container across a concurrency sweep and record:
-- output tok/s (mean, peak, max sustained)
-- TTFT (time to first token)
-- ITL / TPOT (inter-token latency)
-- per-concurrency scaling (c=1, 8, 16, 32, …)
+| Concurrency | Output tok/s | Δ vs prev | req/s | Mean TTFT (ms) | P99 TTFT (ms) | Mean TPOT (ms) |
+| ----------: | -----------: | --------: | ----: | -------------: | ------------: | -------------: |
+| 1   | 34.1  |   —    | 0.133 | 71    | 76    | 29.2  |
+| 2   | 56.9  | +66.9% | 0.222 | 131   | 166   | 34.8  |
+| 4   | 85.6  | +50.4% | 0.335 | 197   | 230   | 46.1  |
+| 8   | 120.9 | +41.2% | 0.472 | 231   | 256   | 65.5  |
+| 16  | 168.2 | +39.1% | 0.657 | 304   | 355   | 94.3  |
+| 32  | 233.7 | +38.9% | 0.913 | 1132  | 3483  | 132.9 |
+| 48  | 285.3 | +22.1% | 1.115 | 1447  | 4777  | 163.1 |
+| 64  | 338.5 | +18.6% | 1.322 | 1359  | 5061  | 184.2 |
+| 96  | 422.9 | +24.9% | 1.652 | 2396  | 9381  | 218.0 |
+| 128 | 499.1 | +18.0% | 1.950 | 2131  | 9965  | 248.3 |
+| 192 | 682.7 | +36.8% | 2.667 | 1035  | 1340  | 277.9 |
+| **256** | **708.9** | **+3.8%** | 2.769 | 1120 | 1495 | 276.8 |
 
-Prior ad-hoc baseline (from the maintainer's ops notes, to be re-measured properly here):
-c=1 → ~34 tok/s/user, TTFT ~316 ms, ITL ~29 ms; c=32 → ~219 tok/s aggregate output, TPOT ~137 ms,
-TTFT rose to ~2.3 s (prefill queuing).
+**Plateau: ~700–710 tok/s output**, reached at **concurrency ~192–256**. Every step through c=192 added
+double-digit throughput; c=192→256 added only **+3.8%**, so 256 is at/just past the knee. Notably 32 was
+**not** the ceiling — it delivers 233 tok/s, only ~1/3 of the sustained max.
+
+**Interpreting the two operating points:**
+- **Single-stream (c=1):** 34.1 tok/s/user, TTFT 71 ms, TPOT 29 ms — snappy interactive latency.
+- **Max throughput (c≈192–256):** ~700 tok/s aggregate, but per-token latency degrades ~10× (TPOT ~278 ms)
+  and TTFT is second-scale. This is the batch/offline regime, not interactive.
+- The bandwidth-limited GB10 decode path means TPOT rises steadily with batch size; pick the concurrency
+  for your SLO (e.g. keep TPOT < ~100 ms → stay at/below c≈16).
+
+All 12 levels completed with **zero failed requests**. Raw per-level JSON + the parsed
+[`throughput_sweep.csv`](raw/throughput_sweep/throughput_sweep.csv) and the sweep script are in
+[`raw/throughput_sweep/`](raw/throughput_sweep/).
+
+### Reproduce the sweep
+```bash
+# on-box, inside the container; climbs concurrency, saves JSON per level
+ssh warpcore 'bash /tmp/vllm_sweep.sh 1 2 4 8 16 32 48 64 96 128 192 256'
+# each level: vllm bench serve --backend openai --endpoint /v1/completions --ignore-eos \
+#   --dataset-name random --random-input-len 512 --random-output-len 256 \
+#   --num-prompts <~3x conc> --max-concurrency <conc> --save-result ...
+```
 
 ## Reproduce
 

@@ -6,18 +6,18 @@ basis, and documents the serving issues encountered on the hardware and how they
 
 ## Models
 
-| Model | Serving | GSM8K | IFEval (prompt-strict) | GPQA-Diamond | Full card |
-| ----- | ------- | ----- | ---------------------- | ------------ | --------- |
-| [openai/gpt-oss-120b](results/gpt-oss-120b/README.md) | vLLM MXFP4 | 83.7% | 83.7% | 72.7% | [card](results/gpt-oss-120b/README.md) |
+| Model | Serving | GSM8K | IFEval (prompt-strict) | GPQA-Diamond | Peak tok/s | Full card |
+| ----- | ------- | ----- | ---------------------- | ------------ | ---------- | --------- |
+| [openai/gpt-oss-120b](results/gpt-oss-120b/README.md) | vLLM MXFP4 | 83.7% | 83.7% | 72.7% | ~709 (c≈256) | [card](results/gpt-oss-120b/README.md) |
 
 ## What's measured
 
 - **Quality** — [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness)
   (GSM8K, IFEval, GPQA-Diamond) run against the live vLLM OpenAI chat endpoint, plus
   [Zapier AutomationBench](https://github.com/zapier/AutomationBench) for agentic business workflows.
-- **Throughput** *(planned — see each card's Throughput section)* — `vllm bench serve`
-  (output tok/s, TTFT, ITL/TPOT at varying concurrency). Not yet collected; the quality harnesses
-  above do **not** record tok/s.
+- **Throughput** — `vllm bench serve` concurrency sweep (output tok/s, TTFT, ITL/TPOT), climbed until
+  throughput plateaus. See each card's Throughput section. (Note: the quality harnesses above record
+  no tok/s — throughput is a separate on-box measurement.)
 
 ## Hardware
 
