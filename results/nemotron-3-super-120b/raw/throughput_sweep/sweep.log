@@ -1,0 +1,73 @@
+=== concurrency=1 num_prompts=32 ===
+Successful requests:                     32        
+Benchmark duration (s):                  537.06    
+Output token throughput (tok/s):         15.25     
+Mean TTFT (ms):                          447.14    
+Median TTFT (ms):                        448.01    
+P99 TTFT (ms):                           455.41    
+Mean TPOT (ms):                          64.06     
+Median TPOT (ms):                        64.07     
+Mean ITL (ms):                           64.06     
+saved /tmp/vllm_sweep_nemotron/bench_c1.json
+
+=== concurrency=2 num_prompts=32 ===
+Successful requests:                     32        
+Benchmark duration (s):                  307.32    
+Output token throughput (tok/s):         26.66     
+Mean TTFT (ms):                          718.33    
+Median TTFT (ms):                        706.57    
+P99 TTFT (ms):                           895.41    
+Mean TPOT (ms):                          72.50     
+Median TPOT (ms):                        73.25     
+Mean ITL (ms):                           72.50     
+saved /tmp/vllm_sweep_nemotron/bench_c2.json
+
+=== concurrency=4 num_prompts=32 ===
+Successful requests:                     32        
+Benchmark duration (s):                  194.51    
+Output token throughput (tok/s):         42.12     
+Mean TTFT (ms):                          1422.42   
+Median TTFT (ms):                        1404.95   
+P99 TTFT (ms):                           1455.12   
+Mean TPOT (ms):                          89.75     
+Median TPOT (ms):                        89.30     
+Mean ITL (ms):                           89.75     
+saved /tmp/vllm_sweep_nemotron/bench_c4.json
+
+=== concurrency=8 num_prompts=32 ===
+Successful requests:                     32        
+Benchmark duration (s):                  131.56    
+Output token throughput (tok/s):         62.27     
+Mean TTFT (ms):                          2278.79   
+Median TTFT (ms):                        2387.67   
+P99 TTFT (ms):                           2630.15   
+Mean TPOT (ms):                          119.93    
+Median TPOT (ms):                        119.22    
+Mean ITL (ms):                           119.93    
+saved /tmp/vllm_sweep_nemotron/bench_c8.json
+
+=== concurrency=16 num_prompts=48 ===
+Successful requests:                     48        
+Benchmark duration (s):                  141.89    
+Output token throughput (tok/s):         86.60     
+Mean TTFT (ms):                          3376.86   
+Median TTFT (ms):                        3217.62   
+P99 TTFT (ms):                           5029.55   
+Mean TPOT (ms):                          171.89    
+Median TPOT (ms):                        171.88    
+Mean ITL (ms):                           171.89    
+saved /tmp/vllm_sweep_nemotron/bench_c16.json
+
+=== concurrency=24 num_prompts=72 ===
+Successful requests:                     72        
+Benchmark duration (s):                  165.60    
+Output token throughput (tok/s):         111.30    
+Mean TTFT (ms):                          4090.70   
+Median TTFT (ms):                        3657.21   
+P99 TTFT (ms):                           7513.66   
+Mean TPOT (ms):                          199.91    
+Median TPOT (ms):                        204.47    
+Mean ITL (ms):                           199.91    
+saved /tmp/vllm_sweep_nemotron/bench_c24.json
+
+SWEEP_DONE

@@ -85,6 +85,44 @@ run log captures them regardless.)
 
 ---
 
+## 8. NVFP4 MoE `cutlass` backend crashes on GB10 (Nemotron-3-Super-120B) — use MARLIN
+**Symptom (two failure modes):** (a) the stock `spark-vllm-docker` recipe forces `--moe-backend
+cutlass` → engine init fails with `ValueError: NvFp4 MoE backend 'VLLM_CUTLASS' does not support the
+deployment configuration since kernel does not support no act_and_mul MLP layer`. (b) Dropping the
+flag lets vLLM's oracle auto-select `FLASHINFER_CUTLASS`, which loads fine but **crashes on the first
+decode** with `CUDA error: an illegal instruction was encountered` (`cudaErrorIllegalInstruction`).
+**Root cause:** the CUTLASS-family NVFP4 MoE kernels are incompatible with this model's MLP config /
+unstable on GB10 CUDA-graph execution. Same lesson as the gpt-oss MXFP4 CUTLASS crash.
+**Fix:** force `--moe-backend marlin`. MARLIN NVFP4 MoE is the GB10-stable path — verified correct
+output and survives sustained concurrent load (server up 2+ days, zero crashes across the full
+benchmark). Also bump `--max-num-seqs` (recipe default 10 → 24) to relieve the eval-throughput
+bottleneck.
+
+## 9. lm-eval aborts the WHOLE run when one request disconnects — patch the client to survive
+**Symptom:** on a very verbose reasoning model (Nemotron-3-Super generates 5–12 min traces on hard
+GPQA items), a request occasionally drops (`RuntimeError: Session is closed`) and lm-eval dies with
+`UnboundLocalError: local variable 'outputs' referenced before assignment` at `api_models.py:504` —
+**discarding the entire run's completed inference** (this killed three runs, ~2.5h + 8h wasted). A
+related crash: `RegexFilter`/scorers throw `TypeError: expected string or bytes-like object` on
+`content: null` (reasoning model spent its whole budget reasoning without a final answer).
+**Root cause:** (i) the error handler logs an unbound `outputs` var, turning a *retryable* disconnect
+into a fatal crash; (ii) `asyncio.gather(*tasks)` propagates the first exhausted-retry exception and
+cancels all siblings; (iii) filters/scorers don't guard `None` responses.
+**Fix (three source patches to lm-eval, applied per-venv):** (1) drop the unbound `{outputs}` from the
+`amodel_call` except-handler log; (2) make `get_batched_requests` gather with `return_exceptions=True`
+and substitute an empty-answer fallback for failed items (they score 0, run COMPLETES); (3) coerce
+`None → ""` in `RegexFilter` and the IFEval scorer. Also run reasoning-heavy models at LOW concurrency
+(c=4) with a LONG client timeout (≥3600 s). Full copy-paste patch: see the `lm-eval-vllm-endpoint`
+Hermes skill (`references/api_models_survive_patch.md`).
+
+## 10. Verbose reasoning + null-content: a real capability/cost characteristic, not just a harness bug
+Nemotron-3-Super-120B routinely exhausts even a 16 384-token budget in its reasoning channel on hard
+GPQA items and returns `content: null` (scored 0). Combined with 3–6 min/item generation, GPQA-Diamond
+took **9h15m** to evaluate (vs a fraction of that for gpt-oss). This depresses its GPQA score and makes
+it expensive to serve — worth recording as a model property, not dismissing as noise.
+
+---
+
 ## Non-issues (ruled out — don't chase)
 - The GB10 `nvidia-smi` memory `N/A` is normal (unified memory), not a broken GPU.
 - The `fatal: not a git repository` line lm-eval prints at the end is harmless (it tries to record a

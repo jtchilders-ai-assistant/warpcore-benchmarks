@@ -1,0 +1,41 @@
+dataset_path: Idavidrein/gpqa
+dataset_name: gpqa_diamond
+task: gpqa_diamond_cot_zeroshot_clean
+tag: gpqa_clean
+output_type: generate_until
+process_docs: !function utils.process_docs
+training_split: train
+validation_split: train
+test_split: null
+doc_to_text: "What is the correct answer to this question:{{Question}}\nChoices:\n(A) {{choice1}}\n(B) {{choice2}}\n(C) {{choice3}}\n(D) {{choice4}}\n\nThink step by step, then give your final answer on a new line in EXACTLY this format:\nThe answer is (X)\nwhere X is one of A, B, C, or D."
+doc_to_target: answer
+filter_list:
+  - name: "answer-line"
+    filter:
+      # Primary: anchored to the exact required final line "The answer is (X)".
+      - function: "regex"
+        regex_pattern: "[Tt]he answer is \\(?([A-D])\\)?"
+        group_select: -1
+      - function: "take_first"
+  - name: "flexible-fallback"
+    filter:
+      - function: "multi_choice_regex"
+        group_select: -1
+        ignore_case: true
+        ignore_punctuation: true
+        regex_pattern: "(\\([A-Z]\\))"
+      - function: "take_first"
+generation_kwargs:
+  until:
+    - "</s>"
+  do_sample: false
+  temperature: 0.0
+num_fewshot: 0
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: true
+metadata:
+  version: 2.0
