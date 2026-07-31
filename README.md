@@ -9,7 +9,7 @@ basis, and documents the serving issues encountered on the hardware and how they
 | Model | Serving | GSM8K | IFEval (prompt-strict) | GPQA-Diamond | Peak tok/s | Full card |
 | ----- | ------- | ----- | ---------------------- | ------------ | ---------- | --------- |
 | [openai/gpt-oss-120b](results/gpt-oss-120b/README.md) | vLLM MXFP4 | 83.7% | 83.7% | 72.7% | ~709 (c≈256) | [card](results/gpt-oss-120b/README.md) |
-| [nvidia/Nemotron-3-Super-120B-A12B-NVFP4](results/nemotron-3-super-120b/README.md) | vLLM NVFP4 (MARLIN) | 76.65% | 85.40% | 63.64% | ~111 (c=24 cap) | [card](results/nemotron-3-super-120b/README.md) |
+| [nvidia/Nemotron-3-Super-120B-A12B-NVFP4](results/nemotron-3-super-120b/README.md) | vLLM NVFP4 (MARLIN) | 76.65% | 85.40% | 63.64% | ~190 (c≈128) | [card](results/nemotron-3-super-120b/README.md) |
 
 ## What's measured
 

@@ -54,10 +54,11 @@ gpt-oss-120b on this hardware for these workloads.
 
 ## Throughput / latency — `vllm bench serve` concurrency sweep
 
-Measured 2026-07-30, **on-box** (inside `vllm_node` against `localhost:8000` → server ceiling,
+Measured 2026-07-30/31, **on-box** (inside `vllm_node` against `localhost:8000` → server ceiling,
 network excluded). Raw-completions path (`--backend openai --endpoint /v1/completions --ignore-eos`),
-fixed shape **512 input / 256 output** tokens. Concurrency climbed 1→24 (**the server is capped at
-`--max-num-seqs 24` by the recipe**, so 24 is the ceiling here, not a natural throughput plateau).
+fixed shape **512 input / 256 output** tokens. Concurrency swept 1→128 until output tok/s plateaus.
+(The 1→24 levels were run at `--max-num-seqs 24`; 32→128 after raising the server to
+`--max-num-seqs 128` — the server was restarted between the two halves, hence the c=32 warmup spike.)
 
 | Concurrency | Output tok/s | Δ vs prev | Mean TTFT (ms) | P99 TTFT (ms) | Mean TPOT (ms) |
 | ----------: | -----------: | --------: | -------------: | ------------: | -------------: |
@@ -66,21 +67,29 @@ fixed shape **512 input / 256 output** tokens. Concurrency climbed 1→24 (**the
 | 4 | 42.1 | +58.0% | 1422 | 1455 | 89.8 |
 | 8 | 62.3 | +47.8% | 2279 | 2630 | 119.9 |
 | 16 | 86.6 | +39.1% | 3377 | 5030 | 171.9 |
-| **24** | **111.3** | +28.5% | 4091 | 7514 | 199.9 |
+| 24 | 111.3 | +28.5% | 4091 | 7514 | 199.9 |
+| 32 | 110.5 | −0.8%¹ | 9466 | 27157 | 252.9 |
+| 48 | 140.6 | +27.3% | 5698 | 15113 | 318.9 |
+| 64 | 156.2 | +11.1% | 6703 | 20416 | 382.8 |
+| 96 | 184.5 | +18.1% | 8720 | 31720 | 484.1 |
+| **128** | **189.9** | +2.9% | 14403 | 123619 | 575.1 |
 
-**Peak ~111 tok/s at c=24 — but still climbing (+28.5% at the last step), so this is the
-`--max-num-seqs 24` cap, not a saturation plateau.** Raising the seq cap would likely push throughput
-higher (at the cost of TTFT/TPOT). Two operating points:
-- **Single-stream (c=1):** 15.2 tok/s/user, TTFT 447 ms, TPOT 64 ms.
-- **Capped max (c=24):** ~111 tok/s aggregate, TPOT ~200 ms, P99 TTFT ~7.5 s (batch/offline regime).
+¹ c=32 is a warm-up transient right after the server restart (note the 27 s P99 TTFT); the clean trend
+resumes at c=48.
 
-**Comparison caveat vs the gpt-oss-120b card (~709 tok/s @ c≈256):** the two are *not* directly
-comparable at peak — gpt-oss was served with a high seq cap and swept to c=256, while this Nemotron
-recipe caps at `--max-num-seqs 24`. At matched concurrency the single-stream latency is similar
-(gpt-oss c=1: 34 tok/s / TTFT 71 ms; Nemotron c=1: 15 tok/s / TTFT 447 ms) — **Nemotron is
-meaningfully slower per stream** (roughly half the single-user tok/s and ~6× the TTFT), consistent
-with its larger active-expert compute per token. Raw per-level output is in
-[`raw/throughput_sweep/sweep.log`](raw/throughput_sweep/sweep.log).
+**Plateau: ~185–190 tok/s output, reached at concurrency ~96–128** (c=96→128 adds only +2.9%, the knee).
+Three operating points:
+- **Single-stream (c=1):** 15.2 tok/s/user, TTFT 447 ms, TPOT 64 ms — snappy.
+- **Balanced (c≈24):** ~111 tok/s aggregate, TPOT ~200 ms, P99 TTFT ~7.5 s.
+- **Max throughput (c≈128):** ~190 tok/s aggregate, but latency collapses — TPOT ~575 ms and
+  P99 TTFT ~124 s (deep batch/offline regime; not usable interactively).
+
+**Comparison vs the gpt-oss-120b card (~709 tok/s @ c≈256):** now an apples-to-apples uncapped sweep —
+**gpt-oss-120b sustains ~3.7× Nemotron's peak throughput** (~709 vs ~190 tok/s) and is far snappier
+per stream (c=1: gpt-oss 34 tok/s / TTFT 71 ms vs Nemotron 15 tok/s / TTFT 447 ms). This is consistent
+with Nemotron's heavier per-token compute (larger active-expert footprint). Raw per-level output:
+[`raw/throughput_sweep/sweep.log`](raw/throughput_sweep/sweep.log) (c1–24) and
+[`sweep_hi.log`](raw/throughput_sweep/sweep_hi.log) (c32–128).
 
 ## Reproduce
 
