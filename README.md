@@ -6,11 +6,11 @@ basis, and documents the serving issues encountered on the hardware and how they
 
 ## Models
 
-| Model | Serving | GSM8K | IFEval (prompt-strict) | GPQA-Diamond | Peak tok/s | Full card |
-| ----- | ------- | ----- | ---------------------- | ------------ | ---------- | --------- |
-| [openai/gpt-oss-120b](results/gpt-oss-120b/README.md) | vLLM MXFP4 | 83.7% | 83.7% | 72.7% | ~709 (c≈256) | [card](results/gpt-oss-120b/README.md) |
-| [nvidia/Nemotron-3-Super-120B-A12B-NVFP4](results/nemotron-3-super-120b/README.md) | vLLM NVFP4 (MARLIN) | 76.65% | 85.40% | 63.64% | ~190 (c≈128) | [card](results/nemotron-3-super-120b/README.md) |
-| [Qwen/Qwen3.6-35B-A3B-FP8](results/qwen3.6-35b-a3b/README.md) | vLLM FP8 (TRITON) | 97.04% | 84.84% | 82.32% | ~487 (c=128) | [card](results/qwen3.6-35b-a3b/README.md) |
+| Model | Serving | GSM8K | IFEval (prompt-strict) | GPQA-Diamond | pi-30 | Peak tok/s | Full card |
+| ----- | ------- | ----- | ---------------------- | ------------ | ----- | ---------- | --------- |
+| [openai/gpt-oss-120b](results/gpt-oss-120b/README.md) | vLLM MXFP4 | 83.7% | 83.7% | 72.7% | 30/30 | ~709 (c≈256) | [card](results/gpt-oss-120b/README.md) |
+| [nvidia/Nemotron-3-Super-120B-A12B-NVFP4](results/nemotron-3-super-120b/README.md) | vLLM NVFP4 (MARLIN) | 76.65% | 85.40% | 63.64% | 30/30 | ~190 (c≈128) | [card](results/nemotron-3-super-120b/README.md) |
+| [Qwen/Qwen3.6-35B-A3B-FP8](results/qwen3.6-35b-a3b/README.md) | vLLM FP8 (TRITON) | 97.04% | 84.84% | 82.32% | 29/30 | ~487 (c=128) | [card](results/qwen3.6-35b-a3b/README.md) |
 
 ## What's measured
 

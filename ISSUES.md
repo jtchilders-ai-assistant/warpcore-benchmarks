@@ -121,6 +121,20 @@ GPQA items and returns `content: null` (scored 0). Combined with 3–6 min/item 
 took **9h15m** to evaluate (vs a fraction of that for gpt-oss). This depresses its GPQA score and makes
 it expensive to serve — worth recording as a model property, not dismissing as noise.
 
+## 11. gpt-oss pi-30 = 6/30 on the `--exp-mxfp4` build (server crash), 30/30 on the crash-fixed image
+Running the pi-30 agentic-coding sweep against gpt-oss-120b served by the recipe's default
+`vllm-node-mxfp4` build produced a bogus **6/30**: P1–P6 passed, then the engine hit
+`cudaErrorIllegalAddress` (the CUTLASS MXFP4 MoE crash, Signature 1) under the sustained
+tool-calling / guided-decoding load, and every later problem failed. Tell-tale: the throughput
+problems mid-run read absurd values (P15 ~0.08 Mtok/s vs the expected ~21; P23 ~0.11 Mn/s vs ~105) —
+a 250–1000× collapse = the server degraded/died, not the model. By the **ZERO-SCORE RULE**, a score
+that contradicts a known-good baseline (gpt-oss is a 30/30-class model) is an infra failure, not a
+result. **Fix:** re-serve gpt-oss on the crash-fixed `eugr/spark-vllm:latest` image (MARLIN MXFP4 MoE +
+TRITON), container `vllm_prebuilt`, then **verify with the concurrent guided-decoding stress test
+before re-running** (`stress_guided_decoding.py 60 16` → 60/60 OK, engine alive). On the fixed image
+gpt-oss scored a clean **30/30**. **The serving container is a first-class benchmark variable** — the
+same weights score 6/30 or 30/30 depending on it.
+
 ---
 
 ## Non-issues (ruled out — don't chase)

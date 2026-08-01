@@ -102,13 +102,13 @@ for Nemotron's long reasoning tails), single-shot canonical.
 | ----- | :---------: | -------- |
 | **Nemotron-3-Super-120B** | **30 / 30** | none |
 | Qwen3.6-35B-A3B | 29 / 30 | P2 (LRU cache) |
-| gpt-oss-120b | 29 / 30 | P5 (matmul GFLOP/s — GB10 throughput ceiling, not a capability gap) |
+| gpt-oss-120b | 30 / 30 | none (on the crash-fixed image) |
 
-**Nemotron-3-Super is the strongest of the three on agentic coding** — a perfect 30/30, including P5
-(101.6 GFLOP/s) and the LRU-cache problem (P2) that Qwen3.6 missed. This is a notable **reversal** of
-the quality-benchmark ranking (where Nemotron was weakest): the iterate-until-green agent loop rewards
-its verbose, methodical reasoning, whereas GSM8K/GPQA penalize its verbosity/latency. Raw per-problem
-log: [`raw/pi30/RESULTS.txt`](raw/pi30/RESULTS.txt).
+**Nemotron-3-Super ties gpt-oss-120b for the top agentic-coding score** — a perfect 30/30, including
+P5 (101.6 GFLOP/s) and the LRU-cache problem (P2) that Qwen3.6 missed. This is a notable **reversal**
+of the quality-benchmark ranking (where Nemotron was weakest): the iterate-until-green agent loop
+rewards its verbose, methodical reasoning, whereas GSM8K/GPQA penalize its verbosity/latency. Raw
+per-problem log: [`raw/pi30/RESULTS.txt`](raw/pi30/RESULTS.txt).
 
 ## Reproduce
 

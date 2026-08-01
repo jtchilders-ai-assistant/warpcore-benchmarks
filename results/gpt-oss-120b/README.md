@@ -102,6 +102,28 @@ ssh warpcore 'bash /tmp/vllm_sweep.sh 1 2 4 8 16 32 48 64 96 128 192 256'
 #   --num-prompts <~3x conc> --max-concurrency <conc> --save-result ...
 ```
 
+## Agentic coding — pi-30 (Fleet-30)
+
+[`rick-stevens-ai/pi-30`](https://github.com/rick-stevens-ai/pi-30): 30 agentic-coding problems, each
+solved via a full `pi` agent tool-loop (read/write/bash), graded **solely by verifier exit codes**.
+Run from a client Mac against the warpcore endpoint, `PI_TIMEOUT=360`, single-shot canonical.
+
+| Model | pi-30 score | Failures |
+| ----- | :---------: | -------- |
+| **gpt-oss-120b** | **30 / 30** | none |
+| Nemotron-3-Super-120B | 30 / 30 | none |
+| Qwen3.6-35B-A3B | 29 / 30 | P2 (LRU cache) |
+
+**⚠ Serving-stack caveat (this materially changes the score):** gpt-oss-120b MUST be served on the
+crash-fixed **`eugr/spark-vllm:latest`** image (MARLIN MXFP4 MoE + TRITON attention). The
+`spark-vllm-docker` recipe's default `vllm-node-mxfp4` build hits a `cudaErrorIllegalAddress` (CUTLASS
+MXFP4 MoE kernel bug) partway through the sustained tool-calling workload — on the crashing build this
+same model scored a bogus **6/30** (engine died ~P7; P15/P23 throughput collapsed 250–1000×). On the
+crash-fixed image it is a clean **30/30**, verified beforehand with a 60-way concurrent
+guided-decoding stress test (60/60 OK, engine alive). **The serving container is a first-class
+benchmark variable — the same weights score 6/30 or 30/30 depending on it.** See
+[../../ISSUES.md](../../ISSUES.md). Raw per-problem log: [`raw/pi30/RESULTS.txt`](raw/pi30/RESULTS.txt).
+
 ## Reproduce
 
 ```bash

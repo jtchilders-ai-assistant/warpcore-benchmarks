@@ -97,11 +97,11 @@ Run from a client Mac against the warpcore endpoint, `PI_TIMEOUT=360`, single-sh
 | ----- | :---------: | -------- |
 | Nemotron-3-Super-120B | 30 / 30 | none |
 | **Qwen3.6-35B-A3B** | **29 / 30** | P2 (LRU cache) |
-| gpt-oss-120b | 29 / 30 | P5 (matmul GFLOP/s — GB10 throughput ceiling) |
+| gpt-oss-120b | 30 / 30 | none (on the crash-fixed image) |
 
-Qwen3.6-35B ties gpt-oss-120b at **29/30** — matching the 120B incumbent on agentic coding at ¼ the
-size. Its one miss (P2, LRU cache) is a genuine model error (staging verified). Notably it **passed
-P5** (60.0 GFLOP/s matmul), gpt-oss's one failure. Raw per-problem log:
+At **29/30**, Qwen3.6-35B is within one problem of the two 120B models (both 30/30) on agentic coding —
+a strong showing at ¼ the size. Its one miss (P2, LRU cache) is a genuine model error (staging
+verified). Notably it passed several problems cleanly on the first try. Raw per-problem log:
 [`raw/pi30/RESULTS.txt`](raw/pi30/RESULTS.txt).
 
 ## Reproduce
