@@ -87,6 +87,23 @@ absolute peak (~709 tok/s, but only at c≈256). Given Qwen3.6 is ¼ the size wi
 higher quality scores, it is the efficiency winner on this hardware. Raw per-level output:
 [`raw/throughput_sweep/sweep.log`](raw/throughput_sweep/sweep.log).
 
+## Agentic coding — pi-30 (Fleet-30)
+
+[`rick-stevens-ai/pi-30`](https://github.com/rick-stevens-ai/pi-30): 30 agentic-coding problems, each
+solved via a full `pi` agent tool-loop (read/write/bash), graded **solely by verifier exit codes**.
+Run from a client Mac against the warpcore endpoint, `PI_TIMEOUT=360`, single-shot canonical.
+
+| Model | pi-30 score | Failures |
+| ----- | :---------: | -------- |
+| Nemotron-3-Super-120B | 30 / 30 | none |
+| **Qwen3.6-35B-A3B** | **29 / 30** | P2 (LRU cache) |
+| gpt-oss-120b | 29 / 30 | P5 (matmul GFLOP/s — GB10 throughput ceiling) |
+
+Qwen3.6-35B ties gpt-oss-120b at **29/30** — matching the 120B incumbent on agentic coding at ¼ the
+size. Its one miss (P2, LRU cache) is a genuine model error (staging verified). Notably it **passed
+P5** (60.0 GFLOP/s matmul), gpt-oss's one failure. Raw per-problem log:
+[`raw/pi30/RESULTS.txt`](raw/pi30/RESULTS.txt).
+
 ## Reproduce
 
 ```bash
