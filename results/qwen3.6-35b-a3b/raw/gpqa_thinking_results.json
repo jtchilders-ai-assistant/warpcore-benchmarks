@@ -1,0 +1,146 @@
+{
+  "results": {
+    "gpqa_diamond_cot_zeroshot_clean": {
+      "alias": "gpqa_diamond_cot_zeroshot_clean",
+      "exact_match,answer-line": 0.3383838383838384,
+      "exact_match_stderr,answer-line": 0.03371124142626302,
+      "exact_match,flexible-fallback": 0.3383838383838384,
+      "exact_match_stderr,flexible-fallback": 0.03371124142626302
+    }
+  },
+  "group_subtasks": {
+    "gpqa_diamond_cot_zeroshot_clean": []
+  },
+  "configs": {
+    "gpqa_diamond_cot_zeroshot_clean": {
+      "task": "gpqa_diamond_cot_zeroshot_clean",
+      "tag": "gpqa_clean",
+      "dataset_path": "Idavidrein/gpqa",
+      "dataset_name": "gpqa_diamond",
+      "training_split": "train",
+      "validation_split": "train",
+      "process_docs": "def process_docs(dataset: datasets.Dataset) -> datasets.Dataset:\n    def _process_doc(doc):\n        choices = [\n            preprocess(doc[\"Incorrect Answer 1\"]),\n            preprocess(doc[\"Incorrect Answer 2\"]),\n            preprocess(doc[\"Incorrect Answer 3\"]),\n            preprocess(doc[\"Correct Answer\"]),\n        ]\n\n        random.shuffle(choices)\n        correct_answer_index = choices.index(preprocess(doc[\"Correct Answer\"]))\n\n        out_doc = {\n            \"choice1\": choices[0],\n            \"choice2\": choices[1],\n            \"choice3\": choices[2],\n            \"choice4\": choices[3],\n            \"choices\": [choices[0], choices[1], choices[2], choices[3]],\n            \"answer\": f\"({chr(65 + correct_answer_index)})\",\n        }\n        return out_doc\n\n    return dataset.map(_process_doc)\n",
+      "doc_to_text": "What is the correct answer to this question:{{Question}}\nChoices:\n(A) {{choice1}}\n(B) {{choice2}}\n(C) {{choice3}}\n(D) {{choice4}}\n\nThink step by step, then give your final answer on a new line in EXACTLY this format:\nThe answer is (X)\nwhere X is one of A, B, C, or D.",
+      "doc_to_target": "answer",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "exact_match",
+          "aggregation": "mean",
+          "higher_is_better": true,
+          "ignore_case": true,
+          "ignore_punctuation": true
+        }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+        "until": [
+          "</s>"
+        ],
+        "do_sample": false,
+        "temperature": 0,
+        "max_gen_toks": 16384
+      },
+      "repeats": 1,
+      "filter_list": [
+        {
+          "name": "answer-line",
+          "filter": [
+            {
+              "function": "regex",
+              "regex_pattern": "[Tt]he answer is \\(?([A-D])\\)?",
+              "group_select": -1
+            },
+            {
+              "function": "take_first"
+            }
+          ]
+        },
+        {
+          "name": "flexible-fallback",
+          "filter": [
+            {
+              "function": "multi_choice_regex",
+              "group_select": -1,
+              "ignore_case": true,
+              "ignore_punctuation": true,
+              "regex_pattern": "(\\([A-Z]\\))"
+            },
+            {
+              "function": "take_first"
+            }
+          ]
+        }
+      ],
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 2.0,
+        "model": "Qwen/Qwen3.6-35B-A3B-FP8",
+        "base_url": "http://csi370295.alcf.anl.gov:8000/v1/chat/completions",
+        "num_concurrent": 6,
+        "max_retries": 8,
+        "tokenized_requests": false,
+        "timeout": 1800
+      }
+    }
+  },
+  "versions": {
+    "gpqa_diamond_cot_zeroshot_clean": 2.0
+  },
+  "n-shot": {
+    "gpqa_diamond_cot_zeroshot_clean": 0
+  },
+  "higher_is_better": {
+    "gpqa_diamond_cot_zeroshot_clean": {
+      "exact_match": true
+    }
+  },
+  "n-samples": {
+    "gpqa_diamond_cot_zeroshot_clean": {
+      "original": 198,
+      "effective": 198
+    }
+  },
+  "config": {
+    "model": "local-chat-completions",
+    "model_args": "model=Qwen/Qwen3.6-35B-A3B-FP8,base_url=http://csi370295.alcf.anl.gov:8000/v1/chat/completions,num_concurrent=6,max_retries=8,tokenized_requests=False,timeout=1800",
+    "batch_size": 1,
+    "batch_sizes": [],
+    "device": null,
+    "use_cache": null,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "gen_kwargs": {
+      "max_gen_toks": 16384,
+      "temperature": 0
+    },
+    "random_seed": 0,
+    "numpy_seed": 1234,
+    "torch_seed": 1234,
+    "fewshot_seed": 1234
+  },
+  "git_hash": null,
+  "date": 1785567036.896696,
+  "pretty_env_info": "PyTorch version: 2.2.2\nIs debug build: False\nCUDA used to build PyTorch: None\nROCM used to build PyTorch: N/A\n\nOS: macOS 15.7.8 (x86_64)\nGCC version: Could not collect\nClang version: 17.0.0 (clang-1700.6.4.2)\nCMake version: Could not collect\nLibc version: N/A\n\nPython version: 3.9.6 (default, Jan  9 2026, 11:03:41)  [Clang 17.0.0 (clang-1700.6.4.2)] (64-bit runtime)\nPython platform: macOS-15.7.8-x86_64-i386-64bit\nIs CUDA available: False\nCUDA runtime version: No CUDA\nCUDA_MODULE_LOADING set to: N/A\nGPU models and configuration: No CUDA\nNvidia driver version: No CUDA\ncuDNN version: No CUDA\nHIP runtime version: N/A\nMIOpen runtime version: N/A\nIs XNNPACK available: True\n\nCPU:\nIntel(R) Core(TM) i7-8700B CPU @ 3.20GHz\n\nVersions of relevant libraries:\n[pip3] numpy==1.26.4\n[pip3] torch==2.2.2\n[conda] Could not collect",
+  "transformers_version": "4.57.6",
+  "lm_eval_version": "0.4.9.1",
+  "upper_git_hash": null,
+  "task_hashes": {
+    "gpqa_diamond_cot_zeroshot_clean": "e1aacf0298ce87f4f71d41e88bfdcac610e0814b8ada66b68e3aea3beff541ff"
+  },
+  "model_source": "local-chat-completions",
+  "model_name": "Qwen/Qwen3.6-35B-A3B-FP8",
+  "model_name_sanitized": "Qwen__Qwen3.6-35B-A3B-FP8",
+  "system_instruction": null,
+  "system_instruction_sha": null,
+  "fewshot_as_multiturn": false,
+  "chat_template": "",
+  "chat_template_sha": null,
+  "start_time": 6.697934053,
+  "end_time": 22494.429068867,
+  "total_evaluation_time_seconds": "22487.731134814"
+}

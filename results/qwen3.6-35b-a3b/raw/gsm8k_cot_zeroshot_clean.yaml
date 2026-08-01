@@ -1,0 +1,46 @@
+dataset_path: gsm8k
+dataset_name: main
+task: gsm8k_cot_zeroshot_clean
+tag: gsm8k_clean
+output_type: generate_until
+test_split: test
+doc_to_text: "Q: {{question}}\n\nSolve this step by step. Then, on the final line, give your answer in EXACTLY this format:\nThe answer is <number>\nwhere <number> is a plain integer with no commas, units, currency symbols, or formatting.\nA:"
+doc_to_target: "{{answer.split('#### ')[-1]|replace(',', '')|trim}}"
+filter_list:
+  - name: "answer-line"
+    filter:
+      # Primary: anchored to the required final line "The answer is <number>"
+      - function: "regex"
+        regex_pattern: "[Tt]he answer is\\s*\\$?\\s*(-?[0-9][0-9,]*)"
+        group_select: -1
+      - function: "take_first"
+      # normalize: strip commas
+      - function: "regex"
+        regex_pattern: "(-?[0-9,]+)"
+      - function: "take_first"
+  - name: "flexible-fallback"
+    filter:
+      # Fallback: last number anywhere in the output (handles $, bold, etc.)
+      - function: "regex"
+        group_select: -1
+        regex_pattern: "(-?[0-9][0-9,]*)"
+      - function: "take_first"
+generation_kwargs:
+  until:
+    - "</s>"
+    - "\n\nQ:"
+  do_sample: false
+  temperature: 0.0
+num_fewshot: 0
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+    ignore_case: true
+    ignore_punctuation: false
+    regexes_to_ignore:
+      - ","
+      - "\\$"
+      - "\\."
+metadata:
+  version: 1.0

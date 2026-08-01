@@ -1,0 +1,133 @@
+=== concurrency=1 num_prompts=32 ===
+Successful requests:                     32        
+Benchmark duration (s):                  172.61    
+Output token throughput (tok/s):         47.46     
+Mean TTFT (ms):                          155.28    
+Median TTFT (ms):                        155.11    
+P99 TTFT (ms):                           169.60    
+Mean TPOT (ms):                          20.54     
+Median TPOT (ms):                        20.54     
+Mean ITL (ms):                           20.54     
+saved /tmp/vllm_sweep_qwen36/bench_c1.json
+
+=== concurrency=2 num_prompts=32 ===
+Successful requests:                     32        
+Benchmark duration (s):                  109.03    
+Output token throughput (tok/s):         75.14     
+Mean TTFT (ms):                          254.23    
+Median TTFT (ms):                        242.25    
+P99 TTFT (ms):                           301.41    
+Mean TPOT (ms):                          25.72     
+Median TPOT (ms):                        25.86     
+Mean ITL (ms):                           25.72     
+saved /tmp/vllm_sweep_qwen36/bench_c2.json
+
+=== concurrency=4 num_prompts=32 ===
+Successful requests:                     32        
+Benchmark duration (s):                  72.99     
+Output token throughput (tok/s):         112.24    
+Mean TTFT (ms):                          390.64    
+Median TTFT (ms):                        433.78    
+P99 TTFT (ms):                           459.61    
+Mean TPOT (ms):                          34.24     
+Median TPOT (ms):                        34.10     
+Mean ITL (ms):                           34.24     
+saved /tmp/vllm_sweep_qwen36/bench_c4.json
+
+=== concurrency=8 num_prompts=32 ===
+Successful requests:                     32        
+Benchmark duration (s):                  55.78     
+Output token throughput (tok/s):         146.87    
+Mean TTFT (ms):                          1554.09   
+Median TTFT (ms):                        735.94    
+P99 TTFT (ms):                           4177.80   
+Mean TPOT (ms):                          48.57     
+Median TPOT (ms):                        48.50     
+Mean ITL (ms):                           48.57     
+saved /tmp/vllm_sweep_qwen36/bench_c8.json
+
+=== concurrency=16 num_prompts=48 ===
+Successful requests:                     48        
+Benchmark duration (s):                  58.22     
+Output token throughput (tok/s):         211.05    
+Mean TTFT (ms):                          1206.10   
+Median TTFT (ms):                        1271.42   
+P99 TTFT (ms):                           1291.21   
+Mean TPOT (ms):                          71.37     
+Median TPOT (ms):                        71.49     
+Mean ITL (ms):                           71.37     
+saved /tmp/vllm_sweep_qwen36/bench_c16.json
+
+=== concurrency=24 num_prompts=72 ===
+Successful requests:                     72        
+Benchmark duration (s):                  75.27     
+Output token throughput (tok/s):         244.87    
+Mean TTFT (ms):                          1967.53   
+Median TTFT (ms):                        2025.94   
+P99 TTFT (ms):                           2082.09   
+Mean TPOT (ms):                          90.66     
+Median TPOT (ms):                        91.08     
+Mean ITL (ms):                           90.66     
+saved /tmp/vllm_sweep_qwen36/bench_c24.json
+
+=== concurrency=32 num_prompts=96 ===
+Successful requests:                     96        
+Benchmark duration (s):                  87.78     
+Output token throughput (tok/s):         279.96    
+Mean TTFT (ms):                          2603.43   
+Median TTFT (ms):                        2660.06   
+P99 TTFT (ms):                           2725.36   
+Mean TPOT (ms):                          104.52    
+Median TPOT (ms):                        105.28    
+Mean ITL (ms):                           104.52    
+saved /tmp/vllm_sweep_qwen36/bench_c32.json
+
+=== concurrency=48 num_prompts=144 ===
+Successful requests:                     144       
+Benchmark duration (s):                  111.90    
+Output token throughput (tok/s):         329.45    
+Mean TTFT (ms):                          3408.23   
+Median TTFT (ms):                        3357.70   
+P99 TTFT (ms):                           3996.27   
+Mean TPOT (ms):                          132.83    
+Median TPOT (ms):                        132.04    
+Mean ITL (ms):                           132.83    
+saved /tmp/vllm_sweep_qwen36/bench_c48.json
+
+=== concurrency=64 num_prompts=192 ===
+Successful requests:                     192       
+Benchmark duration (s):                  132.58    
+Output token throughput (tok/s):         370.74    
+Mean TTFT (ms):                          4524.53   
+Median TTFT (ms):                        4106.66   
+P99 TTFT (ms):                           5350.34   
+Mean TPOT (ms):                          155.45    
+Median TPOT (ms):                        156.07    
+Mean ITL (ms):                           155.45    
+saved /tmp/vllm_sweep_qwen36/bench_c64.json
+
+=== concurrency=96 num_prompts=288 ===
+Successful requests:                     288       
+Benchmark duration (s):                  168.73    
+Output token throughput (tok/s):         436.95    
+Mean TTFT (ms):                          6055.06   
+Median TTFT (ms):                        6531.83   
+P99 TTFT (ms):                           8080.44   
+Mean TPOT (ms):                          196.60    
+Median TPOT (ms):                        194.03    
+Mean ITL (ms):                           196.60    
+saved /tmp/vllm_sweep_qwen36/bench_c96.json
+
+=== concurrency=128 num_prompts=384 ===
+Successful requests:                     384       
+Benchmark duration (s):                  201.96    
+Output token throughput (tok/s):         486.74    
+Mean TTFT (ms):                          6925.23   
+Median TTFT (ms):                        7019.36   
+P99 TTFT (ms):                           10960.44  
+Mean TPOT (ms):                          236.51    
+Median TPOT (ms):                        234.74    
+Mean ITL (ms):                           236.51    
+saved /tmp/vllm_sweep_qwen36/bench_c128.json
+
+SWEEP_DONE
