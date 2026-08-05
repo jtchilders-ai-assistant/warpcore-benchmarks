@@ -104,6 +104,53 @@ a strong showing at ¼ the size. Its one miss (P2, LRU cache) is a genuine model
 verified). Notably it passed several problems cleanly on the first try. Raw per-problem log:
 [`raw/pi30/RESULTS.txt`](raw/pi30/RESULTS.txt).
 
+## Agentic coding — SWE-bench Verified
+
+[SWE-bench Verified](https://www.swebench.com/): resolve real GitHub issues by producing a patch that
+makes the repo's hidden test suite pass. Run with [mini-swe-agent](https://github.com/SWE-agent/mini-swe-agent)
+v2.4.6 (bash-only agent loop, no custom scaffolding). **The agent and the x86 test-execution Docker
+containers run on a client Mac (x86_64); only the model is served on Warpcore** — this keeps results
+leaderboard-comparable (Warpcore is aarch64 and can't run the x86 SWE-bench images itself). Native
+tool-calling via `--tool-call-parser qwen3_xml`; `temperature=0`; default 250-step agent limit;
+per-request timeout 1800 s.
+
+**Reported on a representative random 100-instance sample** (`--shuffle`, seed-free) of the 500-instance
+Verified set — **not** the full set. A contiguous slice was explicitly avoided: the first 50 instances
+alphabetically are only 2 repos (astropy + django, the easier end) and over-scored at 52%. The random
+100-sample spans **11 repos** and is the honest indicative number.
+
+| Metric | Value |
+| ------ | :---: |
+| **Resolved** | **44 / 100 = 44%** (±~5% at n=100) |
+| Unresolved (patch applied, tests failed) | 22 |
+| Empty patch (no fix submitted) | 29 |
+| Harness error | 5 |
+
+**Per-repo (resolved / sampled):**
+
+| Repo | Resolved | Repo | Resolved |
+| ---- | :------: | ---- | :------: |
+| django | 26 / 56 | pydata/xarray | 2 / 3 |
+| sphinx | 5 / 10 | matplotlib | 1 / 2 |
+| scikit-learn | 3 / 5 | pylint | 1 / 2 |
+| astropy | 2 / 5 | pytest | 1 / 4 |
+| sympy | 2 / 10 | pallets/flask | 1 / 1 |
+| requests (psf) | 0 / 2 | | |
+
+**Reading it:** 44% on a representative sample is a **strong result for a 35B model** — SWE-bench
+Verified is a hard, execution-graded coding benchmark, and this is competitive with much larger models.
+Consistent with pi-30 (29/30), Qwen3.6-35B is a capable agentic coder well above its weight class.
+
+**Caveat — the score is a conservative floor.** 29 of the 100 attempts submitted an **empty patch**, the
+majority because the agent hit the wall-clock timeout mid-work on the harder repos (notably **sympy,
+2/10**) before it could submit — Qwen3.6's lengthy chain-of-thought eats the per-instance budget on hard
+problems. A larger per-instance time budget would likely recover several of those, so 44% is the
+low-generosity number. Defaults were kept for comparability.
+
+> This is a **100-sample**, not the full 500 — treat 44% as indicative (±~5%), not the exact
+> leaderboard figure. Raw report, predictions, and per-instance exit statuses:
+> [`raw/swebench/`](raw/swebench/).
+
 ## Reproduce
 
 ```bash
@@ -128,3 +175,32 @@ HF_TOKEN=... LMEVAL_NO_THINK=1 OPENAI_API_KEY=dummy lm_eval --model local-chat-c
 ```
 
 Raw harness output (results JSON for both GPQA modes, custom task configs) is in [`raw/`](raw/).
+
+### SWE-bench Verified (agent + scoring)
+
+Agent and x86 test containers on a client Mac; model served on Warpcore. mini-swe-agent v2.4.6,
+`swebench` 4.1.0 eval harness. (Serve Qwen3.6 with `--tool-call-parser qwen3_xml --enable-auto-tool-choice`.)
+
+```bash
+# 1) Agent phase — representative random 100-sample, writes preds.json
+export OPENAI_API_KEY=dummy OPENAI_API_BASE=http://csi370295.alcf.anl.gov:8000/v1
+export MSWEA_COST_TRACKING=ignore_errors
+CFG=$(python -c "import minisweagent,os;print(os.path.join(os.path.dirname(minisweagent.__file__),'config/benchmarks/swebench.yaml'))")
+mini-extra swebench --subset verified --split test --shuffle --slice 0:100 --workers 3 \
+  -m "openai/Qwen/Qwen3.6-35B-A3B-FP8" \
+  -c "$CFG" -c model.model_kwargs.temperature=0 -c model.model_kwargs.timeout=1800 \
+  -o swebench_out
+
+# 2) Scoring — builds x86 test containers, applies patches, runs test suites
+python -m swebench.harness.run_evaluation \
+  --dataset_name princeton-nlp/SWE-bench_Verified \
+  --predictions_path swebench_out/preds.json \
+  --max_workers 4 --run_id qwen_shuffle100 --namespace swebench
+# -> openai__Qwen__Qwen3.6-35B-A3B-FP8.qwen_shuffle100.json  (resolved_instances / 100)
+```
+
+Notes: `swebench` pulls in a hard `import modal` (cloud path) that fails to build on some hosts — install
+with `--no-deps` plus the real deps and stub the `modal` package if you only run local Docker eval. The
+default 250-step agent limit is required (lower caps cause premature `LimitsExceeded`); the 1800 s
+per-request timeout accommodates long reasoning. The full pipeline (with all pitfalls) is captured in the
+Hermes skill `swebench-vllm-endpoint`. Raw report + predictions: [`raw/swebench/`](raw/swebench/).

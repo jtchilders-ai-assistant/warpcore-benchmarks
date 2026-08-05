@@ -6,11 +6,13 @@ basis, and documents the serving issues encountered on the hardware and how they
 
 ## Models
 
-| Model | Serving | GSM8K | IFEval (prompt-strict) | GPQA-Diamond | pi-30 | Peak tok/s | Full card |
-| ----- | ------- | ----- | ---------------------- | ------------ | ----- | ---------- | --------- |
-| [openai/gpt-oss-120b](results/gpt-oss-120b/README.md) | vLLM MXFP4 | 83.7% | 83.7% | 72.7% | 30/30 | ~709 (c≈256) | [card](results/gpt-oss-120b/README.md) |
-| [nvidia/Nemotron-3-Super-120B-A12B-NVFP4](results/nemotron-3-super-120b/README.md) | vLLM NVFP4 (MARLIN) | 76.65% | 85.40% | 63.64% | 30/30 | ~190 (c≈128) | [card](results/nemotron-3-super-120b/README.md) |
-| [Qwen/Qwen3.6-35B-A3B-FP8](results/qwen3.6-35b-a3b/README.md) | vLLM FP8 (TRITON) | 97.04% | 84.84% | 82.32% | 29/30 | ~487 (c=128) | [card](results/qwen3.6-35b-a3b/README.md) |
+| Model | Serving | GSM8K | IFEval (prompt-strict) | GPQA-Diamond | pi-30 | SWE-bench Verified | Peak tok/s | Full card |
+| ----- | ------- | ----- | ---------------------- | ------------ | ----- | ------------------ | ---------- | --------- |
+| [openai/gpt-oss-120b](results/gpt-oss-120b/README.md) | vLLM MXFP4 | 83.7% | 83.7% | 72.7% | 30/30 | — | ~709 (c≈256) | [card](results/gpt-oss-120b/README.md) |
+| [nvidia/Nemotron-3-Super-120B-A12B-NVFP4](results/nemotron-3-super-120b/README.md) | vLLM NVFP4 (MARLIN) | 76.65% | 85.40% | 63.64% | 30/30 | — | ~190 (c≈128) | [card](results/nemotron-3-super-120b/README.md) |
+| [Qwen/Qwen3.6-35B-A3B-FP8](results/qwen3.6-35b-a3b/README.md) | vLLM FP8 (TRITON) | 97.04% | 84.84% | 82.32% | 29/30 | 44% (n=100)¹ | ~487 (c=128) | [card](results/qwen3.6-35b-a3b/README.md) |
+
+¹ SWE-bench Verified, **representative random 100-instance sample** (11 repos), not the full 500 — indicative score ±~5%. See the [Qwen3.6 card](results/qwen3.6-35b-a3b/README.md#agentic-coding-swe-bench-verified) for the per-repo breakdown and caveats.
 
 ## What's measured
 
@@ -20,6 +22,11 @@ basis, and documents the serving issues encountered on the hardware and how they
 - **Throughput** — `vllm bench serve` concurrency sweep (output tok/s, TTFT, ITL/TPOT), climbed until
   throughput plateaus. See each card's Throughput section. (Note: the quality harnesses above record
   no tok/s — throughput is a separate on-box measurement.)
+- **Agentic coding** — [pi-30](https://github.com/rick-stevens-ai/pi-30) (30 agentic-coding problems, verifier-graded)
+  and, for Qwen3.6, [SWE-bench Verified](https://www.swebench.com/) via
+  [mini-swe-agent](https://github.com/SWE-agent/mini-swe-agent) (bash-only agent loop; the agent + x86 test
+  containers run on a client Mac, the model is served on Warpcore). SWE-bench is reported on a representative
+  random 100-instance sample (not the full 500).
 
 ## Hardware
 
