@@ -124,6 +124,53 @@ guided-decoding stress test (60/60 OK, engine alive). **The serving container is
 benchmark variable — the same weights score 6/30 or 30/30 depending on it.** See
 [../../ISSUES.md](../../ISSUES.md). Raw per-problem log: [`raw/pi30/RESULTS.txt`](raw/pi30/RESULTS.txt).
 
+## Agentic coding — SWE-bench Verified (blocked)
+
+**No trustworthy SWE-bench Verified score could be produced for gpt-oss-120b on this vLLM serving
+stack — the run is blocked by a serving-layer bug, not by the model.** This is documented rather than
+scored, because reporting a resolved-rate from these runs would measure vLLM's brokenness, not
+gpt-oss's coding ability.
+
+### What happened
+
+Run under the same pipeline used for Qwen3.6-35B (mini-swe-agent, representative random 100-instance
+sample, agent + x86 test containers on a client Mac, model served on Warpcore). Two scaffolds were
+tried; both failed with `RepeatedFormatError`, for the **same root cause: gpt-oss emits multiple
+actions per turn.**
+
+| Scaffold | Result | Why it fails |
+| --- | --- | --- |
+| Native tool-calling (`swebench.yaml`, same as Qwen3.6) | **79/100 RepeatedFormatError**, 21 Submitted | The harness *supports* multiple tool calls, but vLLM's `openai` tool-call parser **intermittently corrupts the JSON arguments** of complex/multiple calls → `Error parsing tool call arguments: Expecting ',' delimiter` → abort. |
+| Bash-in-content (`swebench_backticks.yaml` + `litellm_textbased`) | 2/3 RepeatedFormatError (smoke) | gpt-oss writes several ```` ```bash ```` blocks per reply; the text parser requires **exactly one** action → `Expected exactly 1 action, found N` → abort. |
+
+### Why this is a serving bug, not a capability failure
+
+In the tool-calling run, **all 79/79 format-errors traced to vLLM JSON-argument corruption** (not the
+model refusing or failing). Before each abort, gpt-oss had executed a **median of 12 successful shell
+commands**, and **77 of 79** aborted instances had run ≥3 real commands — i.e. the model was actively
+and correctly working the problem (locating classes, reading source, building repros) when the serving
+layer mangled a tool call and killed the run. This is fully consistent with gpt-oss-120b's clean
+**30/30 on pi-30** agentic coding above: it is a strong agentic coder; the endpoint is what's broken.
+
+This is a **known class of vLLM gpt-oss tool-calling bugs**
+([#22578](https://github.com/vllm-project/vllm/issues/22578),
+[#22337](https://github.com/vllm-project/vllm/issues/22337),
+[#25560](https://github.com/vllm-project/vllm/issues/25560),
+[#32587](https://github.com/vllm-project/vllm/issues/32587),
+[#26967](https://github.com/vllm-project/vllm/issues/26967)) — malformed tool-call arguments,
+special-token leakage into tool names/content, and args-in-content. Serving build:
+`eugr/spark-vllm:latest`, vLLM `0.23.1rc1.dev961+gbc6fbf472`.
+
+### Paths to a real number (future work)
+
+- **Upgrade/swap the vLLM build** to one where the gpt-oss tool-call JSON corruption is fixed, then
+  re-run on the *unmodified* tool-calling scaffold — the fairest option, keeps it directly comparable
+  to Qwen3.6's 44%.
+- Patching the client harness to tolerate multiple actions (execute-first or execute-all) would
+  produce a number quickly but changes the harness, so it would **not** be strictly comparable to the
+  other models and is not done here.
+
+
 ## Reproduce
 
 ```bash

@@ -1,0 +1,31 @@
+{
+  "run": "gptoss_shuffle100 (native tool-calling scaffold, swebench.yaml)",
+  "serving": "eugr/spark-vllm:latest, vLLM 0.23.1rc1.dev961+gbc6fbf472, --tool-call-parser openai",
+  "model": "openai/gpt-oss-120b",
+  "sample": "representative random 100-instance SWE-bench Verified (--shuffle --slice 0:100)",
+  "counts": {
+    "RepeatedFormatError": 79,
+    "Submitted": 21
+  },
+  "rfe_caused_by_vllm_json_corruption": 79,
+  "median_successful_command_execs_before_abort": 12,
+  "rfe_instances_actively_working_ge3_cmds": 77,
+  "conclusion": "Blocked by vLLM tool-call JSON-argument corruption, NOT a model capability failure. gpt-oss was actively solving instances when the serving layer aborted the run.",
+  "examples": [
+    {
+      "instance": "django__django-14672",
+      "successful_command_execs": 5,
+      "sample_error": "Tool call error:\n\n<error>\nError parsing tool call arguments: Expecting ',' delimiter: line 1 column 1611 (char 1610).Missing 'command' argument in bash tool call.\n</error>\n\nHere is general guidance on"
+    },
+    {
+      "instance": "django__django-11299",
+      "successful_command_execs": 19,
+      "sample_error": "Tool call error:\n\n<error>\nError parsing tool call arguments: Expecting ',' delimiter: line 1 column 1526 (char 1525).Missing 'command' argument in bash tool call.\n</error>\n\nHere is general guidance on"
+    },
+    {
+      "instance": "sphinx-doc__sphinx-10449",
+      "successful_command_execs": 9,
+      "sample_error": "Tool call error:\n\n<error>\nError parsing tool call arguments: Expecting ',' delimiter: line 1 column 1746 (char 1745).Missing 'command' argument in bash tool call.\n</error>\n\nHere is general guidance on"
+    }
+  ]
+}
