@@ -137,6 +137,30 @@ same weights score 6/30 or 30/30 depending on it.
 
 ---
 
+## 12. Qwen3.5-122B int4 fails to load: `Tokenizer class TokenizersBackend does not exist`
+The `Intel/Qwen3.5-122B-A10B-int4-AutoRound` repo ships a `tokenizer_config.json` that declares
+`tokenizer_class: TokenizersBackend` — a newer/nonstandard class the box's (older) vLLM/transformers
+does not know, so both the **server** and the **`vllm bench serve` client** crash at tokenizer init:
+`ValueError: Tokenizer class TokenizersBackend does not exist or is not currently imported`. The
+underlying vocab is a standard `Qwen2Tokenizer`. **Fix:** override the tokenizer to the base repo,
+`--tokenizer Qwen/Qwen3.5-122B-A10B`, on **both** the serve command and the bench command (the bench
+tool loads the tokenizer to build the random dataset, so it needs the flag independently). Same vocab
+→ no correctness impact.
+
+Two more Qwen3.5-122B bring-up gotchas on this single-Spark box:
+- **All `spark-vllm-docker` recipes default to a 2-Spark cluster** (`tensor_parallel: 2` + Ray).
+  Warpcore is ONE Spark, so a solo recipe with `tensor_parallel: 1` and no Ray backend is required.
+  The `-tp` CLI shorthand collides with the launcher's `-t` (image-name) flag and mangles the command
+  (`Container: p`, stray `1`), so set `tensor_parallel: 1` in the recipe YAML rather than via CLI.
+- **`<think>` reasoning split is imperfect.** The `qwen3` reasoning parser + `unsloth.jinja` chat
+  template leave `<think>…</think>` tags inline in `content` and `reasoning_content` empty. Output is
+  correct; only the separation is off — fix the template/parser before trusting MCQ answer-extraction
+  in lm-eval.
+- **FP8 does not fit one Spark.** `Qwen/Qwen3.5-122B-A10B-FP8` is ~125 GiB of weights (> 128 GB
+  unified memory). INT4 (62.65 GiB weights + 26.26 GiB KV, 256K context) is the only single-Spark fit.
+
+---
+
 ## Non-issues (ruled out — don't chase)
 - The GB10 `nvidia-smi` memory `N/A` is normal (unified memory), not a broken GPU.
 - The `fatal: not a git repository` line lm-eval prints at the end is harmless (it tries to record a
