@@ -1,0 +1,25 @@
+Smoke tests — NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4 on Warpcore
+Date: 2026-08-12
+Endpoint: http://csi370295.alcf.anl.gov:8000/v1/chat/completions
+Server: vLLM 0.27.1, container vllm_lightning, --moe-backend marlin, --kv-cache-dtype fp8,
+        --reasoning-parser nemotron_v3, --tool-call-parser qwen3_coder, --max-model-len 262144
+
+=== Test 1: arithmetic + instruction-following ===
+Request: "What is 17 * 23? Give the number, then on a new line write exactly: LIGHTNING_OK"
+  sampling: temperature=1.0, top_p=0.95 (NVIDIA-recommended), max_tokens=2048
+Response:
+  finish_reason: stop
+  content: '391\nLIGHTNING_OK'          <-- correct (17*23=391), format followed exactly
+  reasoning_content: ''                  <-- parser split clean; Lightning is terse, not a verbose reasoner
+  usage: {prompt_tokens: 42, completion_tokens: 226, total_tokens: 268}
+
+=== Test 2: tool calling (agentic path) ===
+Request: "What is the weather in Chicago? Use the get_weather tool."
+  tools: [get_weather(city: string)], tool_choice: auto
+Response:
+  finish_reason: tool_calls           <-- correct
+  tool_call name: get_weather
+  tool_call args: {"city": "Chicago"} <-- valid JSON, correct argument
+
+Both tests pass. Server survived the full 1->128 concurrency throughput sweep (384/384 requests
+successful at c=128) without any crash.
