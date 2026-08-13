@@ -86,21 +86,61 @@ still capped at c=128. For always-on / high-fan-out agent workloads (its design 
 efficient model measured on Warpcore so far. (gpt-oss-120b's peak is measured at a higher c≈256; a
 matched-cap re-run of Lightning at `--max-num-seqs 256` would very likely exceed it.)
 
-## Quality
+## Quality — lm-eval-harness (measured 2026-08-12)
 
-**Not yet measured on Warpcore.** No lm-eval quality card (GSM8K / IFEval / GPQA-Diamond) or agentic
-(pi-30 / SWE-bench) numbers have been produced for this model yet — this card currently covers
-**serving bring-up + a functional smoke test + a throughput sweep**. NVIDIA publishes its own release
-eval suite via [NeMo Gym](https://github.com/NVIDIA-NeMo/Gym/tree/main/nemotron_recipes/lightning-3.5)
-(knowledge/reasoning, instruction following, coding, agentic, tool-use, long-context); those are the
-vendor's numbers, not independent Warpcore measurements. Run the lm-eval pipeline
-(`lm-eval-vllm-endpoint` skill) next to fill this in.
+Measured independently on Warpcore against the live `vllm_lightning` endpoint (raw results:
+[`raw/quality/`](raw/quality/)).
+
+| Benchmark | n | Metric | Score |
+| --------- | -: | ------ | ----- |
+| **GSM8K** (0-shot CoT) | 1319 | exact_match, flexible | **95.07%** (±0.60) |
+| | | exact_match, anchored line | 94.62% |
+| **IFEval** | 541 | prompt-level strict | **86.14%** (±1.49) |
+| | | prompt-level loose | 87.06% (±1.44) |
+| | | inst-level strict / loose | 85.49% / 86.09% |
+| **GPQA-Diamond** (0-shot CoT) | 198 | exact_match, 32k budget | **66.16%** (±3.36) ⚠️ |
+| | | exact_match, 16k budget | 53.03% (truncation-floored) |
+
+**Eval config:** `lm-eval` 0.4.12, `local-chat-completions` backend against
+`http://localhost:8000/v1/chat/completions`, `--apply_chat_template`, **greedy `temperature=0`**
+(matches the other cards' fair-comparison setting rather than NVIDIA's recommended `temp=1.0`;
+Lightning is terse so token burn stays low). GSM8K/IFEval used a 8192-token generation budget at
+concurrency 8; GPQA at concurrency 4. GSM8K and GPQA use in-repo **clean-extract** task configs
+([`raw/gsm8k_cot_zeroshot_clean.yaml`](raw/gsm8k_cot_zeroshot_clean.yaml),
+[`raw/gpqa_diamond_cot_zeroshot_clean.yaml`](raw/gpqa_diamond_cot_zeroshot_clean.yaml) +
+[`raw/gpqa_utils.py`](raw/gpqa_utils.py)) that anchor the answer to a required final line and fall
+back to the last number / `(X)` letter. GPQA-Diamond is the **gated** `Idavidrein/gpqa` dataset.
+
+> **⚠️ GPQA-Diamond is truncation-limited, not capability-limited — read this before comparing.**
+> Lightning is a *deep* reasoner: on the hardest grad-level questions it can exhaust the generation
+> budget mid-reasoning and never emit a final answer, which auto-scores as **wrong**.
+>
+> | Budget | Raw acc | Items answered | Truncated (empty) | Acc on *answered* items |
+> | ------ | ------- | -------------- | ----------------- | ----------------------- |
+> | 16k    | 53.03%  | 116 / 198      | 82 (41.4%)        | 105/116 = **90.5%**     |
+> | 32k    | 66.16%  | 157 / 198      | 41 (20.7%)        | 131/157 = **83.4%**     |
+>
+> Doubling the budget to 32k roughly **halved** the truncation rate (82→41 items) and lifted the raw
+> score by **+13 points** (53→66%). ~21% of items still truncate at 32k, so **66.16% is a lower bound**;
+> the true GPQA-Diamond capability is higher. The `answer-line` and `flexible-fallback` filters agree
+> exactly on GPQA (every finished response emits the required `The answer is (X)` line), so the gap is
+> purely unfinished reasoning, not a parsing artifact. The 32k run is the headline number for
+> cross-card comparison; the 16k run is retained to document the effect.
+>
+> Note the conditional accuracy *drops* from 90.5%→83.4% between 16k and 32k: the 41 extra items that
+> now finish are precisely the harder ones the model previously couldn't complete, and it gets more of
+> those wrong — expected behaviour, and a sign the remaining truncated tail is genuinely difficult.
+
+**Takeaway:** near-ceiling on GSM8K (95%), strong instruction-following (86% strict IFEval), and a
+science-reasoning score that is **budget-bound rather than knowledge-bound** — a 30B/3B-active model
+answering GPQA-Diamond at 83–90% *when it finishes reasoning* is exceptional for its active size.
 
 ## Not yet measured / next steps
 
-- **Quality suite** (GSM8K, IFEval, GPQA-Diamond) via lm-eval against this endpoint.
 - **Agentic** (pi-30, SWE-bench Verified 100-sample) — this model is built for agents; expected to do
   well given clean tool-calling.
+- **GPQA at higher budget.** ~21% of GPQA-Diamond items still truncate at 32k; a 48–64k re-run would
+  lift the raw score further toward the ~83–90% conditional accuracy (this baseline stops at 32k).
 - **DSpark speculative decoding.** NVIDIA ships a matching draft model
   (`nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4-DSpark`) and the README's recommended serve
   command enables it (`--speculative_config.num_speculative_tokens 3 --speculative_config.model
