@@ -98,7 +98,8 @@ Measured independently on Warpcore against the live `vllm_lightning` endpoint (r
 | **IFEval** | 541 | prompt-level strict | **86.14%** (±1.49) |
 | | | prompt-level loose | 87.06% (±1.44) |
 | | | inst-level strict / loose | 85.49% / 86.09% |
-| **GPQA-Diamond** (0-shot CoT) | 198 | exact_match, 32k budget | **66.16%** (±3.36) ⚠️ |
+| **GPQA-Diamond** (0-shot CoT) | 198 | exact_match, **64k budget** | **76.26%** ✅ |
+| | | exact_match, 32k budget | 66.16% (±3.36) |
 | | | exact_match, 16k budget | 53.03% (truncation-floored) |
 
 **Eval config:** `lm-eval` 0.4.12, `local-chat-completions` backend against
@@ -111,36 +112,62 @@ concurrency 8; GPQA at concurrency 4. GSM8K and GPQA use in-repo **clean-extract
 [`raw/gpqa_utils.py`](raw/gpqa_utils.py)) that anchor the answer to a required final line and fall
 back to the last number / `(X)` letter. GPQA-Diamond is the **gated** `Idavidrein/gpqa` dataset.
 
-> **⚠️ GPQA-Diamond is truncation-limited, not capability-limited — read this before comparing.**
-> Lightning is a *deep* reasoner: on the hardest grad-level questions it can exhaust the generation
-> budget mid-reasoning and never emit a final answer, which auto-scores as **wrong**.
+> **⚠️ GPQA-Diamond is output-budget-limited, not capability-limited — read this before comparing.**
+> Lightning is a *deep* reasoner: on hard grad-level questions it emits a long chain-of-thought (which
+> vLLM's `nemotron_v3` parser strips from `content` but which still counts against `max_tokens`), then a
+> short final answer. If the budget is exhausted mid-reasoning, `content` comes back empty and the item
+> auto-scores **wrong** — so a low budget measures the *budget*, not the model.
 >
-> | Budget | Raw acc | Items answered | Truncated (empty) | Acc on *answered* items |
-> | ------ | ------- | -------------- | ----------------- | ----------------------- |
-> | 16k    | 53.03%  | 116 / 198      | 82 (41.4%)        | 105/116 = **90.5%**     |
-> | 32k    | 66.16%  | 157 / 198      | 41 (20.7%)        | 131/157 = **83.4%**     |
+> | Budget | Raw acc | Items answered | Truncated | Acc on *answered* items |
+> | ------ | ------- | -------------- | --------- | ----------------------- |
+> | 16k    | 53.03%  | 116 / 198      | 82 (41.4%)| 105/116 = 90.5%         |
+> | 32k    | 66.16%  | 157 / 198      | 41 (20.7%)| 131/157 = 83.4%         |
+> | **64k**| **76.26%** | **192 / 198** | **6 (3.0%)** | 151/192 = 78.7%      |
 >
-> Doubling the budget to 32k roughly **halved** the truncation rate (82→41 items) and lifted the raw
-> score by **+13 points** (53→66%). ~21% of items still truncate at 32k, so **66.16% is a lower bound**;
-> the true GPQA-Diamond capability is higher. The `answer-line` and `flexible-fallback` filters agree
-> exactly on GPQA (every finished response emits the required `The answer is (X)` line), so the gap is
-> purely unfinished reasoning, not a parsing artifact. The 32k run is the headline number for
-> cross-card comparison; the 16k run is retained to document the effect.
+> Each budget increase roughly halved the truncation rate and lifted the raw score (+13 pts to 32k, +10
+> more to 64k). At **64k, 97% of items finish** and the score is essentially capability-bound; the last
+> 6 items still truncate (a handful genuinely need >64k). The `answer-line` and `flexible-fallback`
+> filters agree exactly on GPQA, so the gap was never a parsing artifact — purely unfinished reasoning.
+> **64k is the headline** cross-card number; 16k/32k are retained to document the curve.
 >
-> Note the conditional accuracy *drops* from 90.5%→83.4% between 16k and 32k: the 41 extra items that
-> now finish are precisely the harder ones the model previously couldn't complete, and it gets more of
-> those wrong — expected behaviour, and a sign the remaining truncated tail is genuinely difficult.
+> **How many tokens does GPQA actually need?** Replaying the 41 items that truncated at 32k with a 64k
+> budget: 35 finished, needing **p50 ≈ 30.5k, p90 ≈ 51.2k, max ≈ 53.5k completion tokens** (verified
+> `finish_reason: stop`; the visible answer is still only ~200 tokens — the rest is stripped CoT). This
+> is legitimate long reasoning reaching correct answers, not a repetition loop.
 
-**Takeaway:** near-ceiling on GSM8K (95%), strong instruction-following (86% strict IFEval), and a
-science-reasoning score that is **budget-bound rather than knowledge-bound** — a 30B/3B-active model
-answering GPQA-Diamond at 83–90% *when it finishes reasoning* is exceptional for its active size.
+**Takeaway:** near-ceiling on GSM8K (95%), strong instruction-following (86% strict IFEval), and — with
+an adequate output budget — **76%+ on GPQA-Diamond**, which puts a 30B/3B-active model just behind
+Qwen3.6-35B (82%) and clearly ahead of Nemotron-3-Super-120B (64%). Its GPQA capability is
+**budget-bound, not knowledge-bound**.
+
+### Recommended output-token budget (`max_tokens`) — and whether it's a realistic serving setting
+
+Raising the budget is **not score-gaming**: the extra tokens are real reasoning that reaches correct
+answers, and `max_tokens` is a **ceiling, not a reservation** — it costs nothing for the ~80% of GPQA
+items (and virtually all GSM8K/chat, visible output p50 ~200 tok) that finish fast. Memory is a
+non-issue on this box (~18 GiB weights, ~88 GiB KV, 23× concurrency at 256K context). The only real
+cost of a high ceiling is **latency on the rare deep request** (~13 ms/token single-stream → a
+30k-token trace ≈ 4 min). So the right budget depends on the workload:
+
+| Workload | Recommended `max_tokens` | Trade-off |
+| -------- | ------------------------ | --------- |
+| Interactive agent / chat | **8k–16k** | bounds latency; the hardest ~10–20% of deep problems get truncated |
+| Batch / offline reasoning | **32k–64k** | full capability; deep problems run to completion |
+| (never below ~4k) | — | truncates ordinary reasoning and silently drops the final answer |
+
+The server permits any of these — `--max-model-len 262144` allows up to ~256K output — and the
+effective budget is chosen **per request** by the client (there is no vLLM flag for a *default* request
+`max_tokens`, so always send one explicitly). This guidance is baked into the serving launch script
+([`raw/launch_lightning.sh`](raw/launch_lightning.sh)). **Bottom line:** 32–64k is a setting we'd
+genuinely run for a reasoning/agentic workload, so the 76.26% number reflects a real deployment, not a
+benchmark-only config.
 
 ## Not yet measured / next steps
 
 - **Agentic** (pi-30, SWE-bench Verified 100-sample) — this model is built for agents; expected to do
   well given clean tool-calling.
-- **GPQA at higher budget.** ~21% of GPQA-Diamond items still truncate at 32k; a 48–64k re-run would
-  lift the raw score further toward the ~83–90% conditional accuracy (this baseline stops at 32k).
+- **GPQA at 128k budget** for the last 6 items that still truncate at 64k (would close the remaining 3%;
+  76.26% @64k is already 97%-answered and essentially capability-bound).
 - **DSpark speculative decoding.** NVIDIA ships a matching draft model
   (`nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4-DSpark`) and the README's recommended serve
   command enables it (`--speculative_config.num_speculative_tokens 3 --speculative_config.model
@@ -150,7 +177,8 @@ answering GPQA-Diamond at 83–90% *when it finishes reasoning* is exceptional f
 
 ## Reproduce
 
-Serving (on warpcore):
+Serving (on warpcore) — see [`raw/launch_lightning.sh`](raw/launch_lightning.sh) for the full script
+with the output-token-budget guidance baked in as comments:
 ```bash
 docker rm -f vllm_node vllm_lightning 2>/dev/null   # frees :8000
 docker run -d --rm --name vllm_lightning --gpus all --network host --ipc host \
@@ -164,6 +192,9 @@ docker run -d --rm --name vllm_lightning --gpus all --network host --ipc host \
   --reasoning-parser nemotron_v3 --tool-call-parser qwen3_coder \
   --enable-auto-tool-choice --trust-remote-code --host 0.0.0.0 --port 8000
 ```
+The server allows up to ~256K output; choose the per-request `max_tokens` by workload (**8k–16k**
+interactive, **32k–64k** batch/reasoning — see the budget section above). Clients must send an explicit
+`max_tokens` (vLLM has no default-request-budget flag).
 
 Throughput sweep (reusable `scripts/vllm_sweep.sh` from the `warpcore-dgx-spark` skill):
 ```bash

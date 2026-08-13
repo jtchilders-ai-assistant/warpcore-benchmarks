@@ -1,0 +1,330 @@
+[
+  {
+    "doc": 1,
+    "fr": "stop",
+    "ct": 16770,
+    "pred": "C",
+    "gold": "C",
+    "correct": true
+  },
+  {
+    "doc": 15,
+    "fr": "stop",
+    "ct": 34359,
+    "pred": "B",
+    "gold": "A",
+    "correct": false
+  },
+  {
+    "doc": 18,
+    "fr": "stop",
+    "ct": 30525,
+    "pred": "A",
+    "gold": "C",
+    "correct": false
+  },
+  {
+    "doc": 23,
+    "fr": "length",
+    "ct": 65536,
+    "pred": null,
+    "gold": "D",
+    "correct": false
+  },
+  {
+    "doc": 24,
+    "fr": "stop",
+    "ct": 52852,
+    "pred": "A",
+    "gold": "B",
+    "correct": false
+  },
+  {
+    "doc": 33,
+    "fr": "stop",
+    "ct": 53519,
+    "pred": "C",
+    "gold": "A",
+    "correct": false
+  },
+  {
+    "doc": 36,
+    "fr": "stop",
+    "ct": 48339,
+    "pred": "A",
+    "gold": "A",
+    "correct": true
+  },
+  {
+    "doc": 45,
+    "fr": "stop",
+    "ct": 24695,
+    "pred": "B",
+    "gold": "B",
+    "correct": true
+  },
+  {
+    "doc": 47,
+    "fr": "length",
+    "ct": 65536,
+    "pred": null,
+    "gold": "B",
+    "correct": false
+  },
+  {
+    "doc": 48,
+    "fr": "stop",
+    "ct": 32379,
+    "pred": "A",
+    "gold": "A",
+    "correct": true
+  },
+  {
+    "doc": 55,
+    "fr": "stop",
+    "ct": 35147,
+    "pred": "B",
+    "gold": "B",
+    "correct": true
+  },
+  {
+    "doc": 61,
+    "fr": "stop",
+    "ct": 44180,
+    "pred": "A",
+    "gold": "A",
+    "correct": true
+  },
+  {
+    "doc": 66,
+    "fr": "stop",
+    "ct": 3930,
+    "pred": "C",
+    "gold": "C",
+    "correct": true
+  },
+  {
+    "doc": 68,
+    "fr": "stop",
+    "ct": 24784,
+    "pred": "C",
+    "gold": "C",
+    "correct": true
+  },
+  {
+    "doc": 69,
+    "fr": "stop",
+    "ct": 35839,
+    "pred": "B",
+    "gold": "B",
+    "correct": true
+  },
+  {
+    "doc": 76,
+    "fr": "stop",
+    "ct": 25282,
+    "pred": "D",
+    "gold": "C",
+    "correct": false
+  },
+  {
+    "doc": 79,
+    "fr": "length",
+    "ct": 65536,
+    "pred": null,
+    "gold": "B",
+    "correct": false
+  },
+  {
+    "doc": 88,
+    "fr": "stop",
+    "ct": 32277,
+    "pred": "B",
+    "gold": "B",
+    "correct": true
+  },
+  {
+    "doc": 89,
+    "fr": "length",
+    "ct": 65536,
+    "pred": null,
+    "gold": "B",
+    "correct": false
+  },
+  {
+    "doc": 97,
+    "fr": "stop",
+    "ct": 22166,
+    "pred": "C",
+    "gold": "B",
+    "correct": false
+  },
+  {
+    "doc": 98,
+    "fr": "stop",
+    "ct": 15593,
+    "pred": "C",
+    "gold": "C",
+    "correct": true
+  },
+  {
+    "doc": 109,
+    "fr": "stop",
+    "ct": 20720,
+    "pred": "D",
+    "gold": "D",
+    "correct": true
+  },
+  {
+    "doc": 115,
+    "fr": "stop",
+    "ct": 51221,
+    "pred": "A",
+    "gold": "A",
+    "correct": true
+  },
+  {
+    "doc": 118,
+    "fr": "stop",
+    "ct": 28367,
+    "pred": "D",
+    "gold": "D",
+    "correct": true
+  },
+  {
+    "doc": 121,
+    "fr": "stop",
+    "ct": 41711,
+    "pred": "D",
+    "gold": "D",
+    "correct": true
+  },
+  {
+    "doc": 127,
+    "fr": "length",
+    "ct": 65536,
+    "pred": null,
+    "gold": "C",
+    "correct": false
+  },
+  {
+    "doc": 128,
+    "fr": "stop",
+    "ct": 18661,
+    "pred": "D",
+    "gold": "D",
+    "correct": true
+  },
+  {
+    "doc": 130,
+    "fr": "stop",
+    "ct": 44506,
+    "pred": "A",
+    "gold": "B",
+    "correct": false
+  },
+  {
+    "doc": 131,
+    "fr": "stop",
+    "ct": 33964,
+    "pred": "A",
+    "gold": "D",
+    "correct": false
+  },
+  {
+    "doc": 138,
+    "fr": "stop",
+    "ct": 34467,
+    "pred": "B",
+    "gold": "D",
+    "correct": false
+  },
+  {
+    "doc": 139,
+    "fr": "stop",
+    "ct": 51281,
+    "pred": "A",
+    "gold": "C",
+    "correct": false
+  },
+  {
+    "doc": 142,
+    "fr": "stop",
+    "ct": 27056,
+    "pred": "B",
+    "gold": "B",
+    "correct": true
+  },
+  {
+    "doc": 147,
+    "fr": "length",
+    "ct": 65536,
+    "pred": null,
+    "gold": "D",
+    "correct": false
+  },
+  {
+    "doc": 149,
+    "fr": "stop",
+    "ct": 24040,
+    "pred": "A",
+    "gold": "C",
+    "correct": false
+  },
+  {
+    "doc": 160,
+    "fr": "stop",
+    "ct": 24593,
+    "pred": "D",
+    "gold": "C",
+    "correct": false
+  },
+  {
+    "doc": 166,
+    "fr": "stop",
+    "ct": 27183,
+    "pred": "C",
+    "gold": "C",
+    "correct": true
+  },
+  {
+    "doc": 180,
+    "fr": "stop",
+    "ct": 43429,
+    "pred": "A",
+    "gold": "D",
+    "correct": false
+  },
+  {
+    "doc": 183,
+    "fr": "stop",
+    "ct": 43013,
+    "pred": "D",
+    "gold": "C",
+    "correct": false
+  },
+  {
+    "doc": 185,
+    "fr": "stop",
+    "ct": 28246,
+    "pred": "B",
+    "gold": "A",
+    "correct": false
+  },
+  {
+    "doc": 190,
+    "fr": "stop",
+    "ct": 10288,
+    "pred": "A",
+    "gold": "A",
+    "correct": true
+  },
+  {
+    "doc": 194,
+    "fr": "stop",
+    "ct": 29672,
+    "pred": "B",
+    "gold": "B",
+    "correct": true
+  }
+]
