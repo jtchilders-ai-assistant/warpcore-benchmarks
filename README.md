@@ -11,7 +11,7 @@ basis, and documents the serving issues encountered on the hardware and how they
 | [openai/gpt-oss-120b](results/gpt-oss-120b/README.md) | vLLM MXFP4 | 83.7% | 83.7% | 72.7% | 30/30 | blocked² | ~709 (c≈256) | [card](results/gpt-oss-120b/README.md) |
 | [nvidia/Nemotron-3-Super-120B-A12B-NVFP4](results/nemotron-3-super-120b/README.md) | vLLM NVFP4 (MARLIN) | 76.65% | 85.40% | 63.64% | 30/30 | — | ~190 (c≈128) | [card](results/nemotron-3-super-120b/README.md) |
 | [Qwen/Qwen3.6-35B-A3B-FP8](results/qwen3.6-35b-a3b/README.md) | vLLM FP8 (TRITON) | 97.04% | 84.84% | 82.32% | 29/30 | 44% (n=100)¹ | ~487 (c=128) | [card](results/qwen3.6-35b-a3b/README.md) |
-| [nvidia/Nemotron-3.5-Lightning-30B-A3B-NVFP4](results/nemotron-3.5-lightning-30b/README.md) | vLLM NVFP4 (MARLIN) | 95.07% | 86.14% | 76.26%³ | —⁵ | —⁵ | ~719 (c=128, capped) | [card](results/nemotron-3.5-lightning-30b/README.md) |
+| [nvidia/Nemotron-3.5-Lightning-30B-A3B-NVFP4](results/nemotron-3.5-lightning-30b/README.md) | vLLM NVFP4 (MARLIN) | 95.07% | 86.14% | 76.26%³ | 29/30 | —⁵ | ~719 (c=128, capped) | [card](results/nemotron-3.5-lightning-30b/README.md) |
 | [Intel/Qwen3.5-122B-A10B-int4-AutoRound](results/qwen3.5-122b-a10b/README.md) | vLLM INT4 (MARLIN) | —⁴ | —⁴ | —⁴ | —⁴ | —⁴ | ~228 (c≈192) | [card](results/qwen3.5-122b-a10b/README.md) |
 
 ¹ SWE-bench Verified, **representative random 100-instance sample** (11 repos), not the full 500 — indicative score ±~5%. See the [Qwen3.6 card](results/qwen3.6-35b-a3b/README.md#agentic-coding-swe-bench-verified) for the per-repo breakdown and caveats.
@@ -22,7 +22,7 @@ basis, and documents the serving issues encountered on the hardware and how they
 
 ⁴ Qwen3.5-122B-A10B-int4 is **newly brought up** (2026-08-10): serving is verified (smoke test pass) and throughput is measured, but the quality/agentic suites have **not yet been run** on Warpcore. It is the model behind the Reddit "50 tok/s on DGX Spark" report — measured here at **26.9 tok/s single-stream** (matching the ~30 tok/s int4 figure) with a **~228 tok/s aggregate plateau at c≈192**. **MTP/speculative decoding was not enabled**; that is the lever toward the Reddit ~50 tok/s. At INT4 it fits one Spark (62.65 GiB weights + 26.26 GiB KV, 256K context); the FP8 sibling does not. See the [Qwen3.5-122B card](results/qwen3.5-122b-a10b/README.md) for the tokenizer/solo-recipe gotchas and next steps.
 
-⁵ Nemotron-3.5-Lightning's agentic suites (pi-30, SWE-bench Verified) are **pending** — the quality suite (GSM8K/IFEval/GPQA) is complete; pi-30 is the next planned run.
+⁵ Nemotron-3.5-Lightning **pi-30 = 29/30** (measured 2026-08-14; sole miss P24 token-bucket, a real correctness bug). SWE-bench Verified still **pending** (needs an x86 harness host). Note: the pi-30 run required a reduced-footprint serving config (`--gpu-memory-utilization 0.55`) to avoid a unified-memory OOM that kills vLLM when the on-host agent harness competes for the shared GB10 RAM pool — see the [card](results/nemotron-3.5-lightning-30b/README.md#agentic-coding--pi-30-measured-2026-08-14).
 
 ## What's measured
 

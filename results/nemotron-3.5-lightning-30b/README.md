@@ -162,10 +162,46 @@ effective budget is chosen **per request** by the client (there is no vLLM flag 
 genuinely run for a reasoning/agentic workload, so the 76.26% number reflects a real deployment, not a
 benchmark-only config.
 
+## Agentic coding — pi-30 (measured 2026-08-14)
+
+[`rick-stevens-ai/pi-30`](https://github.com/rick-stevens-ai/pi-30): a 30-problem agent-loop coding
+benchmark driven by the `pi` CLI (v0.84.2). The model must *use tools* (read/write files, run code) to
+iteratively fix or build a solution; verdicts come from **verifier exit codes**, never model prose.
+Problems span iterate-until-green pytest fixes, oracle-matching, generator+critic loops, and best-of-N
+tournaments.
+
+| | |
+|---|---|
+| **Score** | **29 / 30 passed** |
+| Harness | `pi` 0.84.2, `PI_TIMEOUT=600` (deep reasoner needs the headroom), temp per pi defaults |
+| Serving | `vllm/vllm-openai:v0.27.1`, `--moe-backend marlin`; **pi-30 headroom config** `--gpu-memory-utilization 0.55 --max-num-seqs 32` (see note) |
+| Tool-calling | `qwen3_coder` parser — clean, 16/16 concurrent tool-call stress passed |
+| Raw | [`raw/pi30/`](raw/pi30/) (RESULTS.txt, SUMMARY.txt, log) |
+
+**The single miss — P24 (token-bucket rate limiter):** a genuine correctness bug, not infra. The bucket
+must start **full** so a burst of 5 requests is allowed at t=0; Lightning's implementation allowed only 1
+(it didn't seed the bucket to capacity). Verifier: `BURST: allowed 1 at t=0, expected exactly 5`.
+Everything else — including all five best-of-N tournaments (P9/P10/P19/P27/P30), both measurement
+problems (P15 52.6 Mtok/s, P23 331 Mn/s), and the P5 GFLOP/s hardware problem (71.9 GFLOP/s) — passed.
+
+29/30 is a strong agentic result and consistent with a model *designed* for tool use. Note the cross-model
+caveat: pi-30 rank does not track quality rank (a weaker-on-GPQA model can still ace pi-30), so treat this
+as an independent signal.
+
+> **⚠️ Serving note — unified-memory OOM (why the config differs from the throughput card).** The first
+> pi-30 attempt crashed mid-run and scored a bogus ~3/30. Root cause: on the GB10 the GPU KV cache shares
+> the **same 121 GiB pool** as system RAM. At `--gpu-memory-utilization 0.9` vLLM held ~116 GiB, leaving
+> only ~5 GiB for the host — and pi-30 runs its agent processes (node `pi` + python verifiers + pytest,
+> with tournaments fanning out 3–4 parallel `pi` calls) **on the same host**, so the kernel OOM-killer took
+> vLLM (which, launched `--rm`, vanished without a trace). The fix is to leave host headroom:
+> `--gpu-memory-utilization 0.55 --max-num-seqs 32` → ~46 GiB free, and the 30B model still gets ~50 GiB KV
+> (ample for pi-30's short contexts). Raw inference concurrency was *not* the cause — the endpoint survived
+> 16 concurrent tool-call requests at 0.9. Keep the high-util config for pure remote-client serving only.
+
 ## Not yet measured / next steps
 
-- **Agentic** (pi-30, SWE-bench Verified 100-sample) — this model is built for agents; expected to do
-  well given clean tool-calling.
+- **SWE-bench Verified** (100-sample) — the other agentic axis; heavier than pi-30, needs an x86 harness
+  host or a container. This model's clean tool-calling makes it a strong candidate.
 - **GPQA at 128k budget** for the last 6 items that still truncate at 64k (would close the remaining 3%;
   76.26% @64k is already 97%-answered and essentially capability-bound).
 - **DSpark speculative decoding.** NVIDIA ships a matching draft model

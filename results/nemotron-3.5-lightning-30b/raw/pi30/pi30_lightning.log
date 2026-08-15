@@ -1,0 +1,120 @@
+==== lightning2 (nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4) START Fri Aug 14 01:26:11 PM CDT 2026 ====
+[P1] stats CLI
+P1: PASS
+[P2] LRU cache + bundled tests
+P2: PASS
+[P3] Roman numerals iterate-until-green
+P3: PASS green in 2
+[P4] stable softmax vs oracle
+P4: PASS in 2
+[P5] matmul GFLOP/s
+P5: round 2 -> 71.8988 GFLOP/s
+P5: PASS 71.8988 GFLOP/s
+[P6] reproducible FP reduction
+P6: PASS critic+verifier in 1
+[P7] parallel backends fan-out
+P7: PASS
+[P8] ODE convergence + reflection
+run_model_30.warpcore.sh: line 214: /home/jchilders/.pi/agent/memory.md: No such file or directory
+P8: PASS in 2
+P8: memory.md 0->144 bytes
+[P9] levenshtein tournament best-of-4
+P9: cand_1 score=41.141
+P9: cand_2 score=43.043
+P9: cand_3 score=43.293
+P9: cand_4 score=47.594
+P9: PASS champion=cand_4 @ 47.594
+[P10] prime sieve capstone
+P10: cand_1 verdict=VERDICT: CLEAN score=83.3916
+P10: cand_2 verdict=CLEAN score=80.6454
+P10: cand_3 verdict=VERDICT: CLEAN score=81.9134
+P10: PASS champion=cand_1 @ 83.3916
+[P11] balanced parens iterate-until-green
+P11: PASS green in 2
+[P12] base-N conversion oracle
+P12: PASS in 2
+[P13] mini-JSON parser iterate-until-green
+P13: PASS green in 2
+[P14] weighted Dijkstra vs BFS-ref oracle
+P14: PASS in 2
+[P15] word-frequency top-k measurement (Mtok/s)
+P15: round 1 -> 0.2661 Mtok/s
+P15: round 2 -> 52.6302 Mtok/s
+P15: PASS 52.6302 Mtok/s
+[P16] thread-safe counter generator+critic
+P16: PASS critic+verifier in 2
+[P17] serializer fan-out (csv/kv/pylit + codec)
+P17: PASS
+[P18] Welford online variance reflection
+P18: PASS in 2
+[P19] fast-doubling Fibonacci tournament
+P19: cand_1 score=334.8460
+P19: cand_2 score=174.9759
+P19: cand_3 score=173.5918
+P19: cand_4 score=174.6517
+P19: PASS champion=cand_1 @ 334.8460
+[P20] TTL-LRU with injected clock iterate-until-green
+P20: PASS green in 2
+[P21] interval merge oracle
+P21: PASS in 2
+[P22] toposort + cycle detect iterate-until-green
+P22: PASS green in 2
+[P23] prime-count sieve measurement (Mn/s)
+P23: round 1 -> 0.4575 Mn/s
+P23: round 2 -> 331.4288 Mn/s
+P23: PASS 331.4288 Mn/s
+[P24] token-bucket rate limiter generator+critic
+P24: FAIL
+[P25] 3-stage stats pipeline fan-out
+P25: PASS
+[P26] Newton sqrt to full precision reflection
+P26: PASS in 2
+[P27] overlapping substring count tournament
+P27: cand_1 score=0.8105
+P27: cand_2 score=0.8106
+P27: cand_3 score=0.8070
+P27: cand_4 score=0.8052
+P27: PASS champion=cand_2 @ 0.8106
+[P28] matrix determinant vs numpy oracle
+P28: PASS in 2
+[P29] precedence calculator (no eval) iterate-until-green
+P29: PASS green in 2
+[P30] sort-kernel capstone tournament + critic + bench
+P30: cand_1 verdict= score=1.0249
+P30: cand_2 verdict= score=0.8219
+P30: cand_3 verdict=VERDICT: FIXED score=2.6425
+P30: PASS champion=cand_3 @ 2.6425
+==== lightning2 DONE Fri Aug 14 03:01:20 PM CDT 2026 ====
+===== SUMMARY (lightning2 / nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4) =====
+P1: PASS
+P2: PASS
+P3: PASS green in 2
+P4: PASS in 2
+P5: PASS 71.8988 GFLOP/s
+P6: PASS critic+verifier in 1
+P7: PASS
+P8: PASS in 2
+P9: PASS champion=cand_4 @ 47.594
+P10: PASS champion=cand_1 @ 83.3916
+P11: PASS green in 2
+P12: PASS in 2
+P13: PASS green in 2
+P14: PASS in 2
+P15: PASS 52.6302 Mtok/s
+P16: PASS critic+verifier in 2
+P17: PASS
+P18: PASS in 2
+P19: PASS champion=cand_1 @ 334.8460
+P20: PASS green in 2
+P21: PASS in 2
+P22: PASS green in 2
+P23: PASS 331.4288 Mn/s
+P24: FAIL
+P25: PASS
+P26: PASS in 2
+P27: PASS champion=cand_2 @ 0.8106
+P28: PASS in 2
+P29: PASS green in 2
+P30: PASS champion=cand_3 @ 2.6425
+SCORE: 29/30 passed
+SCORE_LINE: SCORE: 29/30 passed

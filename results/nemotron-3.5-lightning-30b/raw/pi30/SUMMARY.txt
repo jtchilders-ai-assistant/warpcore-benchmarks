@@ -1,0 +1,32 @@
+===== SUMMARY (lightning2 / nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4) =====
+P1: PASS
+P2: PASS
+P3: PASS green in 2
+P4: PASS in 2
+P5: PASS 71.8988 GFLOP/s
+P6: PASS critic+verifier in 1
+P7: PASS
+P8: PASS in 2
+P9: PASS champion=cand_4 @ 47.594
+P10: PASS champion=cand_1 @ 83.3916
+P11: PASS green in 2
+P12: PASS in 2
+P13: PASS green in 2
+P14: PASS in 2
+P15: PASS 52.6302 Mtok/s
+P16: PASS critic+verifier in 2
+P17: PASS
+P18: PASS in 2
+P19: PASS champion=cand_1 @ 334.8460
+P20: PASS green in 2
+P21: PASS in 2
+P22: PASS green in 2
+P23: PASS 331.4288 Mn/s
+P24: FAIL
+P25: PASS
+P26: PASS in 2
+P27: PASS champion=cand_2 @ 0.8106
+P28: PASS in 2
+P29: PASS green in 2
+P30: PASS champion=cand_3 @ 2.6425
+SCORE: 29/30 passed
