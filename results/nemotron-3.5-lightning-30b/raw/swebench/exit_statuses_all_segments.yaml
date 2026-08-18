@@ -1,0 +1,168 @@
+# Concatenated per-segment mini-swe-agent exit_statuses across the full n=100 shuffle run.
+# Segments (chronological): initial 55-instance run + resume segments filling to 100.
+# Final-segment counts appear in exit_statuses_shuffle100_final_segment.yaml.
+# NOTE: instances re-appear across segments on resume; the authoritative per-instance
+#       verdict is the grader output in swebench_verified_shuffle100_report.json.
+
+instances_by_exit_status:
+    Submitted:
+    - django__django-14672
+    - sphinx-doc__sphinx-10449
+    - django__django-14493
+    - django__django-12143
+    - django__django-11299
+    - django__django-11551
+    - django__django-12193
+    - pytest-dev__pytest-5262
+    Timeout:
+    - sphinx-doc__sphinx-8459
+    - pydata__xarray-6938
+    - django__django-15916
+    - sphinx-doc__sphinx-9281
+    - django__django-13012
+    - django__django-16082
+instances_by_exit_status:
+    LimitsExceeded:
+    - django__django-14351
+    - sympy__sympy-13551
+    - scikit-learn__scikit-learn-14710
+    Submitted:
+    - scikit-learn__scikit-learn-14629
+    - sympy__sympy-20916
+    - django__django-11749
+    - django__django-7530
+    - django__django-14631
+    - sympy__sympy-14248
+    - pallets__flask-5014
+    - sphinx-doc__sphinx-7440
+    - pylint-dev__pylint-4551
+    - sympy__sympy-17655
+    - django__django-15930
+    - django__django-16485
+    - astropy__astropy-14096
+    - django__django-17084
+    - django__django-13809
+    - django__django-16901
+    - django__django-14608
+    - django__django-11239
+    - django__django-15957
+    - matplotlib__matplotlib-25332
+    - astropy__astropy-8872
+    - django__django-16263
+    - django__django-11999
+    - django__django-16454
+    - django__django-16116
+    - django__django-14404
+    - django__django-15103
+    - django__django-14017
+    - sphinx-doc__sphinx-7985
+    - pylint-dev__pylint-6903
+    - django__django-14053
+    - django__django-15037
+    - django__django-14792
+    - django__django-13089
+    - pydata__xarray-3993
+    - sympy__sympy-13852
+    - django__django-15569
+    - django__django-12754
+    - psf__requests-6028
+    Timeout:
+    - django__django-11477
+    - django__django-13568
+    - django__django-13820
+instances_by_exit_status:
+    Submitted:
+    - django__django-14351
+    - scikit-learn__scikit-learn-14710
+    - django__django-16116
+    - django__django-14404
+    - django__django-15103
+    - sphinx-doc__sphinx-7985
+    - django__django-14017
+    Timeout:
+    - sympy__sympy-13551
+    - django__django-14053
+instances_by_exit_status:
+    Submitted:
+    - scikit-learn__scikit-learn-13135
+    - pylint-dev__pylint-6903
+    - scikit-learn__scikit-learn-14894
+    - django__django-11163
+    - django__django-14559
+    - django__django-15128
+instances_by_exit_status:
+    Submitted:
+    - django__django-12143
+    - django__django-14493
+    - django__django-15916
+    - django__django-11299
+    - django__django-12193
+    - sphinx-doc__sphinx-8459
+    - sphinx-doc__sphinx-9281
+    - django__django-13012
+    - pydata__xarray-6938
+    - django__django-16082
+    - scikit-learn__scikit-learn-14629
+    - django__django-11749
+    - pallets__flask-5014
+    - django__django-7530
+    - sphinx-doc__sphinx-7440
+    - django__django-16485
+    - django__django-11239
+    - django__django-14608
+    - sympy__sympy-20916
+    - django__django-16454
+    - scikit-learn__scikit-learn-14710
+    - django__django-14351
+    - django__django-16116
+instances_by_exit_status:
+    Submitted:
+    - django__django-14017
+    - django__django-14053
+    - django__django-14792
+    - sympy__sympy-13551
+    - django__django-15569
+    - django__django-13820
+    - django__django-15037
+    - django__django-13568
+    - django__django-11477
+    - django__django-13023
+    - astropy__astropy-13453
+    - pydata__xarray-4075
+    - scikit-learn__scikit-learn-25232
+    - django__django-15368
+    - sympy__sympy-15976
+    - psf__requests-1766
+    - pytest-dev__pytest-7205
+instances_by_exit_status:
+    ContextWindowExceededError:
+    - django__django-16938
+    InternalServerError:
+    - matplotlib__matplotlib-22871
+    - astropy__astropy-14369
+    - django__django-15851
+    - django__django-15252
+    - django__django-13033
+    - django__django-13128
+    - sphinx-doc__sphinx-9591
+    - sphinx-doc__sphinx-7757
+    - django__django-14434
+    Submitted:
+    - django__django-13028
+    - sphinx-doc__sphinx-8593
+    - sphinx-doc__sphinx-8595
+    - sympy__sympy-19040
+    - pytest-dev__pytest-5631
+    - django__django-15315
+    - django__django-15987
+    - django__django-13794
+    - astropy__astropy-13977
+    - sympy__sympy-13974
+    - sphinx-doc__sphinx-7910
+    - sympy__sympy-11618
+    - pytest-dev__pytest-7521
+    - django__django-12774
+    - sympy__sympy-12096
+    - django__django-10973
+    - django__django-12273
+    - django__django-15277

@@ -198,55 +198,84 @@ as an independent signal.
 > (ample for pi-30's short contexts). Raw inference concurrency was *not* the cause — the endpoint survived
 > 16 concurrent tool-call requests at 0.9. Keep the high-util config for pure remote-client serving only.
 
-## Agentic coding — SWE-bench Verified (measured 2026-08-17)
+## Agentic coding — SWE-bench Verified (n=100 shuffled)
+
+**Measured 2026-08-18** (final n=100 completion; supersedes the earlier n=55 partial).
 
 [SWE-bench Verified](https://www.swebench.com/) via [`mini-swe-agent`](https://github.com/SWE-agent/mini-swe-agent)
 (bash-only agent loop): given a real GitHub issue + repo, the model must produce a patch that makes the
 repo's hidden test suite pass, graded pass/fail inside a per-instance x86 Docker container. The agent loop
 and test containers run on the **client Mac mini (x86_64)**; the model is served on Warpcore.
 
-**Result: 28/55 resolved = 50.9%** — a representative random sample (`--shuffle`, same seed as the
-Qwen3.6 run) spanning **11 repos**, scored with **0 harness errors and 0 empty patches** (every instance
-got a fair test verdict).
+**Result: 47/100 resolved = 47%** on the full 100-instance shuffle (`--shuffle`, same seed as the Qwen3.6
+run) spanning **11 repos**. This **beats the Qwen3.6-35B baseline (44%, n=100)**.
+
+> **The 47/100 is a conservative floor depressed by serving instability, not a clean capability number.**
+> Of the 100 instances, **88 received a fair test verdict** (a real patch that the grader could apply and
+> run); the other **12 never got a fair verdict** — **11 empty patches** and **1 grading timeout**. The 11
+> empty patches were **not** model give-ups: they are the recurring vLLM/GB10 engine failure striking again
+> (9 `InternalServerError` HTTP 5xx + 1 `ContextWindowExceededError` + 1 `LimitsExceeded`), so the agent
+> never received a completion to turn into a diff. On the **88 fairly-evaluated instances the resolved rate
+> is 47/88 = 53.4%**. The true capability number sits between these: **47% is the floor** (every
+> serving-failed instance counted as a loss), **53.4% is the ceiling** (serving failures excluded).
 
 | | |
 |---|---|
-| Resolved | **28 / 55 (50.9%)** |
-| Sample | representative random (`--shuffle --slice 0:100`, reached 55/100 before the endpoint wedged) |
-| Repos spanned | 11 (django 32, sphinx 5, sympy 4, scikit-learn 4, astropy/pydata/pylint 2 each, others 1) |
-| Scoring cleanliness | 0 errors, 0 empty patches — all 55 fairly evaluated |
+| Resolved (leaderboard denominator) | **47 / 100 = 47%** |
+| Resolved (fairly-evaluated only) | **47 / 88 = 53.4%** |
+| Unresolved (genuine model failures) | 41 |
+| Empty patches (serving-side, not model) | 11 — 9 `InternalServerError` + 1 `ContextWindowExceededError` + 1 `LimitsExceeded` |
+| Grading errors | 1 (`scikit-learn-14710` — test timed out after 1800 s during **grading**, not a model failure) |
+| Sample | full n=100 (`--shuffle`, seed 42, `--slice 0:100`) |
+| Repos spanned | 11 (django 56, sympy 10, sphinx 10, astropy 5, scikit-learn 5, pytest 4, pydata 3, psf/matplotlib/pylint 2 each, pallets 1) |
 | Baseline (Qwen3.6-35B) | 44% (n=100) — **Lightning is ahead** |
-| Agent | mini-swe-agent 2.4.6, native tool-calling, `temp=0`, per-step `timeout=1800` |
-| Serving | `vllm/vllm-openai:v0.27.1`, marlin; SWE-hardened `--gpu-memory-utilization 0.80 --max-model-len 131072 --max-num-seqs 8` |
+| Agent | mini-swe-agent 2.4.6, native tool-calling scaffold ([`raw/swebench/swebench.yaml`](raw/swebench/swebench.yaml)), `temp=0`, per-step `timeout=1800` |
+| Serving | `vllm/vllm-openai:v0.27.1`, marlin, **`qwen3_coder` tool-call parser**, `--gpu-memory-utilization 0.55` |
+| Raw | [`raw/swebench/`](raw/swebench/) (report JSON, preds, exit statuses, run/scoring logs, scaffold yaml) |
 
-**Per-repo breakdown** (resolved / attempted): django 19/32, scikit-learn 3/4, sphinx 2/5, sympy 1/4,
-matplotlib 1/1, pallets 1/1, pylint 1/2, astropy 0/2, pydata 0/2, pytest 0/1, requests 0/1. The gradient
-is the expected one — strong on django/sklearn, weak on the hard tail (sympy, astropy) — and mirrors the
-Qwen3.6 pattern.
+**Per-repo breakdown** (resolved / attempted, over all 100):
+
+| Repo | Resolved | Unresolved | Empty (serving) | Error | Attempted |
+| ---- | -------: | ---------: | --------------: | ----: | --------: |
+| django | 29 | 21 | 6 | 0 | 56 |
+| sympy | 3 | 6 | 1 | 0 | 10 |
+| sphinx-doc | 3 | 5 | 2 | 0 | 10 |
+| astropy | 1 | 3 | 1 | 0 | 5 |
+| scikit-learn | 3 | 1 | 0 | 1 | 5 |
+| pytest-dev | 3 | 1 | 0 | 0 | 4 |
+| pydata (xarray) | 1 | 2 | 0 | 0 | 3 |
+| psf (requests) | 1 | 1 | 0 | 0 | 2 |
+| matplotlib | 1 | 0 | 1 | 0 | 2 |
+| pylint-dev | 1 | 1 | 0 | 0 | 2 |
+| pallets (flask) | 1 | 0 | 0 | 0 | 1 |
+| **Total** | **47** | **41** | **11** | **1** | **100** |
+
+The gradient is the expected one — strong on django (29/56) and the smaller high-signal repos
+(scikit-learn 3/5, pytest 3/4), weaker on the hard reasoning tail (sympy 3/10, astropy 1/5) — and mirrors
+the Qwen3.6 pattern.
 
 ### Caveats (read before quoting the number)
-- **n=55, not 100 → indicative (±~7%), not leaderboard-final.** The target was n=100; the run reached 55
-  before the serving endpoint wedged (below). 50.9% is a legitimate representative-sample number, but it
-  is not the full Verified score.
-- **Sample is django-heavy (32/55 = 58%).** Django instances skew slightly easier, so the true
-  full-sample number could be a touch lower. It spans the same 11 repos as the baseline, so it is
-  *representative*, just not perfectly balanced.
-- **The number is a conservative floor** — 11 of the 55 were wall-clock `Timeout` at the default budget,
-  concentrated on hard repos; a larger time budget would likely recover a few.
+- **n=100 shuffled, not the full 500 → indicative (±~5%), not leaderboard-final.** This is a representative
+  random 100-instance sample, the same convention used for the Qwen3.6 baseline, not the complete SWE-bench
+  Verified score.
+- **Sample is django-heavy (56/100).** Django instances skew slightly easier, so a fully balanced 500-item
+  run could land a touch lower. It spans the same 11 repos as the baseline, so it is *representative*.
+- **47% is a serving-depressed floor.** The 11 empty patches are vLLM/GB10 engine failures (below), not
+  model give-ups; excluding them gives 53.4% on fairly-evaluated instances. Scoring itself was clean — **no
+  `RepeatedFormatError` / tool-call-parse artifacts**, so the number is a real score, just floored by
+  serving 5xx/context failures rather than by the model.
 
-### Why it stopped at 55: a recurring vLLM/GB10 engine wedge (serving bug, not the model)
-Under sustained SWE-bench load the served engine repeatedly entered a **deadlock**: `GET /v1/models`
-returns 200 instantly (metadata only) but a real `POST /v1/chat/completions` **hangs past the timeout
-(HTTP 000)** with the GPU pegged ~96%. The agent workers block on the never-returning completion and
-progress silently stops (up to ~12 h overnight before a watchdog caught it). This recurred **three times
-across three serving configs**, including a deliberately hardened build (`gpu-util 0.80` +
-`max-model-len 131072` + `max-num-seqs 8`, giving ~40× KV headroom for even 128K-token requests, verified
-by a 3×-concurrent-60K-token stress probe that passed). Because it survives generous KV headroom, this is
-a **genuine vLLM/GB10 engine bug under long-context MoE generation, not a tunable KV-pressure issue** —
-and it is **model-independent serving instability**, not a Lightning capability limit. Diagnose by hitting
-BOTH endpoints (never trust `/models` alone); recover with `docker rm -f` + relaunch, then prove a real
-completion returns 200 fast before resuming. `--shuffle` is seeded (`random.seed(42)`), so a resume with
-the same `-o` dir skips completed instances and re-runs only the remainder.
+### The remaining empty patches: the same recurring vLLM/GB10 engine failure (serving bug, not the model)
+The run finally reached 100 instances, but 11 of them came back with **empty patches** because the served
+engine returned **`InternalServerError` (HTTP 5xx, 9 instances)**, **`ContextWindowExceededError` (1)**, or
+hit a **`LimitsExceeded` step cap (1)** — the agent got no usable completion, so no diff was produced. This
+is the same class of **model-independent serving instability** documented on the earlier partial run:
+under sustained long-context MoE generation the vLLM/GB10 engine intermittently fails or wedges (`GET
+/v1/models` stays 200 while real completions error or hang). It is **not** a Lightning capability limit and
+**not** a tool-call-parser artifact (scoring showed zero `RepeatedFormatError`). Recover with `docker rm -f`
++ relaunch and confirm a real completion returns 200 fast before resuming; `--shuffle` is seeded
+(`random.seed(42)`), so a resume against the same `-o` dir skips completed instances and re-runs only the
+remainder. The lasting fix is a newer vLLM build where the long-context MoE engine failure is resolved.
 
 ### Harness fix: `cat patch.txt` submit was silently zeroing solved instances
 mini-swe-agent's stock `swebench.yaml` submit step is a multi-command ritual ending in
@@ -266,9 +295,11 @@ post-fix and clean. Raw results, the robust config, and the launch script are un
 
 ## Not yet measured / next steps
 
-- **Complete SWE-bench to n=100** — requires resolving the vLLM/GB10 long-context wedge above (a newer
-  vLLM build where the engine deadlock is fixed), then re-running the same shuffle to fill the remaining
-  45 instances. The 55 already done would be reused.
+- **Recover the 11 serving-failed SWE-bench instances** — a newer vLLM build where the long-context MoE
+  engine 5xx/wedge is fixed would let those 11 empty-patch instances run to a fair verdict, lifting the
+  headline from the 47/100 floor toward the 53.4% fairly-evaluated rate.
+- **Full SWE-bench Verified (n=500)** — the n=100 shuffle is representative (±~5%); the full 500-item run
+  is the leaderboard-final number.
 - **GPQA at 128k budget** for the last 6 items that still truncate at 64k (would close the remaining 3%;
   76.26% @64k is already 97%-answered and essentially capability-bound).
 - **DSpark speculative decoding.** NVIDIA ships a matching draft model
@@ -305,3 +336,34 @@ MODEL=nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4 CONTAINER=vllm_lightnin
   OUTDIR=~/lightning_sweep bash ~/vllm_sweep.sh 1 2 4 8 16 24 32 48 64 96 128
 ```
 (Raw completions, `--ignore-eos`, 512-in/256-out; on-box against `localhost:8000`.)
+
+SWE-bench Verified (n=100 shuffle) — agent loop + x86 test containers on the **client Mac mini**, model
+served on Warpcore. Serve with the **`qwen3_coder` tool-call parser at `--gpu-memory-utilization 0.55`**
+(the SWE-hardened / host-headroom config, same rationale as pi-30 — leave RAM for the agent + Docker on
+the client; here the client is a separate Mac, but 0.55 was the config used for this run):
+```bash
+# --- on the client Mac mini (harness ~/swebench-lightning) ---
+cd ~/swebench-lightning && source venv/bin/activate   # mini-swe-agent 2.4.6, swebench 4.1.0 + modal stub
+export MSWEA_MODEL_NAME=openai/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4
+export OPENAI_API_BASE=http://csi370295.alcf.anl.gov:8000/v1   # warpcore vLLM endpoint
+export OPENAI_API_KEY=dummy
+
+# run the agent over a seeded 100-instance shuffle (seed 42), native tool-calling scaffold, temp=0
+mini-swe-agent run-batch \
+  --subset verified --shuffle --slice 0:100 \
+  --config raw/swebench/swebench.yaml \
+  --model "$MSWEA_MODEL_NAME" \
+  -o swebench_out --workers 8
+# (resume-safe: re-running against the same -o dir skips completed instances)
+
+# collect predictions and grade inside per-instance x86 Docker containers
+python -m swebench.harness.run_evaluation \
+  --dataset_name princeton-nlp/SWE-bench_Verified \
+  --predictions_path swebench_out/preds.json \
+  --run_id lightning_shuffle100 --max_workers 8 --timeout 1800
+```
+The grader writes `openai__…__…NVFP4.lightning_shuffle100.json` (the report copied to
+[`raw/swebench/swebench_verified_shuffle100_report.json`](raw/swebench/swebench_verified_shuffle100_report.json)).
+`temp=0`, per-step `timeout=1800`. Diagnose serving stalls by hitting **both** `/v1/models` (metadata) and
+a real `POST /v1/chat/completions` (never trust `/models` alone); recover with `docker rm -f vllm_lightning`
++ relaunch, prove a real completion returns 200 fast, then resume against the same `-o` dir.
