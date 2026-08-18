@@ -198,10 +198,77 @@ as an independent signal.
 > (ample for pi-30's short contexts). Raw inference concurrency was *not* the cause — the endpoint survived
 > 16 concurrent tool-call requests at 0.9. Keep the high-util config for pure remote-client serving only.
 
+## Agentic coding — SWE-bench Verified (measured 2026-08-17)
+
+[SWE-bench Verified](https://www.swebench.com/) via [`mini-swe-agent`](https://github.com/SWE-agent/mini-swe-agent)
+(bash-only agent loop): given a real GitHub issue + repo, the model must produce a patch that makes the
+repo's hidden test suite pass, graded pass/fail inside a per-instance x86 Docker container. The agent loop
+and test containers run on the **client Mac mini (x86_64)**; the model is served on Warpcore.
+
+**Result: 28/55 resolved = 50.9%** — a representative random sample (`--shuffle`, same seed as the
+Qwen3.6 run) spanning **11 repos**, scored with **0 harness errors and 0 empty patches** (every instance
+got a fair test verdict).
+
+| | |
+|---|---|
+| Resolved | **28 / 55 (50.9%)** |
+| Sample | representative random (`--shuffle --slice 0:100`, reached 55/100 before the endpoint wedged) |
+| Repos spanned | 11 (django 32, sphinx 5, sympy 4, scikit-learn 4, astropy/pydata/pylint 2 each, others 1) |
+| Scoring cleanliness | 0 errors, 0 empty patches — all 55 fairly evaluated |
+| Baseline (Qwen3.6-35B) | 44% (n=100) — **Lightning is ahead** |
+| Agent | mini-swe-agent 2.4.6, native tool-calling, `temp=0`, per-step `timeout=1800` |
+| Serving | `vllm/vllm-openai:v0.27.1`, marlin; SWE-hardened `--gpu-memory-utilization 0.80 --max-model-len 131072 --max-num-seqs 8` |
+
+**Per-repo breakdown** (resolved / attempted): django 19/32, scikit-learn 3/4, sphinx 2/5, sympy 1/4,
+matplotlib 1/1, pallets 1/1, pylint 1/2, astropy 0/2, pydata 0/2, pytest 0/1, requests 0/1. The gradient
+is the expected one — strong on django/sklearn, weak on the hard tail (sympy, astropy) — and mirrors the
+Qwen3.6 pattern.
+
+### Caveats (read before quoting the number)
+- **n=55, not 100 → indicative (±~7%), not leaderboard-final.** The target was n=100; the run reached 55
+  before the serving endpoint wedged (below). 50.9% is a legitimate representative-sample number, but it
+  is not the full Verified score.
+- **Sample is django-heavy (32/55 = 58%).** Django instances skew slightly easier, so the true
+  full-sample number could be a touch lower. It spans the same 11 repos as the baseline, so it is
+  *representative*, just not perfectly balanced.
+- **The number is a conservative floor** — 11 of the 55 were wall-clock `Timeout` at the default budget,
+  concentrated on hard repos; a larger time budget would likely recover a few.
+
+### Why it stopped at 55: a recurring vLLM/GB10 engine wedge (serving bug, not the model)
+Under sustained SWE-bench load the served engine repeatedly entered a **deadlock**: `GET /v1/models`
+returns 200 instantly (metadata only) but a real `POST /v1/chat/completions` **hangs past the timeout
+(HTTP 000)** with the GPU pegged ~96%. The agent workers block on the never-returning completion and
+progress silently stops (up to ~12 h overnight before a watchdog caught it). This recurred **three times
+across three serving configs**, including a deliberately hardened build (`gpu-util 0.80` +
+`max-model-len 131072` + `max-num-seqs 8`, giving ~40× KV headroom for even 128K-token requests, verified
+by a 3×-concurrent-60K-token stress probe that passed). Because it survives generous KV headroom, this is
+a **genuine vLLM/GB10 engine bug under long-context MoE generation, not a tunable KV-pressure issue** —
+and it is **model-independent serving instability**, not a Lightning capability limit. Diagnose by hitting
+BOTH endpoints (never trust `/models` alone); recover with `docker rm -f` + relaunch, then prove a real
+completion returns 200 fast before resuming. `--shuffle` is seeded (`random.seed(42)`), so a resume with
+the same `-o` dir skips completed instances and re-runs only the remainder.
+
+### Harness fix: `cat patch.txt` submit was silently zeroing solved instances
+mini-swe-agent's stock `swebench.yaml` submit step is a multi-command ritual ending in
+`echo COMPLETE… && cat patch.txt`, and the submitted patch is whatever that prints. When Lightning
+deviated from the ritual (edited the file a different way, or `cat`'d the wrong thing), the submission
+captured **raw file-contents or an error string instead of a diff** → the grader reported
+`Patch Apply Failed: **** Only garbage was found in the patch input` and the instance scored a hard zero.
+An initial partial score showed **18 such "errors" out of 57** — the model had done the work, the harness
+just never received a valid diff. Fix: a robust submit that regenerates the diff from git state
+regardless of how the model edited:
+```yaml
+    echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT && git add -A && git diff --cached
+```
+After this fix, **all 55 instances produced valid diffs (0 patch-apply errors)** — the 50.9% above is
+post-fix and clean. Raw results, the robust config, and the launch script are under
+[`raw/`](raw/).
+
 ## Not yet measured / next steps
 
-- **SWE-bench Verified** (100-sample) — the other agentic axis; heavier than pi-30, needs an x86 harness
-  host or a container. This model's clean tool-calling makes it a strong candidate.
+- **Complete SWE-bench to n=100** — requires resolving the vLLM/GB10 long-context wedge above (a newer
+  vLLM build where the engine deadlock is fixed), then re-running the same shuffle to fill the remaining
+  45 instances. The 55 already done would be reused.
 - **GPQA at 128k budget** for the last 6 items that still truncate at 64k (would close the remaining 3%;
   76.26% @64k is already 97%-answered and essentially capability-bound).
 - **DSpark speculative decoding.** NVIDIA ships a matching draft model

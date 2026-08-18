@@ -1,0 +1,25 @@
+instances_by_exit_status:
+    Submitted:
+    - django__django-12143
+    - django__django-14493
+    - django__django-15916
+    - django__django-11299
+    - django__django-12193
+    - sphinx-doc__sphinx-8459
+    - sphinx-doc__sphinx-9281
+    - django__django-13012
+    - pydata__xarray-6938
+    - django__django-16082
+    - scikit-learn__scikit-learn-14629
+    - django__django-11749
+    - pallets__flask-5014
+    - django__django-7530
+    - sphinx-doc__sphinx-7440
+    - django__django-16485
+    - django__django-11239
+    - django__django-14608
+    - sympy__sympy-20916
+    - django__django-16454
+    - scikit-learn__scikit-learn-14710
+    - django__django-14351
+    - django__django-16116
