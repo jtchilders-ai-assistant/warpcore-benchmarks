@@ -1,0 +1,32 @@
+===== SUMMARY (ornith / ornith-ai/Ornith-1.0-35B-FP8) =====
+P1: PASS
+P2: PASS
+P3: PASS green in 2
+P4: PASS in 3
+P5: PASS 98.4905 GFLOP/s
+P6: PASS critic+verifier in 1
+P7: PASS
+P8: PASS in 2
+P9: PASS champion=cand_2 @ 77.076
+P10: PASS champion=cand_1 @ 85.6026
+P11: PASS green in 2
+P12: PASS in 2
+P13: PASS green in 2
+P14: PASS in 2
+P15: PASS 52.8412 Mtok/s
+P16: PASS critic+verifier in 1
+P17: PASS
+P18: PASS in 2
+P19: PASS champion=cand_4 @ 346.5107
+P20: PASS green in 2
+P21: PASS in 2
+P22: PASS green in 2
+P23: PASS 163.5693 Mn/s
+P24: PASS critic+verifier in 2
+P25: PASS
+P26: PASS in 2
+P27: PASS champion=cand_1 @ 0.7951
+P28: PASS in 2
+P29: PASS green in 2
+P30: PASS champion=cand_1 @ 9.9340
+SCORE: 30/30 passed

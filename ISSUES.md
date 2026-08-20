@@ -161,6 +161,37 @@ Two more Qwen3.5-122B bring-up gotchas on this single-Spark box:
 
 ---
 
+## 13. GB10 has NO working CUTLASS W8A8 **FP8 dense/linear** kernel — `VLLM_TEST_FORCE_FP8_MARLIN=1`
+`ornith-ai/Ornith-1.0-35B-FP8` is a **compressed-tensors W8A8 FP8** checkpoint. On the GB10 the engine
+core dies during init with:
+```
+cutlass_gemm_caller ... Error Internal
+RuntimeError: ... (EngineCore init failed)
+```
+This is **distinct from issue 8**. Issue 8 is the *MoE experts* CUTLASS path (fixed by
+`--moe-backend marlin`); this one is the **dense / linear** FP8 GEMM
+(`CompressedTensorsW8A8Fp8` → `CutlassFP8ScaledMMLinearKernel`), which `--moe-backend` does not touch.
+An FP8 MoE model needs **both** fixes or it will not start:
+
+```bash
+-e VLLM_TEST_FORCE_FP8_MARLIN=1   # dense/linear FP8 -> MarlinFP8ScaledMMLinearKernel
+--moe-backend marlin              # MoE experts -> Marlin
+```
+
+Despite the `VLLM_TEST_` prefix this is the production-correct setting on GB10 — Marlin is the only
+FP8 GEMM path that works on this SM. Cost: a slower load (Marlin repack, ~19 s/shard, ~300 s total for
+34.85 GiB), no correctness impact (GSM8K 97.19%, GPQA-Diamond 69.70%). See the
+[Ornith-1.0-35B card](results/ornith-35b/README.md).
+
+Related bring-up notes for the same model:
+- **`--reasoning-parser qwen3` returns an EMPTY `reasoning_content`** while `content` is correctly
+  CoT-stripped. Output is right; only the field split is off (same shape as the Qwen3.5 note above).
+- **It is a reasoning model with a large thinking budget even on trivial prompts** (218 reasoning
+  tokens to answer a one-word question). Always send a generous `max_tokens` — ≥4k for chat, 32k+ for
+  GPQA/agentic — or answers get truncated to empty and silently score wrong.
+
+---
+
 ## Non-issues (ruled out — don't chase)
 - The GB10 `nvidia-smi` memory `N/A` is normal (unified memory), not a broken GPU.
 - The `fatal: not a git repository` line lm-eval prints at the end is harmless (it tries to record a
