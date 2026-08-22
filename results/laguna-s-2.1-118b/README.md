@@ -78,22 +78,26 @@ understates tok/s). 512-token input, 256-token output, 3 prompts per concurrency
 | 64 | 165.64 | +47.2% | 3770.6 | 1359.0 | 10108.2 | 370.8 | 2.59 |
 | 128 | 233.27 | +40.8% | 7570.1 | 3826.5 | 30366.8 | 514.4 | 1.82 |
 | 192 | 258.77 | **+10.9%** | 28118.2 | — | 154313.3 | 557.1 | 1.35 |
+| 256 | 266.34 | **+2.9%** | 78215.9 | — | 171099.0 | 565.2 | 1.04 |
 
-**Peak is ~259 tok/s at c≈192 — a real plateau.** The sweep to c=128 looked like it was still climbing
-(+40.8% on the last step), but extending it settled the question: c=192 adds only **+10.9%**, and the
-engine is saturated there rather than scheduler-capped. At c=256 live `/metrics` showed only **49
-requests running with 207 queued** — *fewer* admitted concurrently than at c=192, which is KV-cache
-pressure, not queueing headroom. With just 8.44 GiB of KV (333,604 tokens) after 94.48 GiB of weights,
-this model runs out of cache long before it runs out of scheduler slots.
+**Peak is ~266 tok/s at c≈256, and the curve is flat by c≈192.** The sweep to c=128 looked like it was
+still climbing (+40.8% on the last step), but extending it settled the question: c=192 adds only
+**+10.9%** and c=256 a further **+2.9%** — the engine is saturated, not scheduler-capped. During the
+c=256 run live `/metrics` showed only **49 requests running with 207 queued**, *fewer* admitted
+concurrently than at c=192, which is KV-cache pressure rather than queueing headroom. With just
+8.44 GiB of KV (333,604 tokens) left after 94.48 GiB of weights, this model runs out of cache long
+before it runs out of scheduler slots. **Practical peak: ~259 tok/s at c≈192** — the last 2.9% costs
+2.8× the TTFT and is not worth taking.
 
 > **Correction.** An earlier revision of this card reported the peak as "≥333 tok/s, still climbing",
 > extrapolated from a live `/metrics` sample (164 running / 28 queued at 333.5 tok/s) taken *during*
 > the c=192 run. That instantaneous reading was measured mid-run while the queue was draining and did
-> not survive contact with the completed benchmark: the honest end-to-end figure for c=192 is
-> **258.77 tok/s**. Instantaneous `generation_tokens_total` deltas overstate sustained throughput —
-> trust the completed `vllm bench serve` number.
+> not survive contact with the completed benchmark: c=192 finished at **258.77 tok/s**. Instantaneous
+> `generation_tokens_total` deltas overstate sustained throughput — trust the completed
+> `vllm bench serve` number.
 
-Latency past c=128 is not usable interactively: mean TTFT at c=192 is **28 s** with a P99 of **154 s**.
+Latency past c=128 is not usable interactively: mean TTFT is **28 s** at c=192 and **78 s** at c=256,
+with P99s of 154 s and 171 s. Anything above c=128 is a batch-only regime.
 
 **Interactive SLO (mean TPOT < 100 ms) holds only to c=4.** Single-stream decode is **17.65 tok/s** —
 slow, and expected: ~8.5B active params/token on a bandwidth-bound box, with the NVFP4 experts on
