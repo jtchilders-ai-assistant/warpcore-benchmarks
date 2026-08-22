@@ -77,12 +77,23 @@ understates tok/s). 512-token input, 256-token output, 3 prompts per concurrency
 | 32 | 112.54 | +44.3% | 2369.6 | 1230.6 | 6189.9 | 275.4 | 3.52 |
 | 64 | 165.64 | +47.2% | 3770.6 | 1359.0 | 10108.2 | 370.8 | 2.59 |
 | 128 | 233.27 | +40.8% | 7570.1 | 3826.5 | 30366.8 | 514.4 | 1.82 |
+| 192 | 258.77 | **+10.9%** | 28118.2 | — | 154313.3 | 557.1 | 1.35 |
 
-**233 tok/s is a FLOOR, not a plateau** — throughput was still climbing +40.8% at the top of the sweep,
-and live `/metrics` sampling during a c=192 run showed **164 requests running with 28 queued at
-333.5 tok/s**, well above the c=128 figure. The default `SchedulerConfig.max_num_seqs` is 128 but vLLM
-admitted ~150–164 concurrently at runtime. A higher-concurrency extension was in progress at the time
-of writing; treat the peak as **≥333 tok/s**, not 233.
+**Peak is ~259 tok/s at c≈192 — a real plateau.** The sweep to c=128 looked like it was still climbing
+(+40.8% on the last step), but extending it settled the question: c=192 adds only **+10.9%**, and the
+engine is saturated there rather than scheduler-capped. At c=256 live `/metrics` showed only **49
+requests running with 207 queued** — *fewer* admitted concurrently than at c=192, which is KV-cache
+pressure, not queueing headroom. With just 8.44 GiB of KV (333,604 tokens) after 94.48 GiB of weights,
+this model runs out of cache long before it runs out of scheduler slots.
+
+> **Correction.** An earlier revision of this card reported the peak as "≥333 tok/s, still climbing",
+> extrapolated from a live `/metrics` sample (164 running / 28 queued at 333.5 tok/s) taken *during*
+> the c=192 run. That instantaneous reading was measured mid-run while the queue was draining and did
+> not survive contact with the completed benchmark: the honest end-to-end figure for c=192 is
+> **258.77 tok/s**. Instantaneous `generation_tokens_total` deltas overstate sustained throughput —
+> trust the completed `vllm bench serve` number.
+
+Latency past c=128 is not usable interactively: mean TTFT at c=192 is **28 s** with a P99 of **154 s**.
 
 **Interactive SLO (mean TPOT < 100 ms) holds only to c=4.** Single-stream decode is **17.65 tok/s** —
 slow, and expected: ~8.5B active params/token on a bandwidth-bound box, with the NVFP4 experts on
@@ -106,7 +117,7 @@ Marlin (a compatibility path, not a speed path) and 12 of 48 layers doing full g
 | Qwen/Qwen3.6-35B-A3B-FP8 | ~3B | — | — | ~487 (c=128) |
 | ornith-ai/Ornith-1.0-35B-FP8 | ~3B | 36.95 | — | ~464 (c=128, capped) |
 | Intel/Qwen3.5-122B-A10B-int4 | ~10B | 26.9 | ~120 ms | ~228 (c≈192) |
-| **poolside/Laguna-S-2.1-NVFP4** | **~8.5B** | **17.65** | **156 ms** | **≥333 (still climbing)** |
+| **poolside/Laguna-S-2.1-NVFP4** | **~8.5B** | **17.65** | **156 ms** | **~259 (c≈192)** |
 
 Laguna lands at the slow end, which is what the architecture predicts on this bandwidth-bound GB10:
 active-params-per-token is the dominant lever, and at ~8.5B it sits near Qwen3.5-122B's ~10B (26.9
