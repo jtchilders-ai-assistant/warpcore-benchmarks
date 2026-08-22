@@ -192,6 +192,83 @@ Related bring-up notes for the same model:
 
 ---
 
+## 14. GB10 is **sm_121** and FlashInfer ships no sm_121 cubin — `no kernel image is available`
+
+Hit bringing up `poolside/Laguna-S-2.1-NVFP4` (vLLM `0.27.2rc1.dev193`,
+`vllm/vllm-openai:cu129-nightly-aarch64`). Two separate problems stack here.
+
+### 14a. The mixed-quantization `--moe-backend` catch-22
+
+Laguna quantizes **layers 0–39 experts to NVFP4** but leaves **layers 40–47 experts BF16**
+(`quantization_config.ignore` carries `re:^model\.layers\.4[0-7]\.mlp\.experts.*`). vLLM therefore
+builds *two* MoE method objects with **disjoint** legal backend sets, while `--moe-backend` is a
+single **global** flag:
+
+```
+--moe-backend marlin  -> ValueError: moe_backend='marlin' is not supported for unquantized MoE.
+--moe-backend triton  -> ValueError: moe_backend='triton' is not supported for NvFP4 MoE.
+```
+
+| Layer group | vLLM method | Accepts | Rejects |
+|---|---|---|---|
+| 0–39 experts (NVFP4) | `CompressedTensorsW4A4Fp4MoE` | cutlass, flashinfer_\*, **marlin**, humming, emulation | triton |
+| 40–47 experts (BF16) | `UnquantizedFusedMoEMethod` | **triton**, batched_triton, flashinfer_\*, aiter | marlin |
+
+### 14b. Omitting the flag "works" at init, then dies at first decode
+
+Dropping `--moe-backend` lets each oracle auto-select. Both pick FlashInfer, the engine initialises,
+all 49 shards load — and then the **first decode** dies:
+
+```
+MemoryError: CUDA error: no kernel image is available for execution on the device
+  ... flashinfer/fused_moe/core.py -> cutlass_fused_moe
+```
+
+**That `MemoryError` is NOT an OOM.** Don't tune `--gpu-memory-utilization`. The real cause:
+
+```
+torch.cuda.get_device_capability(0) -> (12, 1)          # GB10 = sm_121
+torch.cuda.get_arch_list() -> [sm_80, sm_90, sm_100, sm_120]   # no sm_121
+```
+
+FlashInfer's CUTLASS/TRTLLM MoE kernels are arch-exact SASS with no PTX fallback, so sm_120 code will
+not run on sm_121. vLLM's oracle hardcodes FlashInfer first for CUDA and demotes it only for SM90 /
+`dp_size>1` / SWIGLUOAI — **it never checks whether a cubin exists for the running SM**
+(`vllm.envs.VLLM_HAS_FLASHINFER_CUBIN` is already `False` here and is not consulted). Upstream applies
+this reasoning in exactly one spot: NvFP4 auto-selection excludes `FLASHINFER_B12X` pending "the
+upstream CUTLASS SM121 MMA op guard".
+
+### The fix
+
+Pass `--moe-backend marlin` (GB10-stable NVFP4 path, cf. issue 8) **and** alias marlin→TRITON for the
+unquantized group via a `sitecustomize.py` on `PYTHONPATH`. It must be `sitecustomize` — a monkeypatch
+in the parent process is lost in the spawned `EngineCore` child, which is where model construction runs.
+The shim is gated on `get_device_capability(0) == (12, 1)`, so it is a no-op on any other GPU.
+
+```bash
+-v $HOME/vllm_patch:/patch -e PYTHONPATH=/patch   # + --moe-backend marlin
+```
+
+Confirm both lines appear at startup, and that neither says FlashInfer:
+```
+[nvfp4.py:244]       Using 'MARLIN' NvFp4 MoE backend out of potential backends: [...]
+[unquantized.py:282] Using TRITON Unquantized MoE backend out of potential backends: [...]
+```
+
+Verified: smoke test OK, tool call `finish_reason: tool_calls`, and **60/60 concurrent guided-decoding
+requests passed in 20.2 s** with the engine alive afterwards. Shim + launch script are archived in
+[`results/laguna-s-2.1-118b/raw/`](results/laguna-s-2.1-118b/raw/).
+
+**Generalises:** on GB10 prefer **MARLIN (quantized) / TRITON (unquantized)** and treat *any* FlashInfer
+MoE selection as a latent first-decode crash. Always unwrap the real exception — every one of these
+hides behind `RuntimeError: Engine core initialization failed ... Failed core proc(s): {}`:
+```bash
+docker logs <ctr> 2>&1 | sed -e 's/\r$//' | grep 'core.py:1346' | tail -20
+```
+(the `\r` strip is mandatory; a C++ `frame #N` stack means a kernel-level fault, not a config error).
+
+---
+
 ## Non-issues (ruled out — don't chase)
 - The GB10 `nvidia-smi` memory `N/A` is normal (unified memory), not a broken GPU.
 - The `fatal: not a git repository` line lm-eval prints at the end is harmless (it tries to record a
