@@ -1,0 +1,371 @@
+2026-08-22:06:10:17 INFO     [config.evaluate_config:307] Using default fewshot_as_multiturn=True.
+2026-08-22:06:10:20 INFO     [_cli.run:387] Including path: /tmp/lmeval_clean_tasks
+2026-08-22:06:10:20 INFO     [_cli.run:388] Selected Tasks: ['gpqa_diamond_cot_zeroshot_clean']
+2026-08-22:06:10:20 INFO     [evaluator:214] Setting random seed to 0 | Setting numpy seed to 1234 | Setting torch manual seed to 1234 | Setting fewshot manual seed to 1234
+2026-08-22:06:10:20 WARNING  [evaluator:226] generation_kwargs: {'max_gen_toks': 32768, 'temperature': 0} specified through cli, these settings will update set parameters in yaml tasks. Ensure 'do_sample=True' for non-greedy decoding!
+2026-08-22:06:10:20 INFO     [evaluator:239] Initializing local-chat-completions model, with arguments: {'model': 'poolside/Laguna-S-2.1-NVFP4', 'base_url': 'http://localhost:8000/v1/chat/completions', 'num_concurrent': 16, 'max_retries': 8, 'tokenized_requests': False, 'timeout': 3600}
+2026-08-22:06:10:20 INFO     [models.api_models:179] Using max length 2048 - 1
+2026-08-22:06:10:20 INFO     [models.api_models:200] Using tokenizer None
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Using the latest cached version of the dataset since Idavidrein/gpqa couldn't be found on the Hugging Face Hub
+Found the latest cached dataset configuration 'gpqa_diamond' at /home/jchilders/.cache/huggingface/datasets/Idavidrein___gpqa/gpqa_diamond/0.0.0/633f5ee89ab8ad4522a9f850766b73f62147ffdd (last modified on Wed Aug 12 08:50:43 2026).
+2026-08-22:06:10:20 INFO     [evaluator_utils:446] Selected tasks:
+2026-08-22:06:10:20 INFO     [evaluator_utils:480] Task: gpqa_diamond_cot_zeroshot_clean (/tmp/lmeval_clean_tasks/gpqa_diamond_cot_zeroshot_clean.yaml)
+2026-08-22:06:10:20 INFO     [evaluator:314] gpqa_diamond_cot_zeroshot_clean: Using gen_kwargs: {'until': ['</s>'], 'do_sample': False, 'temperature': 0, 'max_gen_toks': 32768}
+2026-08-22:06:10:20 INFO     [api.task:312] Building contexts for gpqa_diamond_cot_zeroshot_clean on rank 0...
+  0%|          | 0/198 [00:00<?, ?it/s]100%|██████████| 198/198 [00:00<00:00, 4010.55it/s]
+2026-08-22:06:10:20 INFO     [evaluator:585] Running generate_until requests
+2026-08-22:06:10:20 INFO     [models.api_models:776] Tokenized requests are disabled. Context + generation length is not checked.
+Requesting API:   0%|          | 0/198 [00:00<?, ?it/s]Requesting API:   1%|          | 1/198 [04:11<13:45:32, 251.44s/it]Requesting API:   1%|          | 2/198 [06:42<10:28:10, 192.30s/it]Requesting API:   2%|▏         | 3/198 [06:43<5:41:04, 104.95s/it] Requesting API:   2%|▏         | 4/198 [08:51<6:09:17, 114.21s/it]Requesting API:   3%|▎         | 5/198 [09:22<4:31:03, 84.27s/it] Requesting API:   3%|▎         | 6/198 [09:48<3:25:49, 64.32s/it]Requesting API:   4%|▎         | 7/198 [11:12<3:45:36, 70.87s/it]Requesting API:   4%|▍         | 8/198 [12:40<4:01:25, 76.24s/it]Requesting API:   5%|▍         | 9/198 [13:33<3:36:52, 68.85s/it]Requesting API:   5%|▌         | 10/198 [15:31<4:23:32, 84.11s/it]Requesting API:   6%|▌         | 11/198 [19:27<6:47:02, 130.60s/it]Requesting API:   6%|▌         | 12/198 [21:52<6:58:43, 135.07s/it]Requesting API:   7%|▋         | 13/198 [28:08<10:40:59, 207.89s/it]2026-08-22:07:10:21 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:07:10:21 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:07:10:21 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:07:10:21 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:07:10:21 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:07:10:21 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:07:10:21 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:07:10:21 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:07:10:21 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:07:10:21 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:07:10:21 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:07:10:21 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:07:10:21 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:07:10:21 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:07:17:03 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:07:17:03 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:07:17:04 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:07:17:04 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:07:19:44 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:07:19:44 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:07:21:34 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:07:21:34 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:07:23:01 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:07:23:01 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:   7%|▋         | 14/198 [1:13:03<49:01:23, 959.15s/it]2026-08-22:07:23:54 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:07:23:54 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:07:25:52 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:07:25:52 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:   8%|▊         | 15/198 [1:17:12<37:52:13, 744.99s/it]Requesting API:   8%|▊         | 16/198 [1:18:02<27:05:36, 535.91s/it]Requesting API:   9%|▊         | 17/198 [1:19:25<20:05:44, 399.69s/it]2026-08-22:07:32:14 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:07:32:14 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:   9%|▉         | 18/198 [1:23:24<17:33:56, 351.32s/it]Requesting API:  10%|▉         | 19/198 [1:27:00<15:27:13, 310.80s/it]2026-08-22:07:38:29 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:07:38:29 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  10%|█         | 20/198 [1:32:34<15:43:01, 317.88s/it]Requesting API:  11%|█         | 21/198 [1:43:41<20:46:15, 422.46s/it]Requesting API:  11%|█         | 22/198 [1:50:11<20:11:06, 412.88s/it]2026-08-22:08:10:22 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:08:10:22 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:08:10:22 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:08:10:22 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:08:10:22 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:08:10:22 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:08:10:22 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:08:10:22 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:08:10:22 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:08:10:22 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:08:10:22 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:08:10:22 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:08:17:04 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:08:17:04 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:08:17:05 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:08:17:05 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  12%|█▏        | 23/198 [2:09:10<30:39:22, 630.64s/it]Requesting API:  12%|█▏        | 24/198 [2:11:00<22:56:27, 474.64s/it]2026-08-22:08:23:55 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:08:23:55 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:08:27:33 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:08:27:33 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:08:28:23 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:08:28:23 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:08:29:46 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:08:29:46 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  13%|█▎        | 25/198 [2:19:32<23:20:22, 485.68s/it]2026-08-22:08:32:15 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:08:32:15 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  13%|█▎        | 26/198 [2:22:11<18:31:23, 387.69s/it]2026-08-22:08:33:45 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:08:33:45 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  14%|█▎        | 27/198 [2:29:35<19:13:15, 404.65s/it]Requesting API:  14%|█▍        | 28/198 [2:32:01<15:26:33, 327.02s/it]Requesting API:  15%|█▍        | 29/198 [2:32:51<11:26:48, 243.84s/it]Requesting API:  15%|█▌        | 30/198 [2:34:13<9:07:06, 195.40s/it] Requesting API:  16%|█▌        | 31/198 [2:37:45<9:17:51, 200.43s/it]2026-08-22:08:54:02 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:08:54:02 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  16%|█▌        | 32/198 [2:44:06<11:43:49, 254.40s/it]Requesting API:  17%|█▋        | 33/198 [2:48:58<12:11:01, 265.83s/it]2026-08-22:09:00:32 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:09:00:32 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  17%|█▋        | 34/198 [2:52:44<11:33:40, 253.78s/it]2026-08-22:09:10:23 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:09:10:23 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:09:10:23 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:09:10:23 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:09:10:23 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:09:10:23 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  18%|█▊        | 35/198 [3:02:42<16:10:28, 357.23s/it]2026-08-22:09:17:05 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:09:17:05 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:09:17:06 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:09:17:06 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  18%|█▊        | 36/198 [3:07:06<14:48:30, 329.08s/it]Requesting API:  19%|█▊        | 37/198 [3:08:25<11:21:43, 254.06s/it]2026-08-22:09:21:22 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:09:21:22 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:09:23:56 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:09:23:56 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  19%|█▉        | 38/198 [3:16:46<14:35:00, 328.13s/it]Requesting API:  20%|█▉        | 39/198 [3:18:40<11:39:44, 264.05s/it]2026-08-22:09:29:53 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:09:29:53 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:09:32:16 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:09:32:16 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:09:33:46 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:09:33:46 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  20%|██        | 40/198 [3:26:04<13:57:23, 318.00s/it]2026-08-22:09:44:34 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:09:44:34 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  21%|██        | 41/198 [3:36:10<17:37:41, 404.22s/it]2026-08-22:09:48:07 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:09:48:07 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:09:54:27 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:09:54:27 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:09:59:19 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:09:59:19 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:10:00:33 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:10:00:33 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:10:03:05 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:10:03:05 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:10:13:04 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:10:13:04 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  21%|██        | 42/198 [4:03:14<33:22:48, 770.31s/it]Requesting API:  22%|██▏       | 43/198 [4:05:35<25:01:58, 581.41s/it]2026-08-22:10:17:27 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:10:17:27 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:10:18:46 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:10:18:46 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:10:21:23 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:10:21:23 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:10:23:57 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:10:23:57 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  22%|██▏       | 44/198 [4:13:43<23:40:37, 553.49s/it]2026-08-22:10:27:07 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:10:27:07 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  23%|██▎       | 45/198 [4:17:52<19:38:35, 462.20s/it]2026-08-22:10:29:02 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:10:29:02 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:10:29:54 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:10:29:54 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:10:36:25 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:10:36:25 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  23%|██▎       | 46/198 [4:26:36<20:17:42, 480.67s/it]Requesting API:  24%|██▎       | 47/198 [4:28:41<15:40:48, 373.83s/it]2026-08-22:10:44:35 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:10:44:35 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  24%|██▍       | 48/198 [4:35:39<16:07:39, 387.06s/it]2026-08-22:10:46:31 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:10:46:31 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:10:48:08 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:10:48:08 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  25%|██▍       | 49/198 [4:38:26<13:17:50, 321.28s/it]Requesting API:  25%|██▌       | 50/198 [4:40:16<10:36:06, 257.88s/it]Requesting API:  26%|██▌       | 51/198 [4:41:34<8:19:30, 203.88s/it] Requesting API:  26%|██▋       | 52/198 [4:42:39<6:34:49, 162.26s/it]2026-08-22:10:54:28 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:10:54:28 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  27%|██▋       | 53/198 [4:47:12<7:52:15, 195.42s/it]2026-08-22:10:59:20 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:10:59:20 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:11:13:05 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:11:13:05 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:11:17:28 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:11:17:28 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:11:18:47 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:11:18:47 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:11:21:24 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:11:21:24 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  27%|██▋       | 54/198 [5:14:54<25:24:50, 635.35s/it]2026-08-22:11:27:08 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:11:27:08 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:11:29:03 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:11:29:03 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  28%|██▊       | 55/198 [5:18:46<20:25:32, 514.21s/it]2026-08-22:11:29:55 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:11:29:55 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  28%|██▊       | 56/198 [5:20:19<15:18:05, 387.93s/it]Requesting API:  29%|██▉       | 57/198 [5:21:49<11:42:04, 298.76s/it]Requesting API:  29%|██▉       | 58/198 [5:24:48<10:12:43, 262.59s/it]2026-08-22:11:36:26 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:11:36:26 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  30%|██▉       | 59/198 [5:26:31<8:17:41, 214.83s/it] 2026-08-22:11:44:36 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:11:44:36 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:11:46:00 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:11:46:00 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:11:50:38 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:11:50:38 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:11:51:55 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:11:51:55 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:11:53:01 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:11:53:01 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:11:54:29 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:11:54:29 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  30%|███       | 60/198 [5:44:50<18:24:17, 480.13s/it]Requesting API:  31%|███       | 61/198 [5:46:48<14:07:59, 371.39s/it]2026-08-22:11:57:33 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:11:57:33 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:11:59:21 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:11:59:21 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  31%|███▏      | 62/198 [5:55:46<15:54:57, 421.31s/it]Requesting API:  32%|███▏      | 63/198 [5:55:53<11:08:21, 297.05s/it]Requesting API:  32%|███▏      | 64/198 [5:55:58<7:48:03, 209.58s/it] Requesting API:  33%|███▎      | 65/198 [5:58:17<6:57:18, 188.26s/it]Requesting API:  33%|███▎      | 66/198 [5:58:18<4:50:36, 132.09s/it]Requesting API:  34%|███▍      | 67/198 [6:02:12<5:55:04, 162.63s/it]Requesting API:  34%|███▍      | 68/198 [6:02:38<4:23:34, 121.65s/it]Requesting API:  35%|███▍      | 69/198 [6:04:42<4:23:24, 122.51s/it]2026-08-22:12:18:48 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:12:18:48 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  35%|███▌      | 70/198 [6:14:46<9:29:30, 266.96s/it]2026-08-22:12:29:07 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:12:29:07 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  36%|███▌      | 71/198 [6:19:30<9:35:50, 272.05s/it]2026-08-22:12:29:56 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:12:29:56 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:12:30:40 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:12:30:40 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  36%|███▋      | 72/198 [6:23:56<9:27:12, 270.10s/it]2026-08-22:12:35:09 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:12:35:09 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  37%|███▋      | 73/198 [6:26:11<7:58:12, 229.54s/it]2026-08-22:12:36:52 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:12:36:52 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  37%|███▋      | 74/198 [6:30:17<8:04:49, 234.59s/it]Requesting API:  38%|███▊      | 75/198 [6:32:14<6:48:22, 199.20s/it]2026-08-22:12:44:37 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:12:44:37 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  38%|███▊      | 76/198 [6:35:17<6:35:37, 194.57s/it]2026-08-22:12:46:01 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:12:46:01 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  39%|███▉      | 77/198 [6:38:59<6:48:41, 202.66s/it]Requesting API:  39%|███▉      | 78/198 [6:41:37<6:18:27, 189.23s/it]2026-08-22:12:53:02 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:12:53:02 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  40%|███▉      | 79/198 [6:43:11<5:18:59, 160.84s/it]Requesting API:  40%|████      | 80/198 [6:44:28<4:26:43, 135.62s/it]Requesting API:  41%|████      | 81/198 [6:46:18<4:09:08, 127.76s/it]2026-08-22:12:57:09 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:12:57:09 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  41%|████▏     | 82/198 [6:48:43<4:17:24, 133.14s/it]Requesting API:  42%|████▏     | 83/198 [6:49:35<3:28:28, 108.77s/it]Requesting API:  42%|████▏     | 84/198 [6:50:07<2:42:36, 85.58s/it] 2026-08-22:13:06:07 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:13:06:07 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  43%|████▎     | 85/198 [7:00:13<7:35:07, 241.66s/it]2026-08-22:13:12:33 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:13:12:33 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:13:15:04 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:13:15:04 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  43%|████▎     | 86/198 [7:07:40<9:26:10, 303.31s/it]2026-08-22:13:18:49 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:13:18:49 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  44%|████▍     | 87/198 [7:11:55<8:54:24, 288.87s/it]Requesting API:  44%|████▍     | 88/198 [7:13:05<6:49:27, 223.34s/it]Requesting API:  45%|████▍     | 89/198 [7:14:29<5:29:28, 181.36s/it]Requesting API:  45%|████▌     | 90/198 [7:18:35<6:01:46, 200.98s/it]2026-08-22:13:29:51 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:13:29:51 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:13:30:41 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:13:30:41 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  46%|████▌     | 91/198 [7:20:26<5:09:49, 173.73s/it]Requesting API:  46%|████▋     | 92/198 [7:20:38<3:41:19, 125.27s/it]Requesting API:  47%|████▋     | 93/198 [7:23:41<4:09:46, 142.73s/it]2026-08-22:13:35:10 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:13:35:10 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  47%|████▋     | 94/198 [7:25:37<3:53:29, 134.71s/it]Requesting API:  48%|████▊     | 95/198 [7:28:39<4:15:38, 148.92s/it]Requesting API:  48%|████▊     | 96/198 [7:33:58<5:39:55, 199.95s/it]Requesting API:  49%|████▉     | 97/198 [7:35:24<4:38:44, 165.59s/it]Requesting API:  49%|████▉     | 98/198 [7:39:05<5:03:45, 182.26s/it]2026-08-22:13:51:58 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:13:51:58 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:13:53:03 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:13:53:03 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:13:54:49 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:13:54:49 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:13:56:39 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:13:56:39 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:13:59:05 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:13:59:05 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:14:00:28 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:14:00:28 INFO     [models.api_models:607] Retry attempt 1
+2026-08-22:14:06:08 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:14:06:08 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  50%|█████     | 99/198 [8:01:51<14:46:39, 537.37s/it]2026-08-22:14:12:34 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:14:12:34 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  51%|█████     | 100/198 [8:07:54<13:12:06, 484.97s/it]2026-08-22:14:24:50 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:14:24:50 INFO     [models.api_models:607] Retry attempt 1
+Requesting API:  51%|█████     | 101/198 [8:17:43<13:54:43, 516.33s/it]2026-08-22:14:29:52 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:14:29:52 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:14:30:42 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:14:30:42 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:14:30:59 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:14:30:59 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:14:35:59 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:14:35:59 INFO     [models.api_models:607] Retry attempt 2
+Requesting API:  52%|█████▏    | 102/198 [8:30:24<15:43:37, 589.76s/it]Requesting API:  52%|█████▏    | 103/198 [8:31:33<11:26:18, 433.45s/it]2026-08-22:14:44:20 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:14:44:20 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:14:45:45 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:14:45:45 INFO     [models.api_models:607] Retry attempt 2
+Requesting API:  53%|█████▎    | 104/198 [8:35:52<9:57:04, 381.11s/it] 2026-08-22:14:49:26 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:14:49:26 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:14:53:04 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:14:53:04 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:14:54:50 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:14:54:50 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:14:56:40 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:14:56:40 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:15:00:29 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:15:00:29 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:15:06:09 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:15:06:09 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:15:12:12 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:15:12:12 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:15:24:51 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:15:24:51 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:15:28:04 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:15:28:04 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:15:29:53 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:15:29:53 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:15:36:00 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:15:36:00 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:15:40:46 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:15:40:46 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:15:41:54 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:15:41:54 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:15:44:21 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:15:44:21 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:15:45:46 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:15:45:46 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:15:46:13 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:15:46:13 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:15:49:27 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:15:49:27 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:15:53:05 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:15:53:05 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:15:54:51 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:15:54:51 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:15:56:41 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:15:56:41 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:16:00:30 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:16:00:30 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:16:06:10 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:16:06:10 INFO     [models.api_models:607] Retry attempt 2
+Requesting API:  53%|█████▎    | 105/198 [10:00:11<46:06:06, 1784.58s/it]2026-08-22:16:12:13 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:16:12:13 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:16:24:52 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:16:24:52 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:16:28:05 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:16:28:05 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:16:29:54 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:16:29:54 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:16:36:01 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:16:36:01 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:16:40:47 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:16:40:47 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:16:41:55 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:16:41:55 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:16:44:22 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:16:44:22 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:16:45:47 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:16:45:47 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:16:46:14 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:16:46:14 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:16:49:28 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:16:49:28 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:16:53:06 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:16:53:06 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:16:54:52 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:16:54:52 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:16:56:42 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:16:56:42 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:17:00:31 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:17:00:31 INFO     [models.api_models:607] Retry attempt 2
+Requesting API:  54%|█████▎    | 106/198 [10:53:03<56:14:36, 2200.83s/it]2026-08-22:17:10:33 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:17:10:33 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:17:12:14 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:17:12:14 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:17:24:53 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:17:24:53 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:17:28:06 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:17:28:06 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:17:29:55 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:17:29:55 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:17:36:02 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:17:36:02 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:17:40:48 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:17:40:48 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:17:44:23 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:17:44:23 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:17:45:48 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:17:45:48 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:17:46:15 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:17:46:15 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:17:49:29 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:17:49:29 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:17:53:07 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:17:53:07 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:17:54:53 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:17:54:53 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:17:56:43 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:17:56:43 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:18:00:32 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:18:00:32 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:18:03:25 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:18:03:25 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:18:10:34 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:18:10:34 INFO     [models.api_models:607] Retry attempt 2
+Requesting API:  54%|█████▍    | 107/198 [12:01:26<70:03:23, 2771.47s/it]2026-08-22:18:12:15 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:18:12:15 INFO     [models.api_models:607] Retry attempt 2
+Requesting API:  55%|█████▍    | 108/198 [12:02:03<48:46:30, 1951.01s/it]2026-08-22:18:24:54 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:18:24:54 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:18:28:07 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:18:28:07 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:18:29:56 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:18:29:56 INFO     [models.api_models:607] Retry attempt 2
+Requesting API:  55%|█████▌    | 109/198 [12:21:08<42:15:15, 1709.16s/it]2026-08-22:18:36:03 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:18:36:03 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:18:40:49 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:18:40:49 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:18:44:24 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:18:44:24 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:18:45:49 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:18:45:49 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:18:46:16 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:18:46:16 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:18:49:30 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:18:49:30 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:18:53:08 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:18:53:08 INFO     [models.api_models:607] Retry attempt 2
+2026-08-22:18:54:54 ERROR    [models.api_models:559] Exception:TimeoutError(), (no outputs), retrying.
+2026-08-22:18:54:54 INFO     [models.api_models:607] Retry attempt 2
+Requesting API:  56%|█████▌    | 110/198 [12:49:12<41:35:37, 1701.57s/it]

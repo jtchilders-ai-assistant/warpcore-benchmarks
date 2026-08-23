@@ -132,13 +132,62 @@ the bytes), and 12 global-attention layers. Not yet isolated.
 
 ## Quality
 
-**Not yet measured on Warpcore.** The lm-eval harness is verified working against this endpoint —
-a `--limit 5` GSM8K run scored **5/5 on both the `answer-line` and `flexible-fallback` filters**,
-confirming the answer-extraction pipeline parses this model's output correctly (lm-eval 0.4.12 with
-the repo's clean task configs). Full GSM8K / IFEval / GPQA-Diamond runs are pending.
+lm-eval 0.4.12, `local-chat-completions`, greedy (`temperature=0`), the repo's clean task configs.
 
-Timing note for planning: the limit-5 probe averaged **~31 s/item at c=4**, so this is a heavy
-reasoner and GPQA-Diamond (198 items) should be budgeted at several hours.
+| Benchmark | Score | n | Budget | Notes |
+| --- | ---: | ---: | ---: | --- |
+| GSM8K-clean | **83.40%** as-measured · **97.09%** on served items | 1319 | 8k, c=32 | see empty-content defect below |
+| IFEval prompt-strict | **75.79%** | 541 | 8k, c=32 | loose 80.59% |
+| IFEval inst-strict | **81.41%** | 541 | 8k, c=32 | loose 85.01% |
+| GPQA-Diamond-clean | **not reported** | — | 32k, c=16 | run abandoned — see below |
+
+### The GSM8K number is a serving defect, not a capability result
+
+**14.1% of GSM8K questions (186/1319) came back with completely empty `content`.** Every one of them
+scored zero, which is what drags the headline to 83.40%.
+
+These are **not** failures in the usual sense — the log shows **zero HTTP errors, zero client retries,
+and zero server-side exceptions**. vLLM returned HTTP 200 with an empty assistant message. Nor is it
+truncation: median response is ~61 tokens, p99 ~240, and **not one response came near the 8k ceiling**.
+
+Splitting the run on that defect:
+
+| Subset | answer-line | flexible-fallback | n |
+| --- | ---: | ---: | ---: |
+| All items (as measured) | 83.40% | 83.40% | 1319 |
+| **Items that got a response** | **97.09%** | **97.09%** | 1133 |
+| Empty-content items | 0.00% | 0.00% | 186 |
+
+On the questions it actually answered, this model gets **97.09%** — which would be the **highest GSM8K
+in this repo** (vs Ornith's 97.19%, statistically indistinguishable). The honest summary is that
+**Laguna's GSM8K capability is ~97% and its serving stack silently drops ~14% of responses.** Neither
+number alone is the truth; the card reports both and treats the 83.40% as blocked rather than final.
+
+This closely matches the **empty `reasoning_content`** defect already recorded for the `qwen3` parser
+in [ISSUES.md #13](../../ISSUES.md) — a reasoning-parser split that can leave `content` empty when the
+model's output does not match the parser's expected structure. Laguna uses `--reasoning-parser
+poolside_v1`. Root cause is **not yet confirmed**; a direct repro against one of the 186 failing
+questions is in progress. Analysis script:
+[`raw/quality/gsm8k_empty_content_analysis.py`](raw/quality/gsm8k_empty_content_analysis.py).
+
+IFEval shows the same defect at lower rate (29/541 = 5.4% empty), so its scores are also mild
+underestimates.
+
+### GPQA-Diamond was abandoned, not completed
+
+The 32k/c=16 run was **killed at 110/198 after ~13 hours** and no score is reported. It was not
+producing usable throughput: **352 `TimeoutError`/retry events**, with items 103→110 alone consuming
+over four hours.
+
+The engine was **not** wedged — it was generating steadily at ~70 tok/s with 17 requests running and
+nothing queued. The failure is an arithmetic mismatch, not a hang: at c=16 each request gets roughly
+**4 tok/s**, so a 32k-token reasoning answer needs **~2 hours**, but lm-eval's client timeout is
+**3600 s**. Long items were therefore cut off and retried *from scratch*, and the retries hit the same
+wall — the run was burning GPU hours re-generating work it then discarded, and would never converge.
+
+Fixing this requires raising the client `timeout` well past the worst-case generation time and cutting
+concurrency so each request gets a larger share of decode (c=4 gives ~4× the per-request rate). That
+rerun is pending.
 
 ## Agentic
 
