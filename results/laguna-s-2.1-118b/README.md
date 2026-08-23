@@ -164,11 +164,31 @@ in this repo** (vs Ornith's 97.19%, statistically indistinguishable). The honest
 number alone is the truth; the card reports both and treats the 83.40% as blocked rather than final.
 
 This closely matches the **empty `reasoning_content`** defect already recorded for the `qwen3` parser
-in [ISSUES.md #13](../../ISSUES.md) — a reasoning-parser split that can leave `content` empty when the
-model's output does not match the parser's expected structure. Laguna uses `--reasoning-parser
-poolside_v1`. Root cause is **not yet confirmed**; a direct repro against one of the 186 failing
-questions is in progress. Analysis script:
-[`raw/quality/gsm8k_empty_content_analysis.py`](raw/quality/gsm8k_empty_content_analysis.py).
+in [ISSUES.md #13](../../ISSUES.md). Laguna uses `--reasoning-parser poolside_v1`, and the server log
+carries a related warning at startup:
+
+```
+WARNING [vllm.py:1689] Auto-initialization of reasoning token IDs failed. Please check whether
+your reasoning parser has implemented the `reasoning_start_str` and `reasoning_end_str`.
+```
+
+**Root cause is NOT yet established.** Several plausible explanations have been tested and *falsified*:
+
+| Hypothesis | Test | Result |
+| --- | --- | --- |
+| Truncation at the 8k budget | response-length distribution | **Ruled out** — p99 ≈ 240 tok, none near ceiling |
+| Request errors / retries | client + server logs | **Ruled out** — 0 errors, 0 retries, HTTP 200 |
+| Per-question parser mismatch | replayed a failing question alone | **Ruled out** — returned a correct 1301-char answer |
+| Concurrency / load | 64 requests at c=32 | **Ruled out** — 0/64 empty |
+| lm-eval `until: ["\n\nQ:"]` stop string | single request with and without it | **Ruled out** — both returned content |
+
+The defect is reproducible in aggregate (14.1%, spread uniformly across the run — longest consecutive
+run of empties is 4, so it is per-request probabilistic rather than a transient wedge) but has **not
+yet been reproduced in isolation**. A bisect of the full lm-eval path versus direct API calls is in
+progress. Until it lands, the mechanism is genuinely unknown and the 83.40% stands as blocked.
+
+Analysis scripts: [`raw/quality/gsm8k_empty_content_analysis.py`](raw/quality/gsm8k_empty_content_analysis.py),
+[`raw/quality/empty_content_load_probe.py`](raw/quality/empty_content_load_probe.py).
 
 IFEval shows the same defect at lower rate (29/541 = 5.4% empty), so its scores are also mild
 underestimates.
