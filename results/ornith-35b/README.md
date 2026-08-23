@@ -63,8 +63,24 @@ Run on Warpcore against the live `vllm_ornith` endpoint. Raw results: [`raw/qual
 | **IFEval** | 541 | **prompt-level strict** | **85.58%** (±1.51) |
 | | | inst-level strict | 88.37% |
 | | | prompt-level loose / inst-level loose | 87.80% (±1.41) / 89.81% |
-| **GPQA-Diamond** (0-shot CoT, clean) | 198 | exact_match, answer-line | **69.70%** (±3.27) |
+| **GPQA-Diamond** (0-shot CoT, clean) | 198 | exact_match, answer-line | **69.70%** (±3.27) ⚠️ |
 | | | exact_match, flexible-fallback | **69.70%** (±3.27) — *identical* |
+
+> ⚠️ **The GPQA-Diamond 69.70% is a known UNDERESTIMATE — do not cite it as final.** An audit on
+> 2026-08-22 found **42 of 198 items (21.2%) returned an empty response and scored zero** without ever
+> being answered, caused by the `message.reasoning` defect documented in [ISSUES.md #15](../../ISSUES.md):
+> lm-eval reads only `message.content`, but vLLM's reasoning parser can emit `content: null` with the
+> complete answer sitting in `reasoning`.
+>
+> On the 156 items that did return content, Ornith scores **88.46%**. That is an **upper bound, not a
+> replacement figure** — the same defect on Laguna showed recovered items scoring 90.3% versus 97.09%
+> for served items, i.e. the dropped questions were *harder* than the kept ones, so excluding them
+> biases the estimate upward. The true value lies somewhere between 69.70% and 88.46% and can only be
+> settled by re-serving the 42 affected items and reading the `reasoning` field.
+>
+> IFEval on this model is affected at a lower rate (28/541 = 5.2% empty; served-item rates 90.25%
+> prompt-strict / 93.21% inst-strict), so its published figures are **floors**. GSM8K is effectively
+> unaffected (1/1319 = 0.1%).
 
 **Eval config:** `lm-eval` 0.4.12 (with the None-guard + gather-survive patches), backend
 `local-chat-completions` against `http://localhost:8000/v1/chat/completions`, `--apply_chat_template`,

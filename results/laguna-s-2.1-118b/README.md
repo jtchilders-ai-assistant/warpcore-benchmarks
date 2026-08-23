@@ -136,32 +136,45 @@ lm-eval 0.4.12, `local-chat-completions`, greedy (`temperature=0`), the repo's c
 
 | Benchmark | Score | n | Budget | Notes |
 | --- | ---: | ---: | ---: | --- |
-| GSM8K-clean | **83.40%** as-measured · **97.09%** on served items | 1319 | 8k, c=32 | see empty-content defect below |
-| IFEval prompt-strict | **75.79%** | 541 | 8k, c=32 | loose 80.59% |
-| IFEval inst-strict | **81.41%** | 541 | 8k, c=32 | loose 85.01% |
+| GSM8K-clean | **96.13%** (corrected, full set) | 1319 | 8k, c=32 | raw harness output 83.40% — see defect below |
+| IFEval prompt-strict | **75.79%** (floor) | 541 | 8k, c=32 | loose 80.59%; underestimate, same defect |
+| IFEval inst-strict | **81.41%** (floor) | 541 | 8k, c=32 | loose 85.01%; underestimate, same defect |
 | GPQA-Diamond-clean | **not reported** | — | 32k, c=16 | run abandoned — see below |
 
-### The GSM8K number is a serving defect, not a capability result
+### The GSM8K number was a harness defect, not a capability result
 
-**14.1% of GSM8K questions (186/1319) came back with completely empty `content`.** Every one of them
-scored zero, which is what drags the headline to 83.40%.
+**14.1% of GSM8K questions (186/1319) came back with completely empty `content`** and scored zero,
+dragging the raw harness output to 83.40%. The root cause is below; this section records the correction.
 
-These are **not** failures in the usual sense — the log shows **zero HTTP errors, zero client retries,
-and zero server-side exceptions**. vLLM returned HTTP 200 with an empty assistant message. Nor is it
-truncation: median response is ~61 tokens, p99 ~240, and **not one response came near the 8k ceiling**.
+All 186 affected questions were **re-served and graded with the identical task filters**, reading the
+`reasoning` field where vLLM had actually put the answers:
 
-Splitting the run on that defect:
+| | answer-line | flexible-fallback |
+| --- | ---: | ---: |
+| Recovered text | 186/186 (100.0%) | 186/186 (100.0%) |
+| Correct among recovered | **168 (90.3%)** | 165 (88.7%) |
 
-| Subset | answer-line | flexible-fallback | n |
-| --- | ---: | ---: | ---: |
-| All items (as measured) | 83.40% | 83.40% | 1319 |
-| **Items that got a response** | **97.09%** | **97.09%** | 1133 |
-| Empty-content items | 0.00% | 0.00% | 186 |
+Corrected full-set score: **(1100 + 168) / 1319 = 96.13%** (flexible-fallback 95.91%).
 
-On the questions it actually answered, this model gets **97.09%** — which would be the **highest GSM8K
-in this repo** (vs Ornith's 97.19%, statistically indistinguishable). The honest summary is that
-**Laguna's GSM8K capability is ~97% and its serving stack silently drops ~14% of responses.** Neither
-number alone is the truth; the card reports both and treats the 83.40% as blocked rather than final.
+| Subset | Score | n |
+| --- | ---: | ---: |
+| Raw harness output | 83.40% | 1319 |
+| Items that got a response | 97.09% | 1133 |
+| **Recovered items** | **90.32%** | **186** |
+| **Corrected total** | **96.13%** | **1319** |
+
+**The recovered items were measurably harder than the served ones** — 90.3% vs 97.09%. That is not
+noise: it means the earlier "97.09% on served items" figure was a **biased estimate**, optimistic by
+~0.96 points, because the defect did not drop questions uniformly at random. Estimating a score by
+excluding failures assumes the excluded items resemble the kept ones, and here they demonstrably did
+not. Measuring them directly was necessary; extrapolating would have overstated the model.
+
+**96.13% is the number to use.** It is a direct measurement of all 1319 items, not an extrapolation.
+For repo comparison that places Laguna just below Ornith's 97.19%, not above it as the exclusion
+estimate implied.
+
+IFEval's scores are still **floors**, not corrected values — 29/541 (5.4%) were hit by the same defect
+and have not been re-served. Its true scores are modestly higher than reported.
 
 ### ROOT CAUSE (confirmed): the answers go into `message.reasoning`, which lm-eval never reads
 

@@ -269,6 +269,62 @@ docker logs <ctr> 2>&1 | sed -e 's/\r$//' | grep 'core.py:1346' | tail -20
 
 ---
 
+## 15. **lm-eval silently scores 0 when vLLM puts the answer in `message.reasoning`** (repo-wide)
+**Symptom:** a fraction of items in any lm-eval run return HTTP 200, `finish_reason: "stop"`, completion
+tokens billed — and an **empty response** that scores zero. No errors, no retries, no exceptions, no
+truncation. Rates observed in this repo: Laguna GSM8K **14.1%** (186/1319), Laguna IFEval **5.4%**,
+Ornith GPQA-Diamond **21.2%** (42/198), Ornith IFEval **5.2%**, Ornith GSM8K 0.1%.
+
+**Root cause — two halves that only bite together:**
+
+1. **Server.** With `--reasoning-parser <x>`, vLLM may fail to initialize its reasoning token IDs:
+   ```
+   WARNING [vllm.py:1689] Auto-initialization of reasoning token IDs failed. Please check whether
+   your reasoning parser has implemented the `reasoning_start_str` and `reasoning_end_str`.
+   ```
+   Without delimiters the parser cannot find where reasoning ends, so on some generations it classifies
+   the **entire output** as reasoning and emits `content: null`, with the full answer in `reasoning`.
+   Note the field is **`reasoning`**, not the conventional `reasoning_content` — probes that check only
+   `reasoning_content` see nothing and wrongly conclude the output vanished.
+
+2. **Client.** lm-eval's `ChatCompletions` parser is one line, with no notion of `reasoning`:
+   ```python
+   tmp[choices["index"]] = choices["message"]["content"]   # null -> "" -> scores 0
+   ```
+
+**Proof:** for a prompt that returns `content: null` on `/v1/chat/completions`, the raw
+`/v1/completions` endpoint returns 1579 chars of normal text. Running the **full lm-eval path** on 200
+GSM8K questions reproduced 11.5% empty; hand-rolled direct API calls reproduced **0%** — localizing the
+bug to chat-completions response handling, not the engine. Falsified along the way: truncation,
+request errors, prompt-specific failure, concurrency/load (0/64 empty at c=32), and lm-eval's `until`
+stop strings (60% still empty with stop strings removed).
+
+**Fix / detection:** re-serve the affected items and read `reasoning` when `content` is null. Detect
+with `raw/quality/audit_empty_responses.py`, recover with
+`raw/quality/recover_empties_via_reasoning_field.py` (both under `results/laguna-s-2.1-118b/`).
+
+**Impact on published numbers — DO NOT ignore:**
+
+| Model / task | Published | Served-item rate | Empty | Status |
+| --- | ---: | ---: | ---: | --- |
+| Laguna GSM8K | 83.40% | 97.09% | 14.1% | **corrected to 96.13%** (all 186 re-served & graded) |
+| Ornith GPQA-Diamond | **69.70%** | **88.46%** | 21.2% | **suspect — needs re-serve** |
+| Ornith IFEval prompt-strict | 85.58% | 90.25% | 5.2% | floor |
+| Ornith IFEval inst-strict | 88.39% | 93.21% | 5.2% | floor |
+| Laguna IFEval | 75.79% / 81.41% | — | 5.4% | floor |
+| Ornith GSM8K | 97.19% | 97.27% | 0.1% | effectively unaffected |
+
+Ornith's GPQA is the serious one: **21.2% of items scored zero without being answered**, so 69.70% is
+an underestimate of unknown size. The served-item rate (88.46%) is **not** a substitute — on Laguna the
+recovered items scored 90.3% vs 97.09% for served ones, proving the defect does **not** drop items
+uniformly at random, so exclusion-based estimates are optimistically biased. Only a re-serve gives a
+defensible number.
+
+**Cross-model caveat:** any score in this repo taken through lm-eval against a vLLM endpoint with a
+reasoning parser is suspect until audited. Runs whose sample files were not retained cannot be checked.
+
+---
+
 ## Non-issues (ruled out — don't chase)
 - The GB10 `nvidia-smi` memory `N/A` is normal (unified memory), not a broken GPU.
 - The `fatal: not a git repository` line lm-eval prints at the end is harmless (it tries to record a

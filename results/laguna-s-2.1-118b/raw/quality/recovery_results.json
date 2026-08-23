@@ -1,0 +1,1118 @@
+[
+ {
+  "doc_id": 19,
+  "chars": 718,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 22,
+  "chars": 351,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 67,
+  "chars": 368,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 86,
+  "chars": 622,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 91,
+  "chars": 247,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 92,
+  "chars": 745,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 93,
+  "chars": 30550,
+  "answer_line": false,
+  "flex": false
+ },
+ {
+  "doc_id": 102,
+  "chars": 559,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 119,
+  "chars": 36432,
+  "answer_line": false,
+  "flex": false
+ },
+ {
+  "doc_id": 123,
+  "chars": 455,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 127,
+  "chars": 561,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 140,
+  "chars": 206,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 142,
+  "chars": 339,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 167,
+  "chars": 577,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 168,
+  "chars": 94,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 178,
+  "chars": 203,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 182,
+  "chars": 593,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 184,
+  "chars": 31196,
+  "answer_line": true,
+  "flex": false
+ },
+ {
+  "doc_id": 185,
+  "chars": 204,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 205,
+  "chars": 914,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 213,
+  "chars": 366,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 217,
+  "chars": 16,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 221,
+  "chars": 369,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 222,
+  "chars": 152,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 225,
+  "chars": 133,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 251,
+  "chars": 159,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 252,
+  "chars": 590,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 255,
+  "chars": 31466,
+  "answer_line": false,
+  "flex": false
+ },
+ {
+  "doc_id": 270,
+  "chars": 230,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 276,
+  "chars": 476,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 278,
+  "chars": 348,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 279,
+  "chars": 505,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 285,
+  "chars": 205,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 287,
+  "chars": 447,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 302,
+  "chars": 215,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 310,
+  "chars": 382,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 312,
+  "chars": 228,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 321,
+  "chars": 359,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 326,
+  "chars": 629,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 332,
+  "chars": 16,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 340,
+  "chars": 29930,
+  "answer_line": false,
+  "flex": false
+ },
+ {
+  "doc_id": 344,
+  "chars": 284,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 346,
+  "chars": 388,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 353,
+  "chars": 384,
+  "answer_line": false,
+  "flex": false
+ },
+ {
+  "doc_id": 360,
+  "chars": 383,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 365,
+  "chars": 240,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 366,
+  "chars": 386,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 375,
+  "chars": 16,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 377,
+  "chars": 848,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 378,
+  "chars": 601,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 388,
+  "chars": 146,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 396,
+  "chars": 287,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 397,
+  "chars": 103,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 423,
+  "chars": 31761,
+  "answer_line": false,
+  "flex": false
+ },
+ {
+  "doc_id": 432,
+  "chars": 185,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 451,
+  "chars": 196,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 466,
+  "chars": 29373,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 470,
+  "chars": 268,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 472,
+  "chars": 593,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 474,
+  "chars": 235,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 491,
+  "chars": 144,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 499,
+  "chars": 443,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 502,
+  "chars": 751,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 510,
+  "chars": 22286,
+  "answer_line": false,
+  "flex": false
+ },
+ {
+  "doc_id": 514,
+  "chars": 262,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 516,
+  "chars": 179,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 532,
+  "chars": 38,
+  "answer_line": false,
+  "flex": false
+ },
+ {
+  "doc_id": 533,
+  "chars": 515,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 535,
+  "chars": 554,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 540,
+  "chars": 473,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 543,
+  "chars": 15,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 544,
+  "chars": 395,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 554,
+  "chars": 16,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 560,
+  "chars": 411,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 561,
+  "chars": 285,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 566,
+  "chars": 313,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 567,
+  "chars": 257,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 568,
+  "chars": 17,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 571,
+  "chars": 230,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 591,
+  "chars": 329,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 593,
+  "chars": 758,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 595,
+  "chars": 347,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 597,
+  "chars": 229,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 600,
+  "chars": 255,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 604,
+  "chars": 276,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 629,
+  "chars": 574,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 631,
+  "chars": 466,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 632,
+  "chars": 279,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 640,
+  "chars": 33914,
+  "answer_line": false,
+  "flex": false
+ },
+ {
+  "doc_id": 650,
+  "chars": 297,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 663,
+  "chars": 88,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 672,
+  "chars": 28881,
+  "answer_line": false,
+  "flex": false
+ },
+ {
+  "doc_id": 673,
+  "chars": 418,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 678,
+  "chars": 201,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 685,
+  "chars": 197,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 686,
+  "chars": 206,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 695,
+  "chars": 15,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 696,
+  "chars": 26833,
+  "answer_line": true,
+  "flex": false
+ },
+ {
+  "doc_id": 702,
+  "chars": 395,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 704,
+  "chars": 237,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 707,
+  "chars": 625,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 710,
+  "chars": 16,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 711,
+  "chars": 516,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 738,
+  "chars": 220,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 748,
+  "chars": 169,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 749,
+  "chars": 34073,
+  "answer_line": false,
+  "flex": false
+ },
+ {
+  "doc_id": 755,
+  "chars": 375,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 761,
+  "chars": 529,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 773,
+  "chars": 249,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 799,
+  "chars": 392,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 802,
+  "chars": 811,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 821,
+  "chars": 223,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 826,
+  "chars": 274,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 828,
+  "chars": 209,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 836,
+  "chars": 187,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 839,
+  "chars": 168,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 851,
+  "chars": 323,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 854,
+  "chars": 321,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 856,
+  "chars": 650,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 859,
+  "chars": 270,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 860,
+  "chars": 244,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 866,
+  "chars": 630,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 873,
+  "chars": 25950,
+  "answer_line": false,
+  "flex": false
+ },
+ {
+  "doc_id": 874,
+  "chars": 227,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 875,
+  "chars": 215,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 876,
+  "chars": 16,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 884,
+  "chars": 137,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 888,
+  "chars": 214,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 898,
+  "chars": 336,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 907,
+  "chars": 16,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 913,
+  "chars": 645,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 917,
+  "chars": 131,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 921,
+  "chars": 282,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 926,
+  "chars": 197,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 943,
+  "chars": 192,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 946,
+  "chars": 135,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 961,
+  "chars": 583,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 967,
+  "chars": 250,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 982,
+  "chars": 34662,
+  "answer_line": false,
+  "flex": false
+ },
+ {
+  "doc_id": 994,
+  "chars": 298,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1001,
+  "chars": 27958,
+  "answer_line": true,
+  "flex": false
+ },
+ {
+  "doc_id": 1003,
+  "chars": 30357,
+  "answer_line": false,
+  "flex": false
+ },
+ {
+  "doc_id": 1020,
+  "chars": 441,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1022,
+  "chars": 16,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1034,
+  "chars": 153,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1036,
+  "chars": 418,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1038,
+  "chars": 458,
+  "answer_line": false,
+  "flex": false
+ },
+ {
+  "doc_id": 1040,
+  "chars": 399,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1042,
+  "chars": 25695,
+  "answer_line": false,
+  "flex": false
+ },
+ {
+  "doc_id": 1046,
+  "chars": 697,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1049,
+  "chars": 16,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1066,
+  "chars": 618,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1069,
+  "chars": 442,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1085,
+  "chars": 185,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1101,
+  "chars": 16,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1114,
+  "chars": 220,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1121,
+  "chars": 527,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1134,
+  "chars": 215,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1136,
+  "chars": 509,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1142,
+  "chars": 182,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1148,
+  "chars": 15,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1150,
+  "chars": 174,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1168,
+  "chars": 420,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1173,
+  "chars": 277,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1175,
+  "chars": 506,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1200,
+  "chars": 293,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1201,
+  "chars": 380,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1203,
+  "chars": 30689,
+  "answer_line": false,
+  "flex": false
+ },
+ {
+  "doc_id": 1223,
+  "chars": 444,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1225,
+  "chars": 739,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1237,
+  "chars": 306,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1242,
+  "chars": 397,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1245,
+  "chars": 270,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1246,
+  "chars": 267,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1259,
+  "chars": 200,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1270,
+  "chars": 429,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1277,
+  "chars": 16,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1287,
+  "chars": 197,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1288,
+  "chars": 400,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1290,
+  "chars": 291,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1291,
+  "chars": 399,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1292,
+  "chars": 215,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1302,
+  "chars": 280,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1303,
+  "chars": 25135,
+  "answer_line": false,
+  "flex": false
+ },
+ {
+  "doc_id": 1305,
+  "chars": 477,
+  "answer_line": true,
+  "flex": true
+ },
+ {
+  "doc_id": 1307,
+  "chars": 497,
+  "answer_line": true,
+  "flex": true
+ }
+]
