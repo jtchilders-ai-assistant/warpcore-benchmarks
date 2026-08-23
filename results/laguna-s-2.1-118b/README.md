@@ -163,32 +163,67 @@ in this repo** (vs Ornith's 97.19%, statistically indistinguishable). The honest
 **Laguna's GSM8K capability is ~97% and its serving stack silently drops ~14% of responses.** Neither
 number alone is the truth; the card reports both and treats the 83.40% as blocked rather than final.
 
-This closely matches the **empty `reasoning_content`** defect already recorded for the `qwen3` parser
-in [ISSUES.md #13](../../ISSUES.md). Laguna uses `--reasoning-parser poolside_v1`, and the server log
-carries a related warning at startup:
+### ROOT CAUSE (confirmed): the answers go into `message.reasoning`, which lm-eval never reads
 
-```
-WARNING [vllm.py:1689] Auto-initialization of reasoning token IDs failed. Please check whether
-your reasoning parser has implemented the `reasoning_start_str` and `reasoning_end_str`.
+This is **not** a model capability problem and **not** lost work. vLLM generates a complete, correct
+answer and places it in a response field the harness does not look at.
+
+A question that returned empty content, re-served and dumped in full:
+
+```json
+{"role": "assistant",
+ "content": null,
+ "reasoning": "A candle melts by 2 centimeters every hour... From 1:00 PM to 5:00 PM is 4 hours...
+               2 cm/hour x 4 hours = 8 cm\n\nThe answer is 8"}
 ```
 
-**Root cause is NOT yet established.** Several plausible explanations have been tested and *falsified*:
+`content: null`, `finish_reason: "stop"`, 129 completion tokens billed — and the correct answer,
+**including the exactly-formatted `The answer is 8` line the task asks for**, sitting in `reasoning`.
+
+The two halves of the defect:
+
+1. **Server side.** `--reasoning-parser poolside_v1` fails to initialize its reasoning token IDs:
+   ```
+   WARNING [vllm.py:1689] Auto-initialization of reasoning token IDs failed. Please check whether
+   your reasoning parser has implemented the `reasoning_start_str` and `reasoning_end_str`.
+   ```
+   Without those delimiters the parser cannot find where reasoning ends and the answer begins, so on
+   some generations it classifies the *entire* output as reasoning and emits `content: null`.
+   Note the field is `reasoning`, **not** the OpenAI-conventional `reasoning_content` — probes that
+   only check `reasoning_content` see nothing and wrongly conclude the output vanished.
+
+2. **Client side.** lm-eval's `ChatCompletions` parser is a single line:
+   ```python
+   tmp[choices["index"]] = choices["message"]["content"]
+   ```
+   It has no notion of `reasoning` (`"reasoning" in source == False`). `content: null` becomes an
+   empty string, which scores zero.
+
+Verified by bisection: **the raw `/v1/completions` endpoint returns 1579 characters of normal text
+for the same prompt**, while `/v1/chat/completions` returns `content: null`. The tokens are produced;
+the chat layer misfiles them.
+
+This is the same family as the empty-`reasoning_content` defect on the `qwen3` parser in
+[ISSUES.md #13](../../ISSUES.md), and it means **any** lm-eval score taken against a vLLM endpoint
+with a partially-initialized reasoning parser is silently depressed.
+
+Hypotheses tested and falsified along the way — recorded so nobody re-treads them:
 
 | Hypothesis | Test | Result |
 | --- | --- | --- |
 | Truncation at the 8k budget | response-length distribution | **Ruled out** — p99 ≈ 240 tok, none near ceiling |
 | Request errors / retries | client + server logs | **Ruled out** — 0 errors, 0 retries, HTTP 200 |
-| Per-question parser mismatch | replayed a failing question alone | **Ruled out** — returned a correct 1301-char answer |
-| Concurrency / load | 64 requests at c=32 | **Ruled out** — 0/64 empty |
-| lm-eval `until: ["\n\nQ:"]` stop string | single request with and without it | **Ruled out** — both returned content |
+| Per-question / prompt-specific | replayed a failing question alone | **Ruled out** — same prompt succeeds and fails |
+| Concurrency or load | 64 requests at c=32 | **Ruled out** — 0/64 empty |
+| lm-eval `until: ["\n\nQ:"]` stop string | replay with and without stop | **Ruled out** — 60% empty even *without* it |
 
-The defect is reproducible in aggregate (14.1%, spread uniformly across the run — longest consecutive
-run of empties is 4, so it is per-request probabilistic rather than a transient wedge) but has **not
-yet been reproduced in isolation**. A bisect of the full lm-eval path versus direct API calls is in
-progress. Until it lands, the mechanism is genuinely unknown and the 83.40% stands as blocked.
+The reproduction that mattered: running the **full lm-eval path** on 200 questions reproduced the
+defect at **11.5%**, while hand-rolled direct API calls never reproduced it — which localized the bug
+to the chat-completions response handling rather than the engine.
 
 Analysis scripts: [`raw/quality/gsm8k_empty_content_analysis.py`](raw/quality/gsm8k_empty_content_analysis.py),
-[`raw/quality/empty_content_load_probe.py`](raw/quality/empty_content_load_probe.py).
+[`raw/quality/empty_content_load_probe.py`](raw/quality/empty_content_load_probe.py),
+[`raw/quality/where_tokens_go.py`](raw/quality/where_tokens_go.py).
 
 IFEval shows the same defect at lower rate (29/541 = 5.4% empty), so its scores are also mild
 underestimates.
