@@ -1,0 +1,17 @@
+{
+  "django__django-11299": {
+    "model_name_or_path": "hosted_vllm/poolside/Laguna-S-2.1-NVFP4",
+    "instance_id": "django__django-11299",
+    "model_patch": "diff --git a/django/db/models/sql/query.py b/django/db/models/sql/query.py\nindex b99f03cd88..649aa0fd5f 100644\n--- a/django/db/models/sql/query.py\n+++ b/django/db/models/sql/query.py\n@@ -1338,7 +1338,8 @@ class Query(BaseExpression):\n             if isinstance(child, Node):\n                 child_clause, needed_inner = self._add_q(\n                     child, used_aliases, branch_negated,\n-                    current_negated, allow_joins, split_subq)\n+                    current_negated, allow_joins, split_subq,\n+                    simple_col=simple_col)\n                 joinpromoter.add_votes(needed_inner)\n             else:\n                 child_clause, needed_inner = self.build_filter(\n"
+  },
+  "django__django-14672": {
+    "model_name_or_path": "hosted_vllm/poolside/Laguna-S-2.1-NVFP4",
+    "instance_id": "django__django-14672",
+    "model_patch": "diff --git a/django/db/models/fields/reverse_related.py b/django/db/models/fields/reverse_related.py\nindex ccc2223a5f..65950590e2 100644\n--- a/django/db/models/fields/reverse_related.py\n+++ b/django/db/models/fields/reverse_related.py\n@@ -310,7 +310,7 @@ class ManyToManyRel(ForeignObjectRel):\n     def identity(self):\n         return super().identity + (\n             self.through,\n-            self.through_fields,\n+            make_hashable(self.through_fields),\n             self.db_constraint,\n         )\n \n"
+  },
+  "sphinx-doc__sphinx-10449": {
+    "model_name_or_path": "hosted_vllm/poolside/Laguna-S-2.1-NVFP4",
+    "instance_id": "sphinx-doc__sphinx-10449",
+    "model_patch": ""
+  }
+}
