@@ -59,7 +59,16 @@ max_tokens allowed per step          : 32768
 ```
 
 Corroboration: `finished_reason="length"` accounts for **2243/4915 (46%)** of this
-model's completions — long steps are routine, not rare. At 1800 s litellm was killing
+model's completions — long steps are routine, not rare.
+
+> **CORRECTION (2026-08-23):** that 46% figure is **not valid for this run**. Those are
+> *cumulative* counters spanning the whole server lifetime, including the GSM8K / IFEval /
+> GPQA lm-eval runs at much smaller `max_tokens`. Sampling **deltas** over a live
+> SWE-bench window shows steps finishing on `stop` at 200–2000 tokens. The 5400 s fix is
+> still empirically justified (1800 s fired twice in the smoke; **0 timeouts in 11 h**
+> since), but full-cap steps are rarer than stated here. See `WHY_SLOW.md`.
+
+At 1800 s litellm was killing
 **healthy, still-generating** requests and retrying, burning another 30 min each.
 
 This is a **client-side deadline, not a capability knob**: it grants no extra steps, no
