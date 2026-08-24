@@ -121,7 +121,7 @@ alphabetically are only 2 repos (astropy + django, the easier end) and over-scor
 
 | Metric | Value |
 | ------ | :---: |
-| **Resolved** | **44 / 100 = 44%** (±~5% at n=100) |
+| **Resolved** | **44 / 100 = 44%** (95% CI 34.7–53.8) |
 | Unresolved (patch applied, tests failed) | 22 |
 | Empty patch (no fix submitted) | 29 |
 | Harness error | 5 |
@@ -147,7 +147,8 @@ majority because the agent hit the wall-clock timeout mid-work on the harder rep
 problems. A larger per-instance time budget would likely recover several of those, so 44% is the
 low-generosity number. Defaults were kept for comparability.
 
-> This is a **100-sample**, not the full 500 — treat 44% as indicative (±~5%), not the exact
+> This is a **100-sample**, not the full 500 — treat 44% as indicative (95% Wilson CI 34.7–53.8,
+> i.e. roughly ±10 pp), not the exact
 > leaderboard figure. Raw report, predictions, and per-instance exit statuses:
 > [`raw/swebench/`](raw/swebench/).
 

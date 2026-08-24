@@ -213,7 +213,8 @@ SWE-bench. **Benchmark-suite rank does not transfer across task families** — p
 job, not for the leaderboard.
 
 ### Caveats (read before quoting the number)
-- **n=100 shuffled, not the full 500 → indicative (±~5%), not leaderboard-final.** Same convention and
+- **n=100 shuffled, not the full 500 → indicative (95% Wilson CI 63.6–80.7, roughly ±9 pp), not
+  leaderboard-final.** Same convention and
   same seeded instance set as every other SWE-bench number in this repo, so cross-model comparisons
   here are exact even though the absolute score is a sample.
 - **The sample is django-heavy (56/100)** and Ornith is especially strong there (44/56 = 79%). Django

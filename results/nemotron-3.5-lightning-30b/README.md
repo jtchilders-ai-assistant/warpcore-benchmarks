@@ -209,7 +209,10 @@ and test containers run on the **client Mac mini (x86_64)**; the model is served
 
 **Result: 51/100 resolved = 51%** on the full 100-instance shuffle (`--shuffle`, seed 42, same as the
 Qwen3.6 run — so both runs cover the **identical 100 instances** and are directly comparable) spanning
-**11 repos**. This **beats the Qwen3.6-35B baseline (44/100)** by +7.
+**11 repos**. That is +7 over the Qwen3.6-35B baseline (44/100), but **the two are not statistically
+distinguishable on this sample**: paired on the shared instances the difference is **+7 pp, 95% CI
+[−3, +17]**, which crosses zero (McNemar χ²=1.2, p≈0.27 on 18 vs 11 discordant pairs). Treat Lightning
+and Qwen3.6 as **tied** on SWE-bench pending a larger sample.
 
 > **This is a clean number.** 0 harness errors; 98/100 received a fair test verdict; the only 2
 > non-submissions are genuine model outcomes (`django-16938` hit the step limit, `django-13033` produced no
@@ -225,7 +228,7 @@ Qwen3.6 run — so both runs cover the **identical 100 instances** and are direc
 | Harness / grading errors | 0 |
 | Sample | full n=100 (`--shuffle`, seed 42, `--slice 0:100`) |
 | Repos spanned | 11 (django 56, sympy 10, sphinx 10, astropy 5, scikit-learn 5, pytest 4, pydata 3, psf/matplotlib/pylint 2 each, pallets 1) |
-| Baseline (Qwen3.6-35B) | 44/100 — **Lightning is ahead by +7** |
+| Baseline (Qwen3.6-35B) | 44/100 — +7, but **not statistically distinguishable** (95% CI [−3, +17]) |
 | Head-to-head (shared 100) | 33 both · 18 Lightning-only · 11 Qwen-only · 38 neither |
 | Agent | mini-swe-agent 2.4.6, native tool-calling scaffold ([`raw/swebench/`](raw/swebench/)), `temp=0`, per-step `timeout=1800` |
 | Serving | vLLM `0.27.2rc1.dev193` (arm64 nightly), marlin, `qwen3_coder` tool-call + `nemotron_v3` reasoning parsers |
@@ -253,7 +256,8 @@ The gradient is the expected one — strong on django (30/56) and the smaller hi
 — and mirrors the Qwen3.6 pattern.
 
 ### Caveats (read before quoting the number)
-- **n=100 shuffled, not the full 500 → indicative (±~5%), not leaderboard-final.** This is a representative
+- **n=100 shuffled, not the full 500 → indicative (95% Wilson CI 41.3–60.6, roughly ±10 pp), not
+  leaderboard-final.** This is a representative
   random 100-instance sample, the same convention used for the Qwen3.6 baseline, not the complete SWE-bench
   Verified score.
 - **Sample is django-heavy (56/100).** Django instances skew slightly easier, so a fully balanced 500-item
@@ -301,7 +305,8 @@ After this fix, **every instance produced a valid diff (0 patch-apply errors)** 
 - **File the vLLM/GB10 long-context wedge upstream** — reproduced on both v0.27.1 and the 0.27.2rc1 nightly,
   so it's a current, filable bug. A build that fixes it would remove the restart-and-resume overhead this
   run required (and let long agentic runs complete unattended).
-- **Full SWE-bench Verified (n=500)** — the n=100 shuffle is representative (±~5%); the full 500-item run
+- **Full SWE-bench Verified (n=500)** — the n=100 shuffle is representative but wide (95% CI ≈ ±10 pp);
+  the full 500-item run
   is the leaderboard-final number.
 - **GPQA at 128k budget** for the last 6 items that still truncate at 64k (would close the remaining 3%;
   76.26% @64k is already 97%-answered and essentially capability-bound).
