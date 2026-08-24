@@ -65,9 +65,16 @@ output, server disconnects on very long generations, etc.).
 results/<model>/
   README.md          # the model's benchmark card
   raw/               # raw harness output (results JSON, custom task configs)
+viz/                 # plots-as-code: figures generated from the raw artifacts
 HARDWARE.md          # host specs
 ISSUES.md            # serving issues encountered + fixes
 ```
+
+## Figures
+
+`make figs` regenerates every figure from committed raw artifacts; `make check`
+fails if the committed figures are stale. See [viz/README.md](viz/README.md) for
+what each figure claims and which caveats it preserves.
 
 ## Reproducing
 

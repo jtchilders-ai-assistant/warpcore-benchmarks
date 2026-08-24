@@ -1,0 +1,145 @@
+{
+ "gpt-oss-120b": {
+  "gpqa": {
+   "src": "raw/gpqa_diamond_results.json",
+   "stderr": 3.17,
+   "value": 72.73
+  },
+  "gsm8k": {
+   "src": "raw/gsm8k_results.json",
+   "stderr": 1.02,
+   "value": 83.7
+  },
+  "ifeval": {
+   "src": "raw/ifeval_results.json",
+   "stderr": 1.59,
+   "value": 83.73
+  },
+  "pi30": {
+   "passed": 30,
+   "src": "results/gpt-oss-120b/raw/pi30/RESULTS.txt",
+   "value": 100.0
+  }
+ },
+ "laguna-s-2.1-118b": {
+  "gsm8k": {
+   "note": "CORRECTED re-serve (raw harness 83.40)",
+   "src": "raw/quality/gsm8k/results_2026-08-22T04-37-53.389704.json",
+   "stderr": 1.02,
+   "value": 96.13
+  },
+  "ifeval": {
+   "note": "floor: 5.4% empty",
+   "src": "raw/quality/ifeval/results_2026-08-22T06-10-16.893966.json",
+   "stderr": 1.84,
+   "value": 75.79
+  }
+ },
+ "nemotron-3-super-120b": {
+  "gpqa": {
+   "src": "raw/gpqa_diamond_results.json",
+   "stderr": 3.43,
+   "value": 63.64
+  },
+  "gsm8k": {
+   "src": "raw/gsm8k_results.json",
+   "stderr": 1.17,
+   "value": 76.65
+  },
+  "ifeval": {
+   "src": "raw/ifeval_results.json",
+   "stderr": 1.52,
+   "value": 85.4
+  },
+  "pi30": {
+   "passed": 30,
+   "src": "results/nemotron-3-super-120b/raw/pi30/RESULTS.txt",
+   "value": 100.0
+  }
+ },
+ "nemotron-3.5-lightning-30b": {
+  "gpqa": {
+   "note": "64k budget composite (32k=66.16, 16k=53.03)",
+   "src": "raw/quality/gpqa_32k/nvidia__NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/results_2026-08-12T21-15-33.518368.json + raw/gpqa_64k_replay_results.json",
+   "stderr": 3.03,
+   "value": 76.26
+  },
+  "gsm8k": {
+   "src": "raw/quality/gsm8k_cot_zeroshot_clean/nvidia__NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/results_2026-08-12T11-08-12.708266.json",
+   "stderr": 0.6,
+   "value": 95.07
+  },
+  "ifeval": {
+   "src": "raw/quality/ifeval/nvidia__NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/results_2026-08-12T13-08-23.626945.json",
+   "stderr": 1.49,
+   "value": 86.14
+  },
+  "pi30": {
+   "passed": 29,
+   "src": "results/nemotron-3.5-lightning-30b/raw/pi30/SUMMARY.txt",
+   "value": 96.67
+  },
+  "swebench": {
+   "empty_patch": 2,
+   "src": "results/nemotron-3.5-lightning-30b/raw/swebench_verified_n100_results.json",
+   "value": 51.0
+  }
+ },
+ "ornith-35b": {
+  "gpqa": {
+   "note": "UNDERESTIMATE: 21.2% empty (ISSUES #15)",
+   "src": "raw/quality/gpqa/results_2026-08-19T11-45-14.035924.json",
+   "stderr": 3.27,
+   "value": 69.7
+  },
+  "gsm8k": {
+   "src": "raw/quality/gsm8k/results_2026-08-18T22-22-03.403814.json",
+   "stderr": 0.46,
+   "value": 97.12
+  },
+  "ifeval": {
+   "note": "floor: 5.2% empty",
+   "src": "raw/quality/ifeval/results_2026-08-19T01-18-15.177081.json",
+   "stderr": 1.51,
+   "value": 85.58
+  },
+  "pi30": {
+   "passed": 30,
+   "src": "results/ornith-35b/raw/pi30/SUMMARY.txt",
+   "value": 100.0
+  },
+  "swebench": {
+   "empty_patch": 9,
+   "src": "results/ornith-35b/raw/swebench/swebench_verified_n100_results.json",
+   "value": 73.0
+  }
+ },
+ "qwen3.6-35b-a3b": {
+  "gpqa": {
+   "note": "non-thinking mode",
+   "src": "raw/gpqa_nothink_results.json",
+   "stderr": 2.72,
+   "value": 82.32
+  },
+  "gsm8k": {
+   "src": "raw/gsm8k_results.json",
+   "stderr": 0.47,
+   "value": 97.04
+  },
+  "ifeval": {
+   "src": "raw/ifeval_results.json",
+   "stderr": 1.54,
+   "value": 84.84
+  },
+  "pi30": {
+   "passed": 29,
+   "src": "results/qwen3.6-35b-a3b/raw/pi30/RESULTS.txt",
+   "value": 96.67
+  },
+  "swebench": {
+   "empty_patch": 29,
+   "src": "results/qwen3.6-35b-a3b/raw/swebench/swebench_verified_shuffle100_report.json",
+   "value": 44.0
+  }
+ }
+}

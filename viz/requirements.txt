@@ -1,0 +1,7 @@
+# Figure regeneration only. The benchmarks themselves have their own
+# environments (vllm, lm-eval, mini-swe-agent) documented in the model cards.
+#
+# Pinned to the versions the committed figures were generated with; SVG output
+# is only guaranteed byte-identical within a matplotlib minor release.
+matplotlib==3.9.4
+numpy==2.0.2
