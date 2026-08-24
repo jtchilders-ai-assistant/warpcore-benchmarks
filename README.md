@@ -4,6 +4,41 @@ Benchmark results for LLMs served on **Warpcore** — an NVIDIA DGX Spark (GB10)
 running vLLM. This repo aggregates quality and (planned) throughput benchmarks on a **per-model**
 basis, and documents the serving issues encountered on the hardware and how they were fixed.
 
+## Results at a glance
+
+Generated from the committed raw artifacts by `make figs` — see [viz/](viz/README.md).
+
+### Serving envelope
+
+![Latency-throughput Pareto frontier and per-stream throughput for 7 models on the DGX Spark](viz/out/fig1_pareto.png)
+
+Peak aggregate throughput and single-user responsiveness are different questions with
+different winners. Lightning tops the aggregate chart (~719 tok/s) but that number is a
+**floor** set by `--max-num-seqs 128`, not a hardware ceiling; Laguna's ~266 tok/s plateau
+is genuine KV-cache pressure. Only the right-hand panel says what one user feels.
+
+### Agentic coding
+
+![SWE-bench per-instance solve matrix, outcome decomposition, and paired differences](viz/out/fig2_swebench.png)
+
+All three models saw the **identical** seed-42 100-instance set, so the comparison can be
+paired. Ornith's lead is real: **+22 pp [+12, +32]** over Lightning and **+29 pp [+18, +40]**
+over Qwen3.6. **Lightning vs Qwen3.6 is not distinguishable** (+7 pp [−3, +17], CI crosses
+zero) — the ⁵ ordering below is unsupported by this run. Note also that 29 of Qwen3.6's 56
+misses never produced a patch at all, so its 44% is partly a throughput artifact rather than
+a capability measurement.
+
+### Is the suite still doing its job?
+
+![Benchmark discrimination table, rank heatmap, and django reweighting sensitivity](viz/out/fig3_discrimination.png)
+
+**pi-30 is saturated**: 5 models produce exactly 2 distinct scores (29/30 or 30/30), so its
+entire 3.3 pp spread is one test case flipping — at ~1h15m per model. Normalized by
+measurement noise, GSM8K still discriminates best (25.9×) and SWE-bench (5.8×) is
+statistically indistinguishable from GPQA-D (5.9×). The middle panel shows rank failing to
+transfer across task families; the right panel shows how much the SWE-bench headline moves
+once the django-heavy sample (56/100) is reweighted.
+
 ## Models
 
 | Model | Serving | GSM8K | IFEval (prompt-strict) | GPQA-Diamond | pi-30 | SWE-bench Verified | Peak tok/s | Full card |
@@ -72,9 +107,10 @@ ISSUES.md            # serving issues encountered + fixes
 
 ## Figures
 
-`make figs` regenerates every figure from committed raw artifacts; `make check`
-fails if the committed figures are stale. See [viz/README.md](viz/README.md) for
-what each figure claims and which caveats it preserves.
+The plots above are **plots-as-code**: `make figs` regenerates them from the committed raw
+artifacts, and `make check` fails if they are stale. Output is deterministic, so a no-op
+regeneration produces an empty diff. See [viz/README.md](viz/README.md) for what each figure
+claims, the statistics used, and the caveats it deliberately preserves.
 
 ## Reproducing
 
