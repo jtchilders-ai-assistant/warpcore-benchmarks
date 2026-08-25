@@ -192,9 +192,14 @@ rate as the ones that ran. Since those 22 were selected by *image pull latency* 
 problem difficulty — that assumption is far safer here than for a genuine model timeout. The
 7 `LimitsExceeded` exits are real model failures and stay counted against it.
 
-- [ ] **2a-i. Re-run Qwen3.6-35B SWE-bench n=100** with the robust submit and a warm image cache
-      (`docker pull` all 100 images first, or raise `pull_timeout`). The config is now recovered, so
-      the re-run can match Ornith's exactly. Cost ~11 h generation + ~20 min grading.
+- [ ] **2a-i. Re-run Qwen3.6-35B SWE-bench n=100.** Script ready:
+      `viz/run_qwen36_swebench_rerun.sh`. It uses
+      `results/qwen3.6-35b-a3b/raw/swebench/swebench_qwen36_rerun_config.yaml`, derived from
+      Ornith's committed config with **exactly two** deliberate differences (`model_name`, and
+      `pull_timeout: 1800`) — verified by a structural diff, so the robust `git add -A` submit and
+      all limits are Ornith's verbatim. Blocks until the endpoint serves the expected model and all
+      100 images are present. Cost ~11 h generation + ~20 min grading; needs the GPU, so it waits
+      for Laguna.
 - [ ] **2a-ii. Record the fair-verdict count (`completed_instances`) next to every SWE-bench score**
       in the top-level README table. A resolve rate over 66 attempts and one over 91 are different
       measurements and the table should say so. Report **both** raw resolves and
@@ -206,10 +211,25 @@ problem difficulty — that assumption is far safer here than for a genuine mode
       **Done 2026-08-25**: reconstructed from the trajectories' embedded `info.config` and committed
       alongside the run log. Limits confirmed identical to Ornith's; the gap is pull-timeout
       infrastructure, not an unfair budget.
-- [ ] **2a-v. Raise `pull_timeout` (or pre-pull images) for every future SWE-bench run.** 120 s is
-      the mini-swe-agent default and it is too tight for a cold cache on this host — it silently
-      converted 22 instances into zeros. Pre-pulling is the cheaper fix and belongs in the run
-      script.
+- [x] **2a-v. Guard the image cache instead of pre-pulling it.** **Done 2026-08-25.** The intended
+      fix here was to pre-pull the 100 task images. **On inspection that was unnecessary: all 100 are
+      already cached** on the Mac mini (verified against the instance set, including all 22 that
+      originally failed; cold-start of two of them takes ~0.5 s). They were warmed by the *later*
+      Ornith and Lightning runs — which is also why only Qwen3.6, run first on 2026-08-04 against a
+      cold cache, shows this failure mode. **The cause was run order, not the model.**
+
+      The real risk is that this cache is an *implicit, unprotected* precondition: a
+      `docker system prune`, a Docker Desktop cleanup, or a new machine silently restores the
+      failure, and the damage looks like model failures rather than infrastructure. So the fix is a
+      verified precondition, not a pre-pull:
+
+      - `viz/swebench_preflight.py` — checks every image for a given instance set, `--pull`s what is
+        missing, and exits non-zero otherwise. A fast no-op when warm. Tested on all three paths
+        (warm pass, missing→exit 1, genuine cold pull).
+      - `pull_timeout: 1800` in the re-run config, up from the mini-swe-agent default of 120 s.
+        A single cold pull measured **51 s** on this host, so 120 s was only ~2× headroom on one
+        image — far too tight when many pull concurrently. This is the setting that converts an
+        infrastructure hiccup into a silent zero.
 
 
 ### 2b. gpt-oss-120b SWE-bench was blocked by a serving bug that no longer applies

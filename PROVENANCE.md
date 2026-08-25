@@ -239,6 +239,30 @@ have **no trajectory at all** — the container never started — so the log is 
 explains them. Absence of a trajectory is itself data, and a coverage check (§6f) should treat a
 gap between "instances attempted" and "trajectories present" as a finding rather than an accident.
 
+### 5b. Verify preconditions before a run, not after
+
+The Qwen3.6 failure was invisible at scoring time: 22 instances came back as zeros that looked
+exactly like model failures. Nothing in the report distinguished "the model tried and failed" from
+"the model was never invoked". That is the expensive kind of bug — it does not announce itself, it
+just quietly biases a number that then gets published.
+
+The generalisable rule: **anything a run silently depends on must be checked before the run starts
+and recorded in the manifest.** For SWE-bench on this host that means:
+
+- **Container images present.** `viz/swebench_preflight.py` verifies every image in the instance set
+  and refuses to launch if any is missing. Cheap insurance: a measured cold pull took **51 s** for a
+  single image on this host, so the mini-swe-agent default `pull_timeout` of 120 s has almost no
+  headroom once several pull concurrently.
+- **The endpoint serves the model you think it does.** `run_qwen36_swebench_rerun.sh` reads
+  `/v1/models` and aborts on mismatch. This is not hypothetical — during testing it correctly
+  refused to launch because the endpoint was still serving Laguna.
+- **Config equivalence to the comparison baseline.** The re-run config is derived from Ornith's with
+  a structural diff asserting exactly two intended changes, so scaffold drift cannot quietly
+  re-enter a comparison that is supposed to isolate the model.
+
+A precondition that is merely *usually true* — like a warm image cache — is a latent failure. Either
+verify it at launch or record in the manifest that it was unverified.
+
 Quality artifacts are present for every evaluated model but live at inconsistent paths
 (`raw/quality/<task>/` for some, `raw/<task>_results.json` for others). Normalizing to
 `raw/<benchmark>/` is tracked in TODO.md §6.
