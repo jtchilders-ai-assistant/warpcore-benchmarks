@@ -125,15 +125,49 @@ Full accounting of the identical 100 instances (all three runs cover the same se
 Qwen3.6 was scored on **66 real attempts out of 100**; Ornith on 91. Presenting 44 / 51 / 73 as a
 like-for-like ranking is not defensible.
 
+**Decomposing the 29-point Ornith − Qwen3.6 gap.** Splitting the score into *completion* (did the
+agent produce a gradeable patch?) and *patch quality* (given one, did it resolve?):
+
+| | Qwen3.6 | Ornith |
+| --- | ---: | ---: |
+| produced a graded patch | 66/100 | 91/100 |
+| **of those, resolved** | **66.7%** | **80.2%** |
+| headline score | 44 | 73 |
+
+Holding Qwen3.6's own patch quality fixed and giving it Ornith's completion rate yields
+**60.7 resolved**. So of the 29-point gap:
+
+- **~16.7 points (57%) is completion** — the agent never submitted, and
+  **22 of those 29 non-completions are `TimeoutExpired`**, not model errors;
+- **~12.3 points (43%) is genuine patch quality.**
+
+Ornith is really better — 80.2% vs 66.7% on graded patches is a solid margin — but the headline
+gap is roughly **double the capability difference**. The README currently reports only the
+headline.
+
+Caveat on the decomposition itself: it assumes the timed-out instances would have resolved at the
+same rate as the ones that finished. They are plausibly *harder* (that is partly why they ran
+long), so 66.7% is an optimistic imputation and 12.3 points is a **lower** bound on the true
+capability gap. It is still much nearer the truth than 29.
+
+This is why **2a-iv** below matters more than its cost suggests: Qwen3.6's agent config was never
+committed, so we cannot confirm it ran under Ornith's `timeout: 1800` at all.
+
 - [ ] **2a-i. Re-run Qwen3.6-35B SWE-bench n=100** with the robust submit, the current scaffold, and
       a per-instance timeout sized from its own throughput sweep. Cost ~11 h generation on the Mac
       mini + ~20 min grading.
 - [ ] **2a-ii. Record the fair-verdict count (`completed_instances`) next to every SWE-bench score**
       in the top-level README table. A resolve rate over 66 attempts and one over 91 are different
-      measurements and the table should say so.
+      measurements and the table should say so. Report **both** raw resolves and
+      resolves-among-graded; the first is the deployment answer, the second isolates capability.
 - [ ] **2a-iii. Commit Ornith's `exit_statuses_*.yaml`** — it is the only model missing the
       exit-status breakdown in `raw/swebench/`, so its 9 non-submissions can't be re-audited from
       the repo alone.
+- [ ] **2a-iv. Recover or reconstruct Qwen3.6's agent config and launch script.** Neither is in
+      `raw/swebench/`. With 22 `TimeoutExpired` exits driving 57% of its gap to Ornith, an
+      unverified timeout budget is the largest single unknown in the comparison. If it cannot be
+      recovered, 2a-i supersedes it and the old number should be retired rather than re-explained.
+
 
 ### 2b. gpt-oss-120b SWE-bench was blocked by a serving bug that no longer applies
 
@@ -261,6 +295,51 @@ retry events**, abandoned at 110/198). Raising concurrency to "go faster" is wha
 
 ---
 
+## 6. Artifact & provenance standard (makes everything above enforceable)
+
+The re-runs in §1–§4 are wasted effort if the new runs are as unreproducible as the old ones. The
+standard is written up in **[PROVENANCE.md](PROVENANCE.md)**: a per-run `manifest.json`, a required
+artifact list per benchmark, and rules for recording a configuration that changes mid-run.
+
+Two gaps that block the apples-to-apples comparison specifically:
+
+- [ ] **6a. Ornith has no `exit_statuses_*.yaml`.** Best score in the repo; its 9 non-submissions
+      cannot be audited from the repo alone. (Same as 2a-iii — listed here because it is an
+      artifact gap, not a re-run.)
+- [ ] **6b. Qwen3.6 has no agent config and no launch script.** Its timeout budget — the thing
+      driving 57% of its gap to Ornith — is unverifiable. (Same as 2a-iv.)
+
+Mid-run configuration changes are already a live problem, not a hypothetical:
+
+- [ ] **6c. Lightning's SWE-bench run spans two vLLM builds** — `launch_lightning_swe.sh` pins
+      `vllm/vllm-openai:v0.27.1`, `launch_lightning_swe_nightly.sh` pins `cu129-nightly-aarch64`,
+      after the engine wedged under long-context load. **Nothing records which instances ran under
+      which build.** Reconstruct the split from run logs if possible; otherwise annotate the score
+      as segmented with the boundary unrecorded.
+- [ ] **6d. Fix the misleading segment filenames.** `exit_statuses_n55.yaml` contains **23**
+      instances; `exit_statuses_all_segments.yaml` and `exit_statuses_shuffle100_final_segment.yaml`
+      both contain 28 despite the first implying it is the union. Name files for their real
+      contents.
+- [ ] **6i. Reconcile `launch_ornith.sh` with the run it documents.** The script pins
+      `--gpu-memory-utilization 0.90`; the card says the agentic runs used **0.55** for host
+      headroom, and the card itself prints both values in different sections. A committed launch
+      script that does not reproduce its own run is worse than none, because it looks
+      authoritative. Same audit for every other `launch_*.sh` in the repo.
+
+Tooling, so the standard is cheaper to follow than to skip:
+
+- [ ] **6e. `make manifest MODEL=<m> BENCH=<b>`** — scaffold `manifest.json`, auto-filling engine
+      version/args probed from the live endpoint, client host, repo commit, timestamps. Unknowns
+      written as the literal `"unrecorded"`, never guessed.
+- [ ] **6f. `make check-artifacts`** — fail if any `results/*/raw/*/` lacks a required artifact for
+      its benchmark. Wire into CI so gaps surface at commit time.
+- [ ] **6g. Normalize quality artifact paths.** Some models use `raw/quality/<task>/`, others
+      `raw/<task>_results.json`. Pick `raw/<benchmark>/` and move the rest.
+- [ ] **6h. Commit `samples_*.jsonl` for every lm-eval run** (gzipped if size is a concern). It is
+      the only artifact that permits after-the-fact detection of the ISSUES #15 defect.
+
+---
+
 ## Suggested order
 
 Ranked by information gained per GPU-hour. §0 blocks everything that needs the warpcore GPU.
@@ -268,17 +347,26 @@ Ranked by information gained per GPU-hour. §0 blocks everything that needs the 
 | Order | Item | Cost | Unblocks |
 | --: | --- | --- | --- |
 | 1 | §0 Laguna SWE-bench finishes + graded | in flight | the GPU |
-| 2 | §1a Nemotron-3-Super GPQA re-serve @64k | ~3 h | a possibly-wrong head-to-head vs gpt-oss |
-| 3 | §1b Ornith GPQA re-serve | ~2 h | the last known-suspect score |
-| 4 | §2c-ii/iii task-YAML fixes | ~30 min | every subsequent lm-eval run |
-| 5 | §2a-i Qwen3.6 SWE-bench re-run | ~11 h | the most misleading number in the table |
-| 6 | §2b-i gpt-oss SWE-bench | ~11 h | the only missing agentic score |
-| 7 | §2c-i GSM8K clean-task re-runs (×2) | ~6 h | GSM8K column comparability |
-| 8 | §2d-ii Qwen3.6 GPQA thinking @64k | ~8 h | Qwen3.6's real reasoning ceiling |
-| 9 | §3b/3c throughput re-sweeps | ~6 h | three "floor" peaks |
-| 10 | §4a Qwen3.5-122B full suite | ~20 h | the one model with no quality data |
+| 2 | §6a/6b artifact recovery (Ornith exit_statuses, Qwen3.6 config) | ~1 h, no GPU | whether 2a-i is even needed |
+| 3 | §1a Nemotron-3-Super GPQA re-serve @64k | ~3 h | a possibly-wrong head-to-head vs gpt-oss |
+| 4 | §1b Ornith GPQA re-serve | ~2 h | the last known-suspect score |
+| 5 | §2c-ii/iii task-YAML fixes | ~30 min | every subsequent lm-eval run |
+| 6 | §6e/6f manifest + artifact check | ~2 h, no GPU | every re-run below lands reproducible |
+| 7 | §2a-i Qwen3.6 SWE-bench re-run | ~11 h | the most misleading number in the table |
+| 8 | §2b-i gpt-oss SWE-bench | ~11 h | the only missing agentic score |
+| 9 | §2c-i GSM8K clean-task re-runs (×2) | ~6 h | GSM8K column comparability |
+| 10 | §2d-ii Qwen3.6 GPQA thinking @64k | ~8 h | Qwen3.6's real reasoning ceiling |
+| 11 | §3b/3c throughput re-sweeps | ~6 h | three "floor" peaks |
+| 12 | §4a Qwen3.5-122B full suite | ~20 h | the one model with no quality data |
+
+Items 2 and 6 are new and deliberately placed early: they cost no GPU time, and doing them *before*
+the re-runs is what makes the re-runs worth doing. Item 2 in particular may show that Qwen3.6 ran
+under a shorter timeout than Ornith, which would change how §2a-i is configured.
 
 **Definition of done for "systematic":** every model in the top-level README table measured with the
 same task configs, the same output budget, a concurrency derived from its own throughput sweep, a
 verified-zero (or explicitly reported) empty-response rate, and — for SWE-bench — the same scaffold,
 the same seed-42 instance set, and the fair-verdict count published next to the resolve rate.
+Every run additionally carries a `manifest.json` conforming to [PROVENANCE.md](PROVENANCE.md), so
+the settings behind any number can be recovered from the repo without asking a person.
+
