@@ -1,0 +1,854 @@
+2026-08-04 02:04:02,429 - minisweagent - INFO - Loading dataset princeton-nlp/SWE-Bench_Verified, split test...
+2026-08-04 02:04:04,536 - minisweagent - INFO - Instance slice: 500 -> 100 instances
+2026-08-04 02:04:04,538 - minisweagent - INFO - Running on 100 instances...
+2026-08-04 02:04:04,539 - minisweagent - INFO - Building agent config from specs: ['venv/lib/python3.11/site-packages/minisweagent/config/benchmarks/swebench.yaml', 'model.model_kwargs.temperature=0', 'model.model_kwargs.timeout=1800']
+2026-08-04 02:04:07,792 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-a788f941 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-10449:latest sleep 2h
+2026-08-04 02:04:07,794 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-8237caae -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-14672:latest sleep 2h
+2026-08-04 02:04:07,796 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-6e2dc115 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-11299:latest sleep 2h
+2026-08-04 02:04:08,104 - minisweagent.environment - INFO - Started container minisweagent-6e2dc115 with ID 053778f3db851c2bfed184d0838228d70e5479124481a5a168c5d71899d74d52
+2026-08-04 02:04:30,608 - minisweagent.environment - INFO - Started container minisweagent-a788f941 with ID 2ac382ee5fe7fb647285237af72341cd2f9edf9a589bfdeb5fa6c21cc555f971
+2026-08-04 02:04:31,810 - minisweagent.environment - INFO - Started container minisweagent-8237caae with ID 079887d227d0907038b7252fc10c2663e27210f953aaebd71b61ed4d8cb61d03
+2026-08-04 02:17:55,344 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-11299/django__django-11299.traj.json'
+2026-08-04 02:17:55,363 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-2425c943 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-14493:latest sleep 2h
+2026-08-04 02:17:58,344 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-14672/django__django-14672.traj.json'
+2026-08-04 02:17:58,361 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-ff11db3c -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-11551:latest sleep 2h
+2026-08-04 02:17:59,975 - minisweagent.environment - INFO - Started container minisweagent-2425c943 with ID 6203df9568049911ef06cb76eb195cea3ba8879c95f77c9203753dfe693637ad
+2026-08-04 02:18:02,762 - minisweagent.environment - INFO - Started container minisweagent-ff11db3c with ID 6ab4878a9bc2e453988c4799d53702cb52ceae9591f7b7fc34e4c402c9c649e9
+2026-08-04 02:22:39,247 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-14493/django__django-14493.traj.json'
+2026-08-04 02:22:39,266 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-701fe966 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-12143:latest sleep 2h
+2026-08-04 02:22:43,306 - minisweagent.environment - INFO - Started container minisweagent-701fe966 with ID 16b74dae776848d19c41268e23bc7ef2f7057fba6a6dbf9e84740c6d4c6a3348
+2026-08-04 02:24:01,250 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-12143/django__django-12143.traj.json'
+2026-08-04 02:24:01,271 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-26a5435a -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.pydata_1776_xarray-6938:latest sleep 2h
+2026-08-04 02:24:50,908 - minisweagent.environment - INFO - Started container minisweagent-26a5435a with ID 925505f98fe760f223b3040ae3249f4b43e877f54a4f08af1b645ad31e5cad47
+2026-08-04 02:36:31,466 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/pydata__xarray-6938/pydata__xarray-6938.traj.json'
+2026-08-04 02:36:31,486 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-3e422a8f -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-15916:latest sleep 2h
+2026-08-04 02:36:49,686 - minisweagent.environment - INFO - Started container minisweagent-3e422a8f with ID 8df7db2914057caff5530cd56ccd173cf0e8a0174dfbfec8167b90057b1b18a7
+2026-08-04 03:04:14,489 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/sphinx-doc__sphinx-10449/sphinx-doc__sphinx-10449.traj.json'
+2026-08-04 03:04:14,508 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-6d813639 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-12193:latest sleep 2h
+2026-08-04 03:04:18,597 - minisweagent.environment - INFO - Started container minisweagent-6d813639 with ID 351da9339aa0190ec5d4e60bb72ae790b6cc430c1cccaa2701e6f03c02c456c2
+2026-08-04 03:04:30,451 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-15916/django__django-15916.traj.json'
+2026-08-04 03:04:30,471 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-3764065b -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.pytest-dev_1776_pytest-5262:latest sleep 2h
+2026-08-04 03:04:43,103 - minisweagent.environment - INFO - Started container minisweagent-3764065b with ID c7046ee86fc8e6d03d1b7105071a2490843a6e57d5b959d48eaf7dce77f05001
+2026-08-04 03:07:53,000 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/pytest-dev__pytest-5262/pytest-dev__pytest-5262.traj.json'
+2026-08-04 03:07:53,019 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-574f5d5e -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-8459:latest sleep 2h
+2026-08-04 03:08:09,265 - minisweagent.environment - INFO - Started container minisweagent-574f5d5e with ID 7824a837653f0a252e9d3cf1b749278f6bed040819bb5a0d60f61f26562f69ab
+2026-08-04 03:14:00,788 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-12193/django__django-12193.traj.json'
+2026-08-04 03:14:00,808 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-c624fd3c -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-9281:latest sleep 2h
+2026-08-04 03:14:16,367 - minisweagent.environment - INFO - Started container minisweagent-c624fd3c with ID 4e911a1e9c75b200fc7dbe3ed68511bc930fca3d6e3b7b07ca5cfc8c8817e3ec
+2026-08-04 03:21:06,019 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/sphinx-doc__sphinx-9281/sphinx-doc__sphinx-9281.traj.json'
+2026-08-04 03:21:06,039 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-0f6988fd -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-13012:latest sleep 2h
+2026-08-04 03:21:22,576 - minisweagent.environment - INFO - Started container minisweagent-0f6988fd with ID 9bae2ffdadf809cc421d85d34a0c4c9e6d3b3e400ee3e5ca2bd7ae3d667405ab
+2026-08-04 03:22:20,593 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/sphinx-doc__sphinx-8459/sphinx-doc__sphinx-8459.traj.json'
+2026-08-04 03:22:20,612 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-2d19a9d6 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-16082:latest sleep 2h
+2026-08-04 03:22:26,080 - minisweagent.environment - INFO - Started container minisweagent-2d19a9d6 with ID 8f1973411944e4668ab239f0d61b8c9b36fe85d1b4143ed12a141e775d6426b0
+2026-08-04 03:27:13,891 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-13012/django__django-13012.traj.json'
+2026-08-04 03:27:13,911 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-72947f8d -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-20916:latest sleep 2h
+2026-08-04 03:27:16,676 - minisweagent.environment - INFO - Started container minisweagent-72947f8d with ID e866bdcd536e6275310a6b0ea598c13237cc300ddd2cc55745ab7a26b2372500
+2026-08-04 03:30:15,257 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-16082/django__django-16082.traj.json'
+2026-08-04 03:30:15,276 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-54e718e5 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-11749:latest sleep 2h
+2026-08-04 03:30:19,864 - minisweagent.environment - INFO - Started container minisweagent-54e718e5 with ID 9a7ced8a41c54e2e410399e99d98cba20c79b9d754ebbc47f0c88cb08b5d76e4
+2026-08-04 03:40:12,502 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-11749/django__django-11749.traj.json'
+2026-08-04 03:40:12,522 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-c8e100f8 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-14629:latest sleep 2h
+2026-08-04 03:40:40,600 - minisweagent.environment - INFO - Started container minisweagent-c8e100f8 with ID bc15b3f19e93db0d666fc81a4dc4699729ab63cd3bb33e7d8641ea655dc0c774
+2026-08-04 03:47:14,835 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/scikit-learn__scikit-learn-14629/scikit-learn__scikit-learn-14629.traj.json'
+2026-08-04 03:47:14,857 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-38399dd1 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-14631:latest sleep 2h
+2026-08-04 03:47:19,125 - minisweagent.environment - INFO - Started container minisweagent-38399dd1 with ID e0e91a758a24c83eed83c358079b048eae31df8394dbdedaa48a734b4119d11b
+2026-08-04 05:01:18,443 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-11551/django__django-11551.traj.json'
+2026-08-04 05:01:18,464 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-31bd16f5 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-15930:latest sleep 2h
+2026-08-04 05:01:23,050 - minisweagent.environment - INFO - Started container minisweagent-31bd16f5 with ID ff76d93e597501b245319c350ccefe4ef37cce4a1294e4fbc25c8cf368b270ce
+2026-08-04 05:20:15,500 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-15930/django__django-15930.traj.json'
+2026-08-04 05:20:15,521 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-7e9e949f -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-7530:latest sleep 2h
+2026-08-04 05:20:34,645 - minisweagent.environment - INFO - Started container minisweagent-7e9e949f with ID 035122da362d21bc21082bd52832c672162011c726386067b129cc811e023caa
+2026-08-04 05:33:59,046 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-7530/django__django-7530.traj.json'
+2026-08-04 05:33:59,071 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-777b081a -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-14248:latest sleep 2h
+2026-08-04 05:34:01,553 - minisweagent.environment - INFO - Started container minisweagent-777b081a with ID 855ee819245007d2e11dbf3a6b02d917259c0804e9388e2a5001207578dcc409
+2026-08-04 05:54:54,104 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/sympy__sympy-14248/sympy__sympy-14248.traj.json'
+2026-08-04 05:54:54,125 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-8d9c48ea -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.pylint-dev_1776_pylint-4551:latest sleep 2h
+2026-08-04 05:55:10,019 - minisweagent.environment - INFO - Started container minisweagent-8d9c48ea with ID 6d3ad02cb902dae567b2f36b30855a7c6dcb6c8c732d5f21eaa88966ae2fd6c2
+2026-08-04 05:57:16,780 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-14631/django__django-14631.traj.json'
+2026-08-04 05:57:16,805 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-32618ba4 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.pallets_1776_flask-5014:latest sleep 2h
+2026-08-04 05:57:17,076 - minisweagent.environment - INFO - Started container minisweagent-32618ba4 with ID 4db1ae87cf35cc446312801ee5a72d1a6075a8c7169d9a0f39db2bfc9faa2d06
+2026-08-04 05:59:07,289 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/pallets__flask-5014/pallets__flask-5014.traj.json'
+2026-08-04 05:59:07,309 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-95ead3b1 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-7440:latest sleep 2h
+2026-08-04 05:59:10,038 - minisweagent.environment - INFO - Started container minisweagent-95ead3b1 with ID 8e6a661ce17ae65afd94d181f6bf0d718f88d66ac8e9fce428277e1375ec701c
+2026-08-04 06:16:09,049 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/pylint-dev__pylint-4551/pylint-dev__pylint-4551.traj.json'
+2026-08-04 06:16:09,072 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-24b72529 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.astropy_1776_astropy-14096:latest sleep 2h
+2026-08-04 06:16:09,336 - minisweagent.environment - INFO - Started container minisweagent-24b72529 with ID 7571edbc2ff3a9cbf552e06d6fe1ca18d3d25ca3069bcf93cb5a387dd3f01470
+2026-08-04 06:17:50,002 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/sympy__sympy-20916/sympy__sympy-20916.traj.json'
+2026-08-04 06:17:50,025 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-b1f00bcc -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-17655:latest sleep 2h
+2026-08-04 06:17:52,540 - minisweagent.environment - INFO - Started container minisweagent-b1f00bcc with ID 17649150a4476219eadba3a7f0010c887fbd9a338ff5dcbf808c3c9259277686
+2026-08-04 06:27:35,699 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/sympy__sympy-17655/sympy__sympy-17655.traj.json'
+2026-08-04 06:27:35,723 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-4efb6a32 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-17084:latest sleep 2h
+2026-08-04 06:27:54,663 - minisweagent.environment - INFO - Started container minisweagent-4efb6a32 with ID 26fac7219dc59f90c633ad36783a3cfb130fdfed1b0fb0eb775a4615ddb43983
+2026-08-04 06:38:51,395 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/sphinx-doc__sphinx-7440/sphinx-doc__sphinx-7440.traj.json'
+2026-08-04 06:38:51,418 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-a9b6b9de -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-16485:latest sleep 2h
+2026-08-04 06:39:11,505 - minisweagent.environment - INFO - Started container minisweagent-a9b6b9de with ID 4210c42309d844e6ae9cfdf584bcde17cb470eca128873a511bc0a6f9b4d61d9
+2026-08-04 06:41:44,110 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-16485/django__django-16485.traj.json'
+2026-08-04 06:41:44,131 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-f40dfb55 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-16901:latest sleep 2h
+2026-08-04 06:41:48,531 - minisweagent.environment - INFO - Started container minisweagent-f40dfb55 with ID 27e14b28ad2e082e12e874fc9fc7c859fe2f979a300c5ca65b68ee9386bd68d4
+2026-08-04 06:59:36,659 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-16901/django__django-16901.traj.json'
+2026-08-04 06:59:36,683 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-db549d31 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-15957:latest sleep 2h
+2026-08-04 06:59:41,018 - minisweagent.environment - INFO - Started container minisweagent-db549d31 with ID d6faf863f8d24d091d3809ae74ab61b88e916fa6c97185388fdd6217ea559b15
+2026-08-04 07:37:23,095 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-15957/django__django-15957.traj.json'
+2026-08-04 07:37:23,119 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-5d22ecc9 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-13809:latest sleep 2h
+2026-08-04 07:37:27,509 - minisweagent.environment - INFO - Started container minisweagent-5d22ecc9 with ID 03ba08149c213afe633217607ce239b813711a2977373b60fda9056e721bab96
+2026-08-04 07:40:12,129 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-13809/django__django-13809.traj.json'
+2026-08-04 07:40:12,150 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-3e7ccf41 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-14608:latest sleep 2h
+2026-08-04 07:40:17,606 - minisweagent.environment - INFO - Started container minisweagent-3e7ccf41 with ID e710b4c364e5f1c8ff70a89c59df9c06b8322d8ad5052915df0dcfaed72d19e7
+2026-08-04 07:45:32,732 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-14608/django__django-14608.traj.json'
+2026-08-04 07:45:32,755 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-f705172c -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-16263:latest sleep 2h
+2026-08-04 07:45:37,360 - minisweagent.environment - INFO - Started container minisweagent-f705172c with ID d28be9ea75560ac5bbb6dfcdc9c6523f341d3648add7a65ad762aea4460b9c9a
+2026-08-04 07:47:29,277 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/astropy__astropy-14096/astropy__astropy-14096.traj.json'
+2026-08-04 07:47:29,300 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-3ac1da5c -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-11239:latest sleep 2h
+2026-08-04 07:47:29,586 - minisweagent.environment - INFO - Started container minisweagent-3ac1da5c with ID 0fa1decdec62b5610980961dd2a3134873fe5384922fde82cfe67ad5a81c2285
+2026-08-04 07:52:40,141 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-11239/django__django-11239.traj.json'
+2026-08-04 07:52:40,164 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-b569fb49 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.matplotlib_1776_matplotlib-25332:latest sleep 2h
+2026-08-04 07:54:02,698 - minisweagent.environment - INFO - Started container minisweagent-b569fb49 with ID 038324b5bb8c9a0923c0e066cab46005551df71479e92dbcbe22eacc23e6c239
+2026-08-04 08:23:44,610 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/matplotlib__matplotlib-25332/matplotlib__matplotlib-25332.traj.json'
+2026-08-04 08:23:44,631 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-8ee23691 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.astropy_1776_astropy-8872:latest sleep 2h
+2026-08-04 08:23:44,902 - minisweagent.environment - INFO - Started container minisweagent-8ee23691 with ID 7e434a43fd2a6592104a5a3a81a2df8601659e6a6cb0949a6a47ae3a2abf2ef3
+2026-08-04 08:38:51,050 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/astropy__astropy-8872/astropy__astropy-8872.traj.json'
+2026-08-04 08:38:51,072 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-c26e7e12 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-13551:latest sleep 2h
+2026-08-04 08:38:53,555 - minisweagent.environment - INFO - Started container minisweagent-c26e7e12 with ID 6a8af0acaede0bd67c89fc9276855eb5ea10c5ac25cf64f94372cec05fe329c0
+2026-08-04 09:38:36,721 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-16263/django__django-16263.traj.json'
+2026-08-04 09:38:36,748 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-6f51b05d -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-11999:latest sleep 2h
+2026-08-04 09:38:40,955 - minisweagent.environment - INFO - Started container minisweagent-6f51b05d with ID b35fb3f9e94556a84911aa502faa3afd097716c796e65a0ee42ebdd7bfa7afcc
+2026-08-04 09:55:06,236 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-11999/django__django-11999.traj.json'
+2026-08-04 09:55:06,260 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-6058f82e -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-16454:latest sleep 2h
+2026-08-04 09:55:10,684 - minisweagent.environment - INFO - Started container minisweagent-6058f82e with ID afcab13e188e5acce21e6118877efc269a00afaf1ab9c7253c73222639e1526b
+2026-08-04 10:09:33,274 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-16454/django__django-16454.traj.json'
+2026-08-04 10:09:33,297 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-515716c3 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-14351:latest sleep 2h
+2026-08-04 10:09:37,650 - minisweagent.environment - INFO - Started container minisweagent-515716c3 with ID f0f5ac44431a29e8924ee676f5014dc4d2b1450006fd66983b14436e36bf8151
+2026-08-04 10:37:05,555 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/sympy__sympy-13551/sympy__sympy-13551.traj.json'
+2026-08-04 10:37:05,579 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-11e55b5c -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-14710:latest sleep 2h
+2026-08-04 10:37:09,492 - minisweagent.environment - INFO - Started container minisweagent-11e55b5c with ID d1c1dc7541ef6c1c4b0038a463e3341c775b90f5839d4189c488697129586be6
+2026-08-04 10:39:20,489 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/scikit-learn__scikit-learn-14710/scikit-learn__scikit-learn-14710.traj.json'
+2026-08-04 10:39:20,512 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-e867a41e -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-16116:latest sleep 2h
+2026-08-04 10:39:24,951 - minisweagent.environment - INFO - Started container minisweagent-e867a41e with ID 21ac899321ce06abc6a1752952a3666010a25fb49f3756da88f68add949392d2
+2026-08-04 10:51:08,172 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-16116/django__django-16116.traj.json'
+2026-08-04 10:51:08,195 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-1428b7d6 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-14404:latest sleep 2h
+2026-08-04 10:51:12,445 - minisweagent.environment - INFO - Started container minisweagent-1428b7d6 with ID c6266dffd58add9cc655eea2d8578dfabf461927a70f734a79e6232d0882a0ba
+2026-08-04 11:04:31,406 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-14404/django__django-14404.traj.json'
+2026-08-04 11:04:31,427 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-d2e8bfe8 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-15103:latest sleep 2h
+2026-08-04 11:04:35,848 - minisweagent.environment - INFO - Started container minisweagent-d2e8bfe8 with ID 56a49471d1919caad9a570f838f67100c740528e213ceb0663f5110202f3e117
+2026-08-04 11:08:41,748 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-15103/django__django-15103.traj.json'
+2026-08-04 11:08:41,773 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-773f8cbe -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-7985:latest sleep 2h
+2026-08-04 11:08:44,319 - minisweagent.environment - INFO - Started container minisweagent-773f8cbe with ID ac0fb303b89bd47000c5cf7b7b840cbd3f374cc960c386fb7c5af5d30f5a0a39
+2026-08-04 11:23:38,000 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/sphinx-doc__sphinx-7985/sphinx-doc__sphinx-7985.traj.json'
+2026-08-04 11:23:38,030 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-a2924bea -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-14017:latest sleep 2h
+2026-08-04 11:23:42,730 - minisweagent.environment - INFO - Started container minisweagent-a2924bea with ID ffcca4172ba132145a7d9a5b562c025d9fd52d1fd07c59188627fbed07da6dc5
+2026-08-04 11:38:05,057 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-14017/django__django-14017.traj.json'
+2026-08-04 11:38:05,081 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-4289b8c3 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-14053:latest sleep 2h
+2026-08-04 11:38:09,333 - minisweagent.environment - INFO - Started container minisweagent-4289b8c3 with ID 4bc8193709b8515d43b9a6613c3e707058a7c1537564c53b0243bb913ddd0e55
+2026-08-04 11:49:40,645 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-14053/django__django-14053.traj.json'
+2026-08-04 11:49:40,669 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-95272b78 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.pylint-dev_1776_pylint-6903:latest sleep 2h
+2026-08-04 11:49:56,692 - minisweagent.environment - INFO - Started container minisweagent-95272b78 with ID ede2fb5de8467e99e75cb60cbc6ec3cd6978232d5ea381fad522c6c81abd30de
+2026-08-04 11:54:35,103 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/pylint-dev__pylint-6903/pylint-dev__pylint-6903.traj.json'
+2026-08-04 11:54:35,127 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-02216688 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-15037:latest sleep 2h
+2026-08-04 11:54:39,589 - minisweagent.environment - INFO - Started container minisweagent-02216688 with ID f9a920f71d758ef639bfa639a77d2687693888ae3683d1ae1ba50c429c8fb5e9
+2026-08-04 12:03:36,283 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-15037/django__django-15037.traj.json'
+2026-08-04 12:03:36,306 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-a108682a -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-14792:latest sleep 2h
+2026-08-04 12:03:41,139 - minisweagent.environment - INFO - Started container minisweagent-a108682a with ID f7a0c96a42d68ee6a2cba2b650e9110de650bc971b30e4d68975cce61d95ace7
+2026-08-04 12:09:08,560 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-17084/django__django-17084.traj.json'
+2026-08-04 12:09:08,585 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-e56d7613 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-12754:latest sleep 2h
+2026-08-04 12:09:14,045 - minisweagent.environment - INFO - Started container minisweagent-e56d7613 with ID 973347c76816fe2316544a3b822cd1f1c804a53fbb01e52eb05008a0261bce8e
+2026-08-04 12:39:29,294 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-14351/django__django-14351.traj.json'
+2026-08-04 12:39:29,344 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-088a8397 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-13089:latest sleep 2h
+2026-08-04 12:39:33,478 - minisweagent.environment - INFO - Started container minisweagent-088a8397 with ID d7a4f87d9090e49e6308757dc7edf253369063ab1f62acece6794eece7caa90d
+2026-08-04 12:41:58,339 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-13089/django__django-13089.traj.json'
+2026-08-04 12:41:58,365 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-b19ea444 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-13852:latest sleep 2h
+2026-08-04 12:42:00,757 - minisweagent.environment - INFO - Started container minisweagent-b19ea444 with ID 7728dc4b9d08523686da78aa02f4bc9574e0fbec54bb5714d56c1400b10d46af
+2026-08-04 12:46:28,959 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-12754/django__django-12754.traj.json'
+2026-08-04 12:46:29,008 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-c8978a05 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.pydata_1776_xarray-3993:latest sleep 2h
+2026-08-04 12:47:25,403 - minisweagent.environment - INFO - Started container minisweagent-c8978a05 with ID 2ecfe771f5a9b86760032c33c3eb8b311597c874f9326530a3ced0b9cee3ac2e
+2026-08-04 12:55:17,886 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/pydata__xarray-3993/pydata__xarray-3993.traj.json'
+2026-08-04 12:55:17,911 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-fddb9c8c -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-11477:latest sleep 2h
+2026-08-04 12:55:22,092 - minisweagent.environment - INFO - Started container minisweagent-fddb9c8c with ID 6eed251c7b617a63bf639a71f4b3e9e663f5983285d50d9fe086e65ea8fc70e3
+2026-08-04 12:56:30,170 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/sympy__sympy-13852/sympy__sympy-13852.traj.json'
+2026-08-04 12:56:30,195 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-4d2b4dfa -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-15569:latest sleep 2h
+2026-08-04 12:56:34,505 - minisweagent.environment - INFO - Started container minisweagent-4d2b4dfa with ID 4ee0fa51d885672df405af82a43e914b2cd9e263e3dc79a0c6a7e127b2f0d34f
+2026-08-04 12:57:50,436 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-15569/django__django-15569.traj.json'
+2026-08-04 12:57:50,463 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-0ffa3d73 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.psf_1776_requests-6028:latest sleep 2h
+2026-08-04 12:58:04,228 - minisweagent.environment - INFO - Started container minisweagent-0ffa3d73 with ID 38b563f8a73d036eec50ba4de4577aeb7f7702ac1ece5bcfdb5a20bdca175343
+2026-08-04 13:01:39,798 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-14792/django__django-14792.traj.json'
+2026-08-04 13:01:39,822 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-e1a1b146 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-13820:latest sleep 2h
+2026-08-04 13:01:44,055 - minisweagent.environment - INFO - Started container minisweagent-e1a1b146 with ID 8267a3ddd2dfb857e872b05b42b89a0544d43fdd3849367c9801c2d4fcfbe894
+2026-08-04 13:04:30,024 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-11477/django__django-11477.traj.json'
+2026-08-04 13:04:30,049 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-fdceed10 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-13568:latest sleep 2h
+2026-08-04 13:04:34,410 - minisweagent.environment - INFO - Started container minisweagent-fdceed10 with ID d600baf4f64487e11e759174ce41044e30daa0de7011ecc43b10ebc6877503b2
+2026-08-04 13:09:15,060 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/psf__requests-6028/psf__requests-6028.traj.json'
+2026-08-04 13:09:15,085 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-4ff331c8 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-13135:latest sleep 2h
+2026-08-04 13:09:45,811 - minisweagent.environment - INFO - Started container minisweagent-4ff331c8 with ID 2755ba1b921369372220c38d3f639c4f63bdf3f38616b1ce17911537a1c723f8
+2026-08-04 13:10:26,557 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-13820/django__django-13820.traj.json'
+2026-08-04 13:10:26,579 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-fa9a78c6 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-15128:latest sleep 2h
+2026-08-04 13:10:32,539 - minisweagent.environment - INFO - Started container minisweagent-fa9a78c6 with ID 046878a720f7e6f7cfd62bcfc34394dba17e998b858a14b70b0f5414d510a25a
+2026-08-04 13:12:51,395 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/scikit-learn__scikit-learn-13135/scikit-learn__scikit-learn-13135.traj.json'
+2026-08-04 13:12:51,418 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-5246d556 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-14894:latest sleep 2h
+2026-08-04 13:12:55,204 - minisweagent.environment - INFO - Started container minisweagent-5246d556 with ID 54d6ecfeb102ea1d18f8d64262b03b9434054523e459769282e48c47c8ad4690
+2026-08-04 13:15:54,957 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-13568/django__django-13568.traj.json'
+2026-08-04 13:15:54,991 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-7d9c6f77 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-11163:latest sleep 2h
+2026-08-04 13:15:55,396 - minisweagent.environment - INFO - Started container minisweagent-7d9c6f77 with ID 30ca8bf3f98838892e0ad13989cf4f6a524a7a3dc544436d80e54a3cdcd66d0e
+2026-08-04 13:17:18,146 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/scikit-learn__scikit-learn-14894/scikit-learn__scikit-learn-14894.traj.json'
+2026-08-04 13:17:18,172 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-98cdd3cf -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-14559:latest sleep 2h
+2026-08-04 13:17:22,487 - minisweagent.environment - INFO - Started container minisweagent-98cdd3cf with ID 871bd8cc10dd11fa2c2deac73eda11b1bd34b3555824bd00c83cd9ddb4977cac
+2026-08-04 13:18:10,986 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-11163/django__django-11163.traj.json'
+2026-08-04 13:18:11,011 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-1136d7e1 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.astropy_1776_astropy-13453:latest sleep 2h
+2026-08-04 13:18:11,281 - minisweagent.environment - INFO - Started container minisweagent-1136d7e1 with ID 55cf9888f2095f0ceaf2f15904b0d5f2e3d472ce4ca91683397ec9e849e9af14
+2026-08-04 13:21:08,682 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-14559/django__django-14559.traj.json'
+2026-08-04 13:21:08,706 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-20392c8c -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-13023:latest sleep 2h
+2026-08-04 13:21:13,012 - minisweagent.environment - INFO - Started container minisweagent-20392c8c with ID 89fc48e324f75f42b5d1ea2185777f540032c20600c6a4431ffbe69ae88847ce
+2026-08-04 13:26:55,199 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-13023/django__django-13023.traj.json'
+2026-08-04 13:26:55,221 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-99e28215 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.pydata_1776_xarray-4075:latest sleep 2h
+2026-08-04 13:26:56,758 - minisweagent.environment - INFO - Started container minisweagent-99e28215 with ID ff20e2aa92cebfa732c763c087f1ef53963b0aacdd0fc636429b3926fa552dae
+2026-08-04 13:29:31,632 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/pydata__xarray-4075/pydata__xarray-4075.traj.json'
+2026-08-04 13:29:31,656 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-857c9c4f -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-15368:latest sleep 2h
+2026-08-04 13:29:36,129 - minisweagent.environment - INFO - Started container minisweagent-857c9c4f with ID 862607d682da315909a5d638faafa3da76e45c5a7e04ffe2131cbba73da7fd0f
+2026-08-04 13:31:03,704 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/astropy__astropy-13453/astropy__astropy-13453.traj.json'
+2026-08-04 13:31:03,727 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-077bda65 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-25232:latest sleep 2h
+2026-08-04 13:31:46,656 - minisweagent.environment - INFO - Started container minisweagent-077bda65 with ID e3a02584d9b7a7d19aa74a5db70161c335d3eb352a0f9e9be4754cdce42c3d59
+2026-08-04 13:33:12,403 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-15368/django__django-15368.traj.json'
+2026-08-04 13:33:12,429 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-8af1aaba -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-15976:latest sleep 2h
+2026-08-04 13:33:15,237 - minisweagent.environment - INFO - Started container minisweagent-8af1aaba with ID d4b1f5acb3b4c197335585a63359b6447b6c01a233c09362b91c0a7c2987a187
+2026-08-04 13:40:47,822 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/scikit-learn__scikit-learn-25232/scikit-learn__scikit-learn-25232.traj.json'
+2026-08-04 13:40:47,846 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-8a70b93f -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-13028:latest sleep 2h
+2026-08-04 13:40:51,956 - minisweagent.environment - INFO - Started container minisweagent-8a70b93f with ID e12d2ca3422d43ee78271b7d6e272233ef08220efc7a49e05a02b20832087c7f
+2026-08-04 13:48:28,784 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-13028/django__django-13028.traj.json'
+2026-08-04 13:48:28,809 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-2cc6d0d1 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-19040:latest sleep 2h
+2026-08-04 13:48:31,501 - minisweagent.environment - INFO - Started container minisweagent-2cc6d0d1 with ID 004ddd56428988275c9437061cdf314dd873fe69d7f9d1cca6de9388d40538ce
+2026-08-04 14:27:38,171 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/sympy__sympy-15976/sympy__sympy-15976.traj.json'
+2026-08-04 14:27:38,196 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-19060a04 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.psf_1776_requests-1766:latest sleep 2h
+2026-08-04 14:27:52,203 - minisweagent.environment - INFO - Started container minisweagent-19060a04 with ID 802aece666a6f05e7f7f6f1e6ba3efd9e700d2c8ac9867770525a6fe77f7d659
+2026-08-04 14:30:58,098 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/psf__requests-1766/psf__requests-1766.traj.json'
+2026-08-04 14:30:58,122 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-2cf75f35 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.pytest-dev_1776_pytest-7205:latest sleep 2h
+2026-08-04 14:31:11,611 - minisweagent.environment - INFO - Started container minisweagent-2cf75f35 with ID bcec6e7f7156d27f39352557ee7f250fcce7c26a743755bdf5234fc0ec610b41
+2026-08-04 14:35:51,131 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/pytest-dev__pytest-7205/pytest-dev__pytest-7205.traj.json'
+2026-08-04 14:35:51,156 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-067c20d6 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-8593:latest sleep 2h
+2026-08-04 14:36:07,275 - minisweagent.environment - INFO - Started container minisweagent-067c20d6 with ID d2922f289568afd4c04a7e6d32403247e0e895f81c960453a88246c94bbc9b84
+2026-08-04 14:50:56,173 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/sphinx-doc__sphinx-8593/sphinx-doc__sphinx-8593.traj.json'
+2026-08-04 14:50:56,199 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-614c8847 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-8595:latest sleep 2h
+2026-08-04 14:52:56,223 - minisweagent - ERROR - Error processing instance sphinx-doc__sphinx-8595: Command '['docker', 'run', '-d', '--name', 'minisweagent-614c8847', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-8595:latest', 'sleep', '2h']' timed out after 120 seconds
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 146, in process_instance
+    env = get_sb_environment(config, instance)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 88, in get_sb_environment
+    env = get_environment(env_config)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/__init__.py", line 33, in get_environment
+    return get_environment_class(environment_class)(**config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 59, in __init__
+    self._start_container()
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 91, in _start_container
+    result = subprocess.run(
+             ^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 2116, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1253, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['docker', 'run', '-d', '--name', 'minisweagent-614c8847', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-8595:latest', 'sleep', '2h']' timed out after 120 seconds
+2026-08-04 14:52:56,247 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-17e1bd57 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-15315:latest sleep 2h
+2026-08-04 14:54:56,265 - minisweagent - ERROR - Error processing instance django__django-15315: Command '['docker', 'run', '-d', '--name', 'minisweagent-17e1bd57', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.django_1776_django-15315:latest', 'sleep', '2h']' timed out after 120 seconds
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 146, in process_instance
+    env = get_sb_environment(config, instance)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 88, in get_sb_environment
+    env = get_environment(env_config)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/__init__.py", line 33, in get_environment
+    return get_environment_class(environment_class)(**config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 59, in __init__
+    self._start_container()
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 91, in _start_container
+    result = subprocess.run(
+             ^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 2116, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1253, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['docker', 'run', '-d', '--name', 'minisweagent-17e1bd57', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.django_1776_django-15315:latest', 'sleep', '2h']' timed out after 120 seconds
+2026-08-04 14:54:56,282 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-0ee3633b -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.pytest-dev_1776_pytest-5631:latest sleep 2h
+2026-08-04 14:56:56,381 - minisweagent - ERROR - Error processing instance pytest-dev__pytest-5631: Command '['docker', 'run', '-d', '--name', 'minisweagent-0ee3633b', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.pytest-dev_1776_pytest-5631:latest', 'sleep', '2h']' timed out after 120 seconds
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 146, in process_instance
+    env = get_sb_environment(config, instance)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 88, in get_sb_environment
+    env = get_environment(env_config)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/__init__.py", line 33, in get_environment
+    return get_environment_class(environment_class)(**config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 59, in __init__
+    self._start_container()
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 91, in _start_container
+    result = subprocess.run(
+             ^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 2116, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1253, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['docker', 'run', '-d', '--name', 'minisweagent-0ee3633b', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.pytest-dev_1776_pytest-5631:latest', 'sleep', '2h']' timed out after 120 seconds
+2026-08-04 14:56:56,395 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-9f111e39 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-15987:latest sleep 2h
+2026-08-04 14:58:56,415 - minisweagent - ERROR - Error processing instance django__django-15987: Command '['docker', 'run', '-d', '--name', 'minisweagent-9f111e39', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.django_1776_django-15987:latest', 'sleep', '2h']' timed out after 120 seconds
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 146, in process_instance
+    env = get_sb_environment(config, instance)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 88, in get_sb_environment
+    env = get_environment(env_config)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/__init__.py", line 33, in get_environment
+    return get_environment_class(environment_class)(**config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 59, in __init__
+    self._start_container()
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 91, in _start_container
+    result = subprocess.run(
+             ^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 2116, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1253, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['docker', 'run', '-d', '--name', 'minisweagent-9f111e39', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.django_1776_django-15987:latest', 'sleep', '2h']' timed out after 120 seconds
+2026-08-04 14:58:56,429 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-16d6bf36 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-13794:latest sleep 2h
+2026-08-04 15:00:56,450 - minisweagent - ERROR - Error processing instance django__django-13794: Command '['docker', 'run', '-d', '--name', 'minisweagent-16d6bf36', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.django_1776_django-13794:latest', 'sleep', '2h']' timed out after 120 seconds
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 146, in process_instance
+    env = get_sb_environment(config, instance)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 88, in get_sb_environment
+    env = get_environment(env_config)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/__init__.py", line 33, in get_environment
+    return get_environment_class(environment_class)(**config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 59, in __init__
+    self._start_container()
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 91, in _start_container
+    result = subprocess.run(
+             ^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 2116, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1253, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['docker', 'run', '-d', '--name', 'minisweagent-16d6bf36', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.django_1776_django-13794:latest', 'sleep', '2h']' timed out after 120 seconds
+2026-08-04 15:00:56,463 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-79177009 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.astropy_1776_astropy-14369:latest sleep 2h
+2026-08-04 15:00:56,767 - minisweagent.environment - INFO - Started container minisweagent-79177009 with ID a818f630fa08a27b15b7261e3b68707828e23c521cb79c067390b07b9aa86447
+2026-08-04 15:12:31,405 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/astropy__astropy-14369/astropy__astropy-14369.traj.json'
+2026-08-04 15:12:31,438 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-26bb64e7 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.astropy_1776_astropy-13977:latest sleep 2h
+2026-08-04 15:12:31,743 - minisweagent.environment - INFO - Started container minisweagent-26bb64e7 with ID df0c4596a405253d61fc02f734b916db2bf85ad070608fcd26fc2a15be0afb8f
+2026-08-04 15:22:43,248 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/astropy__astropy-13977/astropy__astropy-13977.traj.json'
+2026-08-04 15:22:43,276 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-9210c8c3 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-13974:latest sleep 2h
+2026-08-04 15:24:43,297 - minisweagent - ERROR - Error processing instance sympy__sympy-13974: Command '['docker', 'run', '-d', '--name', 'minisweagent-9210c8c3', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-13974:latest', 'sleep', '2h']' timed out after 120 seconds
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 146, in process_instance
+    env = get_sb_environment(config, instance)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 88, in get_sb_environment
+    env = get_environment(env_config)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/__init__.py", line 33, in get_environment
+    return get_environment_class(environment_class)(**config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 59, in __init__
+    self._start_container()
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 91, in _start_container
+    result = subprocess.run(
+             ^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 2116, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1253, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['docker', 'run', '-d', '--name', 'minisweagent-9210c8c3', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-13974:latest', 'sleep', '2h']' timed out after 120 seconds
+2026-08-04 15:24:43,313 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-a969e6fe -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-16938:latest sleep 2h
+2026-08-04 15:26:43,396 - minisweagent - ERROR - Error processing instance django__django-16938: Command '['docker', 'run', '-d', '--name', 'minisweagent-a969e6fe', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.django_1776_django-16938:latest', 'sleep', '2h']' timed out after 120 seconds
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 146, in process_instance
+    env = get_sb_environment(config, instance)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 88, in get_sb_environment
+    env = get_environment(env_config)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/__init__.py", line 33, in get_environment
+    return get_environment_class(environment_class)(**config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 59, in __init__
+    self._start_container()
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 91, in _start_container
+    result = subprocess.run(
+             ^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 2116, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1253, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['docker', 'run', '-d', '--name', 'minisweagent-a969e6fe', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.django_1776_django-16938:latest', 'sleep', '2h']' timed out after 120 seconds
+2026-08-04 15:26:43,412 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-06b1dfe0 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-7910:latest sleep 2h
+2026-08-04 15:28:43,433 - minisweagent - ERROR - Error processing instance sphinx-doc__sphinx-7910: Command '['docker', 'run', '-d', '--name', 'minisweagent-06b1dfe0', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-7910:latest', 'sleep', '2h']' timed out after 120 seconds
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 146, in process_instance
+    env = get_sb_environment(config, instance)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 88, in get_sb_environment
+    env = get_environment(env_config)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/__init__.py", line 33, in get_environment
+    return get_environment_class(environment_class)(**config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 59, in __init__
+    self._start_container()
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 91, in _start_container
+    result = subprocess.run(
+             ^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 2116, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1253, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['docker', 'run', '-d', '--name', 'minisweagent-06b1dfe0', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-7910:latest', 'sleep', '2h']' timed out after 120 seconds
+2026-08-04 15:28:43,448 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-657d74e5 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-11618:latest sleep 2h
+2026-08-04 15:30:43,470 - minisweagent - ERROR - Error processing instance sympy__sympy-11618: Command '['docker', 'run', '-d', '--name', 'minisweagent-657d74e5', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-11618:latest', 'sleep', '2h']' timed out after 120 seconds
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 146, in process_instance
+    env = get_sb_environment(config, instance)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 88, in get_sb_environment
+    env = get_environment(env_config)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/__init__.py", line 33, in get_environment
+    return get_environment_class(environment_class)(**config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 59, in __init__
+    self._start_container()
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 91, in _start_container
+    result = subprocess.run(
+             ^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 2116, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1253, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['docker', 'run', '-d', '--name', 'minisweagent-657d74e5', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-11618:latest', 'sleep', '2h']' timed out after 120 seconds
+2026-08-04 15:30:43,483 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-69836896 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.pytest-dev_1776_pytest-7521:latest sleep 2h
+2026-08-04 15:32:43,508 - minisweagent - ERROR - Error processing instance pytest-dev__pytest-7521: Command '['docker', 'run', '-d', '--name', 'minisweagent-69836896', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.pytest-dev_1776_pytest-7521:latest', 'sleep', '2h']' timed out after 120 seconds
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 146, in process_instance
+    env = get_sb_environment(config, instance)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 88, in get_sb_environment
+    env = get_environment(env_config)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/__init__.py", line 33, in get_environment
+    return get_environment_class(environment_class)(**config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 59, in __init__
+    self._start_container()
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 91, in _start_container
+    result = subprocess.run(
+             ^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 2116, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1253, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['docker', 'run', '-d', '--name', 'minisweagent-69836896', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.pytest-dev_1776_pytest-7521:latest', 'sleep', '2h']' timed out after 120 seconds
+2026-08-04 15:32:43,523 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-365f80f9 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-12774:latest sleep 2h
+2026-08-04 15:34:43,545 - minisweagent - ERROR - Error processing instance django__django-12774: Command '['docker', 'run', '-d', '--name', 'minisweagent-365f80f9', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.django_1776_django-12774:latest', 'sleep', '2h']' timed out after 120 seconds
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 146, in process_instance
+    env = get_sb_environment(config, instance)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 88, in get_sb_environment
+    env = get_environment(env_config)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/__init__.py", line 33, in get_environment
+    return get_environment_class(environment_class)(**config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 59, in __init__
+    self._start_container()
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 91, in _start_container
+    result = subprocess.run(
+             ^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 2116, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1253, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['docker', 'run', '-d', '--name', 'minisweagent-365f80f9', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.django_1776_django-12774:latest', 'sleep', '2h']' timed out after 120 seconds
+2026-08-04 15:34:43,560 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-e081552a -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-12096:latest sleep 2h
+2026-08-04 15:36:43,583 - minisweagent - ERROR - Error processing instance sympy__sympy-12096: Command '['docker', 'run', '-d', '--name', 'minisweagent-e081552a', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-12096:latest', 'sleep', '2h']' timed out after 120 seconds
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 146, in process_instance
+    env = get_sb_environment(config, instance)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 88, in get_sb_environment
+    env = get_environment(env_config)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/__init__.py", line 33, in get_environment
+    return get_environment_class(environment_class)(**config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 59, in __init__
+    self._start_container()
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 91, in _start_container
+    result = subprocess.run(
+             ^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 2116, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1253, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['docker', 'run', '-d', '--name', 'minisweagent-e081552a', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-12096:latest', 'sleep', '2h']' timed out after 120 seconds
+2026-08-04 15:36:43,598 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-ad53b563 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-10973:latest sleep 2h
+2026-08-04 15:36:43,887 - minisweagent.environment - INFO - Started container minisweagent-ad53b563 with ID 48d781ca8597e54d9a8456e7c05f82646c62414f5bc7e9655ca6edf42fdff06e
+2026-08-04 15:40:06,239 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-10973/django__django-10973.traj.json'
+2026-08-04 15:40:06,264 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-ffd89db0 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-12273:latest sleep 2h
+2026-08-04 15:42:06,287 - minisweagent - ERROR - Error processing instance django__django-12273: Command '['docker', 'run', '-d', '--name', 'minisweagent-ffd89db0', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.django_1776_django-12273:latest', 'sleep', '2h']' timed out after 120 seconds
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 146, in process_instance
+    env = get_sb_environment(config, instance)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 88, in get_sb_environment
+    env = get_environment(env_config)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/__init__.py", line 33, in get_environment
+    return get_environment_class(environment_class)(**config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 59, in __init__
+    self._start_container()
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 91, in _start_container
+    result = subprocess.run(
+             ^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 2116, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1253, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['docker', 'run', '-d', '--name', 'minisweagent-ffd89db0', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.django_1776_django-12273:latest', 'sleep', '2h']' timed out after 120 seconds
+2026-08-04 15:42:06,301 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-80cbb4b0 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-15277:latest sleep 2h
+2026-08-04 15:44:06,322 - minisweagent - ERROR - Error processing instance django__django-15277: Command '['docker', 'run', '-d', '--name', 'minisweagent-80cbb4b0', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.django_1776_django-15277:latest', 'sleep', '2h']' timed out after 120 seconds
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 146, in process_instance
+    env = get_sb_environment(config, instance)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 88, in get_sb_environment
+    env = get_environment(env_config)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/__init__.py", line 33, in get_environment
+    return get_environment_class(environment_class)(**config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 59, in __init__
+    self._start_container()
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 91, in _start_container
+    result = subprocess.run(
+             ^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 2116, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1253, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['docker', 'run', '-d', '--name', 'minisweagent-80cbb4b0', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.django_1776_django-15277:latest', 'sleep', '2h']' timed out after 120 seconds
+2026-08-04 15:44:06,337 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-94c01264 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.matplotlib_1776_matplotlib-22871:latest sleep 2h
+2026-08-04 15:46:06,358 - minisweagent - ERROR - Error processing instance matplotlib__matplotlib-22871: Command '['docker', 'run', '-d', '--name', 'minisweagent-94c01264', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.matplotlib_1776_matplotlib-22871:latest', 'sleep', '2h']' timed out after 120 seconds
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 146, in process_instance
+    env = get_sb_environment(config, instance)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 88, in get_sb_environment
+    env = get_environment(env_config)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/__init__.py", line 33, in get_environment
+    return get_environment_class(environment_class)(**config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 59, in __init__
+    self._start_container()
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 91, in _start_container
+    result = subprocess.run(
+             ^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 2116, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1253, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['docker', 'run', '-d', '--name', 'minisweagent-94c01264', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.matplotlib_1776_matplotlib-22871:latest', 'sleep', '2h']' timed out after 120 seconds
+2026-08-04 15:46:06,373 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-7c5366c9 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-15851:latest sleep 2h
+2026-08-04 15:48:06,394 - minisweagent - ERROR - Error processing instance django__django-15851: Command '['docker', 'run', '-d', '--name', 'minisweagent-7c5366c9', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.django_1776_django-15851:latest', 'sleep', '2h']' timed out after 120 seconds
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 146, in process_instance
+    env = get_sb_environment(config, instance)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 88, in get_sb_environment
+    env = get_environment(env_config)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/__init__.py", line 33, in get_environment
+    return get_environment_class(environment_class)(**config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 59, in __init__
+    self._start_container()
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 91, in _start_container
+    result = subprocess.run(
+             ^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 2116, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1253, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['docker', 'run', '-d', '--name', 'minisweagent-7c5366c9', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.django_1776_django-15851:latest', 'sleep', '2h']' timed out after 120 seconds
+2026-08-04 15:48:06,411 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-f0d7d770 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-15252:latest sleep 2h
+2026-08-04 15:50:06,431 - minisweagent - ERROR - Error processing instance django__django-15252: Command '['docker', 'run', '-d', '--name', 'minisweagent-f0d7d770', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.django_1776_django-15252:latest', 'sleep', '2h']' timed out after 120 seconds
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 146, in process_instance
+    env = get_sb_environment(config, instance)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 88, in get_sb_environment
+    env = get_environment(env_config)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/__init__.py", line 33, in get_environment
+    return get_environment_class(environment_class)(**config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 59, in __init__
+    self._start_container()
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 91, in _start_container
+    result = subprocess.run(
+             ^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 2116, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1253, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['docker', 'run', '-d', '--name', 'minisweagent-f0d7d770', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.django_1776_django-15252:latest', 'sleep', '2h']' timed out after 120 seconds
+2026-08-04 15:50:06,447 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-da9df7ea -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-13033:latest sleep 2h
+2026-08-04 15:52:06,468 - minisweagent - ERROR - Error processing instance django__django-13033: Command '['docker', 'run', '-d', '--name', 'minisweagent-da9df7ea', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.django_1776_django-13033:latest', 'sleep', '2h']' timed out after 120 seconds
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 146, in process_instance
+    env = get_sb_environment(config, instance)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 88, in get_sb_environment
+    env = get_environment(env_config)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/__init__.py", line 33, in get_environment
+    return get_environment_class(environment_class)(**config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 59, in __init__
+    self._start_container()
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 91, in _start_container
+    result = subprocess.run(
+             ^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 2116, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1253, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['docker', 'run', '-d', '--name', 'minisweagent-da9df7ea', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.django_1776_django-13033:latest', 'sleep', '2h']' timed out after 120 seconds
+2026-08-04 15:52:06,483 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-7c5c4d00 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-13128:latest sleep 2h
+2026-08-04 15:54:06,503 - minisweagent - ERROR - Error processing instance django__django-13128: Command '['docker', 'run', '-d', '--name', 'minisweagent-7c5c4d00', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.django_1776_django-13128:latest', 'sleep', '2h']' timed out after 120 seconds
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 146, in process_instance
+    env = get_sb_environment(config, instance)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 88, in get_sb_environment
+    env = get_environment(env_config)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/__init__.py", line 33, in get_environment
+    return get_environment_class(environment_class)(**config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 59, in __init__
+    self._start_container()
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 91, in _start_container
+    result = subprocess.run(
+             ^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 2116, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1253, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['docker', 'run', '-d', '--name', 'minisweagent-7c5c4d00', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.django_1776_django-13128:latest', 'sleep', '2h']' timed out after 120 seconds
+2026-08-04 15:54:06,518 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-ab0c0a89 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-9591:latest sleep 2h
+2026-08-04 15:56:06,538 - minisweagent - ERROR - Error processing instance sphinx-doc__sphinx-9591: Command '['docker', 'run', '-d', '--name', 'minisweagent-ab0c0a89', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-9591:latest', 'sleep', '2h']' timed out after 120 seconds
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 146, in process_instance
+    env = get_sb_environment(config, instance)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 88, in get_sb_environment
+    env = get_environment(env_config)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/__init__.py", line 33, in get_environment
+    return get_environment_class(environment_class)(**config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 59, in __init__
+    self._start_container()
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 91, in _start_container
+    result = subprocess.run(
+             ^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 2116, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1253, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['docker', 'run', '-d', '--name', 'minisweagent-ab0c0a89', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-9591:latest', 'sleep', '2h']' timed out after 120 seconds
+2026-08-04 15:56:06,554 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-4b3cefef -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-7757:latest sleep 2h
+2026-08-04 15:58:06,637 - minisweagent - ERROR - Error processing instance sphinx-doc__sphinx-7757: Command '['docker', 'run', '-d', '--name', 'minisweagent-4b3cefef', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-7757:latest', 'sleep', '2h']' timed out after 120 seconds
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 146, in process_instance
+    env = get_sb_environment(config, instance)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 88, in get_sb_environment
+    env = get_environment(env_config)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/__init__.py", line 33, in get_environment
+    return get_environment_class(environment_class)(**config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 59, in __init__
+    self._start_container()
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 91, in _start_container
+    result = subprocess.run(
+             ^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 2116, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1253, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['docker', 'run', '-d', '--name', 'minisweagent-4b3cefef', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-7757:latest', 'sleep', '2h']' timed out after 120 seconds
+2026-08-04 15:58:06,653 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-8d5423e4 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-14434:latest sleep 2h
+2026-08-04 16:00:06,681 - minisweagent - ERROR - Error processing instance django__django-14434: Command '['docker', 'run', '-d', '--name', 'minisweagent-8d5423e4', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.django_1776_django-14434:latest', 'sleep', '2h']' timed out after 120 seconds
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 146, in process_instance
+    env = get_sb_environment(config, instance)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 88, in get_sb_environment
+    env = get_environment(env_config)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/__init__.py", line 33, in get_environment
+    return get_environment_class(environment_class)(**config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 59, in __init__
+    self._start_container()
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/environments/docker.py", line 91, in _start_container
+    result = subprocess.run(
+             ^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 2116, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/subprocess.py", line 1253, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['docker', 'run', '-d', '--name', 'minisweagent-8d5423e4', '-w', '/testbed', '--rm', 'docker.io/swebench/sweb.eval.x86_64.django_1776_django-14434:latest', 'sleep', '2h']' timed out after 120 seconds
+2026-08-04 16:22:25,034 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/django__django-15128/django__django-15128.traj.json'
+2026-08-04 16:30:22,507 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/swebench-run/qwen_shuffle100/sympy__sympy-19040/sympy__sympy-19040.traj.json'

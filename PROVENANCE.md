@@ -180,13 +180,13 @@ Neither target exists yet; both are tracked in TODO.md §6.
 
 ## 5. Current coverage
 
-Audited from the committed tree. `-` = missing.
+Audited from the committed tree. `-` = missing, `↺` = recovered by reconstruction (see §5a).
 
 | Model | report | preds | exit_statuses | agent cfg | run script | launch |
 | --- | :---: | :---: | :---: | :---: | :---: | :---: |
 | ornith-35b | ✅ | ✅ | **–** | ✅ | ✅ | ✅ |
 | nemotron-3.5-lightning-30b | ✅ | ✅ | ✅ | ✅ | **–** | ✅ |
-| qwen3.6-35b-a3b | ✅ | ✅ | ✅ | **–** | **–** | **–** |
+| qwen3.6-35b-a3b | ✅ | ✅ | ✅ | ↺ | **–** | **–** |
 | laguna-s-2.1-118b (in flight) | **–** | ✅ | ✅ | ✅ | ✅ | ✅ |
 | gpt-oss-120b | **–** | **–** | ✅ | **–** | **–** | **–** |
 | nemotron-3-super-120b | *no SWE-bench run* | | | | | **–** |
@@ -196,10 +196,11 @@ The two that matter most:
 
 - **Ornith has no `exit_statuses`** — the best score in the repo, and its 9 non-submissions
   cannot be audited from the repo alone.
-- **Qwen3.6 has no agent config and no launch script** — so it cannot be confirmed that it ran
-  under the same step/cost/timeout limits as Ornith. Since **22 of its 29 non-completions are
-  `TimeoutExpired`**, this is not a bookkeeping detail: the limits directly drive the completion
-  rate that drives its score.
+- **Qwen3.6's agent config was never committed** — recovered 2026-08-25 from its own trajectories
+  (§5a). The recovered config proves its limits matched Ornith's, so its 22 `TimeoutExpired` exits
+  were a 120 s Docker `pull_timeout`, not an unfair budget. Had the trajectories and run log been
+  discarded along with the config, that would have been unknowable — and the natural guess (an
+  unfair timeout) was in fact wrong.
 
 **A committed launch script is not automatically the config that ran.** `launch_ornith.sh` pins
 `--gpu-memory-utilization 0.90`, but the Ornith card states the agentic runs used **0.55** for host
@@ -211,6 +212,32 @@ This is the strongest argument for the manifest: a script records an *intention*
 written, while a manifest records what was *resolved at run time*. When they disagree, the manifest
 should say so explicitly (`launch_script_matches_run: false`) rather than leaving a reader to find
 the contradiction — or, more likely, not find it.
+
+### 5a. Recovering provenance after the fact
+
+A missing config is not always fatal. **mini-swe-agent ≥ 2.4.6 embeds the fully-resolved config in
+`info.config` of every `*.traj.json`**, so the effective configuration of a SWE-bench run can be
+reconstructed from its own output — and that reconstruction is *better evidence than a config file*,
+because it records what actually executed rather than what someone meant to run.
+
+This was used to recover Qwen3.6's config (§2a of TODO.md) after it turned out never to have been
+committed. `viz/reconstruct_qwen_config.py` reads every trajectory, asserts the config is identical
+across all of them (ignoring the per-instance container image), and refuses to emit anything if it
+varies — a non-uniform run is itself a finding, and silently emitting the first config would hide it.
+
+Two rules follow:
+
+1. **Always retain trajectories and the run log**, even when a run is superseded. They are the
+   fallback provenance, and the run log is where harness-level failures — the ones that never reach
+   a trajectory — are recorded.
+2. **Mark reconstructed artifacts as reconstructed**, in the filename and in a header comment
+   stating what they were derived from. A recovered config must never be mistaken for a
+   contemporaneous one.
+
+The 22 lost Qwen3.6 instances show why the log matters as much as the trajectories: those instances
+have **no trajectory at all** — the container never started — so the log is the *only* artifact that
+explains them. Absence of a trajectory is itself data, and a coverage check (§6f) should treat a
+gap between "instances attempted" and "trajectories present" as a finding rather than an accident.
 
 Quality artifacts are present for every evaluated model but live at inconsistent paths
 (`raw/quality/<task>/` for some, `raw/<task>_results.json` for others). Normalizing to

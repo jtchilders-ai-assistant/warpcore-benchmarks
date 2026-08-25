@@ -125,6 +125,48 @@ Full accounting of the identical 100 instances (all three runs cover the same se
 Qwen3.6 was scored on **66 real attempts out of 100**; Ornith on 91. Presenting 44 / 51 / 73 as a
 like-for-like ranking is not defensible.
 
+> **RESOLVED 2026-08-25 — the config was recovered, and it changes the diagnosis.** An earlier
+> revision of this section speculated that Qwen3.6 might have run under a shorter timeout budget
+> than Ornith. **That was wrong.** mini-swe-agent 2.4.6 embeds the fully-resolved config in every
+> `info.config` of every trajectory; all 78 surviving Qwen3.6 trajectories carry an *identical*
+> config, recovered to
+> `results/qwen3.6-35b-a3b/raw/swebench/swebench_qwen36_config.RECONSTRUCTED.yaml` (regenerate with
+> `viz/reconstruct_qwen_config.py`). Its limits are **the same as Ornith's**: `step_limit: 250`,
+> `cost_limit: 3.0`, per-command `timeout: 60`, LLM `timeout: 1800`, `wall_time_limit_seconds: 0`.
+> The limits were never the problem. See the corrected root cause below.
+
+**Root cause of the 22 `TimeoutExpired` exits: Docker image pulls, not the model.** Recovered from
+the run log (`raw/swebench/minisweagent_shuffle100.log`):
+
+```
+subprocess.TimeoutExpired: Command '['docker', 'run', '-d', ..., 'sleep', '2h']'
+  timed out after 120 seconds
+```
+
+That is `DockerEnvironment.pull_timeout` (default 120 s), raised while *starting the container* —
+before the agent takes a single step. Unlike per-command timeouts, which `docker.py` catches and
+feeds back as an observation, this call is **not** wrapped in `try/except`, so it escapes to
+`Agent.handle_uncaught_exception` and becomes the instance's exit status.
+
+Two independent confirmations:
+
+- **All 22 `TimeoutExpired` instances have no trajectory file at all; all 78 others do.** A perfect
+  22/78 split. The container never started, so no agent ran.
+- The log records **44 pull timeouts** across those 22 instances — each was attempted twice and
+  failed both times, on a cold image cache.
+
+**These 22 instances measure the Mac mini's Docker image-pull throughput, not Qwen3.6.** The model
+was never invoked. This is a pure harness artifact, and a stronger claim than "the timeout budget
+may have been unfair": the model provably did not participate in 22% of its own benchmark.
+
+**Second recovered finding: Qwen3.6 used the *stock* submit command.** The log's config-spec line
+shows it built from `minisweagent/config/benchmarks/swebench.yaml` with only
+`temperature=0, timeout=1800` overridden — i.e. no custom config file. Stock submits with
+`echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT && cat patch.txt`; Ornith's committed config uses
+`... && git add -A && git diff --cached`. This confirms §2a's robust-submit claim from the run's own
+artifacts rather than from recollection, and explains the 5 harness errors whose `model_patch`
+holds raw file contents.
+
 **Decomposing the 29-point Ornith − Qwen3.6 gap.** Splitting the score into *completion* (did the
 agent produce a gradeable patch?) and *patch quality* (given one, did it resolve?):
 
@@ -137,25 +179,22 @@ agent produce a gradeable patch?) and *patch quality* (given one, did it resolve
 Holding Qwen3.6's own patch quality fixed and giving it Ornith's completion rate yields
 **60.7 resolved**. So of the 29-point gap:
 
-- **~16.7 points (57%) is completion** — the agent never submitted, and
-  **22 of those 29 non-completions are `TimeoutExpired`**, not model errors;
+- **~16.7 points (57%) is completion** — and we now know 22 of the 29 non-completions are
+  **infrastructure**, not the model;
 - **~12.3 points (43%) is genuine patch quality.**
 
 Ornith is really better — 80.2% vs 66.7% on graded patches is a solid margin — but the headline
 gap is roughly **double the capability difference**. The README currently reports only the
 headline.
 
-Caveat on the decomposition itself: it assumes the timed-out instances would have resolved at the
-same rate as the ones that finished. They are plausibly *harder* (that is partly why they ran
-long), so 66.7% is an optimistic imputation and 12.3 points is a **lower** bound on the true
-capability gap. It is still much nearer the truth than 29.
+Caveat on the decomposition: it assumes the pull-failed instances would have resolved at the same
+rate as the ones that ran. Since those 22 were selected by *image pull latency* — unrelated to
+problem difficulty — that assumption is far safer here than for a genuine model timeout. The
+7 `LimitsExceeded` exits are real model failures and stay counted against it.
 
-This is why **2a-iv** below matters more than its cost suggests: Qwen3.6's agent config was never
-committed, so we cannot confirm it ran under Ornith's `timeout: 1800` at all.
-
-- [ ] **2a-i. Re-run Qwen3.6-35B SWE-bench n=100** with the robust submit, the current scaffold, and
-      a per-instance timeout sized from its own throughput sweep. Cost ~11 h generation on the Mac
-      mini + ~20 min grading.
+- [ ] **2a-i. Re-run Qwen3.6-35B SWE-bench n=100** with the robust submit and a warm image cache
+      (`docker pull` all 100 images first, or raise `pull_timeout`). The config is now recovered, so
+      the re-run can match Ornith's exactly. Cost ~11 h generation + ~20 min grading.
 - [ ] **2a-ii. Record the fair-verdict count (`completed_instances`) next to every SWE-bench score**
       in the top-level README table. A resolve rate over 66 attempts and one over 91 are different
       measurements and the table should say so. Report **both** raw resolves and
@@ -163,10 +202,14 @@ committed, so we cannot confirm it ran under Ornith's `timeout: 1800` at all.
 - [ ] **2a-iii. Commit Ornith's `exit_statuses_*.yaml`** — it is the only model missing the
       exit-status breakdown in `raw/swebench/`, so its 9 non-submissions can't be re-audited from
       the repo alone.
-- [ ] **2a-iv. Recover or reconstruct Qwen3.6's agent config and launch script.** Neither is in
-      `raw/swebench/`. With 22 `TimeoutExpired` exits driving 57% of its gap to Ornith, an
-      unverified timeout budget is the largest single unknown in the comparison. If it cannot be
-      recovered, 2a-i supersedes it and the old number should be retired rather than re-explained.
+- [x] **2a-iv. Recover Qwen3.6's agent config.** ~~Neither config nor launch script is committed.~~
+      **Done 2026-08-25**: reconstructed from the trajectories' embedded `info.config` and committed
+      alongside the run log. Limits confirmed identical to Ornith's; the gap is pull-timeout
+      infrastructure, not an unfair budget.
+- [ ] **2a-v. Raise `pull_timeout` (or pre-pull images) for every future SWE-bench run.** 120 s is
+      the mini-swe-agent default and it is too tight for a cold cache on this host — it silently
+      converted 22 instances into zeros. Pre-pulling is the cheaper fix and belongs in the run
+      script.
 
 
 ### 2b. gpt-oss-120b SWE-bench was blocked by a serving bug that no longer applies
@@ -306,8 +349,10 @@ Two gaps that block the apples-to-apples comparison specifically:
 - [ ] **6a. Ornith has no `exit_statuses_*.yaml`.** Best score in the repo; its 9 non-submissions
       cannot be audited from the repo alone. (Same as 2a-iii — listed here because it is an
       artifact gap, not a re-run.)
-- [ ] **6b. Qwen3.6 has no agent config and no launch script.** Its timeout budget — the thing
-      driving 57% of its gap to Ornith — is unverifiable. (Same as 2a-iv.)
+- [x] **6b. Qwen3.6 has no agent config and no launch script.** **Recovered 2026-08-25** — see
+      §2a. mini-swe-agent embeds the resolved config in every trajectory, so the effective config
+      was reconstructible from the run's own output. The launch script is still absent, but the
+      recovered config plus the log's config-spec line make it redundant.
 
 Mid-run configuration changes are already a live problem, not a hypothetical:
 
