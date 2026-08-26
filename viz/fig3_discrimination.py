@@ -144,7 +144,7 @@ def main() -> None:
         obs.append(len(R[m]))
         per = {r: sum(1 for i in inst if repo_of[i] == r and i in R[m]) / rc[r] for r in big}
         bal.append(100 * sum(per.values()) / len(per))
-    x = np.arange(3)
+    x = np.arange(len(SWE_ORDER))
     w = 0.34
     ax3.bar(x - w / 2, obs, w, color=[C[m] for m in SWE_ORDER],
             label="observed (django-heavy)")
@@ -154,10 +154,20 @@ def main() -> None:
         ax3.text(i - w / 2, o + 1.5, f"{o:.0f}", ha="center", fontsize=8.4, fontweight="bold")
         ax3.text(i + w / 2, b + 1.5, f"{b:.0f}", ha="center", fontsize=8.4, color="#444")
     ax3.set_xticks(x)
-    ax3.set_xticklabels([TINY[m] for m in SWE_ORDER], fontsize=8.6)
+    ax3.set_xticklabels([TINY[m] for m in SWE_ORDER], fontsize=8.0)
     ax3.set_ylim(0, 88)
     ax3.set_ylabel("% resolved")
-    ax3.set_title("Ordering survives de-weighting django,\nbut Ornith's lead shrinks 73\u219266",
+    # State the takeaway from the DATA, not a hardcoded sentence -- rank order and
+    # the size of the leader's drop both change when a model is added.
+    rank_obs = [m for _, m in sorted(zip(obs, SWE_ORDER), reverse=True)]
+    rank_bal = [m for _, m in sorted(zip(bal, SWE_ORDER), reverse=True)]
+    lead_i = SWE_ORDER.index(rank_obs[0])
+    if rank_obs == rank_bal:
+        head = "Ordering survives de-weighting django,"
+    else:
+        head = f"De-weighting django REORDERS the top: {TINY[rank_bal[0]]} leads,"
+    ax3.set_title(f"{head}\nbut {TINY[rank_obs[0]]}'s lead shrinks "
+                  f"{obs[lead_i]:.0f}\u2192{bal[lead_i]:.0f}",
                   fontsize=9.8)
     ax3.legend(fontsize=6.8, loc="upper right", framealpha=0.95)
 

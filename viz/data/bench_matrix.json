@@ -33,6 +33,20 @@
    "src": "raw/quality/ifeval/results_2026-08-22T06-10-16.893966.json",
    "stderr": 1.84,
    "value": 75.79
+  },
+  "swebench": {
+   "empty_patch": 35,
+   "exit_statuses": {
+    "ContextWindowExceededError": 9,
+    "LimitsExceeded": 1,
+    "RepeatedFormatError": 25,
+    "Submitted": 65
+   },
+   "note": "35 empty patches (25 RepeatedFormatError) -- floor, not ceiling",
+   "resolve_rate": 84.6,
+   "src": "results/laguna-s-2.1-118b/raw/swebench/swebench_verified_n100_results.json",
+   "submitted": 65,
+   "value": 55.0
   }
  },
  "nemotron-3-super-120b": {
@@ -81,7 +95,9 @@
   },
   "swebench": {
    "empty_patch": 2,
+   "resolve_rate": 52.0,
    "src": "results/nemotron-3.5-lightning-30b/raw/swebench_verified_n100_results.json",
+   "submitted": 98,
    "value": 51.0
   }
  },
@@ -110,7 +126,9 @@
   },
   "swebench": {
    "empty_patch": 9,
+   "resolve_rate": 80.2,
    "src": "results/ornith-35b/raw/swebench/swebench_verified_n100_results.json",
+   "submitted": 91,
    "value": 73.0
   }
  },
@@ -138,7 +156,9 @@
   },
   "swebench": {
    "empty_patch": 29,
+   "resolve_rate": 66.7,
    "src": "results/qwen3.6-35b-a3b/raw/swebench/swebench_verified_shuffle100_report.json",
+   "submitted": 66,
    "value": 44.0
   }
  }

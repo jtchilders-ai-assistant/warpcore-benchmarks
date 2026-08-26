@@ -50,10 +50,24 @@ TINY = {
     "ornith-35b": "Ornith",
     "nemotron-3.5-lightning-30b": "Lightning",
     "qwen3.6-35b-a3b": "Qwen3.6",
+    "laguna-s-2.1-118b": "Laguna",
 }
 
-# The three models with a SWE-bench Verified n=100 run, best-first.
-SWE_ORDER = ["ornith-35b", "nemotron-3.5-lightning-30b", "qwen3.6-35b-a3b"]
+# The models with a SWE-bench Verified n=100 run on the IDENTICAL seed-42 set,
+# best-first. Single source of truth -- collect_matrix and fig2/fig3 all import
+# this, so a new run cannot be added to one and forgotten in the other.
+SWEBENCH_RESULTS = {
+    "ornith-35b":
+        "results/ornith-35b/raw/swebench/swebench_verified_n100_results.json",
+    "nemotron-3.5-lightning-30b":
+        "results/nemotron-3.5-lightning-30b/raw/swebench_verified_n100_results.json",
+    "laguna-s-2.1-118b":
+        "results/laguna-s-2.1-118b/raw/swebench/swebench_verified_n100_results.json",
+    "qwen3.6-35b-a3b":
+        "results/qwen3.6-35b-a3b/raw/swebench/swebench_verified_shuffle100_report.json",
+}
+SWE_ORDER = ["ornith-35b", "laguna-s-2.1-118b",
+             "nemotron-3.5-lightning-30b", "qwen3.6-35b-a3b"]
 
 # Item counts per benchmark (harness configs / model cards).
 N_ITEMS = {"gsm8k": 1319, "ifeval": 541, "gpqa": 198, "pi30": 30, "swebench": 100}

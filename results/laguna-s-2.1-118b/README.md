@@ -259,8 +259,46 @@ rerun is pending.
 
 ## Agentic
 
-- **SWE-bench Verified** (n=100, seed-42 shuffle) — pending, to be driven from the Mac mini against
-  this endpoint.
+### SWE-bench Verified — 55/100 (n=100, seed-42 shuffle)
+
+**55/100 resolved.** That number is a floor, and the interesting part is *how* the other 45 were lost:
+
+| outcome | n | |
+|---|---|---|
+| resolved | 55 | |
+| submitted a patch, tests failed | 10 | genuine capability misses |
+| **never submitted anything** | **35** | 25 `RepeatedFormatError`, 9 `ContextWindowExceeded`, 1 `LimitsExceeded` |
+
+**Of the 65 patches it did submit, 55 resolved — 84.6%, the highest per-submission rate in this
+repo** (Ornith 80.2%, Qwen3.6 66.7%, Lightning 52.0%). When this model produces a patch, that patch
+is more likely to be correct than any other model measured here. It just fails to produce one 35% of
+the time.
+
+The 25 `RepeatedFormatError` failures are the same reasoning-field pathology documented above for
+GSM8K: the model spends its output budget in `message.reasoning` and never emits a tool call. The
+agent sees three malformed turns in a row and aborts. Unlike the GSM8K case this is **not**
+recoverable after the fact — no tool call was ever generated, so there is nothing to re-parse. This
+is a serving/format interaction, not a coding-ability result, and it is the single highest-value
+thing to fix for this model.
+
+Sorted by difficulty against the other three models on the identical instance set, Laguna solves 7
+instances that Ornith misses (48 both, 25 Ornith-only, 20 neither) — so its misses are not a strict
+subset of a stronger model's. Under a repo-balanced reweighting (6 repos, n≥4 each, removing this
+sample's django skew) Laguna rises 55→62 while Ornith falls 73→66; see
+[`viz/out/fig3_discrimination.png`](../../viz/out/fig3_discrimination.png).
+
+Full provenance — serving args, client limits, timing, and the grading caveats — is in
+[`raw/swebench/manifest.json`](raw/swebench/manifest.json). All 100 trajectories are committed in
+[`raw/swebench/trajectories.tar.gz`](raw/swebench/trajectories.tar.gz).
+
+Two grading notes, neither of which changes what the model produced:
+
+- `scikit-learn__scikit-learn-14710` hit the harness's default 1800 s test timeout at
+  `max_workers=4`; re-graded at `max_workers=2 -t 7200` it completed in 43 min and **resolved**.
+- `sympy__sympy-19040` still exceeded 7200 s. Its patch adds an unbounded recursive `dmp_ext_factor`
+  call and the test process spun at 99% CPU for over two hours. Counted **unresolved** — that is a
+  model failure, not a harness one.
+
 - **pi-30 — excluded, and will stay excluded.** pi-30 runs its agent processes *on Warpcore itself*
   and needs ~40 GiB of host headroom. With 94.5 GiB of weights resident there is ~7 GiB free, so the
   kernel OOM-killer would take vLLM mid-run (the unified-memory failure mode in ISSUES). This is a

@@ -180,33 +180,54 @@ Neither target exists yet; both are tracked in TODO.md §6.
 
 ## 5. Current coverage
 
-Audited from the committed tree. `-` = missing, `↺` = recovered by reconstruction (see §5a).
+Audited from the committed tree by [`viz/audit_provenance.py`](viz/audit_provenance.py) — run it
+rather than trusting this table to stay current. `-` = missing, `↺` = recovered by reconstruction
+(see §5a).
 
-| Model | report | preds | exit_statuses | agent cfg | run script | launch |
-| --- | :---: | :---: | :---: | :---: | :---: | :---: |
-| ornith-35b | ✅ | ✅ | **–** | ✅ | ✅ | ✅ |
-| nemotron-3.5-lightning-30b | ✅ | ✅ | ✅ | ✅ | **–** | ✅ |
-| qwen3.6-35b-a3b | ✅ | ✅ | ✅ | ↺ | **–** | **–** |
-| laguna-s-2.1-118b (in flight) | **–** | ✅ | ✅ | ✅ | ✅ | ✅ |
-| gpt-oss-120b | **–** | **–** | ✅ | **–** | **–** | **–** |
-| nemotron-3-super-120b | *no SWE-bench run* | | | | | **–** |
-| qwen3.5-122b-a10b | *no SWE-bench run* | | | | | **–** |
+| Model | manifest | report | preds | exit_statuses | trajectories | agent cfg | run script | launch |
+| --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| laguna-s-2.1-118b | ✅ | ✅ | ✅ | ↺ | ✅ | ✅ | ✅ | ✅ |
+| ornith-35b | **–** | ✅ | ✅ | **–** | **✗ lost** | ✅ | ✅ | ✅ |
+| nemotron-3.5-lightning-30b | **–** | ✅ | ✅ | ✅ | **✗ lost** | ✅ | **–** | ✅ |
+| qwen3.6-35b-a3b | **–** | ✅ | ✅ | ✅ | **✗ lost** | ↺ | **–** | **–** |
+| gpt-oss-120b | **–** | *n/a, blocked* | *n/a* | ✅ | **✗ lost** | **–** | **–** | **–** |
+| nemotron-3-super-120b | **–** | *no SWE-bench run* | | | | | | **–** |
+| qwen3.5-122b-a10b | **–** | *no SWE-bench run* | | | | | | **–** |
 
-The two that matter most:
+gpt-oss is published as **blocked / no score** (a vLLM tool-call bug, see `raw/DIAGNOSIS.json`), so
+its absent preds and report are correct behaviour, not a gap.
 
-- **Ornith has no `exit_statuses`** — the best score in the repo, and its 9 non-submissions
-  cannot be audited from the repo alone.
-- **Qwen3.6's agent config was never committed** — recovered 2026-08-25 from its own trajectories
-  (§5a). The recovered config proves its limits matched Ornith's, so its 22 `TimeoutExpired` exits
-  were a 120 s Docker `pull_timeout`, not an unfair budget. Had the trajectories and run log been
-  discarded along with the config, that would have been unknowable — and the natural guess (an
-  unfair timeout) was in fact wrong.
+**Laguna is currently the only model meeting this standard in full.** The rest predate it. Three
+findings from the 2026-08-26 audit:
+
+- **Trajectories for every earlier model are gone.** They were left in `/tmp` and macOS's reaper
+  deleted the file contents (Ornith's 100 instance directories still exist, empty, dated 2026-08-24).
+  This is unrecoverable: the §5a reconstruction trick that saved Qwen3.6's config only worked
+  *because* its trajectories still existed. Laguna's are committed as a 6.0 MB
+  `trajectories.tar.gz` — that is now the rule, not an optimization. **Never leave the primary
+  evidence in `/tmp`.**
+- **Ornith still has no `exit_statuses`** — the best score in the repo, and its 9 non-submissions
+  cannot be audited from the repo alone. Its trajectories are now gone, so unlike Laguna's this
+  cannot be regenerated. It is permanently a partially-unauditable number.
+- **No model except Laguna has a manifest.** Serving engine version, image digest, and resolved
+  runtime args are unrecorded for every earlier run.
+
+**A harness-written `exit_statuses` file can itself be incomplete.** Laguna's is marked `↺` because
+mini-swe-agent writes it periodically: the on-disk copy captured 96 of 100 instances, missing the
+last four to finish. It was regenerated from the trajectories and cross-checked against the graded
+report (65 submitted / 35 empty, reconciling exactly). Prefer deriving this file from trajectories
+over trusting the harness's snapshot.
 
 **A committed launch script is not automatically the config that ran.** `launch_ornith.sh` pins
 `--gpu-memory-utilization 0.90`, but the Ornith card states the agentic runs used **0.55** for host
 headroom (pi-30's agent processes share the box) — the script was simply never updated. The card
 itself carries both values in different sections. So the repo contains a launch script that does
 not reproduce the run it is filed under, and nothing flags the discrepancy.
+
+Laguna's manifest sets `launch_script_matches_run: verified` on the strength of a **two-way** check:
+the committed script is byte-identical to the copy on the serving host, *and* its flags match the
+args read back from the live container via `docker inspect`. Either check alone would have missed
+the Ornith failure mode.
 
 This is the strongest argument for the manifest: a script records an *intention* at the time it was
 written, while a manifest records what was *resolved at run time*. When they disagree, the manifest
@@ -229,7 +250,11 @@ Two rules follow:
 
 1. **Always retain trajectories and the run log**, even when a run is superseded. They are the
    fallback provenance, and the run log is where harness-level failures — the ones that never reach
-   a trajectory — are recorded.
+   a trajectory — are recorded. **Retaining means committing them, not leaving them on disk.** This
+   rule was already written down and still failed in practice: the trajectories for Ornith,
+   Lightning, Qwen3.6 and gpt-oss were left in `/tmp` and reaped by the OS (§5). The Qwen3.6 recovery
+   above succeeded only because it happened *before* the reaper ran. Compressed, a 100-instance run
+   is ~6 MB — there is no space argument for leaving it outside the repo.
 2. **Mark reconstructed artifacts as reconstructed**, in the filename and in a header comment
    stating what they were derived from. A recovered config must never be mistaken for a
    contemporaneous one.

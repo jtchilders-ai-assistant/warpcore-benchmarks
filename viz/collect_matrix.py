@@ -13,7 +13,7 @@ import json
 import os
 import re
 
-from common import DATA, REPO
+from common import DATA, REPO, SWEBENCH_RESULTS
 
 # Quality result files, relative to results/<model>/
 QUALITY = {
@@ -42,14 +42,7 @@ QUALITY = {
         ifeval="raw/quality/ifeval/results_2026-08-22T06-10-16.893966.json"),
 }
 
-SWEBENCH = {
-    "ornith-35b":
-        "results/ornith-35b/raw/swebench/swebench_verified_n100_results.json",
-    "nemotron-3.5-lightning-30b":
-        "results/nemotron-3.5-lightning-30b/raw/swebench_verified_n100_results.json",
-    "qwen3.6-35b-a3b":
-        "results/qwen3.6-35b-a3b/raw/swebench/swebench_verified_shuffle100_report.json",
-}
+SWEBENCH = SWEBENCH_RESULTS
 
 METRIC_KEYS = {
     "gsm8k": ["exact_match,flexible-fallback", "exact_match,flexible-extract"],
@@ -119,12 +112,40 @@ def collect() -> dict:
             break
 
     # ---- SWE-bench Verified
+    #
+    # `value` is the headline resolved count. Two extra fields matter for honest
+    # reporting and are carried through to the figures:
+    #   empty_patch  -- misses where the agent never submitted a patch at all.
+    #                   These are NOT "wrong answer"; they are budget/format
+    #                   ceilings, and they differ by 17x across these models.
+    #   resolve_rate -- resolved / submitted. Separates "can it fix bugs?" from
+    #                   "can it drive the harness to completion?".
     for model, rel in SWEBENCH.items():
         d = json.loads((REPO / rel).read_text())
-        out[model]["swebench"] = dict(
-            value=float(len(d["resolved_ids"])),
-            empty_patch=len(d["empty_patch_ids"]),
-            src=rel)
+        resolved = len(d["resolved_ids"])
+        empty = len(d["empty_patch_ids"])
+        submitted = resolved + len(d["unresolved_ids"])
+        entry: dict = dict(value=float(resolved), empty_patch=empty,
+                           submitted=submitted,
+                           resolve_rate=round(100 * resolved / submitted, 1) if submitted else None,
+                           src=rel)
+        # exit statuses explain WHY a patch was empty; committed per PROVENANCE.md §2
+        exits = REPO / rel.rsplit("/", 1)[0] / "exit_statuses_n100.yaml"
+        if exits.exists():
+            counts: dict[str, int] = {}
+            cur = None
+            for line in exits.read_text().splitlines():
+                if line.startswith("    - "):
+                    if cur:
+                        counts[cur] = counts.get(cur, 0) + 1
+                elif line.startswith("  ") and line.rstrip().endswith(":"):
+                    cur = line.strip().rstrip(":")
+            if counts:
+                entry["exit_statuses"] = counts
+        out[model]["swebench"] = entry
+
+    out["laguna-s-2.1-118b"]["swebench"]["note"] = (
+        "35 empty patches (25 RepeatedFormatError) -- floor, not ceiling")
 
     return out
 
