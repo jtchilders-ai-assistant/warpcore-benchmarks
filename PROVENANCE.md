@@ -344,8 +344,30 @@ python3 viz/check_output_budget.py \
 
 Exit 0 = the budget is permitted; **1** = a checkpoint cap or endpoint bound makes it unreachable;
 **2** = undetermined (endpoint unreadable — never treated as a pass). Record the result in the
-manifest. To remove the variable entirely, serve with `--generation-config vllm`, which loads no
-checkpoint generation config and leaves the budget purely client-controlled.
+manifest.
+
+**Removing a cap: prefer `--override-generation-config` over `--generation-config vllm`.** Verified
+against the engine source (`vllm/config/model.py`, v0.27.2rc1) on 2026-08-27:
+
+- `--generation-config vllm` only suppresses **sampling** defaults. The cap is applied in
+  `get_diff_sampling_param()`, which reads a six-key whitelist (`repetition_penalty`, `temperature`,
+  `top_k`, `top_p`, `min_p`, `max_new_tokens`) and short-circuits to `{}` when the source is `vllm`.
+- It does **not** stop the checkpoint config from being read. `try_get_generation_config()` — the
+  method that supplies special tokens — branches on `if self.generation_config in {"auto", "vllm"}`,
+  i.e. **both** values load the file.
+- Because it discards the whole sampling block, it also drops the checkpoint's `temperature`/`top_p`/
+  `top_k`, silently changing serving defaults for every other client on that endpoint.
+
+So the targeted fix is to override just the offending key:
+
+```bash
+--override-generation-config '{"max_new_tokens": 65536}'
+```
+
+**Check `eos_token_id` before changing generation-config handling on a chat model.** A checkpoint can
+declare stop tokens the tokenizer does not. `poolside/Laguna-S-2.1-NVFP4` sets `eos_token_id: [2, 24]`
+where token 24 is `</assistant>` (the chat stop token) while `tokenizer_config.json` supplies only
+token 2 — so any change that alters which config supplies EOS risks generations that never terminate.
 
 Note the asymmetry that makes this worth a dedicated check: an over-large request is **rejected
 loudly** (`max_tokens=200000` → HTTP 400 against `max_model_len=131072`), while a checkpoint cap

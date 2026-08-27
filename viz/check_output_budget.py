@@ -109,6 +109,14 @@ def main() -> int:
     ap.add_argument("--json", action="store_true")
     a = ap.parse_args()
 
+    # Accept both "http://host:8000" and "http://host:8000/v1". Callers reasonably
+    # pass the OpenAI base_url (which ends in /v1); without this the script builds
+    # ".../v1/v1/models", 404s, and reports UNDETERMINED for a perfectly healthy
+    # endpoint -- a confusing failure that looks like the server is down.
+    a.base_url = a.base_url.rstrip("/")
+    if a.base_url.endswith("/v1"):
+        a.base_url = a.base_url[:-3]
+
     out = {"model": a.model, "base_url": a.base_url}
 
     mml, err = probe_max_model_len(a.base_url, a.model)
@@ -147,7 +155,10 @@ def main() -> int:
     if isinstance(gen_cap, int) and a.require_budget and gen_cap < a.require_budget:
         print(f"VERDICT: FAIL - checkpoint generation_config caps output at {gen_cap} "
               f"tokens (server-wide), below the required {a.require_budget}. "
-              f"Serve with --generation-config vllm to disable, or lower the budget.",
+              f"Clear it with --override-generation-config "
+              f"'{{\"max_new_tokens\": {a.require_budget}}}', or lower the budget. "
+              f"(Do NOT use --generation-config vllm: it only suppresses the sampling "
+              f"whitelist and also discards the checkpoint's temperature/top_p/top_k.)",
               file=sys.stderr)
         return 1
 

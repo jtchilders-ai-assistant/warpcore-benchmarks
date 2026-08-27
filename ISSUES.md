@@ -361,9 +361,11 @@ is the only capped checkpoint present and has never been benchmarked.
 
 ### The fix
 Run `viz/check_output_budget.py` before any budget-sensitive run (exit 1 = capped, 2 = undetermined,
-never a silent pass), record `serving.checkpoint_max_new_tokens` in the manifest, and serve eval
-endpoints with `--generation-config vllm` to take the checkpoint out of the loop entirely.
-See [PROVENANCE.md §5c](PROVENANCE.md#5c-the-output-token-ceiling-is-a-precondition-not-a-client-setting).
+never a silent pass), record `serving.checkpoint_max_new_tokens` in the manifest, and when a
+checkpoint *does* ship a cap, remove it with `--override-generation-config '{"max_new_tokens": N}'`.
+Do **not** reach for `--generation-config vllm`: it only suppresses the sampling whitelist, still
+loads the checkpoint config for special tokens, and discards `temperature`/`top_p`/`top_k` along the
+way. See [PROVENANCE.md §5c](PROVENANCE.md#5c-the-output-token-ceiling-is-a-precondition-not-a-client-setting).
 
 ---
 

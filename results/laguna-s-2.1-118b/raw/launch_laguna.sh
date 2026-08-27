@@ -9,9 +9,14 @@
 #   checkpoint's generation_config.json; a `max_new_tokens` there becomes a
 #   SERVER-WIDE cap on every request that clamps SILENTLY (no error, not in this
 #   command, not in the startup banner). Laguna-S ships none, so this run is
-#   uncapped -- but the XS variant ships "max_new_tokens": 32768. For eval runs
-#   add `--generation-config vllm` to make the budget purely client-controlled,
-#   and verify with viz/check_output_budget.py. See PROVENANCE.md 5c.
+#   uncapped -- but the XS variant ships "max_new_tokens": 32768. If you serve a
+#   CAPPED checkpoint for evals, clear it with
+#     --override-generation-config '{"max_new_tokens": 65536}'
+#   NOT with `--generation-config vllm`: that only suppresses the sampling
+#   whitelist, still reads the checkpoint config for special tokens, and would
+#   drop this model's eos_token_id [2, 24] handling (token 24 = </assistant>)
+#   plus its temperature/top_p/top_k. Verify with viz/check_output_budget.py.
+#   See PROVENANCE.md 5c.
 docker run -d --network host --name vllm_laguna \
   -v $HOME/vllm_patch:/patch \
   -e PYTHONPATH=/patch \
