@@ -1,0 +1,111 @@
+{
+ "schema_version": 1,
+ "model": {
+  "id": "poolside/Laguna-S-2.1-NVFP4",
+  "revision": "unrecorded",
+  "quantization": "NVFP4 (modelopt), 256-expert MoE, 10 experts/token, 117.6B params"
+ },
+ "benchmark": {
+  "name": "gpqa_diamond_cot_zeroshot_clean",
+  "sample": "n=198 (full GPQA-Diamond), num_fewshot=0",
+  "harness": "lm-eval-harness",
+  "harness_version": "0.4.12",
+  "task_yaml": "gpqa_diamond_cot_zeroshot_clean.yaml",
+  "task_note": "Custom 'clean' task: strict anchored `The answer is (X)` extraction (answer-line filter) plus a flexible-fallback filter. Same task file used for the other models in this repo."
+ },
+ "serving": {
+  "engine": "vLLM",
+  "version": "0.27.2rc1.dev193+gaa9903490",
+  "image": "vllm/vllm-openai:cu129-nightly-aarch64",
+  "image_digest": "sha256:37d92683a8acc42e60dafe89fca968d3f21c3db49e58011126e9609ba82a6cf1",
+  "build_commit": "aa9903490c616dc6871e5acc62cec7bb1e5e9434",
+  "container": "vllm_laguna",
+  "host": "warpcore (DGX Spark GB10, aarch64, 121 GiB unified LPDDR5X)",
+  "endpoint": "http://csi370295.alcf.anl.gov:8000/v1",
+  "launch_script": "../launch_laguna.sh",
+  "args": [
+   "--model poolside/Laguna-S-2.1-NVFP4",
+   "--moe-backend marlin",
+   "--served-model-name poolside/Laguna-S-2.1-NVFP4",
+   "--max-model-len 131072",
+   "--gpu-memory-utilization 0.88",
+   "--kv-cache-dtype fp8",
+   "--enable-prefix-caching",
+   "--enable-auto-tool-choice",
+   "--tool-call-parser poolside_v1",
+   "--reasoning-parser poolside_v1",
+   "--default-chat-template-kwargs {\"enable_thinking\": true}",
+   "--trust-remote-code",
+   "--host 0.0.0.0",
+   "--port 8000"
+  ],
+  "launch_script_matches_run": true,
+  "launch_script_note": "Byte-identical arg list to the live vllm_laguna container (verified via docker inspect .Args). The committed script's added comments are documentation only.",
+  "generation_config": "auto",
+  "checkpoint_max_new_tokens": "absent",
+  "output_ceiling_note": "--generation-config defaults to auto, so the checkpoint's generation_config.json can impose a silent server-wide output cap (ISSUES #16, PROVENANCE 5c). poolside/Laguna-S-2.1-NVFP4 sets no max_new_tokens, so the only ceiling was the client's max_gen_toks=32768. Verified with viz/check_output_budget.py."
+ },
+ "client": {
+  "host": "warpcore (run locally on the serving host, in tmux session gpqa_full)",
+  "api": "local-chat-completions",
+  "num_concurrent": 4,
+  "concurrency_rationale": "c=4, NOT the c=16 of the abandoned attempt. At c=16 per-request throughput fell to ~4 tok/s, so a 32k generation needed ~2.2 h against timeout=3600 -- items were cut off and retried forever (352 TimeoutErrors, killed at 110/198 after ~13 h). At c=4 worst case is ~31 min vs timeout=14400, ~8x headroom. Lower concurrency was FASTER here because retries dominated. See PROVENANCE.md and the warpcore-dgx-spark skill.",
+  "max_retries": 3,
+  "timeout_s": 14400,
+  "gen_kwargs": {
+   "max_gen_toks": 32768,
+   "temperature": 0
+  },
+  "tokenized_requests": false,
+  "lm_eval_patch": {
+   "applied": true,
+   "gate": "LM_EVAL_REASONING_FALLBACK=1 (env-gated, default OFF)",
+   "reason": "vLLM's poolside_v1 reasoning parser emits content=null with the full answer in message.reasoning; unpatched lm-eval scores those 0. See ISSUES #15.",
+   "fallback_order": "content -> reasoning -> reasoning_content -> ''",
+   "firings": 95,
+   "firings_log": "fallback_firings.log",
+   "comparability_warning": "This run is PATCHED; Ornith's published 69.70% was UNPATCHED. The 95 rescues are the amount by which the two are not directly comparable."
+  }
+ },
+ "timing": {
+  "total_evaluation_time_seconds": 87696.61487133987,
+  "wall_clock": "24 h 21 m",
+  "timeout_errors": 0,
+  "timeout_note": "0 TimeoutErrors across 24 h, vs 352 in the abandoned c=16 attempt."
+ },
+ "results": {
+  "exact_match_answer_line_pct": 40.4,
+  "exact_match_flexible_fallback_pct": 41.92,
+  "stderr_answer_line_pct": 3.5,
+  "stderr_flexible_fallback_pct": 3.52,
+  "correct_answer_line": 80,
+  "n": 198,
+  "PUBLISHABLE": false,
+  "headline": "40.40% -- WITHHELD from the cross-model table",
+  "interpretation": "NOT a capability measurement. 93/198 items (47.0%) emitted no parseable answer line, and 67 of those ran to the 32768-token ceiling mid-reasoning (generation length p90 = 129,887 chars, max = 172,139). The score therefore measures the OUTPUT BUDGET. For scale, the Lightning card's own budget curve moves GPQA 53.03% -> 76.26% between 16k and 64k. Accuracy among the 105 items that did answer is 76.19%, but that subset is non-random (the shorter, easier problems), so it is an UPPER BOUND, not a score. A 64k re-run is required before any Laguna GPQA number is published.",
+  "truncation_diagnostic": {
+   "tool": "viz/diagnose_truncation.py",
+   "no_answer": 93,
+   "no_answer_pct": 47.0,
+   "no_answer_near_cap": 67,
+   "answered": 105,
+   "accuracy_among_answered_pct": 76.19,
+   "gen_chars_p50": 2043,
+   "gen_chars_p90": 129887,
+   "gen_chars_max": 172139,
+   "verdict": "TRUNCATION-DOMINATED"
+  }
+ },
+ "artifacts": {
+  "results_json": "results_2026-08-27T12-58-57.639398.json",
+  "samples": "samples_gpqa_diamond_cot_zeroshot_clean.jsonl.gz",
+  "samples_sha256": "db10c7625fc7af3c597671315d26723f540bd7a81beed12270dc9cacd46eac94",
+  "samples_note": "Gzipped per PROVENANCE.md 2 (commit gzipped rather than dropping). This file is the PRIMARY evidence for the truncation finding; reproduce with `python3 viz/diagnose_truncation.py <this file>`.",
+  "run_log": "gpqa_full.log",
+  "run_script": "run_gpqa_full.sh",
+  "task_yaml": "gpqa_diamond_cot_zeroshot_clean.yaml",
+  "fallback_firings": "fallback_firings.log"
+ },
+ "repo_commit": "a6696bf6b1d00a5950c901b289939e9fa87c91b9",
+ "notes": "Preconditions per PROVENANCE.md 5b/5c: endpoint asserted to serve the model; output ceiling verified uncapped (checkpoint max_new_tokens absent); smoke run of 5 items passed (score 0.6, 0 timeouts, parse agreement checked) before launch. The run is mechanically sound -- the finding is that the 32k budget was too small for this model, not that the run failed."
+}

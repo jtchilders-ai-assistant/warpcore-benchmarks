@@ -139,7 +139,7 @@ lm-eval 0.4.12, `local-chat-completions`, greedy (`temperature=0`), the repo's c
 | GSM8K-clean | **96.13%** (corrected, full set) | 1319 | 8k, c=32 | raw harness output 83.40% — see defect below |
 | IFEval prompt-strict | **75.79%** (floor) | 541 | 8k, c=32 | loose 80.59%; underestimate, same defect |
 | IFEval inst-strict | **81.41%** (floor) | 541 | 8k, c=32 | loose 85.01%; underestimate, same defect |
-| GPQA-Diamond-clean | **not reported** | — | 32k, c=16 | run abandoned — see below |
+| GPQA-Diamond-clean | **withheld** (raw 40.40%) | 198 | 32k, c=4 | run completed cleanly; score is a truncation artifact — see below |
 
 ### The GSM8K number was a harness defect, not a capability result
 
@@ -254,8 +254,49 @@ nothing queued. The failure is an arithmetic mismatch, not a hang: at c=16 each 
 wall — the run was burning GPU hours re-generating work it then discarded, and would never converge.
 
 Fixing this requires raising the client `timeout` well past the worst-case generation time and cutting
-concurrency so each request gets a larger share of decode (c=4 gives ~4× the per-request rate). That
-rerun is pending.
+concurrency so each request gets a larger share of decode (c=4 gives ~4× the per-request rate).
+
+### The c=4 rerun completed — and the 32k budget was still too small
+
+The rerun (2026-08-26 → 08-27, `c=4`, `timeout=14400`, `max_gen_toks=32768`) **converged cleanly**:
+198/198 items, **0 `TimeoutError` events** across 24 h 21 m, versus 352 in the abandoned attempt. The
+concurrency/timeout arithmetic was correct.
+
+The score is still not reportable:
+
+| Filter | Raw score | No answer line | Accuracy among items that answered |
+| --- | ---: | ---: | ---: |
+| `answer-line` | 40.40% (80/198) | 93/198 (47.0%) | 76.19% (80/105) |
+| `flexible-fallback` | 41.92% (83/198) | 93/198 (47.0%) | 79.05% (83/105) |
+
+**47% of items never emitted a parseable answer, and 67 of those ran to the 32,768-token ceiling
+mid-reasoning.** Generation lengths: p50 **2,043** chars, p90 **129,887**, max **172,139**. So 40.40%
+measures the *output budget*, not the model — the same failure the
+[Lightning card](../nemotron-3.5-lightning-30b/README.md) quantifies at **23 points** between a 16k and
+a 64k budget (53.03% → 76.26%).
+
+Reproduce from the committed samples:
+
+```bash
+python3 viz/diagnose_truncation.py \
+  results/laguna-s-2.1-118b/raw/quality/gpqa/samples_gpqa_diamond_cot_zeroshot_clean.jsonl.gz
+# VERDICT: TRUNCATION-DOMINATED
+```
+
+**Why 76.19% is not the answer either.** It conditions on the 105 items that finished, which are the
+shorter, easier problems — a non-random subset. It is an *upper bound*, not a score. Both numbers are
+unpublishable alone, so the cross-model table shows **—** rather than a figure that would be read as
+comparable to Ornith's 69.70% or Lightning's 76.26%.
+
+Two further caveats on any future number: this run was **patched** for the `message.reasoning` defect
+(the fallback fired **95 times**, logged in `raw/quality/gpqa/fallback_firings.log`) while Ornith's
+published 69.70% was **unpatched**, so the two are not directly comparable; and the output ceiling was
+verified to be purely client-side — `poolside/Laguna-S-2.1-NVFP4` sets no `max_new_tokens`, so no
+silent server cap contributed ([ISSUES #16](../../ISSUES.md)).
+
+**A 64k re-run is required before Laguna gets a GPQA number.** Budget ~30–40 h: the truncated items are
+the slow ones, so the wall clock grows faster than the budget. Full provenance in
+[`raw/quality/gpqa/manifest.json`](raw/quality/gpqa/manifest.json).
 
 ## Agentic
 

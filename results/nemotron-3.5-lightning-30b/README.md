@@ -162,6 +162,28 @@ effective budget is chosen **per request** by the client (there is no vLLM flag 
 genuinely run for a reasoning/agentic workload, so the 76.26% number reflects a real deployment, not a
 benchmark-only config.
 
+> **CORRECTION (2026-08-26):** the parenthetical above — *"there is no vLLM flag for a default request
+> `max_tokens`"* — is **wrong**, and the same claim appears on the Ornith card. A server-side output
+> cap does exist, and it can be applied **without appearing in the launch command**.
+>
+> `vllm serve --help=generation-config` states: *"If `max_new_tokens` is specified in generation
+> config, then it sets a **server-wide limit on the number of output tokens for all requests**."*
+> `--generation-config` defaults to `auto`, so vLLM loads the **checkpoint's own**
+> `generation_config.json` at startup and enforces any `max_new_tokens` it finds.
+>
+> This is not hypothetical. In the same model cache on warpcore:
+> `Laguna-XS-2.1-NVFP4/generation_config.json` ships `"max_new_tokens": 32768`, while
+> `Laguna-S-2.1-NVFP4` ships none. Benchmarking XS at `max_gen_toks=65536` would silently measure a
+> 32k cap — no error, nothing in the launch script, and a depressed GPQA score indistinguishable from
+> a capability result. That is exactly the truncation artifact footnote ³ documents (16k → 53.03%,
+> 64k → 76.26%), but invisible from the client side.
+>
+> **This card's numbers are unaffected** — `NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4` was checked
+> and carries no `max_new_tokens`, so the 64k budget was genuinely honored. The correction is to the
+> *guidance*, not the measurements. Verify before every run with
+> [`viz/check_output_budget.py`](../../viz/check_output_budget.py), and serve with
+> `--generation-config vllm` to make the budget purely client-controlled.
+
 ## Agentic coding — pi-30 (measured 2026-08-14)
 
 [`rick-stevens-ai/pi-30`](https://github.com/rick-stevens-ai/pi-30): a 30-problem agent-loop coding
@@ -336,7 +358,9 @@ docker run -d --rm --name vllm_lightning --gpus all --network host --ipc host \
 ```
 The server allows up to ~256K output; choose the per-request `max_tokens` by workload (**8k–16k**
 interactive, **32k–64k** batch/reasoning — see the budget section above). Clients must send an explicit
-`max_tokens` (vLLM has no default-request-budget flag).
+`max_tokens` (vLLM has no default-request-budget flag, **but see the CORRECTION in the budget section:
+a checkpoint's `generation_config.json` `max_new_tokens` *does* impose a silent server-wide cap under
+the default `--generation-config auto`**).
 
 Throughput sweep (reusable `scripts/vllm_sweep.sh` from the `warpcore-dgx-spark` skill):
 ```bash

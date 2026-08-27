@@ -279,7 +279,19 @@ Current budgets in the repo:
 | Nemotron-3-Super-120B | 16,384 | 6 |
 | Qwen3.6-35B | 16,384 | 8 |
 | Ornith-1.0-35B | 32,768 | 5 |
+| **Laguna-S-2.1** | **32,768** | **4** |
 | Lightning (reported) | 65,536 | — |
+
+- [ ] **2d-0. Re-run Laguna-S-2.1 GPQA-Diamond at 64k.** ⬅ **highest-value GPQA work outstanding.**
+      The completed 32k run (2026-08-27, c=4, 0 timeouts) scored **40.40%** but **47.0% of items
+      (93/198) emitted no answer line**, 67 of them hitting the 32k ceiling mid-reasoning — the score
+      measures the budget, not the model, and is **withheld** from the table (footnote ¹¹). Accuracy
+      among the 105 that answered is 76.19%, an upper bound on a biased subset. Laguna's chains are
+      the longest in this repo (p90 129,887 chars), so it needs 64k more than Lightning did.
+      Keep c=4 and `timeout=14400`; enable `LM_EVAL_REASONING_FALLBACK=1` (it fired 95× at 32k) and
+      **record the firing count**, since Ornith's 69.70% is unpatched and not directly comparable.
+      Budget **~30–40 h** — the truncated items are the slow ones, so wall clock grows faster than the
+      budget. Verify the ceiling with `viz/check_output_budget.py` first (PROVENANCE §5c).
 
 - [ ] **2d-i. Standardise on a 64k GPQA budget** for reasoning models, or publish the budget in the
       README table next to every GPQA score. Right now the column silently mixes three budgets.

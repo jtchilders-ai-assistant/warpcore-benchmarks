@@ -325,6 +325,48 @@ reasoning parser is suspect until audited. Runs whose sample files were not reta
 
 ---
 
+## 16. A checkpoint's `generation_config.json` can silently cap output for the whole server
+
+**Status: audited 2026-08-26 — no published score affected. Documented as a standing trap.**
+
+Two model cards asserted *"vLLM has no default-request-budget flag"*. That is false, and the true
+behaviour is a silent-corruption hazard rather than a crash.
+
+`vllm serve --help=generation-config`:
+
+> "If `max_new_tokens` is specified in generation config, then it sets a **server-wide limit on the
+> number of output tokens for all requests**."
+
+Because `--generation-config` defaults to `auto`, vLLM loads the **checkpoint's own**
+`generation_config.json` at startup and enforces whatever `max_new_tokens` it finds. The cap:
+
+- appears **nowhere** in the launch command,
+- is **not** echoed in the startup banner (only `Using max model len …` is),
+- returns **no error** — the request is accepted and the generation clamped.
+
+An over-large request fails loudly (`max_tokens=200000` → HTTP 400 vs `max_model_len=131072`), but a
+checkpoint cap passes quietly. The dangerous direction is the silent one.
+
+**Why it matters at benchmark scale.** The Lightning GPQA budget curve (16k → 53.03%, 32k → 66.16%,
+64k → 76.26%) shows truncation is worth **23 points**. A silent cap reproduces that depression while
+`max_gen_toks=65536` sits in the log looking correct, and the result is indistinguishable from a
+genuine capability measurement.
+
+**Live instance on this host:** `poolside/Laguna-XS-2.1-NVFP4` ships `"max_new_tokens": 32768`;
+`poolside/Laguna-S-2.1-NVFP4` ships none.
+
+**Audit:** all eight benchmarked checkpoints (Lightning-30B, Ornith-35B, Qwen3.5-122B, Qwen3.6-35B,
+Nemotron-3-Super-120B FP8 + NVFP4, gpt-oss-120b, Laguna-S-2.1) carry `max_new_tokens: absent`. Laguna-XS
+is the only capped checkpoint present and has never been benchmarked.
+
+### The fix
+Run `viz/check_output_budget.py` before any budget-sensitive run (exit 1 = capped, 2 = undetermined,
+never a silent pass), record `serving.checkpoint_max_new_tokens` in the manifest, and serve eval
+endpoints with `--generation-config vllm` to take the checkpoint out of the loop entirely.
+See [PROVENANCE.md §5c](PROVENANCE.md#5c-the-output-token-ceiling-is-a-precondition-not-a-client-setting).
+
+---
+
 ## Non-issues (ruled out — don't chase)
 - The GB10 `nvidia-smi` memory `N/A` is normal (unified memory), not a broken GPU.
 - The `fatal: not a git repository` line lm-eval prints at the end is harmless (it tries to record a

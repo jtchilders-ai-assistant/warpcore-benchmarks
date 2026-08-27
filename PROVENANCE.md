@@ -48,7 +48,9 @@ output; the manifest records everything the harness does not.
              "--enable-prefix-caching", "--tool-call-parser qwen3_xml", "--reasoning-parser qwen3"],
     "env": {"VLLM_TEST_FORCE_FP8_MARLIN": "1", "VLLM_MARLIN_USE_ATOMIC_ADD": "1"},
     "launch_script_matches_run": false,
-    "launch_script_note": "committed launch_ornith.sh pins 0.90; the SWE-bench run used 0.55 for host headroom. Script never updated — see §5."
+    "launch_script_note": "committed launch_ornith.sh pins 0.90; the SWE-bench run used 0.55 for host headroom. Script never updated — see §5.",
+    "generation_config": "auto",
+    "checkpoint_max_new_tokens": "absent"
   },
   "client": {
     "host": "csi0359637 (Mac mini, x86_64)",
@@ -103,6 +105,14 @@ attributed. This is the single most valuable artifact and the one most often mis
 
 `samples_*.jsonl` is large but it is the only way to detect the `message.reasoning` defect after
 the fact. If size is a problem, commit it gzipped rather than dropping it.
+
+**Record the effective output ceiling.** A quality score is only meaningful against a known token
+budget, and the budget is not fully described by `max_gen_toks`. With `--generation-config auto`
+(vLLM's default) the checkpoint's own `generation_config.json` is loaded at startup, and a
+`max_new_tokens` there becomes a **server-wide cap on every request** — it clamps silently, returns no
+error, and appears nowhere in the launch command or the startup banner. Every lm-eval manifest must
+therefore carry `serving.generation_config` and `serving.checkpoint_max_new_tokens` (`"absent"` when
+the checkpoint sets none). Verify with `viz/check_output_budget.py` before the run; see §5c.
 
 ### Throughput
 
@@ -291,3 +301,52 @@ verify it at launch or record in the manifest that it was unverified.
 Quality artifacts are present for every evaluated model but live at inconsistent paths
 (`raw/quality/<task>/` for some, `raw/<task>_results.json` for others). Normalizing to
 `raw/<benchmark>/` is tracked in TODO.md §6.
+
+---
+
+### 5c. The output-token ceiling is a precondition, not a client setting
+
+The repo asserted in two places (Lightning and Ornith cards) that *"vLLM has no
+default-request-budget flag"*, and therefore that `max_tokens` is purely the client's business. **That
+was wrong**, and it is a §5b-class hazard: a thing a run silently depends on, which does not announce
+itself when it fails.
+
+`vllm serve --help=generation-config`:
+
+> "If `max_new_tokens` is specified in generation config, then it sets a **server-wide limit on the
+> number of output tokens for all requests**."
+
+`--generation-config` defaults to `auto`, so **the checkpoint decides**. A model shipping
+`max_new_tokens` in its `generation_config.json` caps every request on the server, regardless of what
+the client asks for. There is no error and no warning — the generation is simply cut short, exactly
+like a model that ran out of things to say.
+
+Why that is dangerous here: the Lightning card's own budget curve (16k → 53.03%, 32k → 66.16%,
+64k → 76.26%) shows a truncated budget moves a GPQA score by **23 points**. A silent server cap
+produces the same depression while the client's `max_gen_toks=65536` makes the log look correct.
+
+Real instance, same host: `poolside/Laguna-XS-2.1-NVFP4` ships `"max_new_tokens": 32768`;
+`poolside/Laguna-S-2.1-NVFP4` ships none.
+
+**Audit result (2026-08-26):** every checkpoint benchmarked in this repo — Lightning-30B, Ornith-35B,
+Qwen3.5-122B, Qwen3.6-35B, Nemotron-3-Super-120B (FP8 + NVFP4), gpt-oss-120b, Laguna-S-2.1 — was
+checked and **all carry `max_new_tokens: absent`. No published score is affected.** The only capped
+checkpoint on the box, Laguna-XS, has never been benchmarked.
+
+**The rule.** Before any run whose score depends on a generous budget:
+
+```bash
+python3 viz/check_output_budget.py \
+  --model poolside/Laguna-S-2.1-NVFP4 \
+  --generation-config ~/.cache/huggingface/hub/models--poolside--Laguna-S-2.1-NVFP4/snapshots/*/generation_config.json \
+  --require-budget 32768
+```
+
+Exit 0 = the budget is permitted; **1** = a checkpoint cap or endpoint bound makes it unreachable;
+**2** = undetermined (endpoint unreadable — never treated as a pass). Record the result in the
+manifest. To remove the variable entirely, serve with `--generation-config vllm`, which loads no
+checkpoint generation config and leaves the budget purely client-controlled.
+
+Note the asymmetry that makes this worth a dedicated check: an over-large request is **rejected
+loudly** (`max_tokens=200000` → HTTP 400 against `max_model_len=131072`), while a checkpoint cap
+**passes quietly**. Only the failure mode that corrupts data is the silent one.

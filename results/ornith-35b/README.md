@@ -291,6 +291,14 @@ Use `--gpu-memory-utilization 0.55` for the **agentic** runs (host headroom — 
 unified-memory OOM note; the GB10's KV cache shares the same 121 GiB pool as system RAM). Clients must
 always send an explicit `max_tokens` (vLLM has no default-request-budget flag) — ≥4k chat, 32k+ reasoning.
 
+> **CORRECTION (2026-08-26):** *"vLLM has no default-request-budget flag"* is **wrong**. With
+> `--generation-config auto` (the default), vLLM loads the checkpoint's `generation_config.json` and
+> any `max_new_tokens` there becomes a **server-wide cap on all requests** — silently clamping, with
+> nothing in the launch command to show for it. **Ornith-1.0-35B-FP8 was verified to carry no
+> `max_new_tokens`, so this card's scores are unaffected.** Check before every run with
+> [`viz/check_output_budget.py`](../../viz/check_output_budget.py). Full explanation on the
+> [Lightning card](../nemotron-3.5-lightning-30b/README.md#recommended-output-token-budget-max_tokens-and-whether-its-a-realistic-serving-setting).
+
 Quality (on warpcore, in a detached tmux — the suite takes ~16.6 h) —
 [`raw/run_ornith_quality.sh`](raw/run_ornith_quality.sh):
 ```bash

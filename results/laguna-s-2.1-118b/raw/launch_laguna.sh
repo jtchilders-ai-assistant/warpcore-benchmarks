@@ -5,6 +5,13 @@
 #   scale with context. FP8 KV => ~3.26 GB/seq @128k, ~0.84 GB/seq @32k.
 # GB10 traps: NVFP4 MoE must use MARLIN (CUTLASS -> illegal instruction / init ValueError).
 # Client note: reasoning model -> send generous max_tokens (>=4k chat, 32k+ agentic).
+# OUTPUT-BUDGET TRAP: --generation-config defaults to `auto`, which loads the
+#   checkpoint's generation_config.json; a `max_new_tokens` there becomes a
+#   SERVER-WIDE cap on every request that clamps SILENTLY (no error, not in this
+#   command, not in the startup banner). Laguna-S ships none, so this run is
+#   uncapped -- but the XS variant ships "max_new_tokens": 32768. For eval runs
+#   add `--generation-config vllm` to make the budget purely client-controlled,
+#   and verify with viz/check_output_budget.py. See PROVENANCE.md 5c.
 docker run -d --network host --name vllm_laguna \
   -v $HOME/vllm_patch:/patch \
   -e PYTHONPATH=/patch \
