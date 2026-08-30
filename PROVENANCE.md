@@ -102,6 +102,7 @@ attributed. This is the single most valuable artifact and the one most often mis
 | `results_*.json` | lm-eval already records `config.model_args`, `lm_eval_version`, `n-samples`, `task_hashes`, `chat_template_sha`, `total_evaluation_time_seconds` — keep it **whole**, do not summarize |
 | `samples_*.jsonl` | Required to audit empty/truncated generations (this is how ISSUES #15 was found) |
 | custom task `.yaml` + any `utils.py` | A "GSM8K score" means nothing without the extraction filter |
+| token census (when a score is budget-sensitive) | Exact per-item completion-token counts from the model's tokenizer. The only way to tell truncation from non-termination — see §5d. Never estimate this from character lengths. |
 
 `samples_*.jsonl` is large but it is the only way to detect the `message.reasoning` defect after
 the fact. If size is a problem, commit it gzipped rather than dropping it.
@@ -372,3 +373,69 @@ token 2 — so any change that alters which config supplies EOS risks generation
 Note the asymmetry that makes this worth a dedicated check: an over-large request is **rejected
 loudly** (`max_tokens=200000` → HTTP 400 against `max_model_len=131072`), while a checkpoint cap
 **passes quietly**. Only the failure mode that corrupts data is the silent one.
+
+### 5d. A budget ceiling must be verified in TOKENS, never inferred from characters
+
+§5c makes the output ceiling a precondition. This section covers the matching *post-hoc* hazard: how
+you decide, after a run, whether the ceiling actually bound the generations. Get this wrong and you
+will withhold a valid score, or spend days of GPU time re-running against a hypothesis the artifacts
+already falsified.
+
+**What happened (2026-08-28 → 08-30, Laguna GPQA-Diamond).** The 32k run was withheld on the theory
+that its 47% no-answer rate was truncation. A 64k re-run was launched. Mid-run, an analysis of the
+in-flight generations reported **"0 items pinned at the ceiling"** and predicted the score would land
+at ~64–76%. Both claims were wrong, and the run finished at **37.88%** — statistically
+indistinguishable from the 32k run's 40.40% (McNemar p=0.52).
+
+The error was a unit conversion. Token counts were **estimated from character lengths** using a single
+ratio, 5.253 chars/token, derived from *one* max-length sample of the 32k run (172,139 chars ÷ 32,768
+tokens). That ratio was then used to compute a 64k ceiling of ~344,000 chars. Measured with the
+model's own tokenizer, the true ratio on this corpus spans **2.05–3.98** — GPQA generations are dense
+with mathematics, chemistry notation and code, all of which tokenize far more finely than prose. The
+assumed ceiling was inflated by roughly 70%, so generations sitting *exactly* on the cap
+(65,537 tokens) appeared to have tens of thousands of characters of headroom.
+
+Corrected with exact per-item counts, the picture inverts completely:
+
+| | 32k run | 64k run |
+| --- | ---: | ---: |
+| items at the cap | 95/198 (48.0%) | **104/198 (52.5%)** |
+| claimed at the cap (bad estimate) | — | **0** |
+
+**The rules.**
+
+1. **Never infer token counts from character counts.** There is no stable chars/token ratio for a
+   model — it varies by 2× within a single benchmark depending on whether an item is prose or
+   symbolic. A ratio calibrated on one sample does not generalize to the next.
+2. **Tokenize with the model's own tokenizer**, from the local snapshot:
+   `AutoTokenizer.from_pretrained(<snapshot_path>, trust_remote_code=True)`. Count every item, not a
+   sample — 198 items costs a couple of minutes.
+3. **Commit the census as an artifact** so the finding is auditable without a GPU or a tokenizer.
+   Laguna's is [`token_census_32k_vs_64k.json`](results/laguna-s-2.1-118b/raw/quality/gpqa/token_census_32k_vs_64k.json).
+4. **Prefer `finish_reason` when the raw API response is available.** `finish_reason == "length"` is
+   the engine's own statement that it hit the ceiling and needs no arithmetic. lm-eval discards it,
+   which is why the token census is necessary for harness runs — but if you control the client, log
+   it.
+
+**Distinguishing truncation from non-termination.** Both produce a missing answer, and they call for
+opposite responses — raise the budget, or stop raising it. Three checks separate them, all computable
+from two runs at different budgets:
+
+- **Does the at-cap count fall when the cap rises?** Under truncation it must. Laguna's *rose*
+  (95 → 104). That alone falsifies the truncation hypothesis.
+- **How many items hit the ceiling in both runs?** This is the non-terminating core: 82 items for
+  Laguna, scoring 2/82 at either budget.
+- **Do unanswered items generate more text at the larger budget?** All 65 of Laguna's did. A truncated
+  chain that is given room *finishes*; a non-terminating one just circles. Reading the tails confirms
+  it directly — mid-sentence reasoning loops, not cut-off conclusions.
+
+Reproduce the whole comparison from committed artifacts with
+[`viz/compare_gpqa_budgets.py`](viz/compare_gpqa_budgets.py) (exit 0 = the two budgets are
+statistically indistinguishable). Its module docstring carries this pitfall so the next reader meets
+it before repeating it.
+
+**The general lesson, beyond tokens.** The bad ratio was not a typo — it was a single-sample estimate
+promoted to a constant and then used to make a load-bearing claim. It also *felt* confirmatory: it
+produced exactly the "budget was the problem" answer already expected. When an estimated constant is
+about to decide whether a number gets published or a multi-day run gets launched, measure it directly
+first; and treat a result that flatters the prior hypothesis as needing *more* scrutiny, not less.

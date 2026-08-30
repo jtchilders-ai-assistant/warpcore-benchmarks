@@ -367,6 +367,69 @@ Do **not** reach for `--generation-config vllm`: it only suppresses the sampling
 loads the checkpoint config for special tokens, and discards `temperature`/`top_p`/`top_k` along the
 way. See [PROVENANCE.md §5c](PROVENANCE.md#5c-the-output-token-ceiling-is-a-precondition-not-a-client-setting).
 
+## 17. Laguna-S-2.1 does not terminate on hard GPQA items — a bigger output budget makes it worse
+
+**Not a serving bug.** Both runs below were mechanically clean (0 `TimeoutError`, full n=198,
+preconditions verified per [PROVENANCE §5b/§5c](PROVENANCE.md)). This is a model characteristic worth
+recording because it inverts the standard remedy for a low reasoning score.
+
+### The symptom
+
+`poolside/Laguna-S-2.1-NVFP4` scored **40.40%** on GPQA-Diamond with a 32k output budget, with 47% of
+items emitting no parseable answer and most of those running to the token ceiling mid-reasoning. That
+is the exact signature of budget truncation, and the repo already had a precedent for the fix:
+Nemotron-3.5-Lightning gains **23 points** going 16k → 64k (53.03% → 76.26%,
+[README footnote ³](README.md)). So the score was withheld and a 64k re-run launched.
+
+**The re-run scored 37.88% — no better, 53 h 47 m of exclusive GPU time.**
+
+| Budget | `answer-line` | items at cap | median completion | total generated |
+| --- | ---: | ---: | ---: | ---: |
+| 32k | 40.40% (80/198) | 95/198 (48.0%) | 756 tok | 3.14 M tok |
+| 64k | 37.88% (75/198) | **104/198 (52.5%)** | 65,537 tok | 6.88 M tok |
+
+Paired: 58 both-correct, 22 32k-only, 17 64k-only, 101 neither → **−2.53 pp [−8.7, +3.7],
+McNemar χ² = 0.41, p = 0.52**. Statistically indistinguishable.
+
+### Why it is non-termination, not truncation
+
+- **The at-cap count ROSE when the cap was doubled** (95 → 104). Truncation predicts a fall.
+- **82 items hit the ceiling in BOTH runs** and scored 2/82 either way — a non-terminating core.
+- **All 65 items unanswered in both runs generated MORE text at 64k.**
+- The tails are mid-sentence reasoning loops, not truncated conclusions:
+  `"...Wait, but in a typical Wittig reaction, the ylide adds to the carbonyl, leading to"`.
+
+Answer-rate comparison makes the contrast with Lightning concrete: at a 64k budget Lightning answers
+**97%** of items; Laguna answers **51%**.
+
+### Consequences
+
+- **Raising the budget is the wrong lever for this model.** A 128k run would cost ~100 h+ to retest a
+  falsified hypothesis. Do not schedule one.
+- **The likely lever is a stop condition** — reasoning-effort control, or a hard CoT budget that
+  forces answer emission before the ceiling. Untested here.
+- **Serving implication:** for interactive or agentic use, a generous `max_tokens` does not rescue
+  this model on hard problems; it converts a fast wrong answer into a slow one. This is consistent
+  with the model's agentic behaviour, where 25/100 SWE-bench instances produced no tool call at all
+  ([README footnote ¹⁰](README.md)).
+- **Do not read 40.40% as directly comparable** to Ornith's 69.70% or Lightning's 76.26%: both Laguna
+  runs are patched for issue #15 while Ornith's number is not, and every GPQA figure in the repo is
+  conditional on a different output budget.
+
+### Diagnosing this on another model
+
+Two runs at different budgets, then
+[`viz/compare_gpqa_budgets.py`](viz/compare_gpqa_budgets.py) (exit 0 = indistinguishable). The
+decisive statistic is the **at-cap count as a function of the cap** — if it does not fall when the cap
+rises, more budget will not help.
+
+**Count tokens, do not estimate them from characters.** An interim analysis of this very run claimed
+"0 items pinned at the ceiling" because it converted characters to tokens with a single 5.25
+chars/token ratio; the model's true ratio is 2.05–3.98 and the real figure was 104/198. That mistake
+predicted a 64–76% result for a run that returned 37.88%. See
+[PROVENANCE §5d](PROVENANCE.md) and the committed
+[`token_census_32k_vs_64k.json`](results/laguna-s-2.1-118b/raw/quality/gpqa/token_census_32k_vs_64k.json).
+
 ---
 
 ## Non-issues (ruled out — don't chase)

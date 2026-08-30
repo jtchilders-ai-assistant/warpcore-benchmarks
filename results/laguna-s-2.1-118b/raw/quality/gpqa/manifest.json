@@ -11,7 +11,8 @@
   "harness": "lm-eval-harness",
   "harness_version": "0.4.12",
   "task_yaml": "gpqa_diamond_cot_zeroshot_clean.yaml",
-  "task_note": "Custom 'clean' task: strict anchored `The answer is (X)` extraction (answer-line filter) plus a flexible-fallback filter. Same task file used for the other models in this repo."
+  "task_note": "Custom 'clean' task: strict anchored `The answer is (X)` extraction (answer-line filter) plus a flexible-fallback filter. Same task file used for the other models in this repo.",
+  "runs": "two full n=198 runs at 32k and 64k output budgets (2026-08-27, 2026-08-29)"
  },
  "serving": {
   "engine": "vLLM",
@@ -51,18 +52,15 @@
   "num_concurrent": 4,
   "concurrency_rationale": "c=4, NOT the c=16 of the abandoned attempt. At c=16 per-request throughput fell to ~4 tok/s, so a 32k generation needed ~2.2 h against timeout=3600 -- items were cut off and retried forever (352 TimeoutErrors, killed at 110/198 after ~13 h). At c=4 worst case is ~31 min vs timeout=14400, ~8x headroom. Lower concurrency was FASTER here because retries dominated. See PROVENANCE.md and the warpcore-dgx-spark skill.",
   "max_retries": 3,
-  "timeout_s": 14400,
-  "gen_kwargs": {
-   "max_gen_toks": 32768,
-   "temperature": 0
-  },
+  "timeout_s": "see runs.*.timeout_s",
+  "gen_kwargs": "see runs.*.budget_max_gen_toks",
   "tokenized_requests": false,
   "lm_eval_patch": {
    "applied": true,
    "gate": "LM_EVAL_REASONING_FALLBACK=1 (env-gated, default OFF)",
    "reason": "vLLM's poolside_v1 reasoning parser emits content=null with the full answer in message.reasoning; unpatched lm-eval scores those 0. See ISSUES #15.",
    "fallback_order": "content -> reasoning -> reasoning_content -> ''",
-   "firings": 95,
+   "firings": "see runs.*.fallback_firings (95 at 32k, 105 at 64k)",
    "firings_log": "fallback_firings.log",
    "comparability_warning": "This run is PATCHED; Ornith's published 69.70% was UNPATCHED. The 95 rescues are the amount by which the two are not directly comparable."
   }
@@ -74,38 +72,101 @@
   "timeout_note": "0 TimeoutErrors across 24 h, vs 352 in the abandoned c=16 attempt."
  },
  "results": {
-  "exact_match_answer_line_pct": 40.4,
-  "exact_match_flexible_fallback_pct": 41.92,
-  "stderr_answer_line_pct": 3.5,
-  "stderr_flexible_fallback_pct": 3.52,
-  "correct_answer_line": 80,
-  "n": 198,
-  "PUBLISHABLE": false,
-  "headline": "40.40% -- WITHHELD from the cross-model table",
-  "interpretation": "NOT a capability measurement. 93/198 items (47.0%) emitted no parseable answer line, and 67 of those ran to the 32768-token ceiling mid-reasoning (generation length p90 = 129,887 chars, max = 172,139). The score therefore measures the OUTPUT BUDGET. For scale, the Lightning card's own budget curve moves GPQA 53.03% -> 76.26% between 16k and 64k. Accuracy among the 105 items that did answer is 76.19%, but that subset is non-random (the shorter, easier problems), so it is an UPPER BOUND, not a score. A 64k re-run is required before any Laguna GPQA number is published.",
-  "truncation_diagnostic": {
-   "tool": "viz/diagnose_truncation.py",
-   "no_answer": 93,
-   "no_answer_pct": 47.0,
-   "no_answer_near_cap": 67,
-   "answered": 105,
-   "accuracy_among_answered_pct": 76.19,
-   "gen_chars_p50": 2043,
-   "gen_chars_p90": 129887,
-   "gen_chars_max": 172139,
-   "verdict": "TRUNCATION-DOMINATED"
-  }
+  "PUBLISHABLE": true,
+  "published_value_pct": 40.4,
+  "published_from": "32k run",
+  "published_rationale": "Two runs at different budgets are statistically indistinguishable (McNemar p=0.52). The 32k figure is published as the better-powered of two equivalent measurements; the 64k run is committed alongside it.",
+  "paired_comparison": {
+   "both_correct": 58,
+   "only_32k": 22,
+   "only_64k": 17,
+   "neither": 101,
+   "diff_pp": -2.53,
+   "diff_ci95_pp": [
+    -8.7,
+    3.7
+   ],
+   "mcnemar_chi2": 0.41,
+   "p_value": 0.5218,
+   "verdict": "statistically indistinguishable"
+  },
+  "interpretation": "CAPABILITY-LIMITED, NOT BUDGET-LIMITED. Doubling the output budget did not move the score. Items at the cap ROSE 95 -> 104; 82 items hit the ceiling in BOTH runs and scored 2/82 either way; all 65 items unanswered in both runs generated MORE text at 64k. Tails are mid-sentence reasoning loops, not truncated conclusions. The failure mode is non-termination on hard items.",
+  "comparability_warning": "NOT directly comparable to Ornith 69.70% (unpatched, 42 empty items) or Lightning 76.26% (itself a 64k figure, 53.03% at 16k). Both Laguna runs are PATCHED for the message.reasoning defect.",
+  "interior_accuracy_note": "76.19% (32k) / 83.33% (64k) among items that produced a parseable answer. Non-random subset (shorter, easier problems) -> UPPER BOUND, not a score.",
+  "non_terminating_core": 82,
+  "recommendation": "Do NOT run 128k (~100 h+ to retest a falsified hypothesis). The lever is a stop condition (reasoning-effort control / forced answer emission), not more tokens."
  },
  "artifacts": {
-  "results_json": "results_2026-08-27T12-58-57.639398.json",
-  "samples": "samples_gpqa_diamond_cot_zeroshot_clean.jsonl.gz",
-  "samples_sha256": "db10c7625fc7af3c597671315d26723f540bd7a81beed12270dc9cacd46eac94",
-  "samples_note": "Gzipped per PROVENANCE.md 2 (commit gzipped rather than dropping). This file is the PRIMARY evidence for the truncation finding; reproduce with `python3 viz/diagnose_truncation.py <this file>`.",
-  "run_log": "gpqa_full.log",
-  "run_script": "run_gpqa_full.sh",
+  "token_census": "token_census_32k_vs_64k.json",
+  "comparison_tool": "viz/compare_gpqa_budgets.py",
   "task_yaml": "gpqa_diamond_cot_zeroshot_clean.yaml",
-  "fallback_firings": "fallback_firings.log"
+  "note": "Per-run artifacts are listed under runs.32k.* and runs.64k.*"
  },
- "repo_commit": "a6696bf6b1d00a5950c901b289939e9fa87c91b9",
- "notes": "Preconditions per PROVENANCE.md 5b/5c: endpoint asserted to serve the model; output ceiling verified uncapped (checkpoint max_new_tokens absent); smoke run of 5 items passed (score 0.6, 0 timeouts, parse agreement checked) before launch. The run is mechanically sound -- the finding is that the 32k budget was too small for this model, not that the run failed."
+ "repo_commit": "pending",
+ "notes": "Both runs mechanically sound: 0 TimeoutErrors, full n=198, preconditions per PROVENANCE 5b/5c verified (endpoint asserted, output ceiling checked uncapped via viz/check_output_budget.py). The finding is about the MODEL (non-termination), not about either run failing.",
+ "runs": {
+  "32k": {
+   "budget_max_gen_toks": 32768,
+   "num_concurrent": 4,
+   "timeout_s": 14400,
+   "wall_clock": "24 h 21 m",
+   "total_evaluation_time_seconds": 87696.61487133987,
+   "timeout_errors": 0,
+   "exact_match_answer_line_pct": 40.4,
+   "exact_match_flexible_fallback_pct": 41.92,
+   "correct_answer_line": 80,
+   "ci95_answer_line_pct": [
+    33.8,
+    47.4
+   ],
+   "fallback_firings": 95,
+   "results_json": "results_2026-08-27T12-58-57.639398.json",
+   "samples": "samples_gpqa_diamond_cot_zeroshot_clean.jsonl.gz",
+   "samples_sha256": "db10c7625fc7af3c597671315d26723f540bd7a81beed12270dc9cacd46eac94",
+   "run_log": "gpqa_full.log",
+   "run_script": "run_gpqa_full.sh",
+   "fallback_firings_log": "fallback_firings.log",
+   "items_at_cap": 95,
+   "items_at_cap_pct": 47.98,
+   "items_with_answer_anchor": 117,
+   "lm_eval_parsed": 105,
+   "median_completion_tokens": 756,
+   "total_completion_tokens": 3144488
+  },
+  "64k": {
+   "budget_max_gen_toks": 65536,
+   "num_concurrent": 4,
+   "timeout_s": 30000,
+   "wall_clock": "53 h 47 m",
+   "total_evaluation_time_seconds": 193615.5704345908,
+   "timeout_errors": 0,
+   "exact_match_answer_line_pct": 37.88,
+   "exact_match_flexible_fallback_pct": 38.38,
+   "correct_answer_line": 75,
+   "ci95_answer_line_pct": [
+    31.4,
+    44.8
+   ],
+   "fallback_firings": 105,
+   "results_json": "results_2026-08-29T23-42-53.653414.json",
+   "samples": "samples_gpqa_diamond_cot_zeroshot_clean_64k.jsonl.gz",
+   "samples_sha256": "cb5dcde9877d5bb1850dcb145cbea360bb39bd1e2bc407ee6c00fe9a464b274f",
+   "run_log": "gpqa_64k.log",
+   "run_script": "run_gpqa_64k.sh",
+   "fallback_firings_log": "fallback_firings_64k.log",
+   "items_at_cap": 104,
+   "items_at_cap_pct": 52.53,
+   "items_with_answer_anchor": 101,
+   "lm_eval_parsed": 90,
+   "median_completion_tokens": 65537,
+   "total_completion_tokens": 6879891,
+   "timeout_rationale": "raised 14400 -> 30000 s: at c=4 each request gets ~4.33 tok/s, so a full 64k generation needs ~15,153 s (4.21 h), which EXCEEDS the 32k run's 4 h deadline. Reusing 14400 would have truncated and infinitely retried exactly the long items this run existed to rescue."
+  }
+ },
+ "correction_2026_08_30": {
+  "what": "An interim mid-run analysis claimed '0 items pinned at the ceiling' and predicted ~64-76%.",
+  "why_wrong": "Token counts were ESTIMATED from character lengths using a single 5.253 chars/token ratio taken from one max-length sample. The model's true ratio is 2.05-3.98 (math/code tokenize far denser than prose), inflating the assumed ceiling ~70%, so generations sitting exactly at the cap were misread as having headroom. True figure: 104/198 at cap.",
+  "fix": "Exact per-item counts via the model tokenizer, committed as token_census_32k_vs_64k.json.",
+  "rule": "Never infer token counts from character counts."
+ }
 }
