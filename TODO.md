@@ -405,15 +405,31 @@ Mid-run configuration changes are already a live problem, not a hypothetical:
 
 Tooling, so the standard is cheaper to follow than to skip:
 
-- [ ] **6e. `make manifest MODEL=<m> BENCH=<b>`** — scaffold `manifest.json`, auto-filling engine
+- [x] **6e. `make manifest MODEL=<m> BENCH=<b>`** — scaffold `manifest.json`, auto-filling engine
       version/args probed from the live endpoint, client host, repo commit, timestamps. Unknowns
-      written as the literal `"unrecorded"`, never guessed.
-- [ ] **6f. `make check-artifacts`** — fail if any `results/*/raw/*/` lacks a required artifact for
-      its benchmark. Wire into CI so gaps surface at commit time.
+      written as the literal `"unrecorded"`, never guessed. **Done 2026-09-03**
+      (`viz/manifest_scaffold.py`). Probes `/v1/models` with `--endpoint`, scans the committed launch
+      script for image/args/env, refuses to overwrite without `--force`. Deliberately leaves
+      `launch_script_matches_run` as `"unrecorded"` — the committed script is not evidence of what ran.
+- [x] **6f. `make check-artifacts`** — fail if any `results/*/raw/*/` lacks a required artifact for
+      its benchmark. Wire into CI so gaps surface at commit time. **Done 2026-09-03.**
+      `viz/audit_provenance.py` previously printed 17 gaps and ended in an unconditional `return 0`;
+      it is now **ratcheted** against `viz/data/provenance_baseline.json` (17 accepted, any new gap
+      exits 1) and runs in `.github/workflows/provenance.yml` — the repo's first CI. `STRICT=1`
+      fails on the whole backlog; clearing it and deleting the baseline is the goal.
 - [ ] **6g. Normalize quality artifact paths.** Some models use `raw/quality/<task>/`, others
       `raw/<task>_results.json`. Pick `raw/<benchmark>/` and move the rest.
 - [ ] **6h. Commit `samples_*.jsonl` for every lm-eval run** (gzipped if size is a concern). It is
       the only artifact that permits after-the-fact detection of the ISSUES #15 defect.
+      **Partly addressed 2026-09-03:** `.gitignore` still excludes `samples_*.jsonl`, but
+      `viz/validate_samples.py --emit-per-item` now writes a slim, committable `per_item.csv`
+      (`doc_id, empty_content, score, response_chars`) at 2.7–19 KB vs multi-MB JSONL. Committed for
+      all 6 retained sample files. This preserves auditability for **future** runs; it cannot
+      recover the 5 of 7 models whose samples were never kept.
+- [ ] **6i. Make `make samples` a hard CI gate.** It exits 1 above 2% empty responses but is
+      warn-only in CI because three committed Lightning tasks already breach it (GPQA 41.4%,
+      GPQA-32k 20.7%, IFEval 8.7%). Flipping it is the definition of done for the ISSUES #15 re-serve
+      backlog.
 
 ---
 

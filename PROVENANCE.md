@@ -185,7 +185,25 @@ The standard only survives if it is easier to follow than to skip.
 - Wrap the launch script so it writes its own resolved args into the manifest. The launch script
   and the manifest disagreeing is a bug the tooling should catch.
 
-Neither target exists yet; both are tracked in TODO.md §6.
+**Both targets now exist** (2026-09-03), backed by `viz/manifest_scaffold.py` and
+`viz/audit_provenance.py`, and run in CI via `.github/workflows/provenance.yml`.
+
+`check-artifacts` is **ratcheted**, not absolute: the 17 gaps present when it was introduced are
+recorded in `viz/data/provenance_baseline.json` and tolerated, but any *new* gap exits 1. Existing
+debt stays visible without wedging CI red, and it cannot grow silently. Run
+`make check-artifacts STRICT=1` to see the full backlog; clearing it is the goal.
+
+`make manifest` writes the literal string `"unrecorded"` for every field it cannot probe and
+**never infers a value** — notably `launch_script_matches_run`, since a committed launch script is
+not evidence of what actually ran (Ornith's pins `--gpu-memory-utilization 0.90`; the SWE-bench run
+used 0.55).
+
+The third item — launch scripts writing their own resolved args — is still open, tracked in TODO.md §6.
+
+Also added: `make samples` (`viz/validate_samples.py`) fails when a task exceeds 2% empty responses,
+the silent-zero defect of ISSUES #15. It is **warn-only in CI** today because three committed
+Lightning tasks already breach it (GPQA 41.4%, GPQA-32k 20.7%, IFEval 8.7%); flipping it to a hard
+gate is the definition of done for that backlog.
 
 ---
 

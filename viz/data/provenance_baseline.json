@@ -1,0 +1,22 @@
+{
+  "_comment": "Known provenance gaps accepted at ratchet time. CI fails on any gap NOT listed here, so debt cannot grow. Delete entries as they are fixed; never add without review.",
+  "accepted_gaps": [
+    "gpt-oss-120b: NO manifest.json anywhere under raw/",
+    "gpt-oss-120b: swebench missing manifest.json",
+    "gpt-oss-120b: swebench missing trajectories",
+    "gpt-oss-120b: swebench published as BLOCKED/no-score (DIAGNOSIS.json) -- preds/report correctly absent",
+    "nemotron-3-super-120b: NO manifest.json anywhere under raw/",
+    "nemotron-3.5-lightning-30b: NO manifest.json anywhere under raw/",
+    "nemotron-3.5-lightning-30b: swebench missing manifest.json",
+    "nemotron-3.5-lightning-30b: swebench missing trajectories",
+    "ornith-35b: NO manifest.json anywhere under raw/",
+    "ornith-35b: swebench missing exit_statuses",
+    "ornith-35b: swebench missing manifest.json",
+    "ornith-35b: swebench missing trajectories",
+    "qwen3.5-122b-a10b: NO manifest.json anywhere under raw/",
+    "qwen3.6-35b-a3b: NO manifest.json anywhere under raw/",
+    "qwen3.6-35b-a3b: swebench config is RECONSTRUCTED, not the file the run used",
+    "qwen3.6-35b-a3b: swebench missing manifest.json",
+    "qwen3.6-35b-a3b: swebench missing trajectories"
+  ]
+}
