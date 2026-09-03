@@ -430,6 +430,37 @@ Tooling, so the standard is cheaper to follow than to skip:
       warn-only in CI because three committed Lightning tasks already breach it (GPQA 41.4%,
       GPQA-32k 20.7%, IFEval 8.7%). Flipping it is the definition of done for the ISSUES #15 re-serve
       backlog.
+      *(Note: the label `6i` is used twice in this file -- see also line ~400, "Reconcile
+      `launch_ornith.sh`". Left as-is rather than renumbered, since both are referenced elsewhere.)*
+- [x] **6j. Preflight the endpoint before launching a quality run.** DONE.
+      `viz/preflight_serving.py` sends 3 short probes and refuses to launch when answers are being
+      dropped. `make preflight-serving` (live) / `make preflight-selftest` (fixtures, in CI).
+
+      Exit 0 = usable, **1 = defect, 2 = could not probe**. Exit 2 is deliberately not success: an
+      unprobeable endpoint must never read as a pass.
+
+      **Empty content alone does NOT mean a broken parser**, and assuming so would block healthy
+      endpoints. Measured on live warpcore 2026-09-03 (`RedHatAI/Muse-Glimmer-30B-NVFP4`): the same
+      healthy model returns `content=None, finish=length` at `max_tokens=64` and `content='4',
+      finish=stop` at 512 -- it needs ~109 completion tokens before emitting any answer. So the
+      classifier keys on `finish_reason`:
+
+      | signature | verdict |
+      | --- | --- |
+      | `finish=length` + empty | BUDGET -- raise `max_gen_toks`, parser is fine |
+      | `finish=stop` + empty + `reasoning` populated | PARSER -- ISSUES #15 |
+      | `finish=stop` + empty + nothing anywhere | EMPTY -- nothing generated |
+
+      Checks both `reasoning` and `reasoning_content`; vLLM emits the former, so a probe checking
+      only the conventional field sees nothing and wrongly concludes the output vanished.
+
+      Verified: self-test 6/6 branches; live endpoint exit 0; unreachable exit 2; live endpoint at
+      `--max-tokens 64` exit 1 diagnosed BUDGET; `tests/fake_broken_endpoint.py` serving a real
+      ISSUES #15 payload over HTTP exit 1 diagnosed PARSER. Mutation test (`if finish == "length"`
+      -> `if False`) flips `budget_starved` to `parser` and fails the self-test, proving the guard
+      is load-bearing.
+
+      Still open: call this from the quality runner so it *cannot* be skipped (P1 #5).
 
 ---
 

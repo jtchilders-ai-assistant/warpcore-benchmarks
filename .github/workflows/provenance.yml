@@ -47,3 +47,15 @@ jobs:
       # definition of done for the ISSUES #15 backlog.
       - name: Silent scoring failures (warn-only until re-serve backlog clears)
         run: python3 viz/validate_samples.py --warn-only
+
+      # validate_samples.py finds silent zeros AFTER a run; preflight_serving.py
+      # refuses to start one against an endpoint that would produce them.
+      #
+      # CI has no GPU, so it exercises the classifier against fixtures covering
+      # every branch -- including the case that matters most: an endpoint whose
+      # content is empty only because max_tokens was too small is BUDGET, not a
+      # parser defect. Measured on live warpcore 2026-09-03: the same healthy
+      # model returns content=None at max_tokens=64 and "4" at 512. Conflating
+      # the two would block legitimate runs, so the separation is a CI guard.
+      - name: Preflight classifier (fixtures; live probing is a local target)
+        run: python3 viz/preflight_serving.py --self-test

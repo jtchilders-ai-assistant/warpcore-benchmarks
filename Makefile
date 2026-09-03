@@ -21,7 +21,7 @@ FIGS       := fig1_pareto fig2_swebench fig3_discrimination
 # Instance set for the SWE-bench pre-flight check (seed-42 n=100, shared by all models).
 SWEBENCH_INSTANCES ?= results/qwen3.6-35b-a3b/raw/swebench/preds_shuffle100.json
 
-.PHONY: all figs data clean check preflight manifest check-artifacts audit samples ci
+.PHONY: all figs data clean check preflight manifest check-artifacts audit samples ci preflight-serving preflight-selftest
 
 all: figs
 
@@ -78,7 +78,22 @@ audit: check-artifacts
 samples:
 	@$(PYTHON) $(VIZ)/validate_samples.py $(if $(MAX_EMPTY),--max-empty-rate $(MAX_EMPTY),)
 
+# Refuse to launch against an endpoint that silently drops answers (ISSUES #15).
+# Run this BEFORE any quality run: 30 s here vs a whole corrupted eval.
+#   make preflight-serving                       # probe the default endpoint
+#   make preflight-serving ENDPOINT=http://h:8000/v1 MODEL=name
+# Exit 0 = usable, 1 = defect (do not launch), 2 = could not probe (also do not launch).
+preflight-serving:
+	@$(PYTHON) $(VIZ)/preflight_serving.py \
+		$(if $(ENDPOINT),--endpoint $(ENDPOINT),) $(if $(MODEL),--model $(MODEL),) \
+		$(if $(MAX_TOKENS),--max-tokens $(MAX_TOKENS),)
+
+# Same classifier, fixture-driven: no GPU, no network. This is what CI can run.
+preflight-selftest:
+	@$(PYTHON) $(VIZ)/preflight_serving.py --self-test
+
 # What CI runs. Kept as one target so `make ci` locally == the GitHub job.
 ci: check check-artifacts
+	@$(PYTHON) $(VIZ)/preflight_serving.py --self-test
 	@$(PYTHON) $(VIZ)/validate_samples.py --warn-only
 	@echo "OK: figures reproducible, no new provenance gaps."
