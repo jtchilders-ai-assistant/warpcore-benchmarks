@@ -1,0 +1,14 @@
+# Toolchain for `make figs` / `make check`.
+#
+# PINNED EXACTLY, on purpose. The repo's standard is that a clean checkout
+# reproduces the committed SVGs byte-identically -- and matplotlib does NOT
+# guarantee that across versions. CI first ran unpinned, installed matplotlib
+# 3.11.1 against figures rendered with 3.9.4, and `make check` failed with
+# ~5,400 changed SVG lines while every derived CSV in viz/data/ was byte-identical.
+# The numbers were fine; only the rendering differed.
+#
+# So "reproducible" is a claim about a toolchain, not just about code. If you
+# bump these, re-run `make figs` and commit the regenerated figures in the
+# SAME commit -- otherwise `make check` goes red for everyone.
+matplotlib==3.9.4
+numpy==2.0.2

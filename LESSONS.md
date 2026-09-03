@@ -19,6 +19,16 @@ Verified state of enforcement as of 2026-09-03:
 | CI | ~~`.github/workflows/` does not exist~~ → **added** `.github/workflows/provenance.yml` |
 | `make check` (figures) | **Works** — exit 0, regenerated figures match committed. This is the one real gate |
 
+**Addendum (2026-09-03), found by the new CI on its first run:** `make check` passed locally and
+failed in CI. The cause was not the data — every derived CSV in `viz/data/` was byte-identical on
+Linux — but the *renderer*: CI installed matplotlib 3.11.1 unpinned, while the committed SVGs were
+produced with 3.9.4, yielding ~5,400 changed SVG lines. The repo asserted byte-identical
+reproduction but never pinned the toolchain that produces it, and there was no `requirements*.txt`
+at all. Reproducibility is a claim about a **toolchain**, not just about code; an unpinned
+dependency makes "plots-as-code" unverifiable. Fixed with `requirements-viz.txt` (exact pins).
+This is also the argument for CI in miniature: the defect was invisible on the machine where the
+figures were made, and only a second, different machine could reveal it.
+
 ---
 
 ## 1. Silent scoring failures — the highest-severity class
