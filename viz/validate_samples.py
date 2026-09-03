@@ -71,8 +71,53 @@ def score_of(rec: dict):
     return None
 
 
+def audit_per_item_csv(path: pathlib.Path) -> dict:
+    """Audit a committed per_item.csv (the git-visible fallback).
+
+    samples_*.jsonl is gitignored, so on a clean checkout the raw samples are
+    usually ABSENT even though the defect they document is real. Reading the
+    slim CSV keeps CI honest: without this, CI audits only the handful of
+    committed sample files and reports a falsely clean bill of health.
+    """
+    items: dict = {}
+    with path.open(newline="") as fh:
+        for row in csv.DictReader(fh):
+            try:
+                doc_id = int(row["doc_id"])
+            except (KeyError, ValueError):
+                continue
+            score = row.get("score", "")
+            items[doc_id] = {
+                "text": "" if row.get("empty_content") == "1" else "x",
+                "score": float(score) if score not in ("", None) else None,
+            }
+    return summarize(path, items)
+
+
+def summarize(path: pathlib.Path, items: dict) -> dict:
+    total = len(items)
+    empty_ids = sorted(d for d, v in items.items() if not v["text"].strip())
+    scored = [v["score"] for v in items.values() if v["score"] is not None]
+    served = [v["score"] for d, v in items.items()
+              if d not in set(empty_ids) and v["score"] is not None]
+
+    return {
+        "path": path,
+        "total": total,
+        "empty": len(empty_ids),
+        "empty_rate": (len(empty_ids) / total) if total else 0.0,
+        "empty_doc_ids": empty_ids,
+        "published": (sum(scored) / len(scored)) if scored else None,
+        "served_only": (sum(served) / len(served)) if served else None,
+        "items": items,
+    }
+
+
 def audit_file(path: pathlib.Path) -> dict:
-    """Per-item audit, deduped by doc_id."""
+    """Per-item audit of a raw lm-eval sample file, deduped by doc_id."""
+    if path.suffix == ".csv":
+        return audit_per_item_csv(path)
+
     items: dict = {}
     for line in open_maybe_gz(path):
         line = line.strip()
@@ -88,25 +133,7 @@ def audit_file(path: pathlib.Path) -> dict:
         elif prev.get("score") in (None, 0.0) and score_of(rec):
             prev["score"] = score_of(rec)
 
-    total = len(items)
-    empty_ids = sorted(d for d, v in items.items() if not v["text"].strip())
-    scored = [v["score"] for v in items.values() if v["score"] is not None]
-    served = [v["score"] for d, v in items.items()
-              if d not in set(empty_ids) and v["score"] is not None]
-
-    published = (sum(scored) / len(scored)) if scored else None
-    served_only = (sum(served) / len(served)) if served else None
-
-    return {
-        "path": path,
-        "total": total,
-        "empty": len(empty_ids),
-        "empty_rate": (len(empty_ids) / total) if total else 0.0,
-        "empty_doc_ids": empty_ids,
-        "published": published,
-        "served_only": served_only,
-        "items": items,
-    }
+    return summarize(path, items)
 
 
 def write_per_item(path: pathlib.Path, res: dict) -> pathlib.Path:
@@ -127,6 +154,33 @@ def write_per_item(path: pathlib.Path, res: dict) -> pathlib.Path:
     return out
 
 
+def discover() -> list:
+    """Every auditable task, preferring raw samples over the slim CSV.
+
+    Both may exist locally; only the CSV survives a clean checkout, because
+    .gitignore excludes samples_*.jsonl. Keyed by task so the same run is not
+    counted twice when both are present.
+    """
+    by_task: dict = {}
+    for p in sorted(set(RESULTS.rglob("samples_*.jsonl"))
+                    | set(RESULTS.rglob("samples_*.jsonl.gz"))):
+        by_task[(p.parent, p.name.split(".jsonl")[0])] = p
+    for p in sorted(RESULTS.rglob("*.per_item.csv")):
+        by_task.setdefault((p.parent, p.name[:-len(".per_item.csv")]), p)
+    return [by_task[k] for k in sorted(by_task, key=lambda k: (str(k[0]), k[1]))]
+
+
+def rel(path: pathlib.Path) -> str:
+    """Display path, tolerant of args given as relative or outside results/."""
+    p = path.resolve()
+    for base in (RESULTS, REPO):
+        try:
+            return str(p.relative_to(base))
+        except ValueError:
+            continue
+    return str(path)
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -143,8 +197,7 @@ def main(argv=None) -> int:
     if args.paths:
         files = sorted(args.paths)
     else:
-        files = sorted(set(RESULTS.rglob("samples_*.jsonl"))
-                       | set(RESULTS.rglob("samples_*.jsonl.gz")))
+        files = discover()
 
     if not files:
         print("WARNING: no samples_*.jsonl found under results/.")
@@ -164,9 +217,9 @@ def main(argv=None) -> int:
         pub = f"{100*res['published']:.2f}%" if res["published"] is not None else "n/a"
         srv = f"{100*res['served_only']:.2f}%" if res["served_only"] is not None else "n/a"
         print(f"{res['empty']:>5}/{res['total']:<6} {100*rate:6.1f}%  "
-              f"{pub:>9}  {srv:>7}  [{flag}] {path.relative_to(RESULTS)}")
+              f"{pub:>9}  {srv:>7}  [{flag}] {rel(path)}")
         if args.emit_per_item:
-            print(f"{'':>14}-> {write_per_item(path, res).relative_to(RESULTS)}")
+            print(f"{'':>14}-> {rel(write_per_item(path, res))}")
         if rate > args.max_empty_rate:
             failures.append(res)
 
@@ -174,7 +227,7 @@ def main(argv=None) -> int:
         print(f"\nFAIL: {len(failures)} task(s) exceed "
               f"{100*args.max_empty_rate:.0f}% empty responses.\n")
         for res in failures:
-            print(f"  {res['path'].relative_to(RESULTS)}")
+            print(f"  {rel(res['path'])}")
             print(f"    {res['empty']}/{res['total']} items returned NO content "
                   f"and were scored 0.")
             if res["published"] is not None and res["served_only"] is not None:
