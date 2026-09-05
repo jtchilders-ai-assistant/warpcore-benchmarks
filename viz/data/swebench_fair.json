@@ -1,0 +1,68 @@
+{
+ "laguna-s-2.1-118b": {
+  "attributed": true,
+  "causes": {
+   "ContextWindowExceededError": 9,
+   "LimitsExceeded": 1,
+   "RepeatedFormatError": 25
+  },
+  "exit_statuses_src": "results/laguna-s-2.1-118b/raw/swebench/exit_statuses_n100.yaml",
+  "fair_n": 75,
+  "fair_pct": 73.3,
+  "infra_excluded": 25,
+  "no_verdict": 35,
+  "nominal_pct": 55.0,
+  "resolved": 55,
+  "src": "results/laguna-s-2.1-118b/raw/swebench/swebench_verified_n100_results.json",
+  "statuses_cover": 100,
+  "verdicts": 65
+ },
+ "nemotron-3.5-lightning-30b": {
+  "attributed": true,
+  "causes": {
+   "ContextWindowExceededError": 1,
+   "InternalServerError": 1
+  },
+  "exit_statuses_src": "results/nemotron-3.5-lightning-30b/raw/swebench/exit_statuses_all_segments.yaml",
+  "fair_n": 99,
+  "fair_pct": 51.5,
+  "infra_excluded": 1,
+  "no_verdict": 2,
+  "nominal_pct": 51.0,
+  "resolved": 51,
+  "src": "results/nemotron-3.5-lightning-30b/raw/swebench_verified_n100_results.json",
+  "statuses_cover": 28,
+  "verdicts": 98
+ },
+ "ornith-35b": {
+  "attributed": false,
+  "causes": {},
+  "fair_n": 100,
+  "fair_pct": 73.0,
+  "infra_excluded": 0,
+  "no_verdict": 9,
+  "nominal_pct": 73.0,
+  "note": "no exit_statuses artifact committed",
+  "resolved": 73,
+  "src": "results/ornith-35b/raw/swebench/swebench_verified_n100_results.json",
+  "verdicts": 91
+ },
+ "qwen3.6-35b-a3b": {
+  "attributed": true,
+  "causes": {
+   "LimitsExceeded": 7,
+   "Submitted": 5,
+   "TimeoutExpired": 22
+  },
+  "exit_statuses_src": "results/qwen3.6-35b-a3b/raw/swebench/exit_statuses_shuffle100.yaml",
+  "fair_n": 78,
+  "fair_pct": 56.4,
+  "infra_excluded": 22,
+  "no_verdict": 34,
+  "nominal_pct": 44.0,
+  "resolved": 44,
+  "src": "results/qwen3.6-35b-a3b/raw/swebench/swebench_verified_shuffle100_report.json",
+  "statuses_cover": 100,
+  "verdicts": 66
+ }
+}

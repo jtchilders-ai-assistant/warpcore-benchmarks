@@ -15,7 +15,8 @@
 PYTHON ?= python3
 VIZ    := viz
 
-DATA_FILES := $(VIZ)/data/throughput_all.csv $(VIZ)/data/bench_matrix.json
+DATA_FILES := $(VIZ)/data/throughput_all.csv $(VIZ)/data/bench_matrix.json \
+              $(VIZ)/data/swebench_fair.json
 FIGS       := fig1_pareto fig2_swebench fig3_discrimination
 
 # Instance set for the SWE-bench pre-flight check (seed-42 n=100, shared by all models).
@@ -32,6 +33,10 @@ $(VIZ)/data/throughput_all.csv: $(VIZ)/parse_sweeps.py $(VIZ)/common.py
 
 $(VIZ)/data/bench_matrix.json: $(VIZ)/collect_matrix.py $(VIZ)/common.py
 	cd $(VIZ) && $(PYTHON) collect_matrix.py
+
+# Infrastructure-fair SWE-bench denominators (the `fair n/N` in the README table).
+$(VIZ)/data/swebench_fair.json: $(VIZ)/swebench_fair.py $(VIZ)/common.py
+	cd $(VIZ) && $(PYTHON) swebench_fair.py
 
 figs: data
 	@for f in $(FIGS); do cd $(VIZ) && $(PYTHON) $$f.py && cd ..; done
