@@ -139,7 +139,7 @@ recovered items scored 90.3% vs 97.09% for served items — dropped items are
 harder. Publish neither as a capability number; re-serve instead.
 
 **Recompute statistics at the real n.** The README's ±9 pp Wilson interval
-assumes n=100; at n=65 it is wider.
+assumes n=100; at Laguna's fair n=75 it is wider.
 
 **When an artifact is genuinely absent, emit `"unrecorded"`** and drop the entry
 from the ranking. Do not backfill from a review, a summary, or memory — a number
