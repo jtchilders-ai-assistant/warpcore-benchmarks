@@ -1,0 +1,146 @@
+# Working in this repo
+
+Benchmark results for models served on **warpcore** (NVIDIA DGX Spark, GB10,
+aarch64) at `http://csi370295.alcf.anl.gov:8000/v1`.
+
+This repo is an **evidence archive**, not a notebook. Every published number must
+trace to a committed artifact. The rules below exist because each one was learned
+by losing GPU-hours or publishing a wrong number.
+
+- `TODO.md` — the backlog (what still needs doing)
+- `LESSONS.md` — the seven failure classes, with measurements
+- `PROVENANCE.md` — what artifacts a run must leave behind
+- `ISSUES.md` — serving bugs, notably #15
+- `HARDWARE.md` — GB10 sizing rules
+
+---
+
+## Before launching any quality run
+
+```bash
+make preflight-serving            # ~30 s, 3 canary completions
+```
+
+Exit `0` usable · `1` defect, do not launch · `2` could not probe, **also** do
+not launch. Exit 2 is deliberately not success: an unprobeable endpoint must
+never read as a pass.
+
+**Why this exists.** vLLM's reasoning parser can fail to initialize and return
+`content: null` with the real answer stranded in `message.reasoning`. lm-eval
+reads only `content`, so the item scores **0** — no error, no retry,
+`finish_reason: "stop"`. Laguna GPQA published **53.03%** when the served-only
+rate was **90.52%**; 82 of 198 items were empty. The warning that predicts this
+was already in the run log and nothing was watching for it.
+
+**Empty content alone does NOT mean a broken parser.** Measured on live warpcore
+2026-09-03 (`RedHatAI/Muse-Glimmer-30B-NVFP4`): the same healthy model returns
+`content=None, finish=length` at `max_tokens=64` and `content='4', finish=stop`
+at 512 — it needs ~109 completion tokens before emitting any answer. Assuming
+emptiness means corruption would block working endpoints. Classify on
+`finish_reason`:
+
+| signature | verdict |
+| --- | --- |
+| `finish=length` + empty | BUDGET — raise `max_gen_toks`, parser is fine |
+| `finish=stop` + empty + `reasoning` populated | PARSER — ISSUES #15 |
+| `finish=stop` + empty + nothing anywhere | EMPTY — nothing generated |
+
+vLLM emits `reasoning`, **not** the conventional `reasoning_content`. A probe
+checking only the latter sees nothing and wrongly concludes output vanished.
+
+## Size the time budget with arithmetic, not intuition
+
+A GPQA run was abandoned at **110/198 after ~13 hours**. The engine was healthy;
+the client timeout was simply smaller than the work: at c=16 and ~4 tok/s per
+request, a ~32k-token answer needs ~2 h, against `--timeout 3600` (1 h). Every
+long item timed out, **retried from scratch**, and hit the same wall — 352
+timeout/retry events. It could never have converged.
+
+Probe a few items, extrapolate, and refuse to launch if the tail doesn't fit.
+Gate on **p90, not the mean** — that was a tail failure a mean would hide.
+Existing timeouts are ad-hoc (`3600 / 14400 / 30000`); don't copy one blindly.
+
+---
+
+## Reproducing figures
+
+The toolchain is **pinned exactly** (`requirements-viz.txt`: matplotlib 3.9.4,
+numpy 2.0.2). Byte-identical SVG output is the repo standard and matplotlib does
+not guarantee it across minors — CI once installed 3.11.1 against figures
+rendered with 3.9.4 and `make check` failed with ~5,400 changed SVG lines while
+every derived CSV was byte-identical. The numbers were fine; only rendering
+differed.
+
+**Trap:** `PYTHON ?= python3` picks up whatever is first on `PATH`. An unrelated
+virtualenv active in the shell will shadow the system interpreter and `make ci`
+dies with `ModuleNotFoundError: No module named 'matplotlib'` — which looks like
+a repo regression and is not. On this Mac the working interpreter is
+`/usr/bin/python3` (3.9.6, matplotlib 3.9.4). Check `which python3` first, or:
+
+```bash
+env -u VIRTUAL_ENV PATH=/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin make ci
+```
+
+If you bump the pins, regenerate and commit the figures in the **same commit**,
+or `make check` goes red for everyone.
+
+## Finish with `make ci`
+
+Same target CI runs, so local green == CI green:
+
+```
+make check            figures reproduce from committed artifacts
+make check-artifacts  every number has its artifact (ratcheted)
+make preflight-selftest  classifier fixtures, no GPU
+make samples          silent-zero detector (warn-only, on purpose)
+```
+
+`check-artifacts` is a **ratchet**: 17 known gaps are accepted in
+`viz/data/provenance_baseline.json`; a *new* gap exits 1. `STRICT=1` fails on any
+gap — the end goal once the backlog clears.
+
+`make samples` is **warn-only in CI deliberately**: three committed Lightning
+tasks already breach the 2% threshold (GPQA 41.4%, GPQA-32k 20.7%, IFEval 8.7%).
+Failing today would wedge CI red on documented debt. Flipping it to a hard gate
+is the definition of done for the ISSUES #15 re-serve backlog (TODO 6i).
+
+**`samples_*.jsonl` is gitignored**, so CI cannot see the JSONL evidence. The
+validator therefore also reads the committed slim `*.per_item.csv`. Without that
+fallback CI audited 2 of 6 tasks and reported a false all-clear. Any new
+sample-reading check needs the same CSV path, or it will silently pass.
+
+---
+
+## Reporting rules
+
+**Publish the denominator.** Report attempts, not the nominal instance count.
+Qwen3.6 lost **22/100** SWE-bench instances to a 120 s Docker pull timeout on a
+cold cache — the model was never invoked, so those measure image-pull throughput,
+not capability. Fair denominators reorder the leaderboard (ornith 73/91 = 80.2%
+vs laguna 55/65 = 84.6%).
+
+**A served-only rate is an upper bound, not a corrected score.** Scoring an empty
+response 0 understates the model; excluding it overstates. On Laguna the
+recovered items scored 90.3% vs 97.09% for served items — dropped items are
+harder. Publish neither as a capability number; re-serve instead.
+
+**Recompute statistics at the real n.** The README's ±9 pp Wilson interval
+assumes n=100; at n=65 it is wider.
+
+**When an artifact is genuinely absent, emit `"unrecorded"`** and drop the entry
+from the ranking. Do not backfill from a review, a summary, or memory — a number
+in a plan is not an artifact.
+
+**Config files must match the run they document.** `launch_ornith.sh` declares
+`--gpu-memory-utilization 0.90` while the SWE-bench run used **0.55**; both are
+in the repo and you cannot tell from inside which is right. The runners are
+hand-edited clones, so drift is structural — when changing one, diff it against
+the historical command and explain every difference in the commit message.
+
+## Repo hygiene
+
+- Commit only on explicit approval from the maintainer.
+- Negative controls: break it, prove exit 1, restore, prove exit 0. A guard that
+  has never failed is not known to work. Mutation-test the classifier boundaries.
+- Never leave artifacts moved or deleted after a test.
+- `.hermes/` is gitignored agent scratch — nothing durable belongs there.
