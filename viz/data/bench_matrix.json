@@ -14,11 +14,6 @@
    "src": "raw/ifeval_results.json",
    "stderr": 1.59,
    "value": 83.73
-  },
-  "pi30": {
-   "passed": 30,
-   "src": "results/gpt-oss-120b/raw/pi30/RESULTS.txt",
-   "value": 100.0
   }
  },
  "laguna-s-2.1-118b": {
@@ -64,11 +59,6 @@
    "src": "raw/ifeval_results.json",
    "stderr": 1.52,
    "value": 85.4
-  },
-  "pi30": {
-   "passed": 30,
-   "src": "results/nemotron-3-super-120b/raw/pi30/RESULTS.txt",
-   "value": 100.0
   }
  },
  "nemotron-3.5-lightning-30b": {
@@ -87,11 +77,6 @@
    "src": "raw/quality/ifeval/nvidia__NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/results_2026-08-12T13-08-23.626945.json",
    "stderr": 1.49,
    "value": 86.14
-  },
-  "pi30": {
-   "passed": 29,
-   "src": "results/nemotron-3.5-lightning-30b/raw/pi30/SUMMARY.txt",
-   "value": 96.67
   },
   "swebench": {
    "empty_patch": 2,
@@ -119,11 +104,6 @@
    "stderr": 1.51,
    "value": 85.58
   },
-  "pi30": {
-   "passed": 30,
-   "src": "results/ornith-35b/raw/pi30/SUMMARY.txt",
-   "value": 100.0
-  },
   "swebench": {
    "empty_patch": 9,
    "resolve_rate": 80.2,
@@ -148,11 +128,6 @@
    "src": "raw/ifeval_results.json",
    "stderr": 1.54,
    "value": 84.84
-  },
-  "pi30": {
-   "passed": 29,
-   "src": "results/qwen3.6-35b-a3b/raw/pi30/RESULTS.txt",
-   "value": 96.67
   },
   "swebench": {
    "empty_patch": 29,

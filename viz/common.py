@@ -70,15 +70,33 @@ SWE_ORDER = ["ornith-35b", "laguna-s-2.1-118b",
              "nemotron-3.5-lightning-30b", "qwen3.6-35b-a3b"]
 
 # Item counts per benchmark (harness configs / model cards).
-N_ITEMS = {"gsm8k": 1319, "ifeval": 541, "gpqa": 198, "pi30": 30, "swebench": 100}
+N_ITEMS = {"gsm8k": 1319, "ifeval": 541, "gpqa": 198, "swebench": 100}
 
+# The ACTIVE suite. Anything here is reported in the README table and the
+# figures; anything removed is retired and stops being collected.
 BENCHES = [
     ("gsm8k", "GSM8K"),
     ("ifeval", "IFEval"),
     ("gpqa", "GPQA-D"),
-    ("pi30", "pi-30"),
     ("swebench", "SWE-bench"),
 ]
+
+# ---------------------------------------------------------------- retired
+# Benchmarks removed from the suite, with the measured reason. Kept as data so
+# the figures can state WHY something is gone instead of silently dropping it,
+# and so a future reader cannot mistake absence for "never run".
+#
+# pi-30: retired 2026-09-04. Saturated -- 5 models produced only 2 distinct
+# scores (29/30 or 30/30), so the entire 3.3 pp spread was one test case
+# flipping, at ~1h15m per model. Historical raw output is retained under
+# results/<model>/raw/pi30/ but is no longer collected, ranked, or published.
+RETIRED_BENCHES = {
+    "pi30": dict(
+        nice="pi-30", n_items=30, retired="2026-09-04",
+        reason=("saturated: 5 models, 2 distinct scores (29/30 or 30/30); "
+                "the whole 3.3 pp spread was one test case, at ~1h15m/model"),
+        archive="results/<model>/raw/pi30/"),
+}
 
 # ---------------------------------------------------------------- style
 plt.rcParams.update({

@@ -44,7 +44,9 @@ def claimed_benchmarks(model_dir: pathlib.Path) -> dict:
         ("ifeval", r"IFEval"),
         ("gpqa", r"GPQA"),
         ("swebench", r"SWE-bench"),
-        ("pi30", r"pi-30"),
+        # pi-30 is RETIRED (saturated, 2026-09-04). Cards keep their historical
+        # pi-30 prose, so auditing it as a live claim would demand artifacts for
+        # a benchmark nobody runs any more.
         ("throughput", r"tok/s"),
     ]:
         # a claim = the benchmark named alongside a number

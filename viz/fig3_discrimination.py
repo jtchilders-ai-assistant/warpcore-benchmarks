@@ -3,7 +3,7 @@
 
 Left  : discrimination table. Spread normalized by measurement noise, because a
         raw max-min range rewards small samples and ignores how many models were
-        actually run. This is what identifies pi-30 as saturated.
+        actually run. This is what identified pi-30 as saturated (now retired).
 Middle: rank heatmap -- every column gives a different ordering.
 Right : SWE-bench reweighting sensitivity (the sample is 56% django).
 
@@ -12,14 +12,15 @@ Usage:  python3 viz/fig3_discrimination.py
 from __future__ import annotations
 
 import json
+import textwrap
 from collections import Counter
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import numpy as np
 
-from common import (BENCHES, C, DATA, N_ITEMS, SHORT, SWE_ORDER, TINY,
-                    binomial_se, save)
+from common import (BENCHES, C, DATA, N_ITEMS, RETIRED_BENCHES, SHORT,
+                    SWE_ORDER, TINY, binomial_se, save)
 from fig2_swebench import load_swebench
 
 
@@ -76,17 +77,39 @@ def draw_table(ax, BM: dict) -> list[dict]:
     foot = y0 - len(rows) * dy
     ax.plot([0, 1], [foot + 0.5 * dy, foot + 0.5 * dy], color="#CCC", lw=0.8,
             transform=ax.transAxes, clip_on=False)
-    ax.text(0, foot - 0.045,
-            "pi-30: every model scores 29/30 or 30/30 \u2014 the entire 3.3 pp spread\n"
-            "is ONE test case. It costs ~1h15m per model and no longer ranks them.",
-            fontsize=7.5, color="#B00020", va="top", transform=ax.transAxes,
+
+    # Retired benchmarks are named, not silently dropped: a reader must be able
+    # to tell "removed because saturated" from "never run".
+    # Wrap explicitly -- matplotlib's wrap=True measures against the FIGURE, not
+    # this axes, so a long line silently overruns into the next panel. Width is
+    # tuned to the panel's width_ratio (1.34) at these font sizes.
+    RED_W, GREY_W = 56, 60
+    retired_lines = []
+    for v in RETIRED_BENCHES.values():
+        retired_lines += textwrap.wrap(
+            f"RETIRED {v['nice']} ({v['retired']}): {v['reason']}.", width=RED_W)
+        retired_lines += textwrap.wrap(
+            f"Raw output kept at {v['archive']}; no longer collected or ranked.",
+            width=RED_W)
+    ax.text(0, foot - 0.045, "\n".join(retired_lines),
+            fontsize=7.0, color="#B00020", va="top", transform=ax.transAxes,
             linespacing=1.45)
-    ax.text(0, foot - 0.175,
-            "spread \u00f7 SE = (max\u2212min) \u00f7 binomial SE at the mean. Higher = better able to\n"
-            "tell models apart. Model counts differ per benchmark, so compare with care.",
+
+    grey_lines = textwrap.wrap(
+        "spread \u00f7 SE = (max\u2212min) \u00f7 binomial SE at the mean. Higher = better "
+        "able to tell models apart. Model counts differ per benchmark, so "
+        "compare with care.", width=GREY_W)
+    ax.text(0, foot - 0.045 - 0.050 * (len(retired_lines) + 0.8),
+            "\n".join(grey_lines),
             fontsize=6.7, color="#666", va="top", transform=ax.transAxes,
             style="italic", linespacing=1.45)
-    ax.set_title("pi-30 no longer discriminates:\n5 models, only 2 distinct scores",
+
+    # Title states the takeaway from the DATA, so adding a model or retiring a
+    # benchmark cannot leave a stale hardcoded claim behind.
+    best, worst = rows[0], rows[-1]
+    ax.set_title(f"{best['bench']} separates these models best "
+                 f"({best['ratio']:.0f}\u00d7 noise);\n{worst['bench']} weakest "
+                 f"({worst['ratio']:.1f}\u00d7) \u2014 pi-30 retired, saturated",
                  fontsize=9.8)
     return rows
 
@@ -128,10 +151,22 @@ def main() -> None:
     ax2.grid(False)
     for s in ax2.spines.values():
         s.set_visible(False)
-    for j in (2, 4):  # GPQA and SWE-bench columns for Ornith
+    # Highlight Ornith's rank inversion. Look the columns up by KEY -- hardcoded
+    # indices silently point at the wrong benchmark when the suite changes.
+    bench_keys = [k for k, _ in BENCHES]
+    for key in ("gpqa", "swebench"):
+        if key not in bench_keys or "ornith-35b" not in models:
+            continue
+        j = bench_keys.index(key)
         ax2.add_patch(plt.Rectangle((j - 0.5, models.index("ornith-35b") - 0.5), 1, 1,
                                     fill=False, ec="black", lw=2.4, zorder=5))
-    ax2.set_title("Rank (1 = best) per benchmark.\nOrnith: 4th on GPQA \u2192 1st on SWE-bench",
+    # Title reads the actual ranks so it cannot go stale.
+    o_gpqa = grid[models.index("ornith-35b"), bench_keys.index("gpqa")]
+    o_swe = grid[models.index("ornith-35b"), bench_keys.index("swebench")]
+    ordinal = {1: "1st", 2: "2nd", 3: "3rd", 4: "4th", 5: "5th", 6: "6th"}
+    ax2.set_title("Rank (1 = best) per benchmark.\nOrnith: "
+                  f"{ordinal.get(int(o_gpqa), int(o_gpqa))} on GPQA \u2192 "
+                  f"{ordinal.get(int(o_swe), int(o_swe))} on SWE-bench",
                   fontsize=9.8)
     cb = fig.colorbar(im, ax=ax2, fraction=0.035, pad=0.02, ticks=[1, 3, 6])
     cb.ax.set_yticklabels(["1st", "3rd", "6th"], fontsize=7.5)
@@ -174,7 +209,7 @@ def main() -> None:
     fig.suptitle("Does the benchmark suite still tell these models apart?",
                  fontsize=12.5, y=1.04)
     fig.text(0.5, -0.06,
-             "source: results/*/raw/quality/*/results_*.json, raw/pi30/*.txt, "
+             "source: results/*/raw/quality/*/results_*.json, "
              "raw/**/swebench*.json  \u00b7  Ornith GPQA is an underestimate (ISSUES #15)  \u00b7  "
              "Qwen3.6 GPQA = non-thinking mode  \u00b7  Lightning GPQA = 64k budget",
              ha="center", fontsize=6.8, color="#555")

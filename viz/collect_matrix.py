@@ -93,23 +93,14 @@ def collect() -> dict:
     light["note"] = "64k budget composite (32k=66.16, 16k=53.03)"
     light["src"] += " + raw/gpqa_64k_replay_results.json"
 
-    # ---- pi-30
-    for model in sorted(os.listdir(REPO / "results")):
-        for fname in ("SUMMARY.txt", "RESULTS.txt"):
-            path = REPO / "results" / model / "raw" / "pi30" / fname
-            if not path.exists():
-                continue
-            text = path.read_text(errors="ignore")
-            scores = re.findall(r"SCORE:\s*(\d+)/30", text)
-            if scores:
-                passed = int(scores[-1])
-            else:
-                # Older RESULTS.txt files have no SCORE line; count distinct passes.
-                passed = len({int(x) for x in re.findall(r"^P(\d+): PASS", text, re.M)})
-            out.setdefault(model, {})["pi30"] = dict(
-                value=round(100 * passed / 30, 2), passed=passed,
-                src=str(path.relative_to(REPO)))
-            break
+    # ---- pi-30: RETIRED 2026-09-04, deliberately not collected.
+    #
+    # Saturated (5 models, 2 distinct scores -- see RETIRED_BENCHES in
+    # common.py). The raw output stays under results/<model>/raw/pi30/ as
+    # historical evidence, but it is no longer read into the matrix, so it
+    # cannot reappear in the README table or any figure. Re-adding it means
+    # moving the entry from RETIRED_BENCHES back into BENCHES, not editing
+    # this loop back in.
 
     # ---- SWE-bench Verified
     #
