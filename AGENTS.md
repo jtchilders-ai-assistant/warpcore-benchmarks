@@ -116,8 +116,22 @@ sample-reading check needs the same CSV path, or it will silently pass.
 **Publish the denominator.** Report attempts, not the nominal instance count.
 Qwen3.6 lost **22/100** SWE-bench instances to a 120 s Docker pull timeout on a
 cold cache — the model was never invoked, so those measure image-pull throughput,
-not capability. Fair denominators reorder the leaderboard (ornith 73/91 = 80.2%
-vs laguna 55/65 = 84.6%).
+not capability. Fair denominators **reorder the leaderboard**: nominally Ornith
+beats Laguna 73 to 55, but fairly they tie (**73/100 = 73.0%** vs
+**55/75 = 73.3%**), because most of Laguna's gap is the ISSUES #15 parser defect
+rather than failed coding.
+
+Exclude an instance **only** when it never received a test verdict *and* the
+cause was infrastructure (timeout, 5xx, parser fault). Model-side outcomes —
+step limit, context window, a wrong patch — stay in the denominator; they are
+the model's own. Ground truth for "did it get a verdict?" is the results JSON
+(`resolved_ids | unresolved_ids`), **never** an exit-status file: those can
+cover a partial re-run segment. Reading one as though it covered all 100
+instances once produced a fabricated 56.0% for Lightning — the file described 28
+instances and 8 of its 9 `InternalServerError` entries had in fact been graded.
+`viz/swebench_fair.py` derives this from committed artifacts (`make data`) and
+marks a model with no exit-status artifact `attributed: false` rather than
+silently adjusting it — Ornith is currently the one such case.
 
 **A served-only rate is an upper bound, not a corrected score.** Scoring an empty
 response 0 understates the model; excluding it overstates. On Laguna the
