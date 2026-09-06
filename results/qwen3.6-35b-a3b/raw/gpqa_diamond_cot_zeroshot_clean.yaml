@@ -19,11 +19,12 @@ filter_list:
       - function: "take_first"
   - name: "flexible-fallback"
     filter:
-      - function: "multi_choice_regex"
+      # Fallback: last standalone "(X)" letter anywhere in the output.
+      # NOTE: does NOT use multi_choice_regex (that needs a doc["choices"] list which
+      # this task's process_docs does not emit -> KeyError on lm-eval >=0.4.12).
+      - function: "regex"
+        regex_pattern: "\\(([A-D])\\)"
         group_select: -1
-        ignore_case: true
-        ignore_punctuation: true
-        regex_pattern: "(\\([A-Z]\\))"
       - function: "take_first"
 generation_kwargs:
   until:
@@ -38,4 +39,5 @@ metric_list:
     ignore_case: true
     ignore_punctuation: true
 metadata:
-  version: 2.0
+  version: 3.0
+  fixed: "2026-09-06: multi_choice_regex->regex fallback (KeyError on lm-eval >=0.4.12)"
