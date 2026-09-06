@@ -97,15 +97,36 @@ def compute() -> dict:
                          causes={}, note="no exit_statuses artifact committed")
         else:
             status_of = load_statuses(rel_yaml)
+            submitted = set(d["submitted_ids"])
             causes: dict[str, int] = {}
             infra = 0
+            foreign: list[str] = []
             for inst, status in status_of.items():
                 if inst in verdict:
                     continue  # got a verdict; cause is moot
+                if inst not in submitted:
+                    # This instance was never part of the run. A stale file, a
+                    # different segment, or a hand-edit can name instances from
+                    # the wider 500-problem pool; counting one as "infra" would
+                    # shrink the denominator for work never attempted here.
+                    foreign.append(inst)
+                    continue
                 causes[status] = causes.get(status, 0) + 1
                 if status in INFRA_STATUSES:
                     infra += 1
             unknown = sorted(set(causes) - INFRA_STATUSES - MODEL_STATUSES)
+
+            # An exclusion must correspond to a real missing verdict. If this
+            # trips, the exit-status file disagrees with the results JSON and
+            # the results JSON wins -- refuse rather than publish.
+            if infra > no_verdict:
+                raise SystemExit(
+                    f"{model}: {infra} infra exclusions but only {no_verdict} "
+                    f"instances lack a verdict ({rel_yaml}). The exit-status "
+                    "file disagrees with the results JSON; refusing to emit a "
+                    "denominator."
+                )
+
             fair_n = N_TOTAL - infra
             entry.update(attributed=True, infra_excluded=infra, fair_n=fair_n,
                          fair_pct=round(100 * len(resolved) / fair_n, 1),
@@ -113,8 +134,22 @@ def compute() -> dict:
                          exit_statuses_src=rel_yaml)
             if unknown:
                 entry["unrecognised_statuses"] = unknown
+            if foreign:
+                entry["ignored_not_in_run"] = len(foreign)
             # The exit-status file may cover only a re-run segment; say so.
             entry["statuses_cover"] = len(status_of)
+            # Partial coverage is only safe if every no-verdict instance is
+            # accounted for. An uncovered one is invisible to attribution: it
+            # would silently stay in the denominator as though model-side.
+            uncovered = sorted(
+                (submitted - verdict) - set(status_of)
+            )
+            if uncovered:
+                entry["unattributed_no_verdict"] = len(uncovered)
+                entry["partial_coverage_warning"] = (
+                    f"{len(uncovered)} instance(s) have no verdict and no exit "
+                    "status; cause unknown, counted as model-side"
+                )
 
         out[model] = entry
 
