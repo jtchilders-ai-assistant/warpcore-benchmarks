@@ -12,3 +12,10 @@
 # SAME commit -- otherwise `make check` goes red for everyone.
 matplotlib==3.9.4
 numpy==2.0.2
+
+# Read by swebench_fair.py, swebench_paired.py and reconstruct_qwen_config.py to
+# parse the committed exit-status YAML. Unpinned until CI caught it: the author's
+# machine had PyYAML installed as a user site-package, so `make data` passed
+# locally while a clean checkout died with ModuleNotFoundError. A dependency that
+# is only satisfied by accident on one machine is not a dependency the repo has.
+PyYAML==6.0.3
