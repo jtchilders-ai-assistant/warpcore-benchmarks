@@ -116,10 +116,52 @@ sample-reading check needs the same CSV path, or it will silently pass.
 **Publish the denominator.** Report attempts, not the nominal instance count.
 Qwen3.6 lost **22/100** SWE-bench instances to a 120 s Docker pull timeout on a
 cold cache — the model was never invoked, so those measure image-pull throughput,
-not capability. Fair denominators **reorder the leaderboard**: nominally Ornith
-beats Laguna 73 to 55, but fairly they tie (**73/100 = 73.0%** vs
-**55/75 = 73.3%**), because most of Laguna's gap is the ISSUES #15 parser defect
-rather than failed coding.
+not capability.
+
+**A fair rate explains *why* a model missed. It cannot rank two models.** Two
+models' fair rates sit on different populations, so putting them side by side
+answers no single question. This file used to claim Ornith and Laguna "fairly
+tie (73/100 = 73.0% vs 55/75 = 73.3%)". That was **wrong**, and it was wrong in
+the rules file, so it propagated. Laguna's 25 excluded instances are not a random
+subset — **Ornith solved 13 of them** — so dropping them from Laguna's
+denominator while leaving Ornith's at 100 compares Ornith on the whole benchmark
+against Laguna on the subset its parser survived. The tie was an artifact of that
+mismatch.
+
+**Compare paired.** Every model runs the identical seed-42 set, so use McNemar on
+the discordant pairs (`viz/swebench_paired.py`, `make data`):
+
+| Ornith vs Laguna | Ornith | Laguna | discordant | exact |
+| --- | ---: | ---: | ---: | --- |
+| all 100 shared | **73.0%** | 55.0% | 25 vs 7 | **p = 0.002** |
+| the 75 Laguna's parser survived | **80.0%** | 73.3% | 12 vs 7 | p = 0.36 |
+
+Ornith leads either way. "Not distinguishable at this sample size" (the fair 75)
+is a statement about **insufficient evidence, not equality** — never write it up
+as a tie. What the fair denominator legitimately shows is that most of Laguna's
+nominal gap is the ISSUES #15 parser defect rather than failed coding: repair the
+defect and the measured distance falls from 18 pp to 6.7 pp.
+
+**Never argue significance from overlapping confidence intervals.** Two CIs can
+overlap while a paired test is decisively significant; "they overlap, so there is
+no difference" is a known fallacy, and it is what propped up the tie above. Worse,
+those two intervals were computed on *different* denominators. For paired runs use
+McNemar, prefer the exact binomial at these counts, and **name the convention** —
+footnote ⁵'s χ²=1.2 is Yates-corrected and reads as an error against the
+uncorrected 1.69.
+
+**Interval-first for anything reweighted or subsetted.** Per-repo cells hold 4–10
+instances, where one problem moves a rate 10–25 pp. The repo-balanced reweighting
+(Ornith 66.4%, Laguna 62.3%) carries bootstrap intervals [52.3, 80.3] and
+[52.3, 72.9] — 28 and 21 pp wide. Publish the interval with the estimate or the
+reader will read a coin flip as a finding.
+
+**One word, one statistic.** "Fair" means the infrastructure-adjusted denominator
+(`viz/swebench_fair.py`: 100/75/99/78) and nothing else. The per-submission column
+in LESSONS.md §3 (91/65/98/66) is **"graded"** — it was once also labelled "fair",
+so `fair 55/75` read as "55 of 75 submissions". Per-submission accuracy also
+drops model-side failures that the rule below keeps in the denominator, so it
+flatters a model that fails by giving up.
 
 Exclude an instance **only** when it never received a test verdict *and* the
 cause was infrastructure (timeout, 5xx, parser fault). Model-side outcomes —
@@ -144,6 +186,15 @@ assumes n=100; at Laguna's fair n=75 it is wider.
 **When an artifact is genuinely absent, emit `"unrecorded"`** and drop the entry
 from the ranking. Do not backfill from a review, a summary, or memory — a number
 in a plan is not an artifact.
+
+**The repo currently violates that rule in one place, deliberately and visibly.**
+Ornith has no SWE-bench exit-status artifact (TODO 6a): its 9 non-submissions are
+attributed from the card's run log, so `swebench_fair.py` marks it
+`attributed: false` and it still appears in the fair column. Two things keep this
+honest rather than hidden — the flag is in the data, and Ornith's lead does not
+depend on it (the paired test over all 100 needs no attribution at all). Either
+commit the artifact or drop the fair entry; do not let a third case appear
+without the same disclosure.
 
 **Config files must match the run they document.** `launch_ornith.sh` declares
 `--gpu-memory-utilization 0.90` while the SWE-bench run used **0.55**; both are
