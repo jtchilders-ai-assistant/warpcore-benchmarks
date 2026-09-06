@@ -82,17 +82,28 @@ longer exists. Same for 8 other committed analysis scripts (`gpqa_64k_replay.py`
 SWE-bench headline rates conflate *completion rate* with *patch quality*. Computed from the
 committed `*results.json`:
 
-| Model | Headline | Fair verdicts | resolved \| graded |
+| Model | Headline | Graded (got a verdict) | resolved \| graded |
 | --- | ---: | ---: | ---: |
 | ornith-35b | 73/100 | 91 | 80.2% |
 | laguna-s-2.1-118b | 55/100 | 65 | **84.6%** |
 | nemotron-3.5-lightning | 51/100 | 98 | 52.0% |
 | qwen3.6-35b-a3b | 44/100 | 66 | 66.7% |
 
+> **Do not call this column "fair".** It was labelled *Fair verdicts* here while
+> `viz/swebench_fair.py` used *fair* for a different denominator (100/75/99/78), so the same
+> word named two statistics. This column is **per-submission accuracy**: quality *given the
+> model produced a gradeable patch*. It drops model-side failures (context-window, step-limit)
+> that the repo's own reporting rule keeps in the denominator, so it flatters models that fail
+> by giving up. The *infra-fair* denominator in
+> [`viz/data/swebench_fair.json`](../viz/data/swebench_fair.json) drops only infrastructure
+> faults. Both are legitimate; they answer different questions and neither is the headline.
+
 **Ranking by headline: Ornith > Laguna. Ranking by resolved-given-graded: Laguna > Ornith.** The
 README publishes only the first. TODO 2a-ii (publish `completed_instances`) is still open. Neither
 column is "the" right one — but publishing one without the other hides that the ordering is a
-choice.
+choice. Note this column ranks Laguna first **only because 35 of its instances never reached a
+verdict**; on the paired McNemar over the identical instance set Ornith leads on every framing
+(`viz/data/swebench_paired.json`).
 
 Non-completions are also heterogeneous and must not be pooled: Qwen3.6's 22 non-completions were
 **Docker image-pull timeouts** (infrastructure), Laguna's were 23% `RepeatedFormatError`
@@ -251,5 +262,5 @@ and they are recorded here so they are not "fixed" later:
 - *"n=100 CIs are stated as ±5%."* False. The README states **±9 pp** Wilson (±8 pp with FPC).
   Independently recomputed: Ornith 73/100 → 63.6–80.7, i.e. ±8.6 pp. Correct as published.
 - *"The Lightning-vs-Qwen3.6 +7 pp gap is stated as a win."* False. The README explicitly says the
-  two are "not statistically distinguishable", gives CI [−3, +17], and reports McNemar χ²=1.2,
+  two are "not statistically distinguishable", gives CI [−4, +18], and reports McNemar χ²=1.24 (Yates; uncorrected 1.69),
   p≈0.27.
