@@ -1,0 +1,142 @@
+{
+  "nemotron-3.5-lightning-30b__vs__qwen3.6-35b-a3b": {
+    "full": {
+      "a_pct": 51.0,
+      "a_resolved": 51,
+      "b_pct": 44.0,
+      "b_resolved": 44,
+      "both": 33,
+      "mcnemar": {
+        "b": 18,
+        "c": 11,
+        "chi2_uncorrected": 1.69,
+        "chi2_yates": 1.241,
+        "discordant": 29,
+        "p_exact": 0.2649,
+        "p_uncorrected": 0.1936,
+        "p_yates": 0.2652
+      },
+      "n": 100,
+      "neither": 38,
+      "paired_diff_ci95_pp": [
+        -3.6,
+        17.6
+      ],
+      "paired_diff_pp": 7.0
+    },
+    "model_a": "nemotron-3.5-lightning-30b",
+    "model_b": "qwen3.6-35b-a3b",
+    "subset": {
+      "a_pct": 52.6,
+      "a_resolved": 41,
+      "a_solved_among_dropped": 10,
+      "b_pct": 56.4,
+      "b_resolved": 44,
+      "b_solved_among_dropped": 0,
+      "both": 33,
+      "defined_by": "qwen3.6-35b-a3b",
+      "dropped": 22,
+      "mcnemar": {
+        "b": 8,
+        "c": 11,
+        "chi2_uncorrected": 0.474,
+        "chi2_yates": 0.211,
+        "discordant": 19,
+        "p_exact": 0.6476,
+        "p_uncorrected": 0.4913,
+        "p_yates": 0.6464
+      },
+      "n": 78,
+      "neither": 26,
+      "paired_diff_ci95_pp": [
+        -14.8,
+        7.1
+      ],
+      "paired_diff_pp": -3.8
+    }
+  },
+  "ornith-35b__vs__laguna-s-2.1-118b": {
+    "full": {
+      "a_pct": 73.0,
+      "a_resolved": 73,
+      "b_pct": 55.0,
+      "b_resolved": 55,
+      "both": 48,
+      "mcnemar": {
+        "b": 25,
+        "c": 7,
+        "chi2_uncorrected": 10.125,
+        "chi2_yates": 9.031,
+        "discordant": 32,
+        "p_exact": 0.0021,
+        "p_uncorrected": 0.0015,
+        "p_yates": 0.0027
+      },
+      "n": 100,
+      "neither": 20,
+      "paired_diff_ci95_pp": [
+        6.9,
+        29.1
+      ],
+      "paired_diff_pp": 18.0
+    },
+    "model_a": "ornith-35b",
+    "model_b": "laguna-s-2.1-118b",
+    "subset": {
+      "a_pct": 80.0,
+      "a_resolved": 60,
+      "a_solved_among_dropped": 13,
+      "b_pct": 73.3,
+      "b_resolved": 55,
+      "b_solved_among_dropped": 0,
+      "both": 48,
+      "defined_by": "laguna-s-2.1-118b",
+      "dropped": 25,
+      "mcnemar": {
+        "b": 12,
+        "c": 7,
+        "chi2_uncorrected": 1.316,
+        "chi2_yates": 0.842,
+        "discordant": 19,
+        "p_exact": 0.3593,
+        "p_uncorrected": 0.2513,
+        "p_yates": 0.3588
+      },
+      "n": 75,
+      "neither": 8,
+      "paired_diff_ci95_pp": [
+        -4.7,
+        18.1
+      ],
+      "paired_diff_pp": 6.7
+    }
+  },
+  "ornith-35b__vs__nemotron-3.5-lightning-30b": {
+    "full": {
+      "a_pct": 73.0,
+      "a_resolved": 73,
+      "b_pct": 51.0,
+      "b_resolved": 51,
+      "both": 46,
+      "mcnemar": {
+        "b": 27,
+        "c": 5,
+        "chi2_uncorrected": 15.125,
+        "chi2_yates": 13.781,
+        "discordant": 32,
+        "p_exact": 0.0001,
+        "p_uncorrected": 0.0001,
+        "p_yates": 0.0002
+      },
+      "n": 100,
+      "neither": 22,
+      "paired_diff_ci95_pp": [
+        10.9,
+        33.1
+      ],
+      "paired_diff_pp": 22.0
+    },
+    "model_a": "ornith-35b",
+    "model_b": "nemotron-3.5-lightning-30b"
+  }
+}

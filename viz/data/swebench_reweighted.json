@@ -1,0 +1,85 @@
+{
+  "method": "unweighted mean of per-repo resolve rates, repos with n>=4 in every model; 10000-draw stratified percentile bootstrap, seed 42",
+  "models": {
+    "laguna-s-2.1-118b": {
+      "balanced_ci95_pp": [
+        52.3,
+        72.9
+      ],
+      "balanced_pct": 62.3,
+      "nominal_pct": 55.0,
+      "per_repo": {
+        "astropy": "2/5",
+        "django": "30/56",
+        "pytest-dev": "4/4",
+        "scikit-learn": "5/5",
+        "sphinx-doc": "5/10",
+        "sympy": "3/10"
+      }
+    },
+    "nemotron-3.5-lightning-30b": {
+      "balanced_ci95_pp": [
+        36.5,
+        62.4
+      ],
+      "balanced_pct": 49.8,
+      "nominal_pct": 51.0,
+      "per_repo": {
+        "astropy": "1/5",
+        "django": "30/56",
+        "pytest-dev": "3/4",
+        "scikit-learn": "4/5",
+        "sphinx-doc": "4/10",
+        "sympy": "3/10"
+      }
+    },
+    "ornith-35b": {
+      "balanced_ci95_pp": [
+        52.3,
+        80.3
+      ],
+      "balanced_pct": 66.4,
+      "nominal_pct": 73.0,
+      "per_repo": {
+        "astropy": "2/5",
+        "django": "44/56",
+        "pytest-dev": "2/4",
+        "scikit-learn": "4/5",
+        "sphinx-doc": "8/10",
+        "sympy": "7/10"
+      }
+    },
+    "qwen3.6-35b-a3b": {
+      "balanced_ci95_pp": [
+        26.5,
+        54.5
+      ],
+      "balanced_pct": 40.2,
+      "nominal_pct": 44.0,
+      "per_repo": {
+        "astropy": "2/5",
+        "django": "26/56",
+        "pytest-dev": "1/4",
+        "scikit-learn": "3/5",
+        "sphinx-doc": "5/10",
+        "sympy": "2/10"
+      }
+    }
+  },
+  "repo_sizes": {
+    "astropy": 5,
+    "django": 56,
+    "pytest-dev": 4,
+    "scikit-learn": 5,
+    "sphinx-doc": 10,
+    "sympy": 10
+  },
+  "repos": [
+    "astropy",
+    "django",
+    "pytest-dev",
+    "scikit-learn",
+    "sphinx-doc",
+    "sympy"
+  ]
+}
