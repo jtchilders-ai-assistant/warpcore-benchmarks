@@ -142,6 +142,7 @@ results/<model>/
 viz/                 # plots-as-code: figures generated from the raw artifacts
 HARDWARE.md          # host specs
 ISSUES.md            # serving issues encountered + fixes
+RUNBOOK.md           # step-by-step procedure for adding a new model (canonical)
 ```
 
 ## Figures
