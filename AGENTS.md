@@ -119,49 +119,43 @@ cold cache — the model was never invoked, so those measure image-pull throughp
 not capability.
 
 **A fair rate explains *why* a model missed. It cannot rank two models.** Two
-models' fair rates sit on different populations, so putting them side by side
-answers no single question. This file used to claim Ornith and Laguna "fairly
-tie (73/100 = 73.0% vs 55/75 = 73.3%)". That was **wrong**, and it was wrong in
-the rules file, so it propagated. Laguna's 25 excluded instances are not a random
-subset — **Ornith solved 13 of them** — so dropping them from Laguna's
-denominator while leaving Ornith's at 100 compares Ornith on the whole benchmark
-against Laguna on the subset its parser survived. The tie was an artifact of that
-mismatch.
+models' fair rates sit on different populations, so comparing them head to head
+answers no single question. This file used to sanction exactly that, and the
+error propagated into the README: one model's exclusions were dropped from its
+denominator while the other's stayed at the full set, and the resulting "tie" was
+an artifact of the mismatch. Excluded instances are not a random subset — the
+other model solved half of them. Use a fair rate to characterise a single model's
+failures, never to rank.
 
-**Compare paired.** Every model runs the identical seed-42 set, so use McNemar on
-the discordant pairs (`viz/swebench_paired.py`, `make data`):
+**Compare paired.** Every model runs the identical seed-42 instance set, so any
+two are a paired design: use McNemar on the discordant pairs, not a comparison of
+two rates. `viz/swebench_paired.py` derives this from the committed artifacts
+(`make data`); read the numbers there, not from prose. It refuses to compare two
+models whose submitted sets differ.
 
-| Ornith vs Laguna | Ornith | Laguna | discordant | exact |
-| --- | ---: | ---: | ---: | --- |
-| all 100 shared | **73.0%** | 55.0% | 25 vs 7 | **p = 0.002** |
-| the 75 Laguna's parser survived | **80.0%** | 73.3% | 12 vs 7 | p = 0.36 |
+**"Not distinguishable" is not "tied."** A non-significant result is a statement
+about insufficient evidence, not about equality. Say which, and never promote the
+second reading.
 
-Ornith leads either way. "Not distinguishable at this sample size" (the fair 75)
-is a statement about **insufficient evidence, not equality** — never write it up
-as a tie. What the fair denominator legitimately shows is that most of Laguna's
-nominal gap is the ISSUES #15 parser defect rather than failed coding: repair the
-defect and the measured distance falls from 18 pp to 6.7 pp.
+**Never argue significance from overlapping confidence intervals.** Two intervals
+can overlap while a paired test is decisively significant; "they overlap, so
+there is no difference" is a known fallacy, and it is what propped up the tie
+above — on intervals that had been computed at different denominators besides.
+For paired runs use McNemar, prefer the exact binomial at these counts, and
+**name the convention**: an unqualified χ² is ambiguous between the Yates-corrected
+and uncorrected values, and the two differ enough here to read as an error.
 
-**Never argue significance from overlapping confidence intervals.** Two CIs can
-overlap while a paired test is decisively significant; "they overlap, so there is
-no difference" is a known fallacy, and it is what propped up the tie above. Worse,
-those two intervals were computed on *different* denominators. For paired runs use
-McNemar, prefer the exact binomial at these counts, and **name the convention** —
-footnote ⁵'s χ²=1.2 is Yates-corrected and reads as an error against the
-uncorrected 1.69.
-
-**Interval-first for anything reweighted or subsetted.** Per-repo cells hold 4–10
-instances, where one problem moves a rate 10–25 pp. The repo-balanced reweighting
-(Ornith 66.4%, Laguna 62.3%) carries bootstrap intervals [52.3, 80.3] and
-[52.3, 72.9] — 28 and 21 pp wide. Publish the interval with the estimate or the
-reader will read a coin flip as a finding.
+**Publish an interval with anything reweighted or subsetted.** Per-repo cells hold
+4–10 instances, where a single problem moves a rate 10–25 pp and the bootstrap
+intervals come out tens of points wide. A bare reweighted point estimate invites
+the reader to treat a coin flip as a finding.
 
 **One word, one statistic.** "Fair" means the infrastructure-adjusted denominator
-(`viz/swebench_fair.py`: 100/75/99/78) and nothing else. The per-submission column
-in LESSONS.md §3 (91/65/98/66) is **"graded"** — it was once also labelled "fair",
-so `fair 55/75` read as "55 of 75 submissions". Per-submission accuracy also
-drops model-side failures that the rule below keeps in the denominator, so it
-flatters a model that fails by giving up.
+from `viz/swebench_fair.py` and nothing else. The per-submission column in
+LESSONS.md §3 is **"graded"** — it was once also labelled "fair", so `fair 55/75`
+read as "55 of 75 submissions". Per-submission accuracy also drops model-side
+failures that the rule below keeps in the denominator, so it flatters a model
+that fails by giving up.
 
 Exclude an instance **only** when it never received a test verdict *and* the
 cause was infrastructure (timeout, 5xx, parser fault). Model-side outcomes —
@@ -187,14 +181,21 @@ assumes n=100; at Laguna's fair n=75 it is wider.
 from the ranking. Do not backfill from a review, a summary, or memory — a number
 in a plan is not an artifact.
 
-**The repo currently violates that rule in one place, deliberately and visibly.**
-Ornith has no SWE-bench exit-status artifact (TODO 6a): its 9 non-submissions are
-attributed from the card's run log, so `swebench_fair.py` marks it
-`attributed: false` and it still appears in the fair column. Two things keep this
-honest rather than hidden — the flag is in the data, and Ornith's lead does not
-depend on it (the paired test over all 100 needs no attribution at all). Either
-commit the artifact or drop the fair entry; do not let a third case appear
-without the same disclosure.
+**One known exception, kept visible.** Ornith's SWE-bench run has no exit-status
+artifact (TODO 6a), so its ungraded instances are attributed from the card's run
+log rather than from a committed file. `swebench_fair.py` marks it
+`attributed: false` and it still appears in the fair column. That is tolerable
+only because the flag rides with the data and no ranking claim depends on it —
+the paired test needs no attribution at all. Either commit the artifact or drop
+the entry; do not let a second such case appear without the same disclosure.
+
+**Mind the vocabulary.** Repo prose calls empty-patch instances "non-submissions",
+but the harness did receive a submission — an empty one; they land in
+`empty_patch_ids` and `submitted_ids` still counts them. Say **ungraded** or
+**empty patch**. Nor is `completed_ids` the verdict set: it can undercount when
+an instance is re-graded after a harness timeout. `resolved_ids | unresolved_ids`
+is the only ground truth for "did it get a verdict?", and `submitted_ids` is the
+right pool for a paired comparison.
 
 **Config files must match the run they document.** `launch_ornith.sh` declares
 `--gpu-memory-utilization 0.90` while the SWE-bench run used **0.55**; both are
