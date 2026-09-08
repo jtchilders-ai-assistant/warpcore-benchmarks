@@ -59,7 +59,7 @@ EXIT_STATUSES = {
     "laguna-s-2.1-118b":
         "results/laguna-s-2.1-118b/raw/swebench/exit_statuses_n100.yaml",
     "nemotron-3.5-lightning-30b":
-        "results/nemotron-3.5-lightning-30b/raw/swebench/exit_statuses_all_segments.yaml",
+        "results/nemotron-3.5-lightning-30b/raw/swebench/exit_statuses_final_segment_n28.yaml",
 }
 
 N_TOTAL = 100
@@ -138,17 +138,17 @@ def compute() -> dict:
                 entry["ignored_not_in_run"] = len(foreign)
             # The exit-status file may cover only a re-run segment; say so.
             entry["statuses_cover"] = len(status_of)
-            # Partial coverage is only safe if every no-verdict instance is
-            # accounted for. An uncovered one is invisible to attribution: it
-            # would silently stay in the denominator as though model-side.
+            # Partial coverage is safe only if every no-verdict instance is
+            # accounted for. Refuse to publish an attributed fair denominator
+            # when even one submitted no-verdict instance has no status.
             uncovered = sorted(
                 (submitted - verdict) - set(status_of)
             )
             if uncovered:
-                entry["unattributed_no_verdict"] = len(uncovered)
-                entry["partial_coverage_warning"] = (
-                    f"{len(uncovered)} instance(s) have no verdict and no exit "
-                    "status; cause unknown, counted as model-side"
+                raise SystemExit(
+                    f"{model}: {len(uncovered)} submitted instance(s) have no "
+                    f"verdict and no exit status in {rel_yaml}; refusing to "
+                    "publish an attributed fair denominator."
                 )
 
         out[model] = entry

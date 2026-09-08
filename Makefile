@@ -24,7 +24,7 @@ FIGS       := fig1_pareto fig2_swebench fig3_discrimination
 # Instance set for the SWE-bench pre-flight check (seed-42 n=100, shared by all models).
 SWEBENCH_INSTANCES ?= results/qwen3.6-35b-a3b/raw/swebench/preds_shuffle100.json
 
-.PHONY: all figs data clean check preflight manifest check-artifacts audit samples ci preflight-serving preflight-selftest
+.PHONY: all figs data clean check preflight manifest check-artifacts audit samples ci preflight-serving preflight-selftest quality-preflight quality-preflight-selftest
 
 all: figs
 
@@ -49,11 +49,14 @@ $(VIZ)/data/swebench_reweighted.json: $(VIZ)/swebench_reweighted.py $(VIZ)/commo
 figs: data
 	@for f in $(FIGS); do cd $(VIZ) && $(PYTHON) $$f.py && cd ..; done
 
-# Verify the checked-in figures match what the code produces right now.
-check: figs
-	@git diff --stat --exit-code -- $(VIZ)/out $(VIZ)/data \
-		&& echo "OK: committed figures match regenerated output" \
-		|| (echo "STALE: run 'make figs' and commit the result"; exit 1)
+# Verify regeneration is idempotent relative to the current worktree. Comparing
+# with HEAD incorrectly rejects legitimate, intentionally uncommitted generated
+# updates during pre-commit verification.
+check:
+	@$(PYTHON) $(VIZ)/check_generated.py \
+		$(foreach f,$(DATA_FILES),--file $(f)) \
+		$(foreach f,$(FIGS),--file $(VIZ)/out/$(f).png --file $(VIZ)/out/$(f).svg) \
+		-- $(MAKE) --no-print-directory figs
 
 # Verify every SWE-bench container image is cached before launching a run.
 # A warm cache makes this a fast no-op; a cold one is why the 2026-08-04 Qwen3.6
@@ -109,4 +112,39 @@ preflight-selftest:
 ci: check check-artifacts
 	@$(PYTHON) $(VIZ)/preflight_serving.py --self-test
 	@$(PYTHON) $(VIZ)/validate_samples.py --warn-only
+	@$(PYTHON) $(VIZ)/quality_preflight.py --self-test
 	@echo "OK: figures reproducible, no new provenance gaps."
+
+# Mandatory quality-run gate: serving preflight + output budget + timeout arithmetic.
+# Run this BEFORE any quality run. All three checks must pass.
+#
+# Full gate (requires a live endpoint):
+#   make quality-preflight MODE=live ENDPOINT=http://h:8000/v1 MODEL=name \
+#       MAX_GEN_TOKS=32768 AGGREGATE_TOK_S=64 CONCURRENCY=16 CLIENT_TIMEOUT=14400
+#
+# Arithmetic-only (offline, no GPU):
+#   make quality-preflight MODE=arithmetic MAX_GEN_TOKS=32768 AGGREGATE_TOK_S=64 CONCURRENCY=16 CLIENT_TIMEOUT=14400
+#
+# MODE is explicit so a missing endpoint/model can never silently downgrade a requested live gate.
+# Exit 0 = safe to launch, 1 = defect (do not launch), 2 = inconclusive (do not launch).
+quality-preflight:
+	@if [ "$(MODE)" = "live" ]; then \
+		test -n "$(ENDPOINT)" && test -n "$(MODEL)" || { echo "ERROR: ENDPOINT and MODEL must be set together for MODE=live" >&2; exit 2; }; \
+		mode_args="--endpoint $(ENDPOINT) --model $(MODEL)"; \
+	elif [ "$(MODE)" = "arithmetic" ]; then \
+		test -z "$(ENDPOINT)$(MODEL)" || { echo "ERROR: ENDPOINT and MODEL are invalid for MODE=arithmetic" >&2; exit 2; }; \
+		mode_args="--check-timeout-only"; \
+	else \
+		echo "ERROR: set MODE=live or MODE=arithmetic; ENDPOINT and MODEL must be set together for live checks" >&2; exit 2; \
+	fi; \
+	$(PYTHON) $(VIZ)/quality_preflight.py $$mode_args \
+		$(if $(MAX_TOKENS_PROBE),--max-tokens-probe $(MAX_TOKENS_PROBE),) \
+		$(if $(MAX_GEN_TOKS),--max-gen-toks $(MAX_GEN_TOKS),) \
+		$(if $(AGGREGATE_TOK_S),--aggregate-tok-s $(AGGREGATE_TOK_S),) \
+		$(if $(CONCURRENCY),--concurrency $(CONCURRENCY),) \
+		$(if $(CLIENT_TIMEOUT),--client-timeout $(CLIENT_TIMEOUT),) \
+		$(if $(SAFETY_FACTOR),--safety-factor $(SAFETY_FACTOR),)
+
+# Fixture-driven self-test (no GPU, no network, runs in CI).
+quality-preflight-selftest:
+	@$(PYTHON) $(VIZ)/quality_preflight.py --self-test

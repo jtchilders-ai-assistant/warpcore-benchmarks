@@ -116,10 +116,10 @@ Marlin (a compatibility path, not a speed path) and 12 of 48 layers doing full g
 
 | Model | Active params | c=1 tok/s | c=1 TTFT | Peak tok/s |
 | --- | ---: | ---: | ---: | --- |
-| nvidia/Nemotron-3.5-Lightning-30B-A3B-NVFP4 | ~3B | — | — | ~719 (c=128, capped) |
+| nvidia/Nemotron-3.5-Lightning-30B-A3B-NVFP4 | ~3B | 73.9 | 136 ms | 926 (c=384, floor) |
 | openai/gpt-oss-120b | ~5B | ~34 | ~316 ms | ~709 (c≈256) |
 | Qwen/Qwen3.6-35B-A3B-FP8 | ~3B | — | — | ~487 (c=128) |
-| ornith-ai/Ornith-1.0-35B-FP8 | ~3B | 36.95 | — | ~464 (c=128, capped) |
+| ornith-ai/Ornith-1.0-35B-FP8 | ~3B | 36.95 | — | ~559 (c≈256) |
 | Intel/Qwen3.5-122B-A10B-int4 | ~10B | 26.9 | ~120 ms | ~228 (c≈192) |
 | **poolside/Laguna-S-2.1-NVFP4** | **~8.5B** | **17.65** | **156 ms** | **~259 (c≈192)** |
 

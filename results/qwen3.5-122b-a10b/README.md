@@ -93,7 +93,7 @@ Sweep script: [`raw/throughput_sweep/vllm_sweep.sh`](raw/throughput_sweep/vllm_s
 
 | Model | Size | c=1 tok/s | c=1 TTFT | Peak tok/s | at concurrency |
 | ----- | ---- | --------: | -------: | ---------: | -------------- |
-| nvidia/Nemotron-3.5-Lightning-30B-A3B | 30B / 3B act | 73.9 | 136 ms | ~719 (cap) | c=128 (still climbing) |
+| nvidia/Nemotron-3.5-Lightning-30B-A3B | 30B / 3B act | 73.9 | 136 ms | 926 (floor) | c=384 (still climbing) |
 | openai/gpt-oss-120b | 120B / ~5B act | 34 | 71 ms | ~709 | c≈256 |
 | Qwen/Qwen3.6-35B-A3B-FP8 | 35B / 3B act | — | — | ~487 | c=128 |
 | **Intel/Qwen3.5-122B-A10B-int4** | **122B / ~10B act** | **26.9** | **356 ms** | **~228** | **c≈192 (plateau)** |

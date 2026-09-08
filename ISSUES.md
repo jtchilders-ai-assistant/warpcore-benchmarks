@@ -305,20 +305,31 @@ with `raw/quality/audit_empty_responses.py`, recover with
 
 **Impact on published numbers — DO NOT ignore:**
 
-| Model / task | Published | Served-item rate | Empty | Status |
-| --- | ---: | ---: | ---: | --- |
-| Laguna GSM8K | 83.40% | 97.09% | 14.1% | **corrected to 96.13%** (all 186 re-served & graded) |
-| Ornith GPQA-Diamond | **69.70%** | **88.46%** | 21.2% | **suspect — needs re-serve** |
-| Ornith IFEval prompt-strict | 85.58% | 90.25% | 5.2% | floor |
-| Ornith IFEval inst-strict | 88.39% | 93.21% | 5.2% | floor |
-| Laguna IFEval | 75.79% / 81.41% | — | 5.4% | floor |
-| Ornith GSM8K | 97.19% | 97.27% | 0.1% | effectively unaffected |
+The table below distinguishes two separate phenomena that both produce empty responses:
+- **Parser empties** (`finish_reason=stop`, `reasoning` populated): the ISSUES #15 defect — re-serve fixes these.
+- **Budget residuals** (`finish_reason=length`): the model ran out of tokens mid-reasoning at the 64k
+  ceiling. Re-serve at the same budget cannot help; these are a model characteristic, not a parser bug.
 
-Ornith's GPQA is the serious one: **21.2% of items scored zero without being answered**, so 69.70% is
-an underestimate of unknown size. The served-item rate (88.46%) is **not** a substitute — on Laguna the
-recovered items scored 90.3% vs 97.09% for served ones, proving the defect does **not** drop items
-uniformly at random, so exclusion-based estimates are optimistically biased. Only a re-serve gives a
-defensible number.
+| Model / task | Published | Served-item rate | Empty | Signature | Status |
+| --- | ---: | ---: | ---: | --- | --- |
+| Laguna GSM8K | 83.40% | 97.09% | 14.1% | parser (`finish=stop`) | **corrected to 96.13%** (all 186 re-served & graded) |
+| Ornith GPQA-Diamond (pre-replay) | 69.70% | 88.46% | 21.2% | parser (`finish=stop`) | **re-served → 80.81%** (160/198) |
+| Ornith IFEval prompt-strict (pre-replay) | 85.58% | 90.25% | 5.2% | parser (`finish=stop`) | **re-served → 88.54%** (479/541) |
+| **Ornith GPQA-Diamond 64k composite** | **80.81%** | — | **7.6% (15/198)** | **budget residual (`finish=length`)** | floor — re-serve would not help; residuals counted as wrong |
+| **Ornith IFEval 64k composite** | **88.54%** | — | **2.0% (11/541)** | **budget residual (`finish=length`)** | floor — residuals counted as wrong |
+| Laguna IFEval | 75.79% / 81.41% | — | 5.4% | parser (`finish=stop`) | floor (not re-served) |
+| Ornith GSM8K | 97.19% | 97.27% | 0.1% | negligible | effectively unaffected |
+| **Nemotron-3-Super GPQA-Diamond** | **63.64%** | 88.73% | **28.3% (56/198)** | **parser (`finish=stop`)** | **OPEN — re-serve at 64k needed** |
+| **Lightning IFEval 64k composite** | **93.35%** | — | **0.9% (5/541)** | **budget residual (`finish=length`)** | corrected; residuals counted as wrong |
+
+Ornith's original GPQA score (69.70%) was the most serious case: **21.2% of items scored zero without
+being answered**. It was re-served in September 2026 at the standardized 64k ceiling, recovering
+22 new correct answers: **69.70% → 80.81% (160/198)**. 15 items (7.6%) still reached 64k without
+final content; those are **budget residuals** (`finish_reason=length`), not parser empties — the
+served-item rate (88.46%) is **not** a substitute score for those. Lightning IFEval was also
+replayed at 64k: 42/47 emitted content, 39 passed prompt-strict, and the score changed
+**86.14% → 93.35% (505/541)**. Its five residual empties all ended `finish_reason=length`. The
+remaining open re-serve is **Nemotron-3-Super GPQA** (63.64%, 56/198 parser empties).
 
 **Cross-model caveat:** any score in this repo taken through lm-eval against a vLLM endpoint with a
 reasoning parser is suspect until audited. Runs whose sample files were not retained cannot be checked.
@@ -386,7 +397,11 @@ Nemotron-3.5-Lightning gains **23 points** going 16k → 64k (53.03% → 76.26%,
 | Budget | `answer-line` | items at cap | median completion | total generated |
 | --- | ---: | ---: | ---: | ---: |
 | 32k | 40.40% (80/198) | 95/198 (48.0%) | 756 tok | 3.14 M tok |
-| 64k | 37.88% (75/198) | **104/198 (52.5%)** | 65,537 tok | 6.88 M tok |
+| 64k | 37.88% (75/198) | **104/198 (52.5%)** | 65,537 API-counted tok¹ | 6.88 M tok |
+
+¹ The API's usage accounting includes one boundary/special token beyond the requested 65,536
+generation-token ceiling. Treat 65,537 as the at-ceiling sentinel, not as evidence that the request
+exceeded its configured budget.
 
 Paired: 58 both-correct, 22 32k-only, 17 64k-only, 101 neither → **−2.53 pp [−8.7, +3.7],
 McNemar χ² = 0.41, p = 0.52**. Statistically indistinguishable.

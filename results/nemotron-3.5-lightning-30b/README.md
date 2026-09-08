@@ -43,9 +43,11 @@ Verified end-to-end before benchmarking (raw transcript: [`raw/smoke_tests.txt`]
 
 ## Throughput / latency — `vllm bench serve` concurrency sweep
 
-Measured 2026-08-12, **on-box** (inside `vllm_lightning` against `localhost:8000` → server ceiling,
-network excluded). Raw-completions path (`--backend openai --endpoint /v1/completions --ignore-eos`),
-fixed shape **512 input / 256 output** tokens. Concurrency swept 1→128 (the server's `--max-num-seqs`).
+Measured initially on 2026-08-12 and extended on 2026-09-08, **on-box** (inside
+`vllm_lightning` against `localhost:8000` → server ceiling, network excluded). Raw-completions path
+(`--backend openai --endpoint /v1/completions --ignore-eos`), fixed shape **512 input / 256 output**
+tokens, explicit `temperature=0`. The original server used `--max-num-seqs 128`; the extension used
+one unchanged `--max-num-seqs 512` configuration for c=192/256/384.
 
 | Concurrency | Output tok/s | Δ vs prev | Mean TTFT (ms) | Median TTFT (ms) | P99 TTFT (ms) | Mean TPOT (ms) |
 | ----------: | -----------: | --------: | -------------: | ---------------: | ------------: | -------------: |
@@ -60,31 +62,42 @@ fixed shape **512 input / 256 output** tokens. Concurrency swept 1→128 (the se
 | 64 | 559.6 | +11.3% | 1847 | 1071 | 5652 | 107.0 |
 | 96 | 649.1 | +16.0% | 2400 | 1466 | 8744 | 138.0 |
 | **128** | **719.0** | +10.8% | 2996 | 1547 | 11949 | 165.2 |
+| 192 | 836.5 | +16.3% | 5941 | 2474 | 19366 | 202.8 |
+| 256 | 852.3 | +1.9% | 9428 | 6168 | 26849 | 223.0 |
+| **384** | **926.2** | +8.7% | 20951 | 19873 | 45231 | 307.5 |
 
-**Still climbing at c=128 (+10.8%): this is the `--max-num-seqs 128` cap, not a saturation plateau.**
-The 88 GiB of free KV cache (23× concurrency headroom) means a higher `--max-num-seqs` would push peak
-throughput further. Three operating points:
-- **Single-stream (c=1):** **73.9 tok/s/user**, TTFT **136 ms**, TPOT **13 ms** — very snappy.
-- **Balanced (c≈16):** ~313 tok/s aggregate, TPOT ~48 ms, median TTFT ~0.9 s.
-- **Max measured (c=128):** **719 tok/s** aggregate, TPOT 165 ms, median TTFT ~1.5 s (mean 3.0 s;
-  the P99 tail grows with batch depth as expected).
+The extension raises the measured short-request ceiling from 719.03 tok/s at c=128 to
+**926.18 tok/s at c=384** (+28.8%), with 384/384 successful requests at every new point. Because the
+last point still rises by 8.7%, **926.18 tok/s is a measured floor, not a demonstrated plateau or
+hardware ceiling**. Latency is already severe there: median TTFT is 19.9 s, mean TPOT is 307.5 ms,
+and an estimated end-to-end latency is ~100 s (mean TTFT plus 256×mean TPOT). These 512+256-token requests measure short-context batch
+saturation; they do not establish deployable concurrency for 128K/256K contexts (tracked in TODO §7).
 
-Raw per-level output: [`raw/throughput_sweep/sweep.log`](raw/throughput_sweep/sweep.log).
+Operating points:
+- **Single-stream (c=1):** **73.9 tok/s/user**, TTFT **136 ms**, TPOT **13 ms**.
+- **Interactive boundary:** c≈48 is the highest measured point with mean TPOT below 100 ms
+  (502.7 tok/s aggregate, 89.3 ms TPOT).
+- **Short-context batch floor (c=384):** **926.18 tok/s**, but with ~19.9 s median TTFT and
+  an estimated ~100 s end-to-end latency from mean TTFT plus 256×mean TPOT.
+
+Raw output: [`raw/throughput_sweep/sweep.log`](raw/throughput_sweep/sweep.log) and
+[`raw/throughput_sweep_extended/sweep.log`](raw/throughput_sweep_extended/sweep.log); the exact
+extended launcher is retained beside the latter.
 
 ### Comparison vs the other Warpcore models
 
 | Model | Size | c=1 tok/s | c=1 TTFT | Peak tok/s | at concurrency |
 | ----- | ---- | --------: | -------: | ---------: | -------------- |
-| **Nemotron-3.5-Lightning-30B-A3B** | 30B / 3B act | **73.9** | **136 ms** | ~719 (cap) | c=128 (still climbing) |
+| **Nemotron-3.5-Lightning-30B-A3B** | 30B / 3B act | **73.9** | **136 ms** | **926.2 (floor)** | c=384 (still climbing) |
 | openai/gpt-oss-120b | 120B / ~5B act | 34 | 71 ms | ~709 | c≈256 |
 | Nemotron-3-Super-120B-A12B | 120B / 12B act | 15 | 447 ms | ~190 | c≈128 |
 
-**Lightning is the standout on this hardware for per-stream speed:** at c=1 it is **~2.2× faster than
-gpt-oss-120b** and **~4.9× faster than Nemotron-3-Super** per user, and it already **matches
-gpt-oss-120b's peak aggregate throughput (~719 vs ~709)** while being a quarter of the size and while
-still capped at c=128. For always-on / high-fan-out agent workloads (its design target) it is the most
-efficient model measured on Warpcore so far. (gpt-oss-120b's peak is measured at a higher c≈256; a
-matched-cap re-run of Lightning at `--max-num-seqs 256` would very likely exceed it.)
+**Lightning remains the standout on this hardware for per-stream speed:** at c=1 it is **~2.2× faster
+than gpt-oss-120b** and **~4.9× faster than Nemotron-3-Super** per user. Its extended short-request
+sweep also exceeds gpt-oss-120b's measured aggregate peak (**926 vs ~709 tok/s**), although that
+comparison is at different concurrency and does not describe long-context service. At c=384,
+Lightning's throughput is still rising but latency is batch-only; call 926 tok/s a measured floor,
+not a hardware ceiling.
 
 ## Quality — lm-eval-harness (measured 2026-08-12)
 
@@ -95,9 +108,9 @@ Measured independently on Warpcore against the live `vllm_lightning` endpoint (r
 | --------- | -: | ------ | ----- |
 | **GSM8K** (0-shot CoT) | 1319 | exact_match, flexible | **95.07%** (±0.60) |
 | | | exact_match, anchored line | 94.62% |
-| **IFEval** | 541 | prompt-level strict | **86.14%** (±1.49) |
-| | | prompt-level loose | 87.06% (±1.44) |
-| | | inst-level strict / loose | 85.49% / 86.09% |
+| **IFEval** | 541 | prompt-level strict, **64k replay composite** | **93.35%** (505/541; ±1.07) |
+| | | prompt-level loose | 94.27% (510/541; ±1.00) |
+| | | inst-level strict / loose | 94.72% (790/834) / 95.32% (795/834) |
 | **GPQA-Diamond** (0-shot CoT) | 198 | exact_match, **64k budget** | **76.26%** ✅ |
 | | | exact_match, 32k budget | 66.16% (±3.36) |
 | | | exact_match, 16k budget | 53.03% (truncation-floored) |
@@ -105,8 +118,9 @@ Measured independently on Warpcore against the live `vllm_lightning` endpoint (r
 **Eval config:** `lm-eval` 0.4.12, `local-chat-completions` backend against
 `http://localhost:8000/v1/chat/completions`, `--apply_chat_template`, **greedy `temperature=0`**
 (matches the other cards' fair-comparison setting rather than NVIDIA's recommended `temp=1.0`;
-Lightning is terse so token burn stays low). GSM8K/IFEval used a 8192-token generation budget at
-concurrency 8; GPQA at concurrency 4. GSM8K and GPQA use in-repo **clean-extract** task configs
+Lightning is terse so token burn stays low). GSM8K and the original IFEval run used an 8192-token
+generation budget at concurrency 8; the 47 originally empty IFEval prompts were replayed byte-for-byte
+at 65536 tokens and concurrency 4. GPQA used concurrency 4. The IFEval replay recovered content for 42/47 prompts; 5 reached the 64k ceiling (`finish_reason=length`) and remain wrong. Exact lm-eval 0.4.12 scoring added 39 prompt-strict and 77 instruction-strict successes. Artifacts: [`raw/quality/ifeval/replay_2026-09-08/`](raw/quality/ifeval/replay_2026-09-08/), [`results_64k_replay_corrected.json`](raw/quality/ifeval/results_64k_replay_corrected.json), and [`samples_ifeval_64k_replay_corrected.per_item.csv`](raw/quality/ifeval/samples_ifeval_64k_replay_corrected.per_item.csv). GSM8K and GPQA use in-repo **clean-extract** task configs
 ([`raw/gsm8k_cot_zeroshot_clean.yaml`](raw/gsm8k_cot_zeroshot_clean.yaml),
 [`raw/gpqa_diamond_cot_zeroshot_clean.yaml`](raw/gpqa_diamond_cot_zeroshot_clean.yaml) +
 [`raw/gpqa_utils.py`](raw/gpqa_utils.py)) that anchor the answer to a required final line and fall
@@ -236,9 +250,10 @@ distinguishable on this sample**: paired on the shared instances the difference 
 [−4, +18]**, which crosses zero (McNemar χ²=1.24 Yates-corrected, p≈0.27; uncorrected χ²=1.69, p≈0.19; exact p=0.26, on 18 vs 11 discordant pairs). Treat Lightning
 and Qwen3.6 as **tied** on SWE-bench pending a larger sample.
 
-> **This is a clean number.** 0 harness errors; 98/100 received a fair test verdict; the only 2
-> non-submissions are genuine model outcomes (`django-16938` hit the step limit, `django-13033` produced no
-> fix even on a clean retry) — not serving failures. Reaching it took work: a serving bug (below) initially
+> **This is the nominal deployment result, not a single-configuration capability estimate.** 98/100
+> received a test verdict. `django-16938` is a model-side context/step-budget outcome;
+> `django-13033` remained an `InternalServerError` and is the one infrastructure exclusion in the
+> separately reported fair denominator (51/99). Reaching 51/100 took work: a serving bug (below) initially
 > denied 11 instances a verdict, floored the score at 47/100, and had to be worked around by re-running
 > those 11 on a fresh endpoint.
 
@@ -246,14 +261,14 @@ and Qwen3.6 as **tied** on SWE-bench pending a larger sample.
 |---|---|
 | Resolved | **51 / 100 = 51%** |
 | Unresolved (genuine model failures) | 47 |
-| Non-submissions (real model outcomes) | 2 (`django-16938` step-limit, `django-13033` empty) |
-| Harness / grading errors | 0 |
+| Non-submissions | 2 (`django-16938` model-side; `django-13033` serving-side) |
+| Infrastructure exclusions for fair denominator | 1 (`django-13033`, `InternalServerError`) |
 | Sample | full n=100 (`--shuffle`, seed 42, `--slice 0:100`) |
 | Repos spanned | 11 (django 56, sympy 10, sphinx 10, astropy 5, scikit-learn 5, pytest 4, pydata 3, psf/matplotlib/pylint 2 each, pallets 1) |
 | Baseline (Qwen3.6-35B) | 44/100 — +7, but **not statistically distinguishable** (95% CI [−4, +18]) |
 | Head-to-head (shared 100) | 33 both · 18 Lightning-only · 11 Qwen-only · 38 neither |
 | Agent | mini-swe-agent 2.4.6, native tool-calling scaffold ([`raw/swebench/`](raw/swebench/)), `temp=0`, per-step `timeout=1800` |
-| Serving | vLLM `0.27.2rc1.dev193` (arm64 nightly), marlin, `qwen3_coder` tool-call + `nemotron_v3` reasoning parsers |
+| Serving | **Segmented:** vLLM `0.27.1` and `0.27.2rc1.dev193`; per-instance boundary unrecorded; marlin, `qwen3_coder` tool-call + `nemotron_v3` reasoning parsers |
 | Raw | [`raw/`](raw/) (results JSON, preds, launch script, robust scaffold yaml) |
 
 **Per-repo breakdown** (resolved / attempted, over all 100):
@@ -322,6 +337,13 @@ After this fix, **every instance produced a valid diff (0 patch-apply errors)** 
 51/100 above is post-fix and clean. Raw results, the robust config, and the launch script are under
 [`raw/`](raw/).
 
+Across these resumptions, serving used both `vllm/vllm-openai:v0.27.1` and the
+`cu129-nightly-aarch64` (`0.27.2rc1.dev193`) build. The surviving artifacts do not record a truthful
+per-instance build boundary, so the 51/100 aggregate is a **segmented result with an unrecorded
+boundary**; no per-ID attribution to either build is claimed. The version change plausibly affects
+reliability, so treat this as a provenance limitation even though the task set and grader were held
+constant.
+
 ## Not yet measured / next steps
 
 - **File the vLLM/GB10 long-context wedge upstream** — reproduced on both v0.27.1 and the 0.27.2rc1 nightly,
@@ -337,7 +359,9 @@ After this fix, **every instance produced a valid diff (0 patch-apply errors)** 
   command enables it (`--speculative_config.num_speculative_tokens 3 --speculative_config.model
   $DSPARK_CKPT --mamba-backend flashinfer --mamba-cache-mode align`). This baseline was run **without**
   spec-decode for a clean number; enabling DSpark is the lever to chase lower latency / higher tok/s.
-- **`--max-num-seqs 256` re-run** to find the true throughput ceiling (there's ~23× KV headroom).
+- **Long-context concurrency and effective-context study** — the present extension is a 512-input /
+  256-output short-request saturation test. TODO §7 defines separate 32K–256K serving sweeps and
+  effective-context quality measurements.
 
 ## Reproduce
 

@@ -14,14 +14,19 @@ for the 7 models already in the repo. It replaces ad-hoc adaptation of prior scr
 ### Hardware
 - **Inference host**: warpcore (DGX Spark, GB10, aarch64, ~121 GiB unified memory)
   SSH alias: `warpcore` → `140.221.17.30`, user `jchilders`
-- **Quality harness (lm-eval, SWE-bench client)**: runs ON warpcore in tmux, pointed at `localhost:8000`
-  Exception: SWE-bench test containers run on the Mac mini (x86_64, `csi0359637.cels.anl.gov`)
-  and call warpcore over the network (`http://csi370295.alcf.anl.gov:8000/v1`)
+  warpcore runs: vLLM serving + on-box vllm throughput sweeps only.
+- **Benchmark clients (lm-eval, SWE-bench)**: run on the Mac mini / Tribble (x86_64,
+  `csi0359637.cels.anl.gov`), calling the warpcore remote endpoint at
+  `http://csi370295.alcf.anl.gov:8000/v1`. Use `/usr/bin/screen` and stable paths under `$HOME`
+  (not `/tmp`) for long-running client sessions — `/tmp` is reaped by macOS and has caused
+  multiple data losses (see PROVENANCE.md §5).
+  Exception: `vllm bench serve` throughput sweeps run ON warpcore (inside the serving container),
+  as they need local access to the engine's metrics and completions port.
 
 ### Fixed versions — do not change without updating this file
 | Component | Version | Where pinned |
 |---|---|---|
-| lm-eval | 0.4.12 | `/tmp/lmeval-venv` on warpcore |
+| lm-eval | 0.4.12 | Mac mini venv (install under `~/workspaces/`) |
 | Task configs | v3.0 (GPQA), v1.0 (GSM8K) | `results/<prior-model>/raw/*.yaml` |
 | SWE-bench scaffold | mini-swe-agent, `qwen3_xml` parser | model config yaml |
 | SWE-bench instance set | n=100, `--shuffle --seed 42 --slice 0:100` | all run scripts |
@@ -97,14 +102,16 @@ docker run -d --rm \
 | Model family | `--reasoning-parser` | `--tool-call-parser` |
 |---|---|---|
 | gpt-oss-120b | `openai_gptoss` | `openai` |
-| Nemotron-3-Super | `openai_gptoss` | `openai` |
+| Nemotron-3-Super | `super_v3` via the checkpoint's `super_v3_reasoning_parser.py` plugin | `qwen3_coder` |
 | Nemotron-3.5-Lightning | `nemotron_v3` | `openai` |
 | Ornith-1.0-35B | `qwen3` | `qwen3_xml` |
 | Laguna-S-2.1 | none | none (instruct model) |
 | Qwen3-family | `qwen3` | `qwen3_xml` |
 
 **gpu-memory-utilization rule:**
-- Remote-client workloads (lm-eval from warpcore, SWE-bench client from Mac mini): `0.90`
+- Remote-client workloads (lm-eval from Mac mini, SWE-bench client from Mac mini): `0.90`
+  These clients call warpcore over the network; agent processes run elsewhere and do not compete
+  with vLLM for the GB10's unified memory pool.
 - On-host agent harness (pi-30, any harness running ON warpcore): `0.55`
   → GB10 has unified memory; agent processes compete with vLLM for the same pool
 
@@ -124,8 +131,13 @@ The reasoning parser is broken. Fix before proceeding (see ISSUES.md #15).
 ### 1c. Preflight gate — mandatory, no exceptions
 
 ```bash
-# On warpcore, from the repo root
-make preflight-serving
+# From Mac mini / Tribble, from the repo root. Values must come from this model's
+# retained sweep and intended client configuration.
+make quality-preflight MODE=live \
+  ENDPOINT=http://csi370295.alcf.anl.gov:8000/v1 \
+  MODEL=<exact-model-id> MAX_TOKENS_PROBE=<usable-canary-budget> \
+  MAX_GEN_TOKS=<generation-ceiling> AGGREGATE_TOK_S=<measured-at-C> \
+  CONCURRENCY=<C> CLIENT_TIMEOUT=<seconds>
 ```
 
 - Exit 0 → proceed
@@ -161,7 +173,12 @@ docker exec vllm_prebuilt vllm bench serve \
 
 **Reading the results:**
 - Output tok/s climbs then plateaus → use the concurrency at plateau for quality runs
-- If still climbing at your highest concurrency → you hit `--max-num-seqs` cap, not saturation
+- If still climbing at your highest concurrency → this is a **floor**, not a ceiling.
+  The `--max-num-seqs` cap reading was **falsified on Laguna** (§3a): a large rise at c=128 looked
+  like a cap, but c=192 added only +10.9% and c=256 only +2.9% — the heuristic overstated headroom.
+  `SchedulerConfig.max_num_seqs` also admitted 150–172 concurrent while its documented default was 128.
+  **Always extend the sweep past the knee** (to c=256 or c=384) before reporting a peak.
+  Report the measured top point as a measured floor if you cannot extend, not as a cap-limited ceiling.
 - For quality runs: use **½ × saturation concurrency** to leave headroom for long reasoning traces
 
 **Save the sweep log** to `results/<model>/raw/throughput_sweep/vllm_sweep.sh` and
@@ -181,7 +198,7 @@ Run all four benchmarks. Order matters: GPQA is longest, run it first.
 
 ### Before every run: verify endpoint still alive
 ```bash
-ssh warpcore 'curl -s -m6 http://localhost:8000/v1/models'
+curl -s -m6 http://csi370295.alcf.anl.gov:8000/v1/models
 ```
 
 ### 3a. GPQA-Diamond (canonical task config)
@@ -194,7 +211,9 @@ ssh warpcore 'curl -s -m6 http://localhost:8000/v1/models'
 output_budget_tokens = 65536          # canonical for all models
 model_tok_per_sec = <from sweep>      # single-stream warm throughput
 max_item_time_s = output_budget_tokens / model_tok_per_sec
+required_timeout_s = 2 * max_item_time_s  # default quality-preflight safety factor
 # e.g. at 4 tok/s: 65536/4 = 16384s (~4.5h) per item in the worst case
+# required timeout at the default 2x safety factor = 32768s (~9.1h)
 # With concurrency=4: effective throughput = 4 * tok/s
 # Total time ≈ (198 items / concurrency) * max_item_time_s * 0.5 (most finish early)
 ```
@@ -203,13 +222,17 @@ Gate on p90, not mean. If the arithmetic says a single item could take >2h at yo
 
 ```bash
 # Run script template (adapt concurrency and timeout from arithmetic above)
+# Runs ON Mac mini / Tribble — calls warpcore remote endpoint
+# LMEVAL: path to lm_eval binary on the Mac mini (e.g. ~/workspaces/lmeval-venv/bin/lm_eval)
 MODEL="<MODEL_ID>"
-BASE="http://localhost:8000/v1/chat/completions"
-TASK_DIR="results/<model>/raw/quality/gpqa"
+BASE="http://csi370295.alcf.anl.gov:8000/v1/chat/completions"
+TASK_DIR="$HOME/workspaces/warpcore-benchmarks/results/<model>/raw/quality/gpqa"
+LMEVAL_BIN="$HOME/workspaces/lmeval-venv/bin/lm_eval"
+CLIENT_TIMEOUT=<TIMEOUT_FROM_QUALITY_PREFLIGHT>
 
-/tmp/lmeval-venv/bin/lm_eval \
+"$LMEVAL_BIN" \
   --model local-chat-completions \
-  --model_args "model=${MODEL},base_url=${BASE},num_concurrent=4,max_retries=3,tokenized_requests=False,timeout=30000" \
+  --model_args "model=${MODEL},base_url=${BASE},num_concurrent=4,max_retries=3,tokenized_requests=False,timeout=${CLIENT_TIMEOUT}" \
   --tasks gpqa_diamond_cot_zeroshot_clean \
   --include_path "${TASK_DIR}" \
   --gen_kwargs "max_gen_toks=65536,temperature=0" \
@@ -219,10 +242,11 @@ TASK_DIR="results/<model>/raw/quality/gpqa"
   2>&1 | tee "${TASK_DIR}/gpqa.log"
 ```
 
-**Always run in tmux on warpcore.** A session disconnect kills the client and wastes the GPU time.
+**Always run in /usr/bin/screen on the Mac mini under $HOME paths.** A session disconnect kills the
+client and wastes the GPU time. Use stable `$HOME`-relative output paths — `/tmp` is reaped by macOS.
 
 ```bash
-tmux new-session -d -s gpqa_<shortname> "bash run_gpqa.sh"
+/usr/bin/screen -dmS gpqa_<shortname> bash run_gpqa.sh
 ```
 
 ### 3b–c. GSM8K and IFEval
@@ -233,22 +257,22 @@ Use its short-form **8192-token** ceiling.
 **IFEval:** use lm-eval's `ifeval` task with the same **65536-token ceiling** as GPQA for reasoning models. Although many IFEval prompts are short, a reasoning model can spend its completion budget in hidden thinking before emitting final content; 8k silently depressed Ornith by 2.96 points even after replay.
 
 ```bash
-# GSM8K (short-form)
-/tmp/lmeval-venv/bin/lm_eval \
+# GSM8K (short-form) — run from Mac mini / Tribble
+<LMEVAL_BIN> \
   --model local-chat-completions \
-  --model_args "model=${MODEL},base_url=${BASE},num_concurrent=<N_FROM_SWEEP>,max_retries=8,tokenized_requests=False,timeout=3600" \
+  --model_args "model=${MODEL},base_url=http://csi370295.alcf.anl.gov:8000/v1/chat/completions,num_concurrent=<N_FROM_SWEEP>,max_retries=8,tokenized_requests=False,timeout=3600" \
   --tasks gsm8k_cot_zeroshot_clean \
-  --include_path "results/<model>/raw" \
+  --include_path "$HOME/workspaces/warpcore-benchmarks/results/<model>/raw" \
   --gen_kwargs "max_gen_toks=8192,temperature=0" \
-  --output_path "results/<model>/raw/quality/gsm8k" --log_samples --seed 42
+  --output_path "$HOME/workspaces/warpcore-benchmarks/results/<model>/raw/quality/gsm8k" --log_samples --seed 42
 
-# IFEval (offline reasoning ceiling)
-/tmp/lmeval-venv/bin/lm_eval \
+# IFEval (offline reasoning ceiling) — run from Mac mini / Tribble
+<LMEVAL_BIN> \
   --model local-chat-completions \
-  --model_args "model=${MODEL},base_url=${BASE},num_concurrent=<N_FROM_SWEEP>,max_retries=8,tokenized_requests=False,timeout=7200" \
+  --model_args "model=${MODEL},base_url=http://csi370295.alcf.anl.gov:8000/v1/chat/completions,num_concurrent=<N_FROM_SWEEP>,max_retries=8,tokenized_requests=False,timeout=7200" \
   --tasks ifeval \
   --gen_kwargs "max_gen_toks=65536,temperature=0" \
-  --output_path "results/<model>/raw/quality/ifeval" --log_samples --seed 42
+  --output_path "$HOME/workspaces/warpcore-benchmarks/results/<model>/raw/quality/ifeval" --log_samples --seed 42
 ```
 
 ### 3d. SWE-bench (runs from the Mac mini, not warpcore)
@@ -379,14 +403,14 @@ Never compare two models whose submitted sets differ.
 
 | Failure | Symptom | Catch |
 |---|---|---|
-| Reasoning parser broken (ISSUES #15) | content=null, finish=stop, reasoning populated | `make preflight-serving` |
+| Reasoning parser broken (ISSUES #15) | content=null, finish=stop, reasoning populated | `make quality-preflight MODE=live ...` |
 | Output budget too small | content=null, finish=length | Budget arithmetic before launch |
 | Wrong concurrency | Run abandoned at timeout | Throughput sweep first |
 | Docker cold cache (SWE-bench) | 22/100 instances lost | Smoke test + pre-pull |
 | CUTLASS crash (tool-calling) | Engine dies, docker ps -a empty | Use marlin container |
 | Unified-memory OOM | Engine OOM-killed, no logs | Use --gpu-memory-utilization 0.55 for on-host harness |
 | Stale task config | KeyError: choices, or wrong dataset_path | Copy canonical v3.0 YAML |
-| Lost tmux session | Run killed mid-way | Always tmux on warpcore |
+| Lost screen session | Run killed mid-way | Always /usr/bin/screen on Mac mini, $HOME paths |
 
 ---
 

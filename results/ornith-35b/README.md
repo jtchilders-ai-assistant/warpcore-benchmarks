@@ -1,6 +1,6 @@
 # ornith-ai/Ornith-1.0-35B-FP8 — Warpcore Benchmark Card
 
-**Date:** 2026-08-18 → 2026-08-20
+**Date:** 2026-08-18 → 2026-08-20; throughput extension 2026-09-08
 **Model:** `ornith-ai/Ornith-1.0-35B-FP8` — MoE, **~35B total**, **hybrid Mamba + attention**
 (`qwen3_5_moe` arch), **256K context**, vision-capable. Released by DeepReinforce as an
 **agentic-coding** model. Quantization: **compressed-tensors W8A8 FP8** (~34.85 GiB of weights).
@@ -111,25 +111,31 @@ shape **512 input / 256 output** tokens.
 | 48 | 317.74 | +19.1% | 1857 | 1209 | 5946 | 143.6 |
 | 64 | 359.03 | +13.0% | 2266 | 1283 | 8195 | 168.8 |
 | 96 | 418.15 | +16.5% | 3095 | 1419 | 12783 | 216.1 |
-| **128** | **464.38** | +11.1% | 3986 | 1551 | 17822 | 257.7 |
+| 128 | 464.38 | +11.1% | 3986 | 1551 | 17822 | 257.7 |
+| 192 | 549.38 | +18.3% | 7819 | 1799 | 29262 | 311.9 |
+| **256** | **559.48** | +1.8% | 13712 | 8543 | 42269 | 342.8 |
+| 384 | 557.78 | −0.3% | 50272 | 30151 | 125004 | 345.2 |
 
-**Monotonic, no collapse, and still climbing at c=128 (+11.1%) — 464 tok/s is a floor set by the
-`--max-num-seqs 128` cap, not a plateau.** Three operating points:
+The extension establishes a measured throughput plateau at **~559 tok/s around c=256**. Going from
+c=256 to c=384 changes output throughput by −0.3% while median TTFT grows from 8.5 s to 30.2 s and
+P99 TTFT from 42.3 s to 125.0 s. The earlier c=128 result was therefore a measured floor, but the
+old claim that it proved a `--max-num-seqs 128` cap was too strong. Three operating points:
 - **Single-stream (c=1):** **36.95 tok/s/user**, TTFT **165 ms**, TPOT **26.5 ms**.
 - **Balanced (c≈16):** ~208 tok/s aggregate, TPOT ~73 ms, median TTFT ~1.0 s.
-- **Max measured (c=128):** **464 tok/s** aggregate, TPOT 258 ms, median TTFT 1.55 s (P99 17.8 s — the
-  tail grows with batch depth as expected).
+- **Maximum throughput (c≈256):** **559 tok/s** aggregate, TPOT 343 ms, median TTFT 8.54 s.
+- **Do not use c=384:** throughput is unchanged while median TTFT is 30.2 s and P99 is 125 s.
 
-Raw per-level output: [`raw/throughput_sweep/sweep.log`](raw/throughput_sweep/sweep.log).
+Raw output: [`raw/throughput_sweep/sweep.log`](raw/throughput_sweep/sweep.log) for c=1–128 and
+[`raw/throughput_sweep_extended/sweep.log`](raw/throughput_sweep_extended/sweep.log) for c=192–384.
 
 ### Comparison vs the other Warpcore models
 
 | Model | Size | c=1 tok/s | c=1 TTFT | Peak tok/s | at concurrency |
 | ----- | ---- | --------: | -------: | ---------: | -------------- |
-| nvidia/Nemotron-3.5-Lightning-30B-A3B | 30B / 3B act | 73.9 | 136 ms | ~719 (cap) | c=128 (still climbing) |
+| nvidia/Nemotron-3.5-Lightning-30B-A3B | 30B / 3B act | 73.9 | 136 ms | 926 (floor) | c=384 (still climbing) |
 | openai/gpt-oss-120b | 120B / ~5B act | 34 | 71 ms | ~709 | c≈256 |
 | Qwen/Qwen3.6-35B-A3B | 35B / 3B act | — | — | ~487 | c=128 |
-| **ornith-ai/Ornith-1.0-35B-FP8** | **~35B MoE (FP8)** | **36.95** | **165 ms** | **~464 (cap)** | **c=128 (still climbing)** |
+| **ornith-ai/Ornith-1.0-35B-FP8** | **~35B MoE (FP8)** | **36.95** | **165 ms** | **~559** | **c≈256** |
 | Intel/Qwen3.5-122B-A10B-int4 | 122B / 10B act | 26.9 | — | ~228 | c≈192 |
 | nvidia/Nemotron-3-Super-120B-A12B | 120B / 12B act | 15 | 447 ms | ~190 | c≈128 |
 
@@ -154,7 +160,7 @@ the **client Mac mini (x86_64)**; the model is served on Warpcore.
 |---|---|
 | Resolved | **73 / 100 = 73.0%** |
 | Unresolved (genuine model failures) | 18 |
-| Non-submissions | 9 empty patches (8 `LimitsExceeded`, 1 `ContextWindowExceededError`) |
+| Non-submissions | 9 empty patches; historical notes classified 8 `LimitsExceeded` and 1 `ContextWindowExceededError`, but the underlying exit-status artifacts are lost |
 | Harness / grading errors | **0** |
 | Sample | full n=100 (`--shuffle`, **seed 42**, `--slice 0:100`) — **identical instance set** to the Lightning and Qwen3.6 runs |
 | Repos spanned | 11 |
@@ -183,18 +189,19 @@ the **client Mac mini (x86_64)**; the model is served on Warpcore.
 | pallets (flask) | 1 | 1 |
 | **Total** | **73** | **100** |
 
-**This is a clean number: 0 harness errors and 91/100 instances received a fair test verdict.** The 9
-non-submissions are genuine model/agent-budget outcomes (8 hit the step/cost limit, 1 blew the context
-window), not serving failures — notably the **vLLM/GB10 long-context wedge that plagued the Lightning
-SWE-bench run did not recur** on this stack (`0.27.2rc1` aarch64 + Marlin FP8 at util 0.55). The robust
-submit step (`git add -A && git diff --cached`, carried over from the Lightning run) again produced
-**zero patch-apply errors**.
+**The aggregate is clean with respect to the retained grading report: 0 harness errors and 91/100
+instances received a test verdict.** The nine non-submission IDs are retained, but their original
+per-instance exit statuses are not: trajectories and the run log were lost from `/tmp`. Historical
+notes classified eight as `LimitsExceeded` and one as `ContextWindowExceededError`, but that breakdown
+is no longer independently auditable from repository artifacts. Notably, no serving failures appear in
+the retained report. The robust submit step (`git add -A && git diff --cached`, carried over from the
+Lightning run) produced **zero patch-apply errors**.
 
 **The head-to-head is the striking part.** On the identical 100 instances, Ornith resolves **27 that
 Lightning misses** while losing only **5** that Lightning gets. That is not sampling noise — it is a
 real capability gap on agentic patch generation, and it is consistent with Ornith being purpose-built
-by DeepReinforce for agentic coding. Note the honest inversion this creates: Ornith is *behind*
-Lightning and Qwen3.6 on GPQA-Diamond general reasoning (**80.81%** vs 76.26% / 82.32%) yet far *ahead* on
+by DeepReinforce for agentic coding. Note the honest inversion this creates: Ornith is *ahead of
+Lightning but behind Qwen3.6* on GPQA-Diamond general reasoning (**80.81%** vs 76.26% / 82.32%) yet far *ahead* on
 SWE-bench. **Benchmark-suite rank does not transfer across task families** — pick the model for the
 job, not for the leaderboard.
 
@@ -205,8 +212,9 @@ job, not for the leaderboard.
   here are exact even though the absolute score is a sample.
 - **The sample is django-heavy (56/100)** and Ornith is especially strong there (44/56 = 79%). Django
   instances skew slightly easier, so a balanced 500-item run would likely land somewhat lower.
-- **9 instances never submitted a patch** (agent budget, not model incapability on the merits). With a
-  larger step/cost limit the ceiling is higher than 73.
+- **9 instances never submitted a patch.** Their exact exit causes are no longer auditable because the
+  trajectories were lost; the historical 8-limit/1-context breakdown should not be treated as a
+  repository-verifiable result. A larger-budget re-run is required to measure whether 73 is conservative.
 
 ## Agentic coding — pi-30 (measured 2026-08-20)
 
@@ -244,9 +252,9 @@ agentic models. SWE-bench Verified is the benchmark with headroom; treat pi-30 a
 
 - **Full SWE-bench Verified (n=500)** — 73/100 on a shuffle is strong enough to be worth confirming at
   full scale; this is the leaderboard-final number.
-- **Raise the SWE-bench step/cost limit** — 8 of the 9 non-submissions were `LimitsExceeded`, so the
-  73/100 is a mild underestimate of the model's reach.
-- **`--max-num-seqs > 128` re-run** to find the true throughput ceiling (still climbing +11% at the cap).
+- **Raise the SWE-bench step/cost limit in a provenance-complete re-run** — historical notes attribute
+  8 of 9 non-submissions to `LimitsExceeded`, but the lost trajectories prevent verification.
+- ~~**`--max-num-seqs > 128` re-run**~~ — completed 2026-09-08; plateau is ~559 tok/s at c≈256.
 - **Vision.** The checkpoint is vision-capable; no multimodal benchmark has been run on Warpcore.
 - **A non-Marlin FP8 path.** If a future vLLM/CUDA build lands a working CUTLASS W8A8 FP8 kernel for
   SM 12.1, re-measure throughput — the current 36.95 tok/s c=1 is on a compatibility fallback kernel.
@@ -254,28 +262,20 @@ agentic models. SWE-bench Verified is the benchmark with headroom; treat pi-30 a
 
 ## Reproduce
 
-Serving (on warpcore) — full script: [`raw/launch_ornith.sh`](raw/launch_ornith.sh):
+Serving (on warpcore) — full script: [`raw/launch_ornith.sh`](raw/launch_ornith.sh). It requires an
+explicit workload profile so unified-memory headroom cannot be selected accidentally:
 ```bash
-docker rm -f vllm_ornith 2>/dev/null
-docker run -d --name vllm_ornith --gpus all --network host --ipc host \
-  -v ~/.cache/huggingface:/root/.cache/huggingface \
-  -e VLLM_ALLOW_LONG_MAX_MODEL_LEN=1 \
-  -e VLLM_MARLIN_USE_ATOMIC_ADD=1 \
-  -e VLLM_TEST_FORCE_FP8_MARLIN=1 \
-  vllm/vllm-openai:cu129-nightly-aarch64 \
-  --model ornith-ai/Ornith-1.0-35B-FP8 \
-  --served-model-name ornith-ai/Ornith-1.0-35B-FP8 \
-  --moe-backend marlin \
-  --max-model-len 262144 \
-  --gpu-memory-utilization 0.90 \
-  --enable-prefix-caching \
-  --enable-auto-tool-choice --tool-call-parser qwen3_xml \
-  --reasoning-parser qwen3 \
-  --trust-remote-code --host 0.0.0.0 --port 8000
+./launch_ornith.sh throughput   # util=0.90, max-num-seqs=512; remote clients/on-box sweep
+./launch_ornith.sh agentic      # util=0.55, max-num-seqs=32; on-box agent processes
 ```
-Use `--gpu-memory-utilization 0.55` for the **agentic** runs (host headroom — see the Lightning card's
-unified-memory OOM note; the GB10's KV cache shares the same 121 GiB pool as system RAM). Clients must
-always send an explicit `max_tokens` (vLLM has no default-request-budget flag) — ≥4k chat, **64k offline reasoning benchmark**.
+Both profiles force Marlin for the MoE experts and dense/linear FP8 GEMMs, serve a 262,144-token
+window, enable prefix caching, and use the `qwen3_xml` tool-call and `qwen3` reasoning parsers.
+The **agentic** profile reproduces the host-headroom settings used for SWE-bench and pi-30; the
+**throughput** profile reproduces the extended sweep's serving configuration. GB10 GPU and host memory
+share the same 121 GiB pool, so these profiles are not interchangeable.
+
+Clients must always send an explicit `max_tokens` — at least 4k for chat and **64k for offline
+reasoning benchmarks**.
 
 > **CORRECTION (2026-08-26):** *"vLLM has no default-request-budget flag"* is **wrong**. With
 > `--generation-config auto` (the default), vLLM loads the checkpoint's `generation_config.json` and

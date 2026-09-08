@@ -95,6 +95,12 @@ def collect() -> dict:
     ornith_ifeval["src"] += " + raw/quality/ifeval/results_64k_replay_corrected.json"
     out["qwen3.6-35b-a3b"]["gpqa"]["note"] = "non-thinking mode"
 
+    # Lightning IFEval: original 8k run plus byte-identical 64k replay of 47 parser empties.
+    light_ifeval = out["nemotron-3.5-lightning-30b"]["ifeval"]
+    light_ifeval["value"], light_ifeval["stderr"] = 93.35, 1.07
+    light_ifeval["note"] = "64k replay composite; 5/541 (0.9%) still budget-truncated"
+    light_ifeval["src"] += " + raw/quality/ifeval/results_64k_replay_corrected.json"
+
     # Lightning's headline GPQA is the 64k composite: the 32k run plus a 64k
     # replay of the 41 truncated items (151/198). The raw 32k file alone is 66.16.
     light = out["nemotron-3.5-lightning-30b"]["gpqa"]

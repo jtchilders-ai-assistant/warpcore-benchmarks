@@ -1,8 +1,8 @@
-# Concatenated per-segment mini-swe-agent exit_statuses across the full n=100 shuffle run.
-# Segments (chronological): initial 55-instance run + resume segments filling to 100.
-# Final-segment counts appear in exit_statuses_shuffle100_final_segment.yaml.
-# NOTE: instances re-appear across segments on resume; the authoritative per-instance
-#       verdict is the grader output in swebench_verified_shuffle100_report.json.
+# Raw concatenation of per-segment mini-swe-agent exit_statuses from the n=100 shuffle run.
+# HUMAN-READABLE PROVENANCE ONLY: this file intentionally preserves seven repeated
+# top-level `instances_by_exit_status` mappings and is not valid as one machine-readable
+# union. Consumers must use the truthful per-segment files, such as
+# exit_statuses_final_segment_n28.yaml, or parse/merge the raw segments explicitly.
 
 instances_by_exit_status:
     Submitted:

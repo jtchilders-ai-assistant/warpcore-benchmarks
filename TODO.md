@@ -1,32 +1,13 @@
 # TODO — re-runs needed for a systematic, apples-to-apples comparison
 
-**Status as of 2026-08-24.** This file tracks the work required to turn the per-model cards in
+**Status as of 2026-09-08.** This file tracks the work required to turn the per-model cards in
 [`results/`](results/) into a *systematic* comparison. Models here were benchmarked over roughly a
-month (2026-07-27 → 2026-08-24), and the harness, the serving stack, and our understanding of the
+month (2026-07-27 → 2026-09-08), and the harness, the serving stack, and our understanding of the
 failure modes all changed underneath us. Several published numbers are therefore **not comparable to
 each other**, and a few are **known-wrong in a direction we can quantify**.
 
 Nothing below is a claim that a model is better or worse than its card says. Each item states what
 was measured, why it is suspect, and what measurement would settle it.
-
-> **In flight right now:** Laguna-S-2.1-NVFP4 SWE-bench Verified n=100 is **running** on the Mac mini
-> (`screen -r laguna_swe_n100`, started 2026-08-22 23:22, 60/100 instances written to
-> `/tmp/laguna_swe_n100/preds.json` as of 2026-08-24 17:27). Do not restart the endpoint
-> (`vllm_laguna` on warpcore) or take the GPU for another model until it finishes — see
-> [§0](#0-in-flight-do-not-disturb).
-
----
-
-## 0. In flight — do not disturb
-
-- [ ] **Laguna-S-2.1-NVFP4 — SWE-bench Verified, n=100 seed-42 shuffle**
-  - Host: Mac mini (`csi0359637.cels.anl.gov`), `screen -ls` → `16175.laguna_swe_n100`.
-  - Output: `/tmp/laguna_swe_n100/` (60 instance dirs, 39 non-empty patches so far).
-  - Endpoint: `vllm_laguna` container on warpcore, up 2 days.
-  - It is slow by design — Laguna is 17.65 tok/s single-stream, the slowest model in the repo
-    (see [the card](results/laguna-s-2.1-118b/README.md#throughput-sweep)).
-  - **On completion:** grade with the SWE-bench harness, write the card's Agentic section, and add
-    the row to the top-level README. Then the GPU is free for §1.
 
 ---
 
@@ -37,14 +18,16 @@ The root cause is [ISSUES.md #15](ISSUES.md): with `--reasoning-parser`, vLLM ca
 items score **zero without ever being answered**. HTTP 200, `finish_reason: stop`, tokens billed, no
 retries, no truncation — invisible unless you count empties in `samples_*.jsonl`.
 
-Audit of every retained sample file (recomputed 2026-08-24, not copied from the cards):
+Audit of every retained sample file (recomputed 2026-09-08, not copied from the cards).
+**Note: Ornith empties at 64k are 64k-budget residuals (`finish_reason=length`), NOT parser empties
+(`finish_reason=stop`). See ISSUES.md #15 for the classification table.**
 
 | Model / task | Published | Served-only | Empty | In ISSUES #15? |
 | --- | ---: | ---: | ---: | --- |
-| **Nemotron-3-Super GPQA-Diamond** (16k) | **63.64%** | 88.73% | **56/198 = 28.3%** | ❌ **no — new** |
-| **Lightning IFEval** prompt-strict | **86.14%** | 94.33% | **47/541 = 8.7%** | ❌ **no — new** |
-| Ornith GPQA-Diamond **64k composite** | **80.81%** | — | **15/198 = 7.6%** | budget-limited tail retained |
-| Ornith IFEval prompt-strict **64k composite** | **88.54%** | — | **11/541 = 2.0%** | budget-limited tail retained |
+| **Nemotron-3-Super GPQA-Diamond** (16k) | **63.64%** | 88.73% | **56/198 = 28.3%** | ❌ **yes — parser empty (`finish=stop`)** |
+| **Lightning IFEval 64k composite** prompt-strict | **93.35%** | — | **5/541 = 0.9%** | ⚠️ budget residual (`finish=length`) — re-serve would not help |
+| Ornith GPQA-Diamond **64k composite** | **80.81%** | — | **15/198 = 7.6%** | ⚠️ budget residual (`finish=length`) — re-serve would not help |
+| Ornith IFEval prompt-strict **64k composite** | **88.54%** | — | **11/541 = 2.0%** | ⚠️ budget residual (`finish=length`) — re-serve would not help |
 | Laguna IFEval prompt-strict | 75.79% | — | 29/541 = 5.4% | ✅ yes, floor |
 | Laguna GSM8K | 83.40% → **96.13%** | 97.09% | 186/1319 = 14.1% | ✅ **corrected** |
 | Lightning GSM8K | 95.07% | 96.83% | 24/1319 = 1.8% | negligible |
@@ -75,18 +58,18 @@ Audit of every retained sample file (recomputed 2026-08-24, not copied from the 
     for 27/42 and 22 new correct answers: **69.70% → 80.81% (160/198)**. 15 items (7.6%) still
     reached 64k without final content and remain counted as wrong; raw replay artifacts are committed.
 
-- [x] **1c (Ornith portion). Re-serve the 28 empty IFEval items**
-  - Completed 2026-09-06–07. 11 recovered at 8k; the remaining 17 were escalated to 64k, recovering
-    6 more. Exact lm-eval IFEval scoring changes prompt-strict **85.58% → 88.54% (479/541)**;
-    11 items (2.0%) still reached 64k without final content. Lightning and Laguna remain open.
-  - Lightning samples are committed at
-    `results/nemotron-3.5-lightning-30b/raw/quality/ifeval/.../samples_*.jsonl`.
+- [x] **1c. Re-serve the Ornith and Lightning empty IFEval items**
+  - Ornith completed 2026-09-06–07. Exact lm-eval scoring changed prompt-strict
+    **85.58% → 88.54% (479/541)**; 11 items (2.0%) still reached 64k without final content.
+  - Lightning completed 2026-09-08. The 64k replay recovered content for 42/47 parser empties and
+    39 prompt-strict successes: **86.14% → 93.35% (505/541)**. Five items (0.9%) reached 64k
+    without final content; all are budget residuals. Raw replay and corrected composite artifacts are
+    committed under `results/nemotron-3.5-lightning-30b/raw/quality/ifeval/`. Laguna remains open.
 
-- [ ] **1d. Add Nemotron-3-Super GPQA and Lightning IFEval to the ISSUES #15 impact table**
-  - The table currently lists only Laguna and Ornith. Two more affected scores were found in the
-    2026-08-24 audit. ISSUES #15 says "any score in this repo taken through lm-eval against a vLLM
-    endpoint with a reasoning parser is suspect until audited" — this closes out the audit for
-    every model whose samples survive.
+- [x] **1d. Add Nemotron-3-Super GPQA and Lightning IFEval to the ISSUES #15 impact table**
+  - Done: both rows added to ISSUES.md #15 impact table, distinguishing parser empties
+    (`finish=stop`) from Ornith's 64k budget residuals (`finish=length`). Also added
+    Nemotron-Super GPQA and Lightning IFEval as open items requiring re-serve.
 
 - [ ] **1e. Standing rule: always run lm-eval with `--log_samples`, and commit the sample files**
   - **gpt-oss-120b and Qwen3.6-35B sample files were not retained** (checked both hosts — only
@@ -197,15 +180,16 @@ problem difficulty — that assumption is far safer here than for a genuine mode
       Ornith's committed config with **exactly two** deliberate differences (`model_name`, and
       `pull_timeout: 1800`) — verified by a structural diff, so the robust `git add -A` submit and
       all limits are Ornith's verbatim. Blocks until the endpoint serves the expected model and all
-      100 images are present. Cost ~11 h generation + ~20 min grading; needs the GPU, so it waits
-      for Laguna.
+      100 images are present. Cost ~11 h generation + ~20 min grading; needs the GPU.
 - [ ] **2a-ii. Record the fair-verdict count (`completed_instances`) next to every SWE-bench score**
       in the top-level README table. A resolve rate over 66 attempts and one over 91 are different
       measurements and the table should say so. Report **both** raw resolves and
       resolves-among-graded; the first is the deployment answer, the second isolates capability.
-- [ ] **2a-iii. Commit Ornith's `exit_statuses_*.yaml`** — it is the only model missing the
-      exit-status breakdown in `raw/swebench/`, so its 9 non-submissions can't be re-audited from
-      the repo alone.
+- [x] **2a-iii. Classify Ornith's missing `exit_statuses_*.yaml` as unrecoverable.** The original
+      trajectories were written under `/tmp/ornith_swe_n100` and reaped by macOS on 2026-08-24;
+      no run log or exit-status artifact survives locally, remotely, in git, or in stashes. The nine
+      empty-patch IDs remain derivable from the committed results JSON, but their per-instance causes
+      cannot be reconstructed honestly. A true exit-status file now requires a full re-run.
 - [x] **2a-iv. Recover Qwen3.6's agent config.** ~~Neither config nor launch script is committed.~~
       **Done 2026-08-25**: reconstructed from the trajectories' embedded `info.config` and committed
       alongside the run log. Limits confirmed identical to Ornith's; the gap is pull-timeout
@@ -252,18 +236,12 @@ reasoning-model output — the same class of parse artifact the clean task was w
 
 - [ ] **2c-i. Re-run gpt-oss-120b and Nemotron-3-Super GSM8K** on the clean-extract task
       (`results/nemotron-3.5-lightning-30b/raw/gsm8k_cot_zeroshot_clean.yaml`). ~3 h each.
-- [ ] **2c-ii. Fix the committed `gsm8k_cot_zeroshot_clean.yaml` before re-using it.** The copy at
-      `results/qwen3.6-35b-a3b/raw/gsm8k_cot_zeroshot_clean.yaml` still has **both** bugs from the
-      skill reference: `dataset_path: gsm8k` (rejected by lm-eval ≥ 0.4.12 — must be
-      `openai/gsm8k`) and the chained normalize-regex in the `answer-line` filter that truncates the
-      answer to its **first digit**. That second bug is exactly why Qwen3.6's `answer-line` reads
-      **18.88%** while `flexible-fallback` reads **97.04%** on the same items. Ship one anchored
-      regex with `group_select: -1` and push comma/`$`/`.` stripping onto the metric via
-      `regexes_to_ignore`.
-- [ ] **2c-iii. Fix the committed `gpqa_clean_task.yaml`** (`results/gpt-oss-120b/raw/`) — its
-      `flexible-fallback` uses `multi_choice_regex`, which raises `KeyError: 'choices'` at
-      *scoring* time on lm-eval ≥ 0.4.12, discarding a completed run. Replace with a plain
-      `\(([A-D])\)` regex.
+- [x] **2c-ii. Fix the committed `gsm8k_cot_zeroshot_clean.yaml` before re-using it.** Completed 2026-09-08 (commit 4c10dde). Fixed
+      `dataset_path: gsm8k` → `openai/gsm8k` and replaced the chained normalize-regex with a single
+      anchored regex plus `group_select: -1` and `regexes_to_ignore` for comma/`$`/`.` stripping.
+- [x] **2c-iii. Fix the committed `gpqa_clean_task.yaml`** Completed 2026-09-08 (commit 4c10dde). Replaced
+      `multi_choice_regex` `flexible-fallback` (raised `KeyError: 'choices'` on lm-eval ≥ 0.4.12)
+      with a plain `\(([A-D])\)` regex.
 
 ### 2d. Output budget is a first-class variable and it is not held constant
 
@@ -281,16 +259,12 @@ Current budgets in the repo:
 | **Laguna-S-2.1** | **32,768 / 65,536 measured** | **4** |
 | Lightning (reported) | 65,536 | — |
 
-- [ ] **2d-0. Re-run Laguna-S-2.1 GPQA-Diamond at 64k.** ⬅ **highest-value GPQA work outstanding.**
-      The completed 32k run (2026-08-27, c=4, 0 timeouts) scored **40.40%** but **47.0% of items
-      (93/198) emitted no answer line**, 67 of them hitting the 32k ceiling mid-reasoning — the score
-      measures the budget, not the model, and is **withheld** from the table (footnote ¹¹). Accuracy
-      among the 105 that answered is 76.19%, an upper bound on a biased subset. Laguna's chains are
-      the longest in this repo (p90 129,887 chars), so it needs 64k more than Lightning did.
-      Keep c=4 and `timeout=14400`; enable `LM_EVAL_REASONING_FALLBACK=1` (it fired 95× at 32k) and
-      **record the firing count**, since Ornith's 69.70% is unpatched and not directly comparable.
-      Budget **~30–40 h** — the truncated items are the slow ones, so wall clock grows faster than the
-      budget. Verify the ceiling with `viz/check_output_budget.py` first (PROVENANCE §5c).
+- [x] **2d-0. Re-run Laguna-S-2.1 GPQA-Diamond at 64k.** Completed 2026-09-08. Scored **37.88%**
+      (75/198) — statistically indistinguishable from the 32k run (40.40%, McNemar χ²=0.41, p=0.52,
+      95% CI [−8.7, +3.7]). Items at the ceiling rose from 95→104 when the budget doubled, ruling out
+      truncation as the cause; this is non-termination (looping reasoning). See ISSUES.md #17 for the
+      full diagnosis. **Raising the budget further is not recommended.** The score (37.88%) is
+      published in the card with explicit caveats. *(See also §4c, which was a duplicate of this item.)*
 
 - [x] **2d-i. Standardise on a 64k output ceiling for offline reasoning benchmarks.**
       Adopted 2026-09-08: GPQA-Diamond and IFEval for reasoning models now use
@@ -313,31 +287,43 @@ retried from scratch, and every retry hits the same wall. This burned ~13 h on L
 ~4 tok/s per request, 32k budget = ~2.2 h worst case against `timeout=3600`; **352 TimeoutError /
 retry events**, abandoned at 110/198). Raising concurrency to "go faster" is what creates the storm.
 
-- [ ] **2e-i. Add a preflight check to the quality runner** that computes the above from the model's
-      own throughput sweep and refuses to launch if the arithmetic doesn't close. Note Qwen3.6's
-      GSM8K run inherited `num_concurrent=6` and Nemotron-3-Super's `num_concurrent=8` — neither was
-      derived from that model's own sweep.
+- [x] **2e-i. Add a preflight check to the quality runner.** Completed 2026-09-08:
+      `viz/quality_preflight.py` fail-closes on served-model identity, usable endpoint output,
+      requested generation ceiling, and timeout feasibility with a 2× safety factor. The Make
+      interface requires explicit `MODE=live|arithmetic`; `MAX_TOKENS_PROBE` is forwarded explicitly
+      for deep reasoners whose final content cannot fit the default canary. Regression tests cover
+      the Python gate and Make wrapper.
 
 ---
 
 ## 3. Throughput methodology
 
-- [ ] **3a. Retire the "still climbing at the top of the sweep ⇒ `--max-num-seqs` cap" heuristic.**
+- [x] **3a. Retire the "still climbing at the top of the sweep ⇒ `--max-num-seqs` cap" heuristic.**
       It was **falsified on Laguna**: a +40.8% step at c=128 looked exactly like a cap, but c=192
       added only +10.9% and c=256 only +2.9%. The real peak was ~14% above c=128, not the large
       headroom the slope implied. Also, `SchedulerConfig.max_num_seqs` defaulted to 128 while the
       engine admitted 150–172 concurrently — the documented default is not the live ceiling.
       **Extend the sweep past the knee, or report the top measured point as a measured point.**
-- [ ] **3b. Re-sweep Lightning (~719 tok/s) and Ornith (~464 tok/s) past c=128.** Both peaks are
-      labelled "floors capped by `--max-num-seqs 128`" on the strength of the heuristic 3a just
-      retired. Either extend to c=256/384 or restate them as measured points. ~2 h each.
+      Documentation now uses this rule and no longer attributes a rising endpoint to a cap without
+      direct evidence.
+- [x] **3b. Re-sweep Lightning past c=128.** Completed 2026-09-08 under one unchanged
+      `--max-num-seqs 512` configuration: **836.51 / 852.33 / 926.18 tok/s** at c=192/256/384,
+      with 384/384 successful requests at every point. Because c=384 still gains 8.7%, 926.18 tok/s
+      is reported as a **short-context measured floor**, not a plateau or hardware ceiling. Median
+      TTFT at c=384 is 19.9 s. Raw log and launcher are retained under
+      `results/nemotron-3.5-lightning-30b/raw/throughput_sweep_extended/`.
+      **Ornith complete 2026-09-08:** 549.38 tok/s at c=192, a measured peak of
+      **559.48 tok/s at c=256**, and 557.78 tok/s at c=384. Throughput plateaus while median TTFT
+      rises 8.54 s → 30.15 s from c=256→384; use c≈256 for maximum throughput and lower concurrency
+      for latency-sensitive service. Raw log and launcher are retained under
+      `results/ornith-35b/raw/throughput_sweep_extended/`.
 - [ ] **3c. Re-sweep Nemotron-3-Super cleanly.** Its curve was run across a **server restart at two
       different `--max-num-seqs` values** (24 for c=1→24, then 128 for c=32→128), which is why there
       is a c=32 warmup spike. That is not a single clean curve. ~2 h.
-- [ ] **3d. Never extrapolate a peak from an instantaneous `/metrics` delta.** A 20–30 s sample of
+- [x] **3d. Never extrapolate a peak from an instantaneous `/metrics` delta.** A 20–30 s sample of
       `vllm:generation_tokens_total` mid-run gave 333.5 tok/s where the completed `vllm bench serve`
       finished at 258.77 — a 29% overstatement, published then retracted. Live metrics are for
-      liveness and diagnosis only.
+      liveness and diagnosis only. This is now an explicit policy in `AGENTS.md` and `RUNBOOK.md`.
 
 ---
 
@@ -349,8 +335,9 @@ retry events**, abandoned at 110/198). Raising concurrency to "go faster" is wha
 - [ ] **4b. Qwen3.5-122B with MTP / speculative decoding enabled.** This is the model behind the
       Reddit "50 tok/s on DGX Spark" report; we measured 26.9 tok/s single-stream without spec
       decode. That is the lever toward the reported figure and it is untested.
-- [ ] **4c. Laguna GPQA-Diamond.** Abandoned at 110/198 after ~13 h to the timeout storm in §2e.
-      Re-run at c=4 with a timeout that clears the worst case.
+- [x] **4c. Laguna GPQA-Diamond.** *(Duplicate of §2d-0 — see that entry for results.)*
+      Both 32k and 64k runs are complete. The 64k run scored 37.88%, statistically indistinguishable
+      from the 32k run (40.40%), confirming non-termination rather than truncation. Published with caveats.
 - [ ] **4d. AutomationBench.** Listed in the README's "What's measured" section; no model has a score.
 
 ---
@@ -379,9 +366,10 @@ artifact list per benchmark, and rules for recording a configuration that change
 
 Two gaps that block the apples-to-apples comparison specifically:
 
-- [ ] **6a. Ornith has no `exit_statuses_*.yaml`.** Best score in the repo; its 9 non-submissions
-      cannot be audited from the repo alone. (Same as 2a-iii — listed here because it is an
-      artifact gap, not a re-run.)
+- [x] **6a. Ornith's missing `exit_statuses_*.yaml` is permanently classified.** The trajectories
+      and run log are gone, so the nine known empty-patch IDs cannot be assigned truthful causes.
+      The provenance table retains this as a historical gap; future runs must write to `$HOME`,
+      retain trajectories, and commit exit statuses. (Same finding as §2a-iii.)
 - [x] **6b. Qwen3.6 has no agent config and no launch script.** **Recovered 2026-08-25** — see
       §2a. mini-swe-agent embeds the resolved config in every trajectory, so the effective config
       was reconstructible from the run's own output. The launch script is still absent, but the
@@ -389,20 +377,21 @@ Two gaps that block the apples-to-apples comparison specifically:
 
 Mid-run configuration changes are already a live problem, not a hypothetical:
 
-- [ ] **6c. Lightning's SWE-bench run spans two vLLM builds** — `launch_lightning_swe.sh` pins
+- [x] **6c. Lightning's SWE-bench run spans two vLLM builds** — `launch_lightning_swe.sh` pins
       `vllm/vllm-openai:v0.27.1`, `launch_lightning_swe_nightly.sh` pins `cu129-nightly-aarch64`,
       after the engine wedged under long-context load. **Nothing records which instances ran under
-      which build.** Reconstruct the split from run logs if possible; otherwise annotate the score
-      as segmented with the boundary unrecorded.
-- [ ] **6d. Fix the misleading segment filenames.** `exit_statuses_n55.yaml` contains **23**
-      instances; `exit_statuses_all_segments.yaml` and `exit_statuses_shuffle100_final_segment.yaml`
-      both contain 28 despite the first implying it is the union. Name files for their real
-      contents.
-- [ ] **6i. Reconcile `launch_ornith.sh` with the run it documents.** The script pins
-      `--gpu-memory-utilization 0.90`; the card says the agentic runs used **0.55** for host
-      headroom, and the card itself prints both values in different sections. A committed launch
-      script that does not reproduce its own run is worse than none, because it looks
-      authoritative. Same audit for every other `launch_*.sh` in the repo.
+      which build.** Repository and session-history searches found no surviving per-instance build
+      boundary, so the card now states that the aggregate is segmented and the boundary is
+      unrecorded; no IDs were guessed.
+- [x] **6d. Fix the misleading segment filenames.** Completed 2026-09-08:
+      the 23-entry file is now `exit_statuses_resume_segment_n23.yaml`, the 28-entry final segment is
+      `exit_statuses_final_segment_n28.yaml`, and the repeated-mapping historical concatenation is
+      explicitly named `exit_statuses_segments_raw_concatenated.yaml`. Consumers and provenance
+      guidance point at the truthful names.
+- [x] **6j. Reconcile `launch_ornith.sh` with the run it documents.** Completed 2026-09-08:
+      the launcher now requires an explicit `throughput` profile (`util=0.90`, `max-num-seqs=512`)
+      or `agentic` profile (`util=0.55`, `max-num-seqs=32`). The card identifies which measured runs
+      used each profile, eliminating the prior contradictory single command.
 
 Tooling, so the standard is cheaper to follow than to skip:
 
@@ -420,13 +409,15 @@ Tooling, so the standard is cheaper to follow than to skip:
       fails on the whole backlog; clearing it and deleting the baseline is the goal.
 - [ ] **6g. Normalize quality artifact paths.** Some models use `raw/quality/<task>/`, others
       `raw/<task>_results.json`. Pick `raw/<benchmark>/` and move the rest.
-- [ ] **6h. Commit `samples_*.jsonl` for every lm-eval run** (gzipped if size is a concern). It is
+- [x] **6h. Commit `samples_*.jsonl` for every lm-eval run** (gzipped if size is a concern). It is
       the only artifact that permits after-the-fact detection of the ISSUES #15 defect.
-      **Partly addressed 2026-09-03:** `.gitignore` still excludes `samples_*.jsonl`, but
-      `viz/validate_samples.py --emit-per-item` now writes a slim, committable `per_item.csv`
-      (`doc_id, empty_content, score, response_chars`) at 2.7–19 KB vs multi-MB JSONL. Committed for
-      all 6 retained sample files. This preserves auditability for **future** runs; it cannot
-      recover the 5 of 7 models whose samples were never kept.
+      **Addressed 2026-09-08:** `.gitignore` blanket `*.jsonl` exclusion removed; only the
+      explicit `samples_*.jsonl` pattern is retained (for scratch/tmp locations). Future runs must
+      use `--log_samples` and commit `samples_*.jsonl.gz` under `results/`. The committed slim
+      `*.per_item.csv` files are **supplemental** (2.7–19 KB vs multi-MB JSONL) for CI audit
+      coverage on already-committed runs; they do not replace the full JSONL for future runs.
+      Per_item.csv preserves auditability for runs whose JSONL already exists — it cannot recover
+      the 5 of 7 models whose samples were never kept.
 - [ ] **6i. Make `make samples` a hard CI gate.** It exits 1 above 2% empty responses but is
       warn-only in CI because three committed Lightning tasks already breach it (GPQA 41.4%,
       GPQA-32k 20.7%, IFEval 8.7%). Flipping it is the definition of done for the ISSUES #15 re-serve
@@ -465,28 +456,64 @@ Tooling, so the standard is cheaper to follow than to skip:
 
 ---
 
+## 7. Follow-on study — long-context quality and serving concurrency
+
+Do this **after the current cross-model quality/throughput campaign, but before expanding to
+AutomationBench or another benchmark family**. It does not block finishing the current comparison.
+The existing 512-input/256-output sweeps remain useful, but must be labelled as short-context
+saturation measurements rather than deployable long-context operating points.
+
+- [ ] **7a. Record the context-capacity profile for every deployment.** Capture the model-declared
+      context limit, configured `--max-model-len`, measured `kv_cache_size_tokens`, vLLM's reported
+      full-window concurrency, `--max-num-seqs`, KV dtype, memory utilization, and prefix-caching state.
+- [ ] **7b. Add controlled long-context serving sweeps.** Test actual total sequence lengths of 32K,
+      64K, 128K, and 256K where supported. At each length, sweep concurrency below, near, and above
+      the predicted KV-capacity boundary. Report completed-harness prefill/output throughput, TTFT,
+      TPOT/ITL, end-to-end latency, running/waiting requests, incremental preemptions, failures, and
+      latency-constrained goodput. Do not infer throughput from instantaneous `/metrics` deltas.
+- [ ] **7c. Measure effective context, not merely accepted context.** Start with RULER at matched
+      lengths because its deterministic retrieval, multi-hop, aggregation, and variable-tracking
+      tasks isolate context-length degradation. Follow with a small HELMET or LongBench v2 subset for
+      external validity; do not start with the full, heterogeneous suite.
+- [ ] **7d. Isolate server-limit effects with paired deployments.** For selected models, compare
+      `--max-model-len=131072`, `262144`, and the largest feasible model-supported value using
+      identical overlapping request lengths and concurrency points. Changing only the server ceiling
+      while changing the workload would confound the result. Record restart configuration and rerun
+      serving/output-budget preflight after every profile change.
+- [ ] **7e. Add a realistic long-context coding workload only after 7b/7c.** Use a fixed repository
+      snapshot, tasks requiring evidence from distant files, and deterministic tests. Keep quality and
+      systems results separate: score all attempted tasks, and also report correct tasks/hour.
+- [ ] **7f. Account for verbose reasoning explicitly.** Retain prompt tokens, reasoning tokens,
+      visible-answer tokens, total sequence tokens, finish reason, correctness, and latency. Evaluate
+      prefill-heavy, decode-heavy, and mixed agentic workloads separately. Standardize the maximum
+      allowed budget rather than forcing models to emit equal reasoning lengths; report tokens per
+      correct answer and correct answers/hour.
+
+Target summary metrics per model: **effective context** (longest tested length meeting a declared
+RULER quality threshold) and **long-context goodput** at 128K/256K under declared latency,
+preemption, and error constraints. These supplement—not replace—the short-context throughput ceiling.
+
+---
+
 ## Suggested order
 
-Ranked by information gained per GPU-hour. §0 blocks everything that needs the warpcore GPU.
+Ranked by information gained per GPU-hour, from current state (2026-09-08).
+Completed items (§0, §2d-0/§4c, §2c-ii/iii, §1d, §6h) are done and excluded.
+Ornith throughput is cross-referenced rather than duplicated (see §3b). The Lightning IFEval
+replay in §1c is complete.
 
 | Order | Item | Cost | Unblocks |
 | --: | --- | --- | --- |
-| 1 | §0 Laguna SWE-bench finishes + graded | in flight | the GPU |
-| 2 | §6a/6b artifact recovery (Ornith exit_statuses, Qwen3.6 config) | ~1 h, no GPU | whether 2a-i is even needed |
-| 3 | §1a Nemotron-3-Super GPQA re-serve @64k | ~3 h | a possibly-wrong head-to-head vs gpt-oss |
-| 4 | §1b Ornith GPQA re-serve | ~2 h | the last known-suspect score |
-| 5 | §2c-ii/iii task-YAML fixes | ~30 min | every subsequent lm-eval run |
-| 6 | §6e/6f manifest + artifact check | ~2 h, no GPU | every re-run below lands reproducible |
-| 7 | §2a-i Qwen3.6 SWE-bench re-run | ~11 h | the most misleading number in the table |
-| 8 | §2b-i gpt-oss SWE-bench | ~11 h | the only missing agentic score |
-| 9 | §2c-i GSM8K clean-task re-runs (×2) | ~6 h | GSM8K column comparability |
-| 10 | §2d-ii Qwen3.6 GPQA thinking @64k | ~8 h | Qwen3.6's real reasoning ceiling |
-| 11 | §3b/3c throughput re-sweeps | ~6 h | three "floor" peaks |
-| 12 | §4a Qwen3.5-122B full suite | ~20 h | the one model with no quality data |
+| 1 | §1a + §3c + §2c-i Nemotron-3-Super consolidated campaign: GPQA 64k replay, clean throughput sweep, clean GSM8K | ~8 h | corrected quality and comparable systems evidence under one model load |
+| 2 | §2d-ii Qwen3.6-35B GPQA thinking mode @64k | ~8 h | Qwen3.6's real reasoning ceiling |
+| 3 | §2a-i Qwen3.6 SWE-bench re-run | ~11 h | the most misleading number in the table |
+| 4 | §2b-i gpt-oss SWE-bench re-run | ~11 h | the only missing agentic score |
+| 5 | §2c-i gpt-oss GSM8K clean-task re-run | ~3 h | GSM8K column comparability |
+| 6 | §4a Qwen3.5-122B full suite (GSM8K, IFEval, GPQA-D, SWE-bench) | ~20 h | the one model with no quality data |
 
-Items 2 and 6 are new and deliberately placed early: they cost no GPU time, and doing them *before*
-the re-runs is what makes the re-runs worth doing. Item 2 in particular may show that Qwen3.6 ran
-under a shorter timeout than Ornith, which would change how §2a-i is configured.
+**Ornith and Lightning short-context extensions are complete.** Ornith plateaus at ~559 tok/s around
+c=256. Lightning reaches 926.18 tok/s at c=384, but the final point still rises 8.7%, so it remains a
+measured floor rather than a demonstrated hardware ceiling.
 
 **Definition of done for "systematic":** every model in the top-level README table measured with the
 same task configs, the same output budget, a concurrency derived from its own throughput sweep, a

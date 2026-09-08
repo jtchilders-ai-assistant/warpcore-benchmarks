@@ -23,7 +23,7 @@
    "ContextWindowExceededError": 1,
    "InternalServerError": 1
   },
-  "exit_statuses_src": "results/nemotron-3.5-lightning-30b/raw/swebench/exit_statuses_all_segments.yaml",
+  "exit_statuses_src": "results/nemotron-3.5-lightning-30b/raw/swebench/exit_statuses_final_segment_n28.yaml",
   "fair_n": 99,
   "fair_pct": 51.5,
   "infra_excluded": 1,

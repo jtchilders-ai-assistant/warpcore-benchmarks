@@ -155,9 +155,10 @@ A mid-run change is legitimate; an *unrecorded* one is not.
 ```
 
 2. **Segments list instance IDs, not just counts.** "23 of 100 were re-run" is not auditable;
-   the ID list is. Name segmented exit-status files for their segment
-   (`exit_statuses_seg2_nightly.yaml`), and make the count in the filename match the contents —
-   `exit_statuses_n55.yaml` currently contains 23 instances, which is worse than no name at all.
+   the ID list is. Name each segment for its actual contents (for example,
+   `exit_statuses_final_segment_n28.yaml`) and make count-bearing filenames match. If a historical
+   concatenation contains repeated top-level mappings, name it `*_segments_raw_concatenated.yaml`;
+   do not imply that an ordinary YAML parser sees the union.
 
 3. **A changed setting makes the run *segmented*, not *invalid*.** Report the score with a
    footnote naming the segments. Only a change that plausibly alters the score — engine version,

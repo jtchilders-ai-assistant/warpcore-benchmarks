@@ -74,9 +74,10 @@
    "value": 95.07
   },
   "ifeval": {
-   "src": "raw/quality/ifeval/nvidia__NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/results_2026-08-12T13-08-23.626945.json",
-   "stderr": 1.49,
-   "value": 86.14
+   "note": "64k replay composite; 5/541 (0.9%) still budget-truncated",
+   "src": "raw/quality/ifeval/nvidia__NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/results_2026-08-12T13-08-23.626945.json + raw/quality/ifeval/results_64k_replay_corrected.json",
+   "stderr": 1.07,
+   "value": 93.35
   },
   "swebench": {
    "empty_patch": 2,

@@ -43,6 +43,9 @@ nemotron-3.5-lightning-30b,48,144,144.0,73.33,502.74,1570.39,1038.73,4195.48,89.
 nemotron-3.5-lightning-30b,64,192,192.0,87.83,559.64,1846.73,1070.78,5652.46,106.97,results/nemotron-3.5-lightning-30b/raw/throughput_sweep/sweep.log
 nemotron-3.5-lightning-30b,96,288,288.0,113.59,649.07,2400.27,1465.78,8744.15,137.95,results/nemotron-3.5-lightning-30b/raw/throughput_sweep/sweep.log
 nemotron-3.5-lightning-30b,128,384,384.0,136.72,719.03,2995.72,1546.67,11949.34,165.24,results/nemotron-3.5-lightning-30b/raw/throughput_sweep/sweep.log
+nemotron-3.5-lightning-30b,192,384,384.0,117.52,836.51,5940.55,2474.24,19365.74,202.83,results/nemotron-3.5-lightning-30b/raw/throughput_sweep_extended/sweep.log
+nemotron-3.5-lightning-30b,256,384,384.0,115.34,852.33,9428.25,6167.51,26849.44,223.02,results/nemotron-3.5-lightning-30b/raw/throughput_sweep_extended/sweep.log
+nemotron-3.5-lightning-30b,384,384,384.0,106.14,926.18,20951.44,19872.59,45230.7,307.52,results/nemotron-3.5-lightning-30b/raw/throughput_sweep_extended/sweep.log
 ornith-35b,1,32,32.0,221.69,36.95,167.27,164.79,208.67,26.51,results/ornith-35b/raw/throughput_sweep/sweep.log
 ornith-35b,2,32,32.0,121.4,67.48,277.08,277.41,325.51,28.66,results/ornith-35b/raw/throughput_sweep/sweep.log
 ornith-35b,4,32,32.0,78.05,104.95,442.2,486.35,542.78,36.52,results/ornith-35b/raw/throughput_sweep/sweep.log
@@ -54,6 +57,9 @@ ornith-35b,48,144,144.0,116.02,317.74,1856.58,1208.71,5945.86,143.56,results/orn
 ornith-35b,64,192,192.0,136.9,359.03,2265.71,1282.85,8194.64,168.84,results/ornith-35b/raw/throughput_sweep/sweep.log
 ornith-35b,96,288,288.0,176.32,418.15,3095.32,1418.68,12783.36,216.13,results/ornith-35b/raw/throughput_sweep/sweep.log
 ornith-35b,128,384,384.0,211.69,464.38,3985.96,1550.52,17821.75,257.69,results/ornith-35b/raw/throughput_sweep/sweep.log
+ornith-35b,192,384,384.0,178.94,549.38,7818.89,1799.12,29261.74,311.86,results/ornith-35b/raw/throughput_sweep_extended/sweep.log
+ornith-35b,256,384,384.0,175.71,559.48,13711.91,8542.91,42269.45,342.84,results/ornith-35b/raw/throughput_sweep_extended/sweep.log
+ornith-35b,384,384,384.0,176.24,557.78,50271.64,30151.15,125004.09,345.2,results/ornith-35b/raw/throughput_sweep_extended/sweep.log
 qwen3.5-122b-a10b,1,32,32.0,304.07,26.94,355.74,352.37,376.03,35.87,results/qwen3.5-122b-a10b/raw/throughput_sweep/sweep.log
 qwen3.5-122b-a10b,2,32,32.0,185.48,44.17,574.01,576.93,597.42,43.21,results/qwen3.5-122b-a10b/raw/throughput_sweep/sweep.log
 qwen3.5-122b-a10b,4,32,32.0,130.13,62.95,1031.44,1034.02,1168.9,59.73,results/qwen3.5-122b-a10b/raw/throughput_sweep/sweep.log

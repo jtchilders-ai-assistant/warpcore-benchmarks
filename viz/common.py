@@ -117,10 +117,15 @@ plt.rcParams.update({
 
 
 def save(fig, name: str) -> None:
-    """Write PNG + SVG with no embedded timestamps."""
+    """Write PNG + SVG with no embedded timestamps or trailing whitespace."""
     OUT.mkdir(parents=True, exist_ok=True)
     fig.savefig(OUT / f"{name}.png", metadata={"Software": None})
-    fig.savefig(OUT / f"{name}.svg", metadata={"Date": None})
+    svg = OUT / f"{name}.svg"
+    fig.savefig(svg, metadata={"Date": None})
+    # Matplotlib emits path-data lines with a trailing space. Normalize generated
+    # text so `git diff --check` remains a meaningful repository gate.
+    text = svg.read_text()
+    svg.write_text("\n".join(line.rstrip() for line in text.splitlines()) + "\n")
     print(f"wrote {(OUT / name).relative_to(REPO)}.{{png,svg}}")
 
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Parse every vLLM throughput-sweep artifact into one tidy CSV.
 
-Reads ONLY committed artifacts under results/*/raw/throughput_sweep/ and
+Reads ONLY artifacts under results/*/raw/throughput_sweep*/ and
 handles the three formats currently in the repo:
 
   A) already-parsed throughput_sweep.csv            (gpt-oss-120b)
@@ -92,17 +92,18 @@ def collect() -> list[dict]:
     all_rows: list[dict] = []
     for mdir in sorted(glob.glob(str(REPO / "results" / "*"))):
         model = os.path.basename(mdir)
-        tdir = os.path.join(mdir, "raw", "throughput_sweep")
-        if not os.path.isdir(tdir):
-            continue
-        csvp = os.path.join(tdir, "throughput_sweep.csv")
-        if os.path.exists(csvp):
-            all_rows += parse_csv(csvp, model)
-            continue
-        for log in sorted(glob.glob(os.path.join(tdir, "sweep*.log"))):
-            if "CONTAMINATED" in log:  # excluded by the Laguna card
+        tdirs = sorted(glob.glob(os.path.join(mdir, "raw", "throughput_sweep*")))
+        for tdir in tdirs:
+            if not os.path.isdir(tdir):
                 continue
-            all_rows += parse_log(log, model)
+            csvp = os.path.join(tdir, "throughput_sweep.csv")
+            if os.path.exists(csvp):
+                all_rows += parse_csv(csvp, model)
+                continue
+            for log in sorted(glob.glob(os.path.join(tdir, "sweep*.log"))):
+                if "CONTAMINATED" in log:  # excluded by the Laguna card
+                    continue
+                all_rows += parse_log(log, model)
 
     # De-duplicate on (model, concurrency); later files (sweep_hi) win.
     dedup = {(r["model"], r["concurrency"]): r for r in all_rows}
@@ -114,7 +115,7 @@ def main() -> None:
     out = sys.argv[1] if len(sys.argv) > 1 else str(DATA / "throughput_all.csv")
     os.makedirs(os.path.dirname(out), exist_ok=True)
     with open(out, "w", newline="") as fh:
-        w = csv.DictWriter(fh, fieldnames=COLS, extrasaction="ignore")
+        w = csv.DictWriter(fh, fieldnames=COLS, extrasaction="ignore", lineterminator="\n")
         w.writeheader()
         w.writerows(rows)
 

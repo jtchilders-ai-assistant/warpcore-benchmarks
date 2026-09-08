@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "model": {
+    "id": "nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4",
+    "revision": "unrecorded",
+    "quantization": "NVFP4"
+  },
+  "benchmark": {
+    "name": "ifeval-empty-replay",
+    "task": "ifeval",
+    "sample": "47 empty responses from the 2026-08-12 n=541 lm-eval run",
+    "harness": "purpose-built replay of byte-identical lm-eval prompts; rescored with lm-eval IFEval utilities",
+    "harness_version": "lm-eval 0.4.12",
+    "run_id": "lightning-ifeval-replay-20260908"
+  },
+  "serving": {
+    "engine": "vLLM",
+    "version": "0.27.1",
+    "image": "vllm/vllm-openai:v0.27.1",
+    "image_digest": "sha256:2c211a1273b48e8929f893b267aeb1509e6b84654cdbde1bad56d79e3964224d",
+    "host": "warpcore (DGX Spark / GB10)",
+    "args": {
+      "moe_backend": "marlin",
+      "kv_cache_dtype": "fp8",
+      "max_model_len": 262144,
+      "max_num_seqs": 512,
+      "reasoning_parser": "nemotron_v3",
+      "tool_call_parser": "qwen3_coder",
+      "gpu_memory_utilization": 0.9,
+      "enable_prefix_caching": true
+    },
+    "generation_config": "unrecorded",
+    "checkpoint_max_new_tokens": "unrecorded"
+  },
+  "client": {
+    "host": "csi0359637.cels.anl.gov (x86_64 Mac mini)",
+    "script": "../replay_lightning_empties_64k.py",
+    "endpoint": "http://csi370295.alcf.anl.gov:8000/v1",
+    "concurrency": 4,
+    "max_tokens": 65536,
+    "timeout_seconds": 7200,
+    "temperature": 0,
+    "checkpoint_every": 1
+  },
+  "timing": {
+    "started": "2026-09-08T11:02:07-05:00",
+    "finished": "2026-09-08T12:31:29-05:00",
+    "elapsed_seconds_reported": 5362
+  },
+  "inputs": {
+    "source_samples": "samples_ifeval_2026-08-12T13-08-23.626945.jsonl",
+    "source_samples_sha256": "ea83307ca2f79385573dc56edaaa020d16295d149be0b47740cd31722583a61f",
+    "target_count": 47,
+    "validation": "byte-identical stored prompts for all 47 target IDs"
+  },
+  "outputs": {
+    "results_64k.json": {
+      "sha256": "ae541ca1a506429cc00451cd0fcb876719bb76a2254c80aa6b18459b698f8f9b",
+      "bytes": 3105469
+    },
+    "replay.log": {
+      "sha256": "7676d4e2378c5d88d48f9ee137aaa7fcbc787b761a09498b9fbeec0412e2bcc7",
+      "bytes": 3056
+    },
+    "DONE": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  },
+  "result_census": {
+    "attempted": 47,
+    "completed_http_200": 47,
+    "recovered_content": 42,
+    "finish_reason_length_at_65536": 5,
+    "request_errors": 0,
+    "budget_residual_doc_ids": [59, 162, 193, 370, 476]
+  },
+  "repo_commit_at_run": "1ec5cc735b6bd6fc0a43fc2091a32074104ae4f2",
+  "notes": "The five 64k length stops remain failures in prompt-strict scoring. No served-only extrapolation was used."
+}

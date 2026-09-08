@@ -18,7 +18,9 @@ by losing GPU-hours or publishing a wrong number.
 ## Before launching any quality run
 
 ```bash
-make preflight-serving            # ~30 s, 3 canary completions
+make quality-preflight MODE=live ENDPOINT=http://csi370295.alcf.anl.gov:8000/v1 \
+  MODEL=<exact-model-id> MAX_GEN_TOKS=<budget> AGGREGATE_TOK_S=<measured> \
+  CONCURRENCY=<workers> CLIENT_TIMEOUT=<seconds>
 ```
 
 Exit `0` usable · `1` defect, do not launch · `2` could not probe, **also** do
@@ -28,7 +30,7 @@ never read as a pass.
 **Why this exists.** vLLM's reasoning parser can fail to initialize and return
 `content: null` with the real answer stranded in `message.reasoning`. lm-eval
 reads only `content`, so the item scores **0** — no error, no retry,
-`finish_reason: "stop"`. Laguna GPQA published **53.03%** when the served-only
+`finish_reason: "stop"`. Lightning GPQA published **53.03%** when the served-only
 rate was **90.52%**; 82 of 198 items were empty. The warning that predicts this
 was already in the run log and nothing was watching for it.
 
@@ -57,7 +59,10 @@ long item timed out, **retried from scratch**, and hit the same wall — 352
 timeout/retry events. It could never have converged.
 
 Probe a few items, extrapolate, and refuse to launch if the tail doesn't fit.
-Gate on **p90, not the mean** — that was a tail failure a mean would hide.
+The automated gate uses measured aggregate throughput divided by concurrency and a default 2×
+safety factor. That is a conservative screening estimate, not a substitute for tail data: when a
+p90 per-request generation rate is available, pass an equally conservative aggregate equivalent or
+raise `SAFETY_FACTOR`. Gate on **p90, not the mean** — that was a tail failure a mean would hide.
 Existing timeouts are ad-hoc (`3600 / 14400 / 30000`); don't copy one blindly.
 
 ---
@@ -104,10 +109,10 @@ tasks already breach the 2% threshold (GPQA 41.4%, GPQA-32k 20.7%, IFEval 8.7%).
 Failing today would wedge CI red on documented debt. Flipping it to a hard gate
 is the definition of done for the ISSUES #15 re-serve backlog (TODO 6i).
 
-**`samples_*.jsonl` is gitignored**, so CI cannot see the JSONL evidence. The
-validator therefore also reads the committed slim `*.per_item.csv`. Without that
-fallback CI audited 2 of 6 tasks and reported a false all-clear. Any new
-sample-reading check needs the same CSV path, or it will silently pass.
+Historical runs often retained only the slim `*.per_item.csv`; the validator reads that fallback as
+well as newly committed `samples_*.jsonl.gz`. Without the CSV fallback, CI audited 2 of 6 historical
+tasks and reported a false all-clear. New runs must retain compressed sample JSONL, and any new
+sample-reading check still needs the CSV path for legacy evidence or it will silently pass.
 
 ---
 
