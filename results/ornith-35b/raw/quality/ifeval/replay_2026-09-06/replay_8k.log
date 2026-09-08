@@ -1,0 +1,39 @@
+[2026-09-06T15:35:52-05:00] Waiting for GPQA replay to finish...
+[2026-09-06T23:33:55-05:00] GPQA done. Starting IFEval re-serve (28 items)
+replaying 28 IFEval items at c=4, timeout=3600s
+[1/28] doc 27: RECOVERED finish=stop tok=2876 (105s)
+[2/28] doc 20: RECOVERED finish=stop tok=3128 (114s)
+[3/28] doc 23: BUDGET finish=length tok=8192 (304s)
+[4/28] doc 48: BUDGET finish=length tok=8192 (304s)
+[5/28] doc 55: RECOVERED finish=stop tok=5798 (322s)
+[6/28] doc 59: BUDGET finish=length tok=8192 (420s)
+[7/28] doc 107: BUDGET finish=length tok=8192 (610s)
+[8/28] doc 74: BUDGET finish=length tok=8192 (610s)
+[9/28] doc 162: BUDGET finish=length tok=8192 (628s)
+[10/28] doc 163: BUDGET finish=length tok=8192 (726s)
+[11/28] doc 167: RECOVERED finish=stop tok=5944 (832s)
+[12/28] doc 180: BUDGET finish=length tok=8192 (917s)
+[13/28] doc 185: BUDGET finish=length tok=8192 (936s)
+[14/28] doc 222: BUDGET finish=length tok=8192 (1036s)
+[15/28] doc 243: RECOVERED finish=stop tok=3687 (1057s)
+[16/28] doc 278: RECOVERED finish=stop tok=4460 (1104s)
+[17/28] doc 236: BUDGET finish=length tok=8192 (1142s)
+[18/28] doc 280: RECOVERED finish=stop tok=3910 (1183s)
+[19/28] doc 292: RECOVERED finish=stop tok=2105 (1220s)
+[20/28] doc 308: RECOVERED finish=stop tok=3692 (1321s)
+[21/28] doc 281: BUDGET finish=length tok=8192 (1365s)
+[22/28] doc 290: BUDGET finish=length tok=8192 (1413s)
+[23/28] doc 417: RECOVERED finish=stop tok=2674 (1513s)
+[24/28] doc 376: BUDGET finish=length tok=8192 (1529s)
+[25/28] doc 391: RECOVERED finish=stop tok=7875 (1619s)
+[26/28] doc 415: BUDGET finish=length tok=8192 (1673s)
+[27/28] doc 467: BUDGET finish=length tok=8192 (1788s)
+[28/28] doc 476: BUDGET finish=length tok=8192 (1799s)
+
+=== verdicts ===
+  BUDGET     17
+  RECOVERED  11
+
+recovered content: 11/28
+elapsed          : 1799s
+[2026-09-07T00:03:55-05:00] IFEval replay complete

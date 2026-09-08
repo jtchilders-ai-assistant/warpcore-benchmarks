@@ -225,36 +225,30 @@ TASK_DIR="results/<model>/raw/quality/gpqa"
 tmux new-session -d -s gpqa_<shortname> "bash run_gpqa.sh"
 ```
 
-### 3b. GSM8K
+### 3b–c. GSM8K and IFEval
 
-**Task config**: copy `results/nemotron-3.5-lightning-30b/raw/gsm8k_cot_zeroshot_clean.yaml` (v1.0).
-Do not use Qwen3.6's copy (it had the `dataset_path: gsm8k` bug, now fixed but historically wrong).
+**GSM8K:** copy `results/nemotron-3.5-lightning-30b/raw/gsm8k_cot_zeroshot_clean.yaml` (v1.0).
+Use its short-form **8192-token** ceiling.
+
+**IFEval:** use lm-eval's `ifeval` task with the same **65536-token ceiling** as GPQA for reasoning models. Although many IFEval prompts are short, a reasoning model can spend its completion budget in hidden thinking before emitting final content; 8k silently depressed Ornith by 2.96 points even after replay.
 
 ```bash
+# GSM8K (short-form)
 /tmp/lmeval-venv/bin/lm_eval \
   --model local-chat-completions \
   --model_args "model=${MODEL},base_url=${BASE},num_concurrent=<N_FROM_SWEEP>,max_retries=8,tokenized_requests=False,timeout=3600" \
   --tasks gsm8k_cot_zeroshot_clean \
   --include_path "results/<model>/raw" \
   --gen_kwargs "max_gen_toks=8192,temperature=0" \
-  --output_path "results/<model>/raw/quality/gsm8k" \
-  --log_samples \
-  --seed 42 \
-  2>&1 | tee "results/<model>/raw/quality/gsm8k/gsm8k.log"
-```
+  --output_path "results/<model>/raw/quality/gsm8k" --log_samples --seed 42
 
-### 3c. IFEval
-
-```bash
+# IFEval (offline reasoning ceiling)
 /tmp/lmeval-venv/bin/lm_eval \
   --model local-chat-completions \
-  --model_args "model=${MODEL},base_url=${BASE},num_concurrent=<N_FROM_SWEEP>,max_retries=8,tokenized_requests=False,timeout=3600" \
+  --model_args "model=${MODEL},base_url=${BASE},num_concurrent=<N_FROM_SWEEP>,max_retries=8,tokenized_requests=False,timeout=7200" \
   --tasks ifeval \
-  --gen_kwargs "max_gen_toks=8192,temperature=0" \
-  --output_path "results/<model>/raw/quality/ifeval" \
-  --log_samples \
-  --seed 42 \
-  2>&1 | tee "results/<model>/raw/quality/ifeval/ifeval.log"
+  --gen_kwargs "max_gen_toks=65536,temperature=0" \
+  --output_path "results/<model>/raw/quality/ifeval" --log_samples --seed 42
 ```
 
 ### 3d. SWE-bench (runs from the Mac mini, not warpcore)

@@ -1,0 +1,21 @@
+[2026-09-07T14:31:20-05:00] Starting Ornith IFEval 64k budget replay (17 items)
+Replaying 17 IFEval budget-limited prompts at max_tokens=65536, c=4
+[1/17] doc 48: RECOVERED finish=stop tok=3311 elapsed=120s
+[2/17] doc 59: BUDGET finish=length tok=65536 elapsed=3039s
+[3/17] doc 23: BUDGET finish=length tok=65536 elapsed=3039s
+[4/17] doc 74: BUDGET finish=length tok=65536 elapsed=3039s
+[5/17] doc 107: BUDGET finish=length tok=65536 elapsed=3178s
+[6/17] doc 162: RECOVERED finish=stop tok=8661 elapsed=3379s
+[7/17] doc 163: RECOVERED finish=stop tok=8686 elapsed=3380s
+[8/17] doc 180: RECOVERED finish=stop tok=11260 elapsed=3478s
+[9/17] doc 236: RECOVERED finish=stop tok=8514 elapsed=3707s
+[10/17] doc 222: RECOVERED finish=stop tok=11547 elapsed=3826s
+[11/17] doc 185: BUDGET finish=length tok=65536 elapsed=6105s
+[12/17] doc 281: BUDGET finish=length tok=65536 elapsed=6513s
+[13/17] doc 290: BUDGET finish=length tok=65536 elapsed=6797s
+[14/17] doc 376: BUDGET finish=length tok=65536 elapsed=6929s
+[15/17] doc 415: BUDGET finish=length tok=65536 elapsed=9105s
+[16/17] doc 467: BUDGET finish=length tok=65536 elapsed=9413s
+[17/17] doc 476: BUDGET finish=length tok=65536 elapsed=9603s
+verdicts: {'BUDGET': 11, 'RECOVERED': 6}
+[2026-09-07T17:11:25-05:00] IFEval 64k replay complete

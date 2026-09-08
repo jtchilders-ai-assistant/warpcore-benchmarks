@@ -88,10 +88,10 @@
  },
  "ornith-35b": {
   "gpqa": {
-   "note": "UNDERESTIMATE: 21.2% empty (ISSUES #15)",
-   "src": "raw/quality/gpqa/results_2026-08-19T11-45-14.035924.json",
-   "stderr": 3.27,
-   "value": 69.7
+   "note": "64k replay composite; 15/198 (7.6%) still budget-truncated",
+   "src": "raw/quality/gpqa/results_2026-08-19T11-45-14.035924.json + raw/quality/gpqa/results_64k_replay_corrected.json",
+   "stderr": 2.8,
+   "value": 80.81
   },
   "gsm8k": {
    "src": "raw/quality/gsm8k/results_2026-08-18T22-22-03.403814.json",
@@ -99,10 +99,10 @@
    "value": 97.12
   },
   "ifeval": {
-   "note": "floor: 5.2% empty",
-   "src": "raw/quality/ifeval/results_2026-08-19T01-18-15.177081.json",
-   "stderr": 1.51,
-   "value": 85.58
+   "note": "64k replay composite; 11/541 (2.0%) still budget-truncated",
+   "src": "raw/quality/ifeval/results_2026-08-19T01-18-15.177081.json + raw/quality/ifeval/results_64k_replay_corrected.json",
+   "stderr": 1.37,
+   "value": 88.54
   },
   "swebench": {
    "empty_patch": 9,

@@ -82,8 +82,17 @@ def collect() -> dict:
     out["laguna-s-2.1-118b"]["gsm8k"]["value"] = 96.13
     out["laguna-s-2.1-118b"]["gsm8k"]["note"] = "CORRECTED re-serve (raw harness 83.40)"
     out["laguna-s-2.1-118b"]["ifeval"]["note"] = "floor: 5.4% empty"
-    out["ornith-35b"]["gpqa"]["note"] = "UNDERESTIMATE: 21.2% empty (ISSUES #15)"
-    out["ornith-35b"]["ifeval"]["note"] = "floor: 5.2% empty"
+    # Ornith's original 32k/8k runs silently scored empty reasoning traces as zero.
+    # Byte-identical prompt replays at 64k recovered and re-scored the affected items.
+    # Keep residual budget truncation visible: 64k is a common ceiling, not a guarantee of completion.
+    ornith_gpqa = out["ornith-35b"]["gpqa"]
+    ornith_gpqa["value"], ornith_gpqa["stderr"] = 80.81, 2.80
+    ornith_gpqa["note"] = "64k replay composite; 15/198 (7.6%) still budget-truncated"
+    ornith_gpqa["src"] += " + raw/quality/gpqa/results_64k_replay_corrected.json"
+    ornith_ifeval = out["ornith-35b"]["ifeval"]
+    ornith_ifeval["value"], ornith_ifeval["stderr"] = 88.54, 1.37
+    ornith_ifeval["note"] = "64k replay composite; 11/541 (2.0%) still budget-truncated"
+    ornith_ifeval["src"] += " + raw/quality/ifeval/results_64k_replay_corrected.json"
     out["qwen3.6-35b-a3b"]["gpqa"]["note"] = "non-thinking mode"
 
     # Lightning's headline GPQA is the 64k composite: the 32k run plus a 64k

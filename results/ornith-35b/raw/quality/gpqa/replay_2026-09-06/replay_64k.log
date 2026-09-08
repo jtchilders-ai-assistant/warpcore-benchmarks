@@ -1,0 +1,54 @@
+[2026-09-06T16:53:37-05:00] Restarting Ornith GPQA re-serve at 64k budget (42 items)
+endpoint: ['ornith-ai/Ornith-1.0-35B-FP8']
+replaying 42 items at c=4, timeout=7200s
+[1/42] doc 15: RECOVERED finish=stop tok=5513 correct=True (201s)
+[2/42] doc 1: RECOVERED finish=stop tok=22486 correct=True (889s)
+[3/42] doc 18: RECOVERED finish=stop tok=35955 correct=True (1487s)
+[4/42] doc 27: RECOVERED finish=stop tok=57226 correct=True (2790s)
+[5/42] doc 8: BUDGET finish=length tok=65536 correct=False (2927s)
+[6/42] doc 29: RECOVERED finish=stop tok=57268 correct=True (3581s)
+[7/42] doc 44: RECOVERED finish=stop tok=13419 correct=True (4196s)
+[8/42] doc 31: BUDGET finish=length tok=65536 correct=False (4595s)
+[9/42] doc 36: RECOVERED finish=stop tok=43109 correct=True (4913s)
+[10/42] doc 32: BUDGET finish=length tok=65536 correct=False (5804s)
+[11/42] doc 47: RECOVERED finish=stop tok=42591 correct=True (6137s)
+[12/42] doc 52: RECOVERED finish=stop tok=44245 correct=True (6905s)
+[13/42] doc 48: RECOVERED finish=stop tok=52988 correct=True (6976s)
+[14/42] doc 53: RECOVERED finish=stop tok=39534 correct=True (7548s)
+[15/42] doc 64: BUDGET finish=length tok=65536 correct=False (9147s)
+[16/42] doc 71: BUDGET finish=length tok=65536 correct=False (10020s)
+[17/42] doc 74: BUDGET finish=length tok=65536 correct=False (10097s)
+[18/42] doc 76: BUDGET finish=length tok=65536 correct=False (10702s)
+[19/42] doc 85: RECOVERED finish=stop tok=38602 correct=True (11785s)
+[20/42] doc 86: RECOVERED finish=stop tok=44706 correct=True (12153s)
+[21/42] doc 81: BUDGET finish=length tok=65536 correct=False (12249s)
+[22/42] doc 89: RECOVERED finish=stop tok=35075 correct=True (12313s)
+[23/42] doc 99: RECOVERED finish=stop tok=23756 correct=True (13299s)
+[24/42] doc 90: RECOVERED finish=stop tok=65292 correct=False (14779s)
+[25/42] doc 93: BUDGET finish=length tok=65536 correct=False (15178s)
+[26/42] doc 97: BUDGET finish=length tok=65536 correct=False (15276s)
+[27/42] doc 102: RECOVERED finish=stop tok=62292 correct=False (16261s)
+[28/42] doc 118: RECOVERED finish=stop tok=45088 correct=True (17232s)
+[29/42] doc 115: BUDGET finish=length tok=65536 correct=False (17837s)
+[30/42] doc 120: BUDGET finish=length tok=65536 correct=False (18306s)
+[31/42] doc 131: RECOVERED finish=stop tok=25028 correct=True (18993s)
+[32/42] doc 130: RECOVERED finish=stop tok=38099 correct=False (19019s)
+[33/42] doc 136: RECOVERED finish=stop tok=19384 correct=True (19189s)
+[34/42] doc 126: RECOVERED finish=length tok=65536 correct=False (19306s)
+[35/42] doc 142: RECOVERED finish=stop tok=29456 correct=True (20239s)
+[36/42] doc 152: RECOVERED finish=stop tok=26079 correct=True (20404s)
+[37/42] doc 171: RECOVERED finish=stop tok=4159 correct=False (20585s)
+[38/42] doc 143: BUDGET finish=length tok=65536 correct=False (21978s)
+[39/42] doc 145: BUDGET finish=length tok=65536 correct=False (22162s)
+[40/42] doc 183: RECOVERED finish=stop tok=32895 correct=True (22176s)
+[41/42] doc 155: RECOVERED finish=stop tok=44194 correct=True (22287s)
+[42/42] doc 185: BUDGET finish=length tok=65536 correct=False (24007s)
+
+=== verdicts ===
+  BUDGET     15
+  RECOVERED  27
+
+recovered content: 27/42
+newly correct    : 22
+elapsed          : 24007s
+[2026-09-06T23:33:44-05:00] GPQA replay complete

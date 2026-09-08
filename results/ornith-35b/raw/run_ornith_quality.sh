@@ -29,10 +29,10 @@ run_task () {
   touch "${OUT}/${name}.DONE"
 }
 
-# GSM8K and IFEval tolerate higher concurrency; GPQA long-tail wants c=5.
+# Offline reasoning benchmarks use the common 64k ceiling. GSM8K is short-form.
 run_task gsm8k  gsm8k_cot_zeroshot_clean          8  8192
-run_task ifeval ifeval                            8  8192
-run_task gpqa   gpqa_diamond_cot_zeroshot_clean   5  32768
+run_task ifeval ifeval                            4  65536
+run_task gpqa   gpqa_diamond_cot_zeroshot_clean   4  65536
 
 touch "${OUT}/ALL_DONE"
 echo "ALL_DONE $(date -u +%H:%M:%S)"

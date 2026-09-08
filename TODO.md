@@ -43,8 +43,8 @@ Audit of every retained sample file (recomputed 2026-08-24, not copied from the 
 | --- | ---: | ---: | ---: | --- |
 | **Nemotron-3-Super GPQA-Diamond** (16k) | **63.64%** | 88.73% | **56/198 = 28.3%** | ❌ **no — new** |
 | **Lightning IFEval** prompt-strict | **86.14%** | 94.33% | **47/541 = 8.7%** | ❌ **no — new** |
-| Ornith GPQA-Diamond (32k) | 69.70% | 88.46% | 42/198 = 21.2% | ✅ yes, uncorrected |
-| Ornith IFEval prompt-strict | 85.58% | 90.25% | 28/541 = 5.2% | ✅ yes, floor |
+| Ornith GPQA-Diamond **64k composite** | **80.81%** | — | **15/198 = 7.6%** | budget-limited tail retained |
+| Ornith IFEval prompt-strict **64k composite** | **88.54%** | — | **11/541 = 2.0%** | budget-limited tail retained |
 | Laguna IFEval prompt-strict | 75.79% | — | 29/541 = 5.4% | ✅ yes, floor |
 | Laguna GSM8K | 83.40% → **96.13%** | 97.09% | 186/1319 = 14.1% | ✅ **corrected** |
 | Lightning GSM8K | 95.07% | 96.83% | 24/1319 = 1.8% | negligible |
@@ -70,16 +70,15 @@ Audit of every retained sample file (recomputed 2026-08-24, not copied from the 
   - Samples retained at `warpcore:/tmp/lmeval_nemotron/gpqa/.../samples_*.jsonl`.
   - Cost: model bring-up + ~2–3 h.
 
-- [ ] **1b. Ornith-1.0-35B — re-serve the 42 empty GPQA-Diamond items**
-  - Already flagged in ISSUES #15 as the outstanding uncorrected score. 69.70% published,
-    88.46% served-only, truth in between.
-  - Samples at `warpcore:/tmp/lmeval_results/ornith35b/gpqa/.../samples_*.jsonl`.
-  - Cost: bring-up + ~2 h. Budget is *not* the confound here (only 2 length-truncations across all
-    of GPQA at 32k), so this is a clean single-cause recovery.
+- [x] **1b. Ornith-1.0-35B — re-serve the 42 empty GPQA-Diamond items**
+  - Completed 2026-09-06 at the standardized 64k ceiling. Byte-identical replay recovered content
+    for 27/42 and 22 new correct answers: **69.70% → 80.81% (160/198)**. 15 items (7.6%) still
+    reached 64k without final content and remain counted as wrong; raw replay artifacts are committed.
 
-- [ ] **1c. Lightning IFEval — re-serve the 47 empty items** (and Ornith's 28, Laguna's 29)
-  - Smaller effect (8.7% / 5.2% / 5.4%) but IFEval is the one benchmark where all five models are
-    within ~10 points of each other, so an 8.7% zero-rate is enough to reorder the table.
+- [x] **1c (Ornith portion). Re-serve the 28 empty IFEval items**
+  - Completed 2026-09-06–07. 11 recovered at 8k; the remaining 17 were escalated to 64k, recovering
+    6 more. Exact lm-eval IFEval scoring changes prompt-strict **85.58% → 88.54% (479/541)**;
+    11 items (2.0%) still reached 64k without final content. Lightning and Laguna remain open.
   - Lightning samples are committed at
     `results/nemotron-3.5-lightning-30b/raw/quality/ifeval/.../samples_*.jsonl`.
 
@@ -278,8 +277,8 @@ Current budgets in the repo:
 | gpt-oss-120b | 16,384 | 4 |
 | Nemotron-3-Super-120B | 16,384 | 6 |
 | Qwen3.6-35B | 16,384 | 8 |
-| Ornith-1.0-35B | 32,768 | 5 |
-| **Laguna-S-2.1** | **32,768** | **4** |
+| Ornith-1.0-35B | **65,536 composite** | 4 |
+| **Laguna-S-2.1** | **32,768 / 65,536 measured** | **4** |
 | Lightning (reported) | 65,536 | — |
 
 - [ ] **2d-0. Re-run Laguna-S-2.1 GPQA-Diamond at 64k.** ⬅ **highest-value GPQA work outstanding.**
@@ -293,8 +292,10 @@ Current budgets in the repo:
       Budget **~30–40 h** — the truncated items are the slow ones, so wall clock grows faster than the
       budget. Verify the ceiling with `viz/check_output_budget.py` first (PROVENANCE §5c).
 
-- [ ] **2d-i. Standardise on a 64k GPQA budget** for reasoning models, or publish the budget in the
-      README table next to every GPQA score. Right now the column silently mixes three budgets.
+- [x] **2d-i. Standardise on a 64k output ceiling for offline reasoning benchmarks.**
+      Adopted 2026-09-08: GPQA-Diamond and IFEval for reasoning models now use
+      `max_gen_toks=65536`; GSM8K remains 8192. `RUNBOOK.md` and the Ornith runner encode it.
+      The ceiling is not a reservation; report residual `finish_reason=length` rates.
 - [ ] **2d-ii. Re-run Qwen3.6-35B GPQA in *thinking* mode at 64k.** The published **82.32%** is the
       **non-thinking** run. Thinking mode at 16k scored **33.84%** — that is a truncation artifact,
       not a capability measurement, and the model's intended mode has never been measured properly.

@@ -34,7 +34,7 @@ card in this repo).
 >   correctly CoT-stripped. Output is right; only the field split is wrong. Don't build tooling that
 >   depends on `reasoning_content` being populated.
 > - **This model thinks a lot, even on trivial prompts** — 218 reasoning tokens to answer a one-word
->   question. Send a generous `max_tokens` (≥4k chat, 32k+ for GPQA/agentic) or the answer is
+>   question. Send a generous `max_tokens` (≥4k chat, **64k for offline reasoning benchmarks**) or the answer is
 >   truncated to empty and silently scores wrong.
 > - **Single box:** standing this model up took the Nemotron-3.5-Lightning endpoint down.
 
@@ -60,52 +60,38 @@ Run on Warpcore against the live `vllm_ornith` endpoint. Raw results: [`raw/qual
 | --------- | -: | ------ | ----- |
 | **GSM8K** (0-shot CoT, clean) | 1319 | exact_match, **anchored answer-line** | **97.19%** (±0.45) |
 | | | exact_match, flexible-fallback | 97.12% (±0.46) |
-| **IFEval** | 541 | **prompt-level strict** | **85.58%** (±1.51) |
-| | | inst-level strict | 88.37% |
-| | | prompt-level loose / inst-level loose | 87.80% (±1.41) / 89.81% |
-| **GPQA-Diamond** (0-shot CoT, clean) | 198 | exact_match, answer-line | **69.70%** (±3.27) ⚠️ |
-| | | exact_match, flexible-fallback | **69.70%** (±3.27) — *identical* |
+| **IFEval** | 541 | **prompt-level strict** | **88.54%** (479/541; ±1.37)¹ |
+| | | inst-level strict | **91.49%** (763/834) |
+| | | prompt-level loose / inst-level loose | **90.76%** (491/541; ±1.24) / **92.93%** (775/834) |
+| **GPQA-Diamond** (0-shot CoT, clean) | 198 | exact_match, answer-line | **80.81%** (160/198; ±2.80)¹ |
+| | | exact_match, flexible-fallback | **80.81%** (160/198; ±2.80) — *identical* |
 
-> ⚠️ **The GPQA-Diamond 69.70% is a known UNDERESTIMATE — do not cite it as final.** An audit on
-> 2026-08-22 found **42 of 198 items (21.2%) returned an empty response and scored zero** without ever
-> being answered, caused by the `message.reasoning` defect documented in [ISSUES.md #15](../../ISSUES.md):
-> lm-eval reads only `message.content`, but vLLM's reasoning parser can emit `content: null` with the
-> complete answer sitting in `reasoning`.
+> **64k replay correction.** The original GPQA run used 32k and scored 42 empty final responses as
+> zero; the original IFEval run used 8k and scored 28 as zero. We replayed their **byte-identical
+> stored chat messages** at 64k, preserving greedy temperature and stop strings, then applied the same
+> clean-task / lm-eval 0.4.12 scoring. GPQA recovered content for 27/42 and 22 new correct answers,
+> changing **69.70% → 80.81%**. IFEval recovered content for 17/28 and exact evaluator scoring added
+> 16 prompt-strict and 26 instruction-strict successes, changing **85.58% → 88.54%** prompt-strict.
+> Replay artifacts are in [`raw/quality/gpqa/replay_2026-09-06/`](raw/quality/gpqa/replay_2026-09-06/)
+> and [`raw/quality/ifeval/replay_2026-09-07/`](raw/quality/ifeval/replay_2026-09-07/).
 >
-> On the 156 items that did return content, Ornith scores **88.46%**. That is an **upper bound, not a
-> replacement figure** — the same defect on Laguna showed recovered items scoring 90.3% versus 97.09%
-> for served items, i.e. the dropped questions were *harder* than the kept ones, so excluding them
-> biases the estimate upward. The true value lies somewhere between 69.70% and 88.46% and can only be
-> settled by re-serving the 42 affected items and reading the `reasoning` field.
->
-> IFEval on this model is affected at a lower rate (28/541 = 5.2% empty; served-item rates 90.25%
-> prompt-strict / 93.21% inst-strict), so its published figures are **floors**. GSM8K is effectively
-> unaffected (1/1319 = 0.1%).
+> **Residual limit:** 15/198 GPQA (7.6%) and 11/541 IFEval (2.0%) still reached the **64k** ceiling
+> without final content. These are reported as budget-limited model outcomes, not silently discarded;
+> the scores are defensible at the standardized 64k setting but not unconstrained capability estimates.
 
 **Eval config:** `lm-eval` 0.4.12 (with the None-guard + gather-survive patches), backend
 `local-chat-completions` against `http://localhost:8000/v1/chat/completions`, `--apply_chat_template`,
-greedy `temperature=0`. GSM8K + IFEval: 8192-token budget at concurrency 8. GPQA-Diamond: **32768**-token
-budget at concurrency 5 (the model's thinking budget demands it). GSM8K and GPQA use the in-repo
-**clean-extract** task configs (shared with the Lightning card:
-[`../nemotron-3.5-lightning-30b/raw/gsm8k_cot_zeroshot_clean.yaml`](../nemotron-3.5-lightning-30b/raw/gsm8k_cot_zeroshot_clean.yaml),
-[`../nemotron-3.5-lightning-30b/raw/gpqa_diamond_cot_zeroshot_clean.yaml`](../nemotron-3.5-lightning-30b/raw/gpqa_diamond_cot_zeroshot_clean.yaml))
-which anchor the answer to a required final line and fall back to the last number / `(X)` letter.
-GPQA-Diamond is the **gated** `Idavidrein/gpqa` dataset. Total quality wall time ≈ **16.6 h**
-(GSM8K 3 h 13 m; GPQA alone ran 06:18 → 16:45 ≈ 10.5 h).
-
-> **These numbers are trustworthy, and here's the evidence.** The failure mode this repo has been
-> burned by before is a *budget-truncated* reasoning model scoring an artificial zero on items it
-> could actually solve ([Lightning's GPQA budget curve](../nemotron-3.5-lightning-30b/README.md#quality--lm-eval-harness-measured-2026-08-12)).
-> That did **not** happen here: only **2 length-truncations across all of GPQA-Diamond**, so the 32k
-> budget was adequate and 69.70% is capability-bound, not budget-bound. Independently, the
-> `answer-line` and `flexible-fallback` filters return **exactly the same value** on GPQA (and differ
-> by only 0.08 pt on GSM8K), which rules out a parsing artifact — and the score is consistent with the
-> pre-run 5/5 smoke probe.
+greedy `temperature=0`. **Offline reasoning-model policy: GPQA-Diamond and IFEval use a 65536-token
+maximum-generation ceiling.** It is a ceiling, not a token reservation; short items terminate normally.
+GSM8K remains 8192 tokens. GPQA uses the in-repo **clean-extract** task config (shared with the Lightning
+card) which anchors the final answer line and falls back to `(X)` letter extraction. GPQA-Diamond is the
+gated `Idavidrein/gpqa` dataset.
 
 **Takeaway:** **97.19% GSM8K is the highest grade-school-math score in this repo** (edging Qwen3.6-35B's
-97.04%), IFEval is mid-pack at 85.58% prompt-strict, and GPQA-Diamond at 69.70% sits above
-Nemotron-3-Super-120B (63.64%) but below Qwen3.6-35B (82.32%) and Lightning-at-64k (76.26%). Ornith is
-**not** the strongest general-knowledge reasoner here — its edge is agentic coding (below).
+97.04%). At the common 64k offline-reasoning ceiling, Ornith reaches **88.54% IFEval prompt-strict** and
+**80.81% GPQA-Diamond**—above Lightning-at-64k (76.26%) and below Qwen3.6's non-thinking-mode 82.32%
+GPQA figure, which is not directly comparable until its thinking-mode 64k run. Ornith's separate edge
+remains agentic coding (below).
 
 ## Throughput / latency — `vllm bench serve` concurrency sweep
 
@@ -208,7 +194,7 @@ submit step (`git add -A && git diff --cached`, carried over from the Lightning 
 Lightning misses** while losing only **5** that Lightning gets. That is not sampling noise — it is a
 real capability gap on agentic patch generation, and it is consistent with Ornith being purpose-built
 by DeepReinforce for agentic coding. Note the honest inversion this creates: Ornith is *behind*
-Lightning and Qwen3.6 on GPQA-Diamond general reasoning (69.70% vs 76.26% / 82.32%) yet far *ahead* on
+Lightning and Qwen3.6 on GPQA-Diamond general reasoning (**80.81%** vs 76.26% / 82.32%) yet far *ahead* on
 SWE-bench. **Benchmark-suite rank does not transfer across task families** — pick the model for the
 job, not for the leaderboard.
 
@@ -289,7 +275,7 @@ docker run -d --name vllm_ornith --gpus all --network host --ipc host \
 ```
 Use `--gpu-memory-utilization 0.55` for the **agentic** runs (host headroom — see the Lightning card's
 unified-memory OOM note; the GB10's KV cache shares the same 121 GiB pool as system RAM). Clients must
-always send an explicit `max_tokens` (vLLM has no default-request-budget flag) — ≥4k chat, 32k+ reasoning.
+always send an explicit `max_tokens` (vLLM has no default-request-budget flag) — ≥4k chat, **64k offline reasoning benchmark**.
 
 > **CORRECTION (2026-08-26):** *"vLLM has no default-request-budget flag"* is **wrong**. With
 > `--generation-config auto` (the default), vLLM loads the checkpoint's `generation_config.json` and
@@ -304,11 +290,10 @@ Quality (on warpcore, in a detached tmux — the suite takes ~16.6 h) —
 ```bash
 source /tmp/lmeval-venv/bin/activate      # lm-eval 0.4.12 + None-guard/gather-survive patches
 lm_eval --model local-chat-completions \
-  --model_args model=ornith-ai/Ornith-1.0-35B-FP8,base_url=http://localhost:8000/v1/chat/completions,num_concurrent=8,max_retries=8,tokenized_requests=False,timeout=3600 \
-  --tasks gsm8k_cot_zeroshot_clean --apply_chat_template \
-  --gen_kwargs max_gen_toks=8192,temperature=0 --output_path /tmp/lmeval_results/ornith35b/gsm8k
-# ifeval: same, --tasks ifeval
-# gpqa:   --tasks gpqa_diamond_cot_zeroshot_clean --gen_kwargs max_gen_toks=32768,temperature=0 (num_concurrent=5)
+  --model_args model=ornith-ai/Ornith-1.0-35B-FP8,base_url=http://localhost:8000/v1/chat/completions,num_concurrent=4,max_retries=8,tokenized_requests=False,timeout=7200 \
+  --tasks ifeval --apply_chat_template \
+  --gen_kwargs max_gen_toks=65536,temperature=0 --output_path /tmp/lmeval_results/ornith35b/ifeval
+# gpqa:   --tasks gpqa_diamond_cot_zeroshot_clean --gen_kwargs max_gen_toks=65536,temperature=0 (num_concurrent=4, timeout=7200)
 ```
 
 Throughput sweep (reusable `scripts/vllm_sweep.sh` from the `warpcore-dgx-spark` skill, copied to
