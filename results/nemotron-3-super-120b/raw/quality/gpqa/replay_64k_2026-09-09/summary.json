@@ -1,0 +1,16 @@
+{
+  "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4",
+  "endpoint": "http://csi370295.alcf.anl.gov:8000/v1/chat/completions",
+  "source": "nemotron-3-super-120b/raw/quality/gpqa/samples_gpqa_diamond_cot_zeroshot_clean_2026-07-30T18-26-57.972871.jsonl",
+  "source_unique_docs": 198,
+  "replayed_docs": 56,
+  "max_tokens": 65536,
+  "workers": 8,
+  "timeout_seconds": 30000,
+  "elapsed_seconds": 44858.742,
+  "http_errors": 0,
+  "finish_stop": 25,
+  "finish_length": 31,
+  "content_nonempty": 25,
+  "correct": 20
+}

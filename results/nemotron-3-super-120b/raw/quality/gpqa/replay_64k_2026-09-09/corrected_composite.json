@@ -1,0 +1,39 @@
+{
+  "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4",
+  "benchmark": "gpqa_diamond_cot_zeroshot_clean",
+  "method": "Composite of the original 198-item 16K run and byte-identical 64K replay of its 56 unique empty-content items",
+  "original": {
+    "correct": 126,
+    "attempted": 198,
+    "score_percent": 63.6363636364,
+    "max_gen_tokens": 16384,
+    "empty_content": 56
+  },
+  "replay": {
+    "attempted": 56,
+    "correct": 20,
+    "finish_stop": 25,
+    "finish_length": 31,
+    "content_nonempty": 25,
+    "http_errors": 0,
+    "max_gen_tokens": 65536,
+    "workers": 8,
+    "timeout_seconds": 30000,
+    "elapsed_seconds": 44858.742,
+    "completion_tokens": {
+      "minimum": 2853,
+      "median": 65536,
+      "maximum": 65536,
+      "maximum_among_finish_stop": 61044
+    },
+    "results_sha256": "1cd88ce7951bca3c261f710975bd125cc397ce8708a64a6098ad8e1b007ae68d"
+  },
+  "corrected_composite": {
+    "correct": 146,
+    "attempted": 198,
+    "score_percent": 73.7373737374,
+    "remaining_empty_content": 31,
+    "remaining_empty_classification": "budget residual: all finish_reason=length at exactly 65536 completion tokens"
+  },
+  "interpretation": "The corrected composite is the measured 64K operational score. It is not a no-limit capability ceiling: 31 of 198 items still exhaust 64K without final content and are counted wrong."
+}

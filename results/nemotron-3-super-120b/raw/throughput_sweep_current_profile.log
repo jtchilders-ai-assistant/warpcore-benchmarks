@@ -1,0 +1,133 @@
+=== concurrency=1 num_prompts=32 (engine_running_before=0.0) ===
+Successful requests:                     32
+Benchmark duration (s):                  520.07
+Request throughput (req/s):              0.06
+Output token throughput (tok/s):         15.75
+Mean TTFT (ms):                          486.29
+Median TTFT (ms):                        476.45
+P99 TTFT (ms):                           643.76
+Mean TPOT (ms):                          61.83
+Median TPOT (ms):                        61.83
+Mean ITL (ms):                           61.83
+
+=== concurrency=2 num_prompts=32 (engine_running_before=0.0) ===
+Successful requests:                     32
+Benchmark duration (s):                  298.94
+Request throughput (req/s):              0.11
+Output token throughput (tok/s):         27.40
+Mean TTFT (ms):                          792.87
+Median TTFT (ms):                        861.63
+P99 TTFT (ms):                           1146.81
+Mean TPOT (ms):                          70.15
+Median TPOT (ms):                        70.45
+Mean ITL (ms):                           70.15
+
+=== concurrency=4 num_prompts=32 (engine_running_before=0.0) ===
+Successful requests:                     32
+Benchmark duration (s):                  181.53
+Request throughput (req/s):              0.18
+Output token throughput (tok/s):         45.13
+Mean TTFT (ms):                          1223.03
+Median TTFT (ms):                        1349.78
+P99 TTFT (ms):                           1394.48
+Mean TPOT (ms):                          84.18
+Median TPOT (ms):                        84.88
+Mean ITL (ms):                           84.18
+
+=== concurrency=8 num_prompts=32 (engine_running_before=0.0) ===
+Successful requests:                     32
+Benchmark duration (s):                  126.72
+Request throughput (req/s):              0.25
+Output token throughput (tok/s):         64.65
+Mean TTFT (ms):                          1981.70
+Median TTFT (ms):                        1931.61
+P99 TTFT (ms):                           2582.30
+Mean TPOT (ms):                          116.35
+Median TPOT (ms):                        116.16
+Mean ITL (ms):                           116.35
+
+=== concurrency=16 num_prompts=48 (engine_running_before=0.0) ===
+Successful requests:                     48
+Benchmark duration (s):                  128.78
+Request throughput (req/s):              0.37
+Output token throughput (tok/s):         95.42
+Mean TTFT (ms):                          3048.27
+Median TTFT (ms):                        3136.06
+P99 TTFT (ms):                           4876.08
+Mean TPOT (ms):                          156.06
+Median TPOT (ms):                        156.32
+Mean ITL (ms):                           156.06
+
+=== concurrency=24 num_prompts=72 (engine_running_before=0.0) ===
+Successful requests:                     72
+Benchmark duration (s):                  156.56
+Request throughput (req/s):              0.46
+Output token throughput (tok/s):         117.73
+Mean TTFT (ms):                          3702.10
+Median TTFT (ms):                        3433.57
+P99 TTFT (ms):                           7176.85
+Mean TPOT (ms):                          189.55
+Median TPOT (ms):                        188.32
+Mean ITL (ms):                           189.55
+
+=== concurrency=32 num_prompts=96 (engine_running_before=0.0) ===
+Successful requests:                     96
+Benchmark duration (s):                  179.27
+Request throughput (req/s):              0.54
+Output token throughput (tok/s):         137.09
+Mean TTFT (ms):                          4218.63
+Median TTFT (ms):                        3502.90
+P99 TTFT (ms):                           9535.95
+Mean TPOT (ms):                          217.03
+Median TPOT (ms):                        222.67
+Mean ITL (ms):                           217.03
+
+=== concurrency=48 num_prompts=144 (engine_running_before=0.0) ===
+Successful requests:                     144
+Benchmark duration (s):                  225.24
+Request throughput (req/s):              0.64
+Output token throughput (tok/s):         163.66
+Mean TTFT (ms):                          5179.99
+Median TTFT (ms):                        3575.61
+P99 TTFT (ms):                           14382.39
+Mean TPOT (ms):                          272.84
+Median TPOT (ms):                        269.80
+Mean ITL (ms):                           272.84
+
+=== concurrency=64 num_prompts=192 (engine_running_before=0.0) ===
+Successful requests:                     192
+Benchmark duration (s):                  266.74
+Request throughput (req/s):              0.72
+Output token throughput (tok/s):         184.27
+Mean TTFT (ms):                          6112.15
+Median TTFT (ms):                        3850.96
+P99 TTFT (ms):                           19274.50
+Mean TPOT (ms):                          322.64
+Median TPOT (ms):                        326.33
+Mean ITL (ms):                           322.64
+
+=== concurrency=96 num_prompts=288 (engine_running_before=0.0) ===
+Successful requests:                     288
+Benchmark duration (s):                  337.84
+Request throughput (req/s):              0.85
+Output token throughput (tok/s):         218.23
+Mean TTFT (ms):                          7933.49
+Median TTFT (ms):                        4852.94
+P99 TTFT (ms):                           29626.02
+Mean TPOT (ms):                          406.79
+Median TPOT (ms):                        412.58
+Mean ITL (ms):                           406.79
+
+=== concurrency=128 num_prompts=384 (engine_running_before=0.0) ===
+Successful requests:                     384
+Benchmark duration (s):                  401.73
+Request throughput (req/s):              0.96
+Output token throughput (tok/s):         244.70
+Mean TTFT (ms):                          9821.58
+Median TTFT (ms):                        5017.44
+P99 TTFT (ms):                           39455.78
+Mean TPOT (ms):                          481.09
+Median TPOT (ms):                        496.06
+Mean ITL (ms):                           481.09
+
+SWEEP_DONE

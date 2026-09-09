@@ -24,7 +24,7 @@ Audit of every retained sample file (recomputed 2026-09-08, not copied from the 
 
 | Model / task | Published | Served-only | Empty | In ISSUES #15? |
 | --- | ---: | ---: | ---: | --- |
-| **Nemotron-3-Super GPQA-Diamond** (16k) | **63.64%** | 88.73% | **56/198 = 28.3%** | ❌ **yes — parser empty (`finish=stop`)** |
+| **Nemotron-3-Super GPQA-Diamond** (64k composite) | **73.74%** | — | **31/198 = 15.7%** | ⚠️ budget residual (`finish=length`) — corrected; residuals counted wrong |
 | **Lightning IFEval 64k composite** prompt-strict | **93.35%** | — | **5/541 = 0.9%** | ⚠️ budget residual (`finish=length`) — re-serve would not help |
 | Ornith GPQA-Diamond **64k composite** | **80.81%** | — | **15/198 = 7.6%** | ⚠️ budget residual (`finish=length`) — re-serve would not help |
 | Ornith IFEval prompt-strict **64k composite** | **88.54%** | — | **11/541 = 2.0%** | ⚠️ budget residual (`finish=length`) — re-serve would not help |
@@ -39,19 +39,14 @@ Audit of every retained sample file (recomputed 2026-09-08, not copied from the 
 > questions uniformly at random, so exclusion-based estimates are optimistically biased. Only a
 > re-serve produces a defensible number. **Do not publish the served-only figures.**
 
-- [ ] **1a. Nemotron-3-Super-120B — re-serve the 56 empty GPQA-Diamond items**
-  - Worst empty rate in the repo (28.3%). Published 63.64% is an underestimate of unknown size;
-    the true value is somewhere in (63.64%, 88.73%).
-  - Confounded: it also ran at a **16k** budget, and Lightning's curve shows 16k costs a deep
-    reasoner ~23 points on GPQA. Truncation and the `reasoning`-field defect leave *identical*
-    evidence in the sample file, so **replay at 64k** and separate the two: record
-    `finish_reason` and `completion_tokens` per item.
-  - Stakes: it currently loses GPQA to gpt-oss-120b by 9.1 points. The artifact is larger than the gap.
-  - Method: `results/nemotron-3.5-lightning-30b/raw/gpqa_64k_replay.py` (proven — recovered 35/41
-    truncated items, p50 30,525 completion tokens, max 53,519), plus
-    `results/laguna-s-2.1-118b/raw/quality/recover_empties_via_reasoning_field.py`.
-  - Samples retained at `warpcore:/tmp/lmeval_nemotron/gpqa/.../samples_*.jsonl`.
-  - Cost: model bring-up + ~2–3 h.
+- [x] **1a. Nemotron-3-Super-120B — re-serve the 56 empty GPQA-Diamond items**
+  - Completed 2026-09-09 at the standardized 64k ceiling. Byte-identical replay recovered content
+    for 25/56 and 20 new correct answers: **63.64% → 73.74% (146/198)**. The other 31 all reached
+    exactly 65,536 completion tokens with `finish_reason=length` and remain counted wrong.
+  - The replay had zero HTTP errors but required **12.46 h at concurrency 8**; median completion length
+    was the full 65,536-token ceiling. This is a measured operational score, not a no-limit ceiling.
+  - Raw replay responses, completion usage, summary, and corrected composite are retained under
+    `results/nemotron-3-super-120b/raw/quality/gpqa/replay_64k_2026-09-09/`.
 
 - [x] **1b. Ornith-1.0-35B — re-serve the 42 empty GPQA-Diamond items**
   - Completed 2026-09-06 at the standardized 64k ceiling. Byte-identical replay recovered content
@@ -234,8 +229,13 @@ task with an anchored `The answer is <n>` final line. Note both stock runs repor
 `exact_match,strict-match = 0.0`, which is the stock task's strict filter failing outright on
 reasoning-model output — the same class of parse artifact the clean task was written to fix.
 
-- [ ] **2c-i. Re-run gpt-oss-120b and Nemotron-3-Super GSM8K** on the clean-extract task
-      (`results/nemotron-3.5-lightning-30b/raw/gsm8k_cot_zeroshot_clean.yaml`). ~3 h each.
+- [x] **2c-i-a. Re-run Nemotron-3-Super GSM8K** on the clean-extract task
+      (`results/nemotron-3.5-lightning-30b/raw/gsm8k_cot_zeroshot_clean.yaml`).
+  - **Completed 2026-09-09:** answer-line **95.83% (1264/1319)**; flexible fallback
+    **96.89% (1278/1319)**, with one empty response counted wrong. Raw samples, aggregate JSON, run
+    log, and the campaign manifest are retained under its `raw/` tree.
+- [ ] **2c-i-b. Re-run gpt-oss-120b GSM8K** on the same clean-extract task (~3 h).
+  - Do not compare its historical stock-task 83.70% directly with the clean-task Nemotron score.
 - [x] **2c-ii. Fix the committed `gsm8k_cot_zeroshot_clean.yaml` before re-using it.** Completed 2026-09-08 (commit 4c10dde). Fixed
       `dataset_path: gsm8k` → `openai/gsm8k` and replaced the chained normalize-regex with a single
       anchored regex plus `group_select: -1` and `regexes_to_ignore` for comma/`$`/`.` stripping.
@@ -497,19 +497,23 @@ preemption, and error constraints. These supplement—not replace—the short-co
 
 ## Suggested order
 
-Ranked by information gained per GPU-hour, from current state (2026-09-08).
-Completed items (§0, §2d-0/§4c, §2c-ii/iii, §1d, §6h) are done and excluded.
-Ornith throughput is cross-referenced rather than duplicated (see §3b). The Lightning IFEval
-replay in §1c is complete.
+Ranked by information gained per GPU-hour, from current state (2026-09-09).
+Completed items (§0, §1a/§3c/§2c-i-a Nemotron-3-Super campaign, §2d-0/§4c, §2c-ii/iii, §1d, §6h)
+are done and excluded. Ornith throughput is cross-referenced rather than duplicated (see §3b). The
+Lightning IFEval replay in §1c is complete.
 
 | Order | Item | Cost | Unblocks |
 | --: | --- | --- | --- |
-| 1 | §1a + §3c + §2c-i Nemotron-3-Super consolidated campaign: GPQA 64k replay, clean throughput sweep, clean GSM8K | ~8 h | corrected quality and comparable systems evidence under one model load |
-| 2 | §2d-ii Qwen3.6-35B GPQA thinking mode @64k | ~8 h | Qwen3.6's real reasoning ceiling |
-| 3 | §2a-i Qwen3.6 SWE-bench re-run | ~11 h | the most misleading number in the table |
-| 4 | §2b-i gpt-oss SWE-bench re-run | ~11 h | the only missing agentic score |
-| 5 | §2c-i gpt-oss GSM8K clean-task re-run | ~3 h | GSM8K column comparability |
-| 6 | §4a Qwen3.5-122B full suite (GSM8K, IFEval, GPQA-D, SWE-bench) | ~20 h | the one model with no quality data |
+| 1 | §2d-ii Qwen3.6-35B GPQA thinking mode @64k | ~8 h | Qwen3.6's real reasoning ceiling |
+| 2 | §2a-i Qwen3.6 SWE-bench re-run | ~11 h | the most misleading number in the table |
+| 3 | §2b-i gpt-oss SWE-bench re-run | ~11 h | the only missing agentic score |
+| 4 | §2c-i gpt-oss GSM8K clean-task re-run | ~3 h | GSM8K column comparability |
+| 5 | §4a Qwen3.5-122B full suite (GSM8K, IFEval, GPQA-D, SWE-bench) | ~20 h | the one model with no quality data |
+
+**Nemotron-3-Super consolidated campaign completed 2026-09-09.** Corrected GPQA is **73.74%**,
+clean answer-line GSM8K is **95.83%**, and the current-profile short-context sweep reached
+**244.70 output tok/s at c=128**. Because throughput was still rising at the final point, that value
+is a measured floor, not a proven ceiling.
 
 **Ornith and Lightning short-context extensions are complete.** Ornith plateaus at ~559 tok/s around
 c=256. Lightning reaches 926.18 tok/s at c=384, but the final point still rises 8.7%, so it remains a

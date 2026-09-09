@@ -5,7 +5,6 @@
     "gpt-oss-120b: swebench missing manifest.json",
     "gpt-oss-120b: swebench missing trajectories",
     "gpt-oss-120b: swebench published as BLOCKED/no-score (DIAGNOSIS.json) -- preds/report correctly absent",
-    "nemotron-3-super-120b: NO manifest.json anywhere under raw/",
     "nemotron-3.5-lightning-30b: swebench missing manifest.json",
     "nemotron-3.5-lightning-30b: swebench missing trajectories",
     "ornith-35b: NO manifest.json anywhere under raw/",

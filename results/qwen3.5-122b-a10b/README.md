@@ -97,7 +97,7 @@ Sweep script: [`raw/throughput_sweep/vllm_sweep.sh`](raw/throughput_sweep/vllm_s
 | openai/gpt-oss-120b | 120B / ~5B act | 34 | 71 ms | ~709 | c≈256 |
 | Qwen/Qwen3.6-35B-A3B-FP8 | 35B / 3B act | — | — | ~487 | c=128 |
 | **Intel/Qwen3.5-122B-A10B-int4** | **122B / ~10B act** | **26.9** | **356 ms** | **~228** | **c≈192 (plateau)** |
-| nvidia/Nemotron-3-Super-120B-A12B | 120B / 12B act | 15 | 447 ms | ~190 | c≈128 |
+| nvidia/Nemotron-3-Super-120B-A12B | 120B / 12B act | 15.75 | 486 ms | **244.70 (floor)** | c=128 (still climbing) |
 
 **Where Qwen3.5-122B lands:** its **~10B active params/token** make it the second-heaviest decoder on
 this box (after Nemotron-3-Super's 12B), and on the bandwidth-bound GB10 that active-parameter count is

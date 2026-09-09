@@ -90,7 +90,7 @@ extended launcher is retained beside the latter.
 | ----- | ---- | --------: | -------: | ---------: | -------------- |
 | **Nemotron-3.5-Lightning-30B-A3B** | 30B / 3B act | **73.9** | **136 ms** | **926.2 (floor)** | c=384 (still climbing) |
 | openai/gpt-oss-120b | 120B / ~5B act | 34 | 71 ms | ~709 | c≈256 |
-| Nemotron-3-Super-120B-A12B | 120B / 12B act | 15 | 447 ms | ~190 | c≈128 |
+| Nemotron-3-Super-120B-A12B | 120B / 12B act | 15.75 | 486 ms | **244.70 (floor)** | c=128 (still climbing) |
 
 **Lightning remains the standout on this hardware for per-stream speed:** at c=1 it is **~2.2× faster
 than gpt-oss-120b** and **~4.9× faster than Nemotron-3-Super** per user. Its extended short-request

@@ -319,7 +319,7 @@ The table below distinguishes two separate phenomena that both produce empty res
 | **Ornith IFEval 64k composite** | **88.54%** | — | **2.0% (11/541)** | **budget residual (`finish=length`)** | floor — residuals counted as wrong |
 | Laguna IFEval | 75.79% / 81.41% | — | 5.4% | parser (`finish=stop`) | floor (not re-served) |
 | Ornith GSM8K | 97.19% | 97.27% | 0.1% | negligible | effectively unaffected |
-| **Nemotron-3-Super GPQA-Diamond** | **63.64%** | 88.73% | **28.3% (56/198)** | **parser (`finish=stop`)** | **OPEN — re-serve at 64k needed** |
+| **Nemotron-3-Super GPQA-Diamond 64k composite** | **73.74%** | — | **15.7% (31/198)** | **budget residual (`finish=length`)** | corrected; residuals counted as wrong |
 | **Lightning IFEval 64k composite** | **93.35%** | — | **0.9% (5/541)** | **budget residual (`finish=length`)** | corrected; residuals counted as wrong |
 
 Ornith's original GPQA score (69.70%) was the most serious case: **21.2% of items scored zero without
@@ -328,8 +328,10 @@ being answered**. It was re-served in September 2026 at the standardized 64k cei
 final content; those are **budget residuals** (`finish_reason=length`), not parser empties — the
 served-item rate (88.46%) is **not** a substitute score for those. Lightning IFEval was also
 replayed at 64k: 42/47 emitted content, 39 passed prompt-strict, and the score changed
-**86.14% → 93.35% (505/541)**. Its five residual empties all ended `finish_reason=length`. The
-remaining open re-serve is **Nemotron-3-Super GPQA** (63.64%, 56/198 parser empties).
+**86.14% → 93.35% (505/541)**. Its five residual empties all ended `finish_reason=length`.
+Nemotron-3-Super GPQA was also replayed at 64k: 25/56 emitted content, 20 were correct, and the
+composite changed **63.64% → 73.74% (146/198)**. Its 31 residual empties all ended
+`finish_reason=length` at the 64k ceiling.
 
 **Cross-model caveat:** any score in this repo taken through lm-eval against a vLLM endpoint with a
 reasoning parser is suspect until audited. Runs whose sample files were not retained cannot be checked.

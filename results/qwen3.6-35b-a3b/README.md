@@ -81,10 +81,11 @@ recipe).
 - **Max measured (c=128):** ~487 tok/s aggregate, TPOT ~237 ms, P99 TTFT ~11 s.
 
 **Comparison at matched concurrency (all on-box, 512/256):** Qwen3.6-35B is by far the fastest — its
-single-stream 47.5 tok/s beats gpt-oss (34 tok/s) and triples Nemotron (15 tok/s), and its c=128
-throughput (~487 tok/s) is **~2.6× Nemotron's** (~190 @ c128). gpt-oss-120b still reaches a higher
-absolute peak (~709 tok/s, but only at c≈256). Given Qwen3.6 is ¼ the size with far lower latency AND
-higher quality scores, it is the efficiency winner on this hardware. Raw per-level output:
+single-stream 47.5 tok/s beats gpt-oss (34 tok/s) and triples Nemotron's historical July profile
+(15 tok/s). At c=128, Qwen3.6's ~487 tok/s is **~2.0× Nemotron's current-profile measured floor**
+(244.70 tok/s); Nemotron was still rising there, so this ratio is not a peak-to-peak ceiling comparison.
+With its smaller model and lower latency, Qwen3.6 was the efficiency winner under the original
+campaign measurements. Raw per-level output:
 [`raw/throughput_sweep/sweep.log`](raw/throughput_sweep/sweep.log).
 
 ## Agentic coding — pi-30 (Fleet-30)

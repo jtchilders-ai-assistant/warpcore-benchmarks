@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "campaign": "nemotron-3-super-current-profile-2026-09-09",
+  "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4",
+  "host": "warpcore (NVIDIA DGX Spark / GB10)",
+  "client_host": "Mac mini / Tribble",
+  "serving": {
+    "image": "vllm/vllm-openai:v0.27.1",
+    "container": "vllm_node",
+    "moe_backend": "marlin",
+    "kv_cache_dtype": "fp8",
+    "max_model_len": 262144,
+    "max_num_seqs": 128,
+    "reasoning_parser": "super_v3",
+    "reasoning_plugin": "super_v3_reasoning_parser.py",
+    "tool_call_parser": "qwen3_coder"
+  },
+  "quality": {
+    "task": "gsm8k_cot_zeroshot_clean",
+    "lm_eval_version": "0.4.12",
+    "samples": 1319,
+    "max_gen_toks": 8192,
+    "temperature": 0,
+    "num_concurrent": 8,
+    "answer_line": {"correct": 1264, "total": 1319, "rate": 0.9583017437452616},
+    "flexible_fallback": {"correct": 1278, "total": 1319, "rate": 0.9689158453373768},
+    "empty_responses": 1,
+    "empty_classification": {
+      "doc_id": 119,
+      "replay_finish_reason": "length",
+      "replay_completion_tokens": 8192,
+      "replay_reasoning_characters": 26634,
+      "verdict": "budget residual; retained and counted wrong"
+    },
+    "artifacts": [
+      "results_2026-09-09T15-46-23.121601.json",
+      "samples_gsm8k_cot_zeroshot_clean_2026-09-09T15-46-23.121601.jsonl.gz",
+      "run.log",
+      "doc119_replay.json",
+      "doc119_replay_summary.json",
+      "replay_doc119.py",
+      "DONE",
+      "REPLAY_DONE"
+    ]
+  },
+  "throughput": {
+    "method": "vllm bench serve, on-box raw completions",
+    "input_tokens": 512,
+    "output_tokens": 256,
+    "ignore_eos": true,
+    "temperature": 0,
+    "levels": [1, 2, 4, 8, 16, 24, 32, 48, 64, 96, 128],
+    "final_level": {
+      "concurrency": 128,
+      "successful_requests": 384,
+      "output_tokens_per_second": 244.70,
+      "mean_ttft_ms": 9821.58,
+      "p99_ttft_ms": 39455.78,
+      "mean_tpot_ms": 481.09
+    },
+    "interpretation": "measured floor; throughput was still rising at the final tested concurrency",
+    "artifacts": ["raw/throughput_sweep_current_profile.log", "raw/throughput_sweep_current_profile.csv", "raw/vllm_sweep_current_profile.sh"]
+  }
+}

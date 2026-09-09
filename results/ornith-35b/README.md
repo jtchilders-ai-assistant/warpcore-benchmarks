@@ -137,7 +137,7 @@ Raw output: [`raw/throughput_sweep/sweep.log`](raw/throughput_sweep/sweep.log) f
 | Qwen/Qwen3.6-35B-A3B | 35B / 3B act | — | — | ~487 | c=128 |
 | **ornith-ai/Ornith-1.0-35B-FP8** | **~35B MoE (FP8)** | **36.95** | **165 ms** | **~559** | **c≈256** |
 | Intel/Qwen3.5-122B-A10B-int4 | 122B / 10B act | 26.9 | — | ~228 | c≈192 |
-| nvidia/Nemotron-3-Super-120B-A12B | 120B / 12B act | 15 | 447 ms | ~190 | c≈128 |
+| nvidia/Nemotron-3-Super-120B-A12B | 120B / 12B act | **15.75** | **486 ms** | **244.70 (floor)** | **c=128 (still climbing)** |
 
 Ornith lands in the **middle of the pack on raw speed** — roughly half Lightning's per-stream rate
 (36.95 vs 73.9 tok/s) despite being a similar total size. Two reasons, both structural on this
