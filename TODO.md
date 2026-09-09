@@ -1,6 +1,6 @@
 # TODO — re-runs needed for a systematic, apples-to-apples comparison
 
-**Status as of 2026-09-08.** This file tracks the work required to turn the per-model cards in
+**Status as of 2026-09-09.** This file tracks the work required to turn the per-model cards in
 [`results/`](results/) into a *systematic* comparison. Models here were benchmarked over roughly a
 month (2026-07-27 → 2026-09-08), and the harness, the serving stack, and our understanding of the
 failure modes all changed underneath us. Several published numbers are therefore **not comparable to
@@ -66,9 +66,12 @@ Audit of every retained sample file (recomputed 2026-09-08, not copied from the 
     (`finish=stop`) from Ornith's 64k budget residuals (`finish=length`). Also added
     Nemotron-Super GPQA and Lightning IFEval as open items requiring re-serve.
 
-- [ ] **1e. Standing rule: always run lm-eval with `--log_samples`, and commit the sample files**
-  - **gpt-oss-120b and Qwen3.6-35B sample files were not retained** (checked both hosts — only
-    `results_*.json` survives). Their empty-response rates are **permanently unauditable**.
+- [x] **1e. Standing rule: always run lm-eval with `--log_samples`, and commit the sample files**
+  - Enforced for all new campaigns by `RUNBOOK.md`, `AGENTS.md`, `.gitignore`, and the provenance
+    ratchet. New runs retain compressed `samples_*.jsonl.gz`; the 2026-09-09 Super GSM8K campaign
+    exercises the standard end to end.
+  - **Historical limitation remains:** gpt-oss-120b and Qwen3.6-35B sample files were not retained
+    (checked both hosts — only `results_*.json` survives). Their empty-response rates are **permanently unauditable**.
     That is why §3 lists them for full re-runs rather than cheap replays.
   - Also: run a `--limit 40` empty-content smoke on any model served with a model-specific
     `--reasoning-parser` *before* committing to a multi-hour sweep. Minutes of cost, days of
@@ -176,10 +179,10 @@ problem difficulty — that assumption is far safer here than for a genuine mode
       `pull_timeout: 1800`) — verified by a structural diff, so the robust `git add -A` submit and
       all limits are Ornith's verbatim. Blocks until the endpoint serves the expected model and all
       100 images are present. Cost ~11 h generation + ~20 min grading; needs the GPU.
-- [ ] **2a-ii. Record the fair-verdict count (`completed_instances`) next to every SWE-bench score**
-      in the top-level README table. A resolve rate over 66 attempts and one over 91 are different
-      measurements and the table should say so. Report **both** raw resolves and
-      resolves-among-graded; the first is the deployment answer, the second isolates capability.
+- [x] **2a-ii. Record the fair-verdict count (`completed_instances`) next to every SWE-bench score.**
+      Completed 2026-09-08: the top-level table now reports raw resolves and fair denominators together
+      (for example, Qwen3.6 `44/100 (fair 44/78)`). `viz/swebench_fair.py` derives the values from
+      committed evidence and fails closed when a no-verdict row lacks an infrastructure attribution.
 - [x] **2a-iii. Classify Ornith's missing `exit_statuses_*.yaml` as unrecoverable.** The original
       trajectories were written under `/tmp/ornith_swe_n100` and reaped by macOS on 2026-08-24;
       no run log or exit-status artifact survives locally, remotely, in git, or in stashes. The nine
@@ -317,9 +320,11 @@ retry events**, abandoned at 110/198). Raising concurrency to "go faster" is wha
       rises 8.54 s → 30.15 s from c=256→384; use c≈256 for maximum throughput and lower concurrency
       for latency-sensitive service. Raw log and launcher are retained under
       `results/ornith-35b/raw/throughput_sweep_extended/`.
-- [ ] **3c. Re-sweep Nemotron-3-Super cleanly.** Its curve was run across a **server restart at two
-      different `--max-num-seqs` values** (24 for c=1→24, then 128 for c=32→128), which is why there
-      is a c=32 warmup spike. That is not a single clean curve. ~2 h.
+- [x] **3c. Re-sweep Nemotron-3-Super cleanly.** Completed 2026-09-09 under one unchanged vLLM
+      0.27.1 profile (`--max-num-seqs 128`): **244.70 output tok/s at c=128**, with 384/384 successful
+      requests and the engine idle before every level. Throughput was still rising at the final point,
+      so the result is reported as a measured floor rather than a plateau or hardware ceiling. Raw log,
+      parsed CSV, launcher, and manifest are committed under the Super card.
 - [x] **3d. Never extrapolate a peak from an instantaneous `/metrics` delta.** A 20–30 s sample of
       `vllm:generation_tokens_total` mid-run gave 333.5 tok/s where the completed `vllm bench serve`
       finished at 258.77 — a 29% overstatement, published then retracted. Live metrics are for
