@@ -104,16 +104,16 @@ not a hardware ceiling.
 Measured independently on Warpcore against the live `vllm_lightning` endpoint (raw results:
 [`raw/quality/`](raw/quality/)).
 
-| Benchmark | n | Metric | Score |
-| --------- | -: | ------ | ----- |
-| **GSM8K** (0-shot CoT) | 1319 | exact_match, flexible | **95.07%** (±0.60) |
-| | | exact_match, anchored line | 94.62% |
-| **IFEval** | 541 | prompt-level strict, **64k replay composite** | **93.35%** (505/541; ±1.07) |
-| | | prompt-level loose | 94.27% (510/541; ±1.00) |
-| | | inst-level strict / loose | 94.72% (790/834) / 95.32% (795/834) |
-| **GPQA-Diamond** (0-shot CoT) | 198 | exact_match, **64k budget** | **76.26%** ✅ |
-| | | exact_match, 32k budget | 66.16% (±3.36) |
-| | | exact_match, 16k budget | 53.03% (truncation-floored) |
+| Benchmark | n | Metric | Score | Measured | Harness | Empty-response |
+| --------- | -: | ------ | ----- | -------- | ------- | --------------- |
+| **GSM8K** (0-shot CoT) | 1319 | exact_match, flexible | **95.07%** (±0.60) | 2026-08-12 | lm-eval 0.4.12 | 24/1319 (1.8%) |
+| | | exact_match, anchored line | 94.62% | 2026-08-12 | lm-eval 0.4.12 | 24/1319 (1.8%) |
+| **IFEval** | 541 | prompt-level strict, **64k replay composite** | **93.35%** (505/541; ±1.07) | 2026-08-12 + replay 2026-09-08 | lm-eval 0.4.12 (both) | 5/541 (0.9%) post-replay — orig run 47/541 (8.7%) |
+| | | prompt-level loose | 94.27% (510/541; ±1.00) | 2026-08-12 + replay 2026-09-08 | lm-eval 0.4.12 (both) | 5/541 (0.9%) post-replay |
+| | | inst-level strict / loose | 94.72% (790/834) / 95.32% (795/834) | 2026-08-12 + replay 2026-09-08 | lm-eval 0.4.12 (both) | 5/541 (0.9%) post-replay |
+| **GPQA-Diamond** (0-shot CoT) | 198 | exact_match, **64k budget** | **76.26%** ✅ | 2026-08-12 (32k base) + replay 2026-08-13 (64k top-up) | lm-eval 0.4.12 (32k) + custom byte-identical replay script using the same answer-line regex (64k top-up, not run through the lm-eval CLI) | 6/198 (3.0%), all `finish_reason=length` budget residuals — see table below |
+| | | exact_match, 32k budget | 66.16% (±3.36) | 2026-08-12 | lm-eval 0.4.12 | 41/198 (20.7%) |
+| | | exact_match, 16k budget | 53.03% (truncation-floored) | 2026-08-12 | lm-eval 0.4.12 | 82/198 (41.4%) |
 
 **Eval config:** `lm-eval` 0.4.12, `local-chat-completions` backend against
 `http://localhost:8000/v1/chat/completions`, `--apply_chat_template`, **greedy `temperature=0`**
@@ -224,6 +224,12 @@ problems (P15 52.6 Mtok/s, P23 331 Mn/s), and the P5 GFLOP/s hardware problem (7
 caveat: pi-30 rank does not track quality rank (a weaker-on-GPQA model can still ace pi-30), so treat this
 as an independent signal.
 
+> **pi-30 is a retired pass/fail smoke test, not a capability discriminator (TODO §5d).** Four models in
+> this repo now sit at 29–30/30, which saturates the benchmark's ability to distinguish good agentic
+> models. Read 29/30 here as "passes the bring-up smoke test, one genuine correctness bug found" — not as
+> a capability score to rank against SWE-bench Verified, which still has headroom. The historical 29/30
+> measurement itself is preserved unchanged above.
+
 > **⚠️ Serving note — unified-memory OOM (why the config differs from the throughput card).** The first
 > pi-30 attempt crashed mid-run and scored a bogus ~3/30. Root cause: on the GB10 the GPU KV cache shares
 > the **same 121 GiB pool** as system RAM. At `--gpu-memory-utilization 0.9` vLLM held ~116 GiB, leaving
@@ -236,7 +242,7 @@ as an independent signal.
 
 ## Agentic coding — SWE-bench Verified (n=100 shuffled)
 
-**Measured 2026-08-18** (final clean n=100; supersedes the earlier n=55 partial and the n=47/100 serving-floored pass).
+**Measured 2026-08-18** (final clean n=100; supersedes the earlier n=55 partial and the n=47/100 serving-floored pass). Harness: mini-swe-agent 2.4.6 + swebench 4.1.0 grading harness.
 
 [SWE-bench Verified](https://www.swebench.com/) via [`mini-swe-agent`](https://github.com/SWE-agent/mini-swe-agent)
 (bash-only agent loop): given a real GitHub issue + repo, the model must produce a patch that makes the
@@ -259,7 +265,8 @@ and Qwen3.6 as **tied** on SWE-bench pending a larger sample.
 
 | | |
 |---|---|
-| Resolved | **51 / 100 = 51%** |
+| Resolved | **51 / 100 = 51%** (final, corrected) |
+| **Superseded: interim serving-wedge floor** | **47 / 100 = 47%** — scored before the 11 wedge-denied instances (below) were re-run; retained here as the historical intermediate reading, not a second capability estimate (TODO §5c) |
 | Unresolved (genuine model failures) | 47 |
 | Non-submissions | 2 (`django-16938` model-side; `django-13033` serving-side) |
 | Infrastructure exclusions for fair denominator | 1 (`django-13033`, `InternalServerError`) |

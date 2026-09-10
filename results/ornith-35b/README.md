@@ -56,15 +56,15 @@ correctly predicted the ~10.5 h full-GPQA wall time below.
 
 Run on Warpcore against the live `vllm_ornith` endpoint. Raw results: [`raw/quality/`](raw/quality/).
 
-| Benchmark | n | Metric | Score |
-| --------- | -: | ------ | ----- |
-| **GSM8K** (0-shot CoT, clean) | 1319 | exact_match, **anchored answer-line** | **97.19%** (±0.45) |
-| | | exact_match, flexible-fallback | 97.12% (±0.46) |
-| **IFEval** | 541 | **prompt-level strict** | **88.54%** (479/541; ±1.37)¹ |
-| | | inst-level strict | **91.49%** (763/834) |
-| | | prompt-level loose / inst-level loose | **90.76%** (491/541; ±1.24) / **92.93%** (775/834) |
-| **GPQA-Diamond** (0-shot CoT, clean) | 198 | exact_match, answer-line | **80.81%** (160/198; ±2.80)¹ |
-| | | exact_match, flexible-fallback | **80.81%** (160/198; ±2.80) — *identical* |
+| Benchmark | n | Metric | Score | Measured | Harness | Empty-response |
+| --------- | -: | ------ | ----- | -------- | ------- | --------------- |
+| **GSM8K** (0-shot CoT, clean) | 1319 | exact_match, **anchored answer-line** | **97.19%** (±0.45) | 2026-08-18 | lm-eval 0.4.12 | 1/1319 (0.1%) |
+| | | exact_match, flexible-fallback | 97.12% (±0.46) | 2026-08-18 | lm-eval 0.4.12 | 1/1319 (0.1%) |
+| **IFEval** | 541 | **prompt-level strict** | **88.54%** (479/541; ±1.37)¹ | 2026-08-18 + replay 2026-09-07 | lm-eval 0.4.12 (both) | 11/541 (2.0%) post-replay — orig run 28/541 (5.2%) |
+| | | inst-level strict | **91.49%** (763/834) | 2026-08-18 + replay 2026-09-07 | lm-eval 0.4.12 (both) | 11/541 (2.0%) post-replay |
+| | | prompt-level loose / inst-level loose | **90.76%** (491/541; ±1.24) / **92.93%** (775/834) | 2026-08-18 + replay 2026-09-07 | lm-eval 0.4.12 (both) | 11/541 (2.0%) post-replay |
+| **GPQA-Diamond** (0-shot CoT, clean) | 198 | exact_match, answer-line | **80.81%** (160/198; ±2.80)¹ | 2026-08-19 + replay 2026-09-06 | lm-eval 0.4.12 (orig) + purpose-built byte-identical replay script scored with the clean task's own answer-line regex (`replay_empties.py`) | 15/198 (7.6%) post-replay — orig run 42/198 (21.2%) |
+| | | exact_match, flexible-fallback | **80.81%** (160/198; ±2.80) — *identical* | 2026-08-19 + replay 2026-09-06 | lm-eval 0.4.12 (orig) + replay script | 15/198 (7.6%) post-replay |
 
 > **64k replay correction.** The original GPQA run used 32k and scored 42 empty final responses as
 > zero; the original IFEval run used 8k and scored 28 as zero. We replayed their **byte-identical
@@ -148,7 +148,7 @@ weight *precision*, and Ornith pays for FP8. It buys that back in agentic qualit
 
 ## Agentic coding — SWE-bench Verified (n=100 shuffled)
 
-**Measured 2026-08-19 → 08-20.** [SWE-bench Verified](https://www.swebench.com/) via
+**Measured 2026-08-19 → 08-20.** Harness: mini-swe-agent 2.4.6 + swebench 4.1.0 grading harness (same versions as the Lightning card). [SWE-bench Verified](https://www.swebench.com/) via
 [`mini-swe-agent`](https://github.com/SWE-agent/mini-swe-agent) (bash-only agent loop): given a real
 GitHub issue + repo, the model must produce a patch that makes the repo's hidden test suite pass,
 graded pass/fail inside a per-instance x86 Docker container. The agent loop and test containers run on
@@ -247,6 +247,11 @@ one-off.
 30/30 matches gpt-oss-120b and Nemotron-3-Super-120B and beats Lightning/Qwen3.6 (29/30) — but note
 pi-30 is now **saturated at the top of this repo's model set** and no longer discriminates between good
 agentic models. SWE-bench Verified is the benchmark with headroom; treat pi-30 as a pass/fail gate.
+
+> **pi-30 is a retired pass/fail smoke test, not a capability discriminator (TODO §5d).** Four models
+> in this repo sit at 29–30/30. Read this card's 30/30 as "passed the bring-up smoke test cleanly" — not
+> as a capability signal to rank against SWE-bench Verified, which still has headroom. The historical
+> 30/30 measurement is preserved unchanged above.
 
 ## Not yet measured / next steps
 

@@ -134,12 +134,12 @@ the bytes), and 12 global-attention layers. Not yet isolated.
 
 lm-eval 0.4.12, `local-chat-completions`, greedy (`temperature=0`), the repo's clean task configs.
 
-| Benchmark | Score | n | Budget | Notes |
-| --- | ---: | ---: | ---: | --- |
-| GSM8K-clean | **96.13%** (corrected, full set) | 1319 | 8k, c=32 | raw harness output 83.40% — see defect below |
-| IFEval prompt-strict | **75.79%** (floor) | 541 | 8k, c=32 | loose 80.59%; underestimate, same defect |
-| IFEval inst-strict | **81.41%** (floor) | 541 | 8k, c=32 | loose 85.01%; underestimate, same defect |
-| GPQA-Diamond-clean | **40.40%** | 198 | 32k, c=4 | capability-limited, not budget-limited; a 64k re-run gave 37.88% (p=0.52, indistinguishable) — see below |
+| Benchmark | Score | n | Budget | Measured | Harness | Empty-response | Notes |
+| --- | ---: | ---: | ---: | -------- | ------- | --------------- | --- |
+| GSM8K-clean | **96.13%** (corrected, full set) | 1319 | 8k, c=32 | 2026-08-22 + recovery same day | lm-eval 0.4.12 + reasoning-field recovery script (`recover_empties_via_reasoning_field.py`) | 186/1319 (14.1%) pre-recovery; 0 uncorrected after recovery | raw harness output 83.40% — see defect below |
+| IFEval prompt-strict | **75.79%** (floor) | 541 | 8k, c=32 | 2026-08-22 | lm-eval 0.4.12 | 29/541 (5.4%), unrecovered | loose 80.59%; underestimate, same defect |
+| IFEval inst-strict | **81.41%** (floor) | 541 | 8k, c=32 | 2026-08-22 | lm-eval 0.4.12 | 29/541 (5.4%), unrecovered | loose 85.01%; underestimate, same defect |
+| GPQA-Diamond-clean | **40.40%** | 198 | 32k, c=4 | 2026-08-26 → 08-27 | lm-eval 0.4.12 | 0/198 (0.0%) — failures were non-terminating `finish=length`, not empty content | capability-limited, not budget-limited; a 64k re-run (2026-08-27 → 08-29, lm-eval 0.4.12, 0/198 empty) gave 37.88% (p=0.52, indistinguishable) — see below |
 
 ### The GSM8K number was a harness defect, not a capability result
 
@@ -384,6 +384,8 @@ Full provenance in [`raw/quality/gpqa/manifest.json`](raw/quality/gpqa/manifest.
 ## Agentic
 
 ### SWE-bench Verified — 55/100 (n=100, seed-42 shuffle)
+
+**Measured 2026-08-22 → 08-26.** Harness: mini-swe-agent 2.4.6, swebench 4.1.0 grading harness (same versions as the Lightning/Ornith cards; per `raw/swebench/manifest.json`).
 
 **55/100 resolved.** That number is a floor, and the interesting part is *how* the other 45 were lost:
 
