@@ -14,14 +14,20 @@
 Settings: `--model local-chat-completions --apply_chat_template`, 0-shot CoT, `temperature=0`,
 `max_gen_toks=8192` (16384 for GPQA). Full test sets (no `--limit`).
 
-| Benchmark | Metric | Score | Stderr | n |
-| --------- | ------ | ----- | ------ | - |
-| GSM8K (CoT, 0-shot) | exact_match, flexible-extract | **83.70%** | ±1.02 | 1319 |
-| IFEval | prompt-level strict acc | **83.73%** | ±1.59 | 541 |
-| IFEval | inst-level strict acc | 89.09% | — | 541 |
-| IFEval | prompt-level loose acc | 86.69% | ±1.46 | 541 |
-| IFEval | inst-level loose acc | 91.01% | — | 541 |
-| GPQA-Diamond (CoT, clean-extract) | exact_match, answer-line | **72.73%** | ±3.17 | 198 |
+| Benchmark | Metric | Score | Stderr | n | Date | Harness | Empty resp. |
+| --------- | ------ | ----- | ------ | - | ---- | ------- | ----------- |
+| GSM8K (CoT, 0-shot) | exact_match, flexible-extract | **83.70%** | ±1.02 | 1319 | 2026-07-27 | lm-eval 0.4.9.1 | unrecorded (samples not retained) |
+| IFEval | prompt-level strict acc | **83.73%** | ±1.59 | 541 | 2026-07-27 | lm-eval 0.4.9.1 | unrecorded (samples not retained) |
+| IFEval | inst-level strict acc | 89.09% | — | 541 | 2026-07-27 | lm-eval 0.4.9.1 | unrecorded (samples not retained) |
+| IFEval | prompt-level loose acc | 86.69% | ±1.46 | 541 | 2026-07-27 | lm-eval 0.4.9.1 | unrecorded (samples not retained) |
+| IFEval | inst-level loose acc | 91.01% | — | 541 | 2026-07-27 | lm-eval 0.4.9.1 | unrecorded (samples not retained) |
+| GPQA-Diamond (CoT, clean-extract) | exact_match, answer-line | **72.73%** | ±3.17 | 198 | 2026-07-28 | lm-eval 0.4.9.1 | unrecorded (samples not retained) |
+
+Dates/harness are read from each run's committed `results_*.json` (`date`, `lm_eval_version`
+fields). **No `samples_*.jsonl` was retained for any gpt-oss-120b lm-eval run** — only the
+aggregate `results_*.json` files under `raw/` survive (see TODO §1e). Per-item empty-response
+counts are therefore permanently unauditable for this model and are reported as `unrecorded
+(samples not retained)`, never as zero.
 
 **Notes**
 - **GSM8K strict-match reads 0% — format artifact, not capability.** gpt-oss doesn't emit the rigid

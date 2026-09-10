@@ -19,14 +19,26 @@
 Settings: `--model local-chat-completions --apply_chat_template`, 0-shot CoT, `temperature=0`.
 Full test sets (no `--limit`).
 
-| Benchmark | Metric | Qwen3.6-35B | gpt-oss-120b | Nemotron-3-Super-120B | n |
-| --------- | ------ | :---------: | :----------: | :-------------------: | - |
-| GSM8K (CoT, 0-shot) | exact_match, flexible | **97.04%** ±0.47 | 83.70% | 76.65% | 1319 |
-| IFEval | prompt-level strict acc | 84.84% ±1.52 | 83.73% | 85.40% | 541 |
-| IFEval | inst-level strict acc | 87.65% | 89.09% | 88.13% | 541 |
-| IFEval | prompt-level loose acc | 87.43% | 86.69% | 88.35% | 541 |
-| IFEval | inst-level loose acc | 89.33% | 91.01% | 90.05% | 541 |
-| GPQA-Diamond (CoT, clean-extract; thinking, 64k) | exact_match, answer-line | **71.72%** ±3.21 | 72.73% | 63.64% | 198 |
+| Benchmark | Metric | Qwen3.6-35B | gpt-oss-120b | Nemotron-3-Super-120B | n | Date | Harness | Empty resp. |
+| --------- | ------ | :---------: | :----------: | :-------------------: | - | ---- | ------- | ----------- |
+| GSM8K (CoT, 0-shot) | exact_match, flexible | **97.04%** ±0.47 | 83.70% | 76.65% | 1319 | 2026-07-31 | lm-eval 0.4.9.1 | unrecorded (samples not retained) |
+| IFEval | prompt-level strict acc | 84.84% ±1.52 | 83.73% | 85.40% | 541 | 2026-07-31 | lm-eval 0.4.9.1 | unrecorded (samples not retained) |
+| IFEval | inst-level strict acc | 87.65% | 89.09% | 88.13% | 541 | 2026-07-31 | lm-eval 0.4.9.1 | unrecorded (samples not retained) |
+| IFEval | prompt-level loose acc | 87.43% | 86.69% | 88.35% | 541 | 2026-07-31 | lm-eval 0.4.9.1 | unrecorded (samples not retained) |
+| IFEval | inst-level loose acc | 89.33% | 91.01% | 90.05% | 541 | 2026-07-31 | lm-eval 0.4.9.1 | unrecorded (samples not retained) |
+| GPQA-Diamond (CoT, clean-extract; no-think, 16k) | exact_match, answer-line | **82.32%** ±2.72 | — | — | 198 | 2026-08-01 | lm-eval 0.4.9.1 | unrecorded (samples not retained) |
+| GPQA-Diamond (CoT, clean-extract; thinking, 16k, superseded) | exact_match, answer-line | 33.84% ±3.37 | — | — | 198 | 2026-08-01 | lm-eval 0.4.9.1 | unrecorded (samples not retained) |
+| GPQA-Diamond (CoT, clean-extract; thinking, 64k) | exact_match, answer-line | **71.72%** ±3.21 | 72.73% | 63.64% | 198 | 2026-09-09 | lm-eval 0.4.12 | 37/198 = 18.69% (not classifiable — see below) |
+
+Dates/harness are read from each run's committed `results_*.json` (`date`, `lm_eval_version`).
+The three historical 2026-07-31/08-01 rows (GSM8K, IFEval, both 16k GPQA modes) have no retained
+`samples_*.jsonl`/`per_item.csv` — only the aggregate `results_*.json` survives — so their
+empty-response rates are `unrecorded (samples not retained)`, never zero. Only the 2026-09-09
+64k thinking-mode GPQA run retains samples; its per-item CSV
+(`raw/quality/gpqa_thinking_64k_2026-09-09/samples_..._per_item.csv`) confirms 37/198 empty
+records, but the retained fields do not include `finish_reason` or the hidden reasoning channel,
+so those 37 cannot be classified as budget residuals, parser failures, or true empties (see the
+methodology note below).
 
 **Headline:** at **~¼ the size** of the two 120B models, Qwen3.6-35B-A3B **wins GSM8K by 13–20 points**
 and effectively ties on IFEval. Its intended thinking mode is now measured on GPQA at the standardized
@@ -100,15 +112,22 @@ campaign measurements. Raw per-level output:
 solved via a full `pi` agent tool-loop (read/write/bash), graded **solely by verifier exit codes**.
 Run from a client Mac against the warpcore endpoint, `PI_TIMEOUT=360`, single-shot canonical.
 
+**pi-30 was retired as a discriminator on 2026-09-04** (see [TODO.md §5d](../../TODO.md) and
+`viz/common.py`'s `RETIRED_BENCHES`): across the repo's models it produced only two distinct scores
+(29/30 or 30/30), so the entire spread was one test case flipping. The table below is retained as
+historical/pass-fail smoke evidence only — it is not run, collected, or plotted going forward, and
+must not be read as a competitive ranking.
+
 | Model | pi-30 score | Failures |
 | ----- | :---------: | -------- |
 | Nemotron-3-Super-120B | 30 / 30 | none |
 | **Qwen3.6-35B-A3B** | **29 / 30** | P2 (LRU cache) |
 | gpt-oss-120b | 30 / 30 | none (on the crash-fixed image) |
 
-At **29/30**, Qwen3.6-35B is within one problem of the two 120B models (both 30/30) on agentic coding —
-a strong showing at ¼ the size. Its one miss (P2, LRU cache) is a genuine model error (staging
-verified). Notably it passed several problems cleanly on the first try. Raw per-problem log:
+Qwen3.6-35B's one miss (P2, LRU cache) is a genuine model error (staging verified), and it passed
+several problems cleanly on the first try. At this saturation level (only two possible outcomes
+across the repo's models), 29/30 vs 30/30 is not a meaningful capability gap to the two 120B
+models — it is a single test case. Raw per-problem log:
 [`raw/pi30/RESULTS.txt`](raw/pi30/RESULTS.txt).
 
 ## Agentic coding — SWE-bench Verified
@@ -146,7 +165,9 @@ alphabetically are only 2 repos (astropy + django, the easier end) and over-scor
 
 **Reading it:** 44% on a representative sample is a **strong result for a 35B model** — SWE-bench
 Verified is a hard, execution-graded coding benchmark, and this is competitive with much larger models.
-Consistent with pi-30 (29/30), Qwen3.6-35B is a capable agentic coder well above its weight class.
+Qwen3.6-35B's pi-30 pass-fail result (29/30, now retired as a discriminator — see the pi-30 section
+above) is directionally consistent but, at that saturation level, is not independent evidence for a
+ranking claim.
 
 **Caveat — the score is a conservative floor.** 29 of the 100 attempts submitted an **empty patch**, the
 majority because the agent hit the wall-clock timeout mid-work on the harder repos (notably **sympy,

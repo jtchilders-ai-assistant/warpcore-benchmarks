@@ -30,17 +30,27 @@ Settings: `--model local-chat-completions --apply_chat_template`, 0-shot CoT, `t
 `max_gen_toks=8192` (16384 for GPQA). Full test sets (no `--limit`). Nemotron is a reasoning model
 (emits a `reasoning` channel; final answer in `content`).
 
-| Benchmark | Metric | Nemotron-3-Super-120B | gpt-oss-120b | n |
-| --------- | ------ | :-------------------: | :----------: | - |
-| GSM8K (CoT, 0-shot), historical July run | exact_match, flexible-extract | **76.65%** ±1.17 | 83.70% | 1319 |
-| GSM8K (CoT, 0-shot), clean current-profile run | exact_match, answer-line | **95.83%** ±0.55 | — | 1319 |
-| GSM8K (CoT, 0-shot), clean current-profile run | exact_match, flexible-fallback | **96.89%** ±0.48 | — | 1319 |
-| IFEval | prompt-level strict acc | **85.40%** ±1.52 | 83.73% | 541 |
-| IFEval | inst-level strict acc | 88.13% | 89.09% | 541 |
-| IFEval | prompt-level loose acc | 88.35% ±1.38 | 86.69% | 541 |
-| IFEval | inst-level loose acc | 90.05% | 91.01% | 541 |
-| GPQA-Diamond (CoT, clean-extract), original 16K | exact_match, answer-line | **63.64%** ±3.43 | 72.73% | 198 |
-| GPQA-Diamond, corrected 64K composite | exact_match, answer-line | **73.74%** | 72.73% | 198 |
+| Benchmark | Metric | Nemotron-3-Super-120B | gpt-oss-120b | n | Date | Harness | Empty resp. |
+| --------- | ------ | :-------------------: | :----------: | - | ---- | ------- | ----------- |
+| GSM8K (CoT, 0-shot), historical July run | exact_match, flexible-extract | **76.65%** ±1.17 | 83.70% | 1319 | 2026-07-28 | lm-eval 0.4.9.1 | unrecorded (samples not retained) |
+| GSM8K (CoT, 0-shot), clean current-profile run | exact_match, answer-line | **95.83%** ±0.55 | — | 1319 | 2026-09-09 | lm-eval 0.4.12 | 1/1319 = 0.08% |
+| GSM8K (CoT, 0-shot), clean current-profile run | exact_match, flexible-fallback | **96.89%** ±0.48 | — | 1319 | 2026-09-09 | lm-eval 0.4.12 | 1/1319 = 0.08% |
+| IFEval | prompt-level strict acc | **85.40%** ±1.52 | 83.73% | 541 | 2026-07-29 | lm-eval 0.4.9.1 | unrecorded (samples not retained) |
+| IFEval | inst-level strict acc | 88.13% | 89.09% | 541 | 2026-07-29 | lm-eval 0.4.9.1 | unrecorded (samples not retained) |
+| IFEval | prompt-level loose acc | 88.35% ±1.38 | 86.69% | 541 | 2026-07-29 | lm-eval 0.4.9.1 | unrecorded (samples not retained) |
+| IFEval | inst-level loose acc | 90.05% | 91.01% | 541 | 2026-07-29 | lm-eval 0.4.9.1 | unrecorded (samples not retained) |
+| GPQA-Diamond (CoT, clean-extract), original 16K | exact_match, answer-line | **63.64%** ±3.43 | 72.73% | 198 | 2026-07-30 | lm-eval 0.4.12 | 56/198 = 28.28% |
+| GPQA-Diamond, corrected 64K composite | exact_match, answer-line | **73.74%** | 72.73% | 198 | 2026-07-30 orig. + 2026-09-09 replay | lm-eval 0.4.12 | 31/198 = 15.66% (remaining, budget residual) |
+
+Dates/harness come from each run's committed `results_*.json` (`date`, `lm_eval_version`) or,
+for the 64K composite, the replay's own `manifest.json`/`summary.json` timestamps. The historical
+July GSM8K and IFEval runs have no retained `samples_*.jsonl`/`per_item.csv` — only the aggregate
+`results_*.json` survives — so their empty-response rates are `unrecorded (samples not
+retained)`, never zero. The two 64K-affected GPQA rows are **not the same campaign**: the 16K row
+is the original 2026-07-30 run (56/198 empty, from its committed `samples_*.jsonl`); the composite
+row layers a byte-identical 2026-09-09 replay of exactly those 56 items on top, leaving 31/198
+still empty (budget residual, `finish_reason=length`), per
+`raw/quality/gpqa/samples_gpqa_diamond_64k_replay_corrected.per_item.csv`.
 
 **Notes**
 - **Clean GSM8K (2026-09-09):** the strict answer-line task scored **1264/1319 = 95.83%**;
@@ -150,17 +160,24 @@ solved via a full `pi` agent tool-loop (read/write/bash), graded **solely by ver
 Run from a client Mac against the warpcore endpoint, `PI_TIMEOUT=600` (raised from the default 360 s
 for Nemotron's long reasoning tails), single-shot canonical.
 
+**pi-30 was retired as a discriminator on 2026-09-04** (see [TODO.md §5d](../../TODO.md) and
+`viz/common.py`'s `RETIRED_BENCHES`): across the repo's models it produced only two distinct scores
+(29/30 or 30/30), so the entire spread was one test case flipping. The table below is retained as
+historical/pass-fail smoke evidence only — it is not run, collected, or plotted going forward, and
+must not be read as a competitive ranking.
+
 | Model | pi-30 score | Failures |
 | ----- | :---------: | -------- |
 | **Nemotron-3-Super-120B** | **30 / 30** | none |
 | Qwen3.6-35B-A3B | 29 / 30 | P2 (LRU cache) |
 | gpt-oss-120b | 30 / 30 | none (on the crash-fixed image) |
 
-**Nemotron-3-Super ties gpt-oss-120b for the top agentic-coding score** — a perfect 30/30, including
-P5 (101.6 GFLOP/s) and the LRU-cache problem (P2) that Qwen3.6 missed. This is a notable **reversal**
-of the quality-benchmark ranking (where Nemotron was weakest): the iterate-until-green agent loop
-rewards its verbose, methodical reasoning, whereas GSM8K/GPQA penalize its verbosity/latency. Raw
-per-problem log: [`raw/pi30/RESULTS.txt`](raw/pi30/RESULTS.txt).
+Nemotron-3-Super matched gpt-oss-120b's perfect 30/30 on this smoke test, including P5
+(101.6 GFLOP/s) and the LRU-cache problem (P2) that Qwen3.6 missed. Read alongside the
+quality-benchmark ranking (where Nemotron trailed), this is a data point about pass/fail behavior
+on 30 fixed problems, not a demonstrated capability reversal — pi-30's saturation means it cannot
+resolve a ranking claim at this scale. Raw per-problem log:
+[`raw/pi30/RESULTS.txt`](raw/pi30/RESULTS.txt).
 
 ## Reproduce
 
