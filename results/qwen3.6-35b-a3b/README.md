@@ -26,11 +26,12 @@ Full test sets (no `--limit`).
 | IFEval | inst-level strict acc | 87.65% | 89.09% | 88.13% | 541 |
 | IFEval | prompt-level loose acc | 87.43% | 86.69% | 88.35% | 541 |
 | IFEval | inst-level loose acc | 89.33% | 91.01% | 90.05% | 541 |
-| GPQA-Diamond (CoT, clean-extract) | exact_match, answer-line | **82.32%** ±2.72 | 72.73% | 63.64% | 198 |
+| GPQA-Diamond (CoT, clean-extract; thinking, 64k) | exact_match, answer-line | **71.72%** ±3.21 | 72.73% | 63.64% | 198 |
 
 **Headline:** at **~¼ the size** of the two 120B models, Qwen3.6-35B-A3B **wins GSM8K by 13–20 points**
-and **GPQA-Diamond by 10–19 points**, and effectively ties on IFEval. It is the clear value standout
-of the three models on this suite.
+and effectively ties on IFEval. Its intended thinking mode is now measured on GPQA at the standardized
+64k ceiling; the resulting **71.72%** is close to these historical 120B measurements, but remains
+budget-conditional because 37/198 items emitted no visible answer.
 
 ### Methodology notes (important — read before comparing)
 
@@ -45,14 +46,19 @@ above are **verified** (parse checked against the model's actual stated answers 
   flexible-fallback (last-number, format-robust) gives **97.04%**, verified on a smoke (39/40
   last-number == gold, the one miss a real model error). This "last number in output" definition is the
   same as stock flexible-extract, just format-robust, so it stays comparable.
-- **GPQA is reported in NON-THINKING mode (`enable_thinking=false`): 82.32%.** In the model's **default
-  thinking mode**, GPQA scored only **33.84%** — but that is an *artifact*: on hard GPQA questions the
-  model exhausts the 16 384-token budget inside the reasoning channel and emits **no final answer**
-  (`content: null` on **61%** of items, `finish_reason=length`). With thinking off the model still
-  produces full step-by-step reasoning **in `content`**, finishes every item (**0% null**), and scores
-  82.32% (163/198, verified). The 33.84% thinking-mode figure is retained in `raw/` as an operational
-  data point: **running Qwen3.6 in default thinking mode with a ≤16k budget is not viable for hard
-  long-form MCQ on this hardware** — either disable thinking or budget ≥32k tokens.
+- **GPQA is reported in the model's default thinking mode at a 65,536-token ceiling: 71.72%
+  (142/198, ±3.21).** This supersedes the operationally unusable 16k thinking-mode result of
+  **33.84% (67/198)** and measures the model in its intended mode under the repo's standardized
+  ceiling. The full run completed all 198 requests in 14.45 h at concurrency 4 with no recorded API
+  error, but 37/198 (18.7%) sample records contain empty visible content and were counted wrong.
+  lm-eval retained neither `finish_reason` nor the hidden `reasoning` fields, so those 37 cannot be
+  classified after the fact as 64k budget residuals, parser failures, or truly empty generations.
+  The served-only 142/161 = 88.20% is therefore only an optimistic upper bound, **not** a corrected
+  score. The prior non-thinking run remains a valid separate intervention: it finished all items and
+  scored **82.32% (163/198)**, 10.61 points above default thinking under the measured 64k ceiling.
+  Raw aggregate, compressed samples, slim per-item audit, run log/script, task files, manifest, and
+  audit summary are retained under
+  [`raw/quality/gpqa_thinking_64k_2026-09-09/`](raw/quality/gpqa_thinking_64k_2026-09-09/).
 
 ## Throughput / latency — `vllm bench serve` concurrency sweep
 
@@ -177,6 +183,8 @@ HF_TOKEN=... LMEVAL_NO_THINK=1 OPENAI_API_KEY=dummy lm_eval --model local-chat-c
 ```
 
 Raw harness output (results JSON for both GPQA modes, custom task configs) is in [`raw/`](raw/).
+The complete 64k thinking-mode evidence bundle is in
+[`raw/quality/gpqa_thinking_64k_2026-09-09/`](raw/quality/gpqa_thinking_64k_2026-09-09/).
 
 ### SWE-bench Verified (agent + scoring)
 

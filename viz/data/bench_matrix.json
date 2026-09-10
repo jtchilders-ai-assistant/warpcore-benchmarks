@@ -115,10 +115,10 @@
  },
  "qwen3.6-35b-a3b": {
   "gpqa": {
-   "note": "non-thinking mode",
-   "src": "raw/gpqa_nothink_results.json",
-   "stderr": 2.72,
-   "value": 82.32
+   "note": "thinking mode, 64k ceiling; 37/198 (18.7%) empty visible content; finish reasons unrecorded",
+   "src": "raw/quality/gpqa_thinking_64k_2026-09-09/results_2026-09-10T08-03-24.755650.json",
+   "stderr": 3.21,
+   "value": 71.72
   },
   "gsm8k": {
    "src": "raw/gsm8k_results.json",

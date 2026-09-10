@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "task": "gpqa_diamond_cot_zeroshot_clean",
+  "mode": "default thinking mode",
+  "sample_count": 198,
+  "sample_rows": 396,
+  "filters": [
+    "answer-line",
+    "flexible-fallback"
+  ],
+  "correct": {
+    "answer-line": 142,
+    "flexible-fallback": 142
+  },
+  "score": {
+    "answer-line": 0.7171717171717171,
+    "flexible-fallback": 0.7171717171717171
+  },
+  "empty_content_count": 37,
+  "empty_content_rate": 0.18686868686868688,
+  "empty_doc_ids": [
+    0,
+    1,
+    5,
+    10,
+    13,
+    24,
+    28,
+    29,
+    31,
+    42,
+    44,
+    47,
+    51,
+    53,
+    55,
+    59,
+    63,
+    68,
+    71,
+    74,
+    93,
+    97,
+    101,
+    115,
+    121,
+    126,
+    127,
+    131,
+    138,
+    140,
+    143,
+    145,
+    147,
+    152,
+    168,
+    178,
+    186
+  ],
+  "served_content_count": 161,
+  "served_only_correct": 142,
+  "served_only_rate": 0.8819875776397516,
+  "finish_reason_audit": {
+    "status": "unrecorded",
+    "reason": "lm-eval 0.4.12 retained only visible response text in samples_*.jsonl; it did not retain the OpenAI response finish_reason, reasoning, reasoning_content, or token usage fields. run.log records 37 null-content warnings but not their finish reasons. Therefore the 37 empties cannot be classified from retained artifacts as finish=length budget residuals, finish=stop parser failures, or true empty generations.",
+    "warning_count_consistent_with_empty_count": true
+  },
+  "interpretation": "71.72% is the measured 64k-budget operational score with all empty visible responses counted wrong. The 88.20% served-only rate is an upper bound, not a corrected capability score. Do not classify or exclude the 37 empty responses without finish-reason evidence.",
+  "source_sha256": {
+    "results_2026-09-10T08-03-24.755650.json": "4ff3b392a36df893f4292afbb2a38069780fcc4a3e41f1f4fa39af61ab282c4f",
+    "samples_gpqa_diamond_cot_zeroshot_clean_2026-09-10T08-03-24.755650.jsonl.gz": "ee6b479b0b05d8fb716bb947dad9ea50e02301520867f1577e53c26fcc14952e",
+    "run.log": "8a5848d8022ea06520ba60e9aa5fda8c4652322f8f1055e1cea0751e30c33733",
+    "run.sh": "bba887d8a538d0e70ee9b39486182e48e3f5190dca44cd207d0563d5c99f4214"
+  }
+}

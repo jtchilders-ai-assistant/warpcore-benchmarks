@@ -89,8 +89,8 @@ gated `Idavidrein/gpqa` dataset.
 
 **Takeaway:** **97.19% GSM8K is the highest grade-school-math score in this repo** (edging Qwen3.6-35B's
 97.04%). At the common 64k offline-reasoning ceiling, Ornith reaches **88.54% IFEval prompt-strict** and
-**80.81% GPQA-Diamond**—above Lightning-at-64k (76.26%) and below Qwen3.6's non-thinking-mode 82.32%
-GPQA figure, which is not directly comparable until its thinking-mode 64k run. Ornith's separate edge
+**80.81% GPQA-Diamond**—above Lightning-at-64k (76.26%) and Qwen3.6 thinking-at-64k (71.72%).
+Qwen3.6's separate non-thinking intervention remains higher at 82.32%, but is not the same mode. Ornith's edge
 remains agentic coding (below).
 
 ## Throughput / latency — `vllm bench serve` concurrency sweep
@@ -200,9 +200,9 @@ Lightning run) produced **zero patch-apply errors**.
 **The head-to-head is the striking part.** On the identical 100 instances, Ornith resolves **27 that
 Lightning misses** while losing only **5** that Lightning gets. That is not sampling noise — it is a
 real capability gap on agentic patch generation, and it is consistent with Ornith being purpose-built
-by DeepReinforce for agentic coding. Note the honest inversion this creates: Ornith is *ahead of
-Lightning but behind Qwen3.6* on GPQA-Diamond general reasoning (**80.81%** vs 76.26% / 82.32%) yet far *ahead* on
-SWE-bench. **Benchmark-suite rank does not transfer across task families** — pick the model for the
+by DeepReinforce for agentic coding. Note the honest cross-task inversion: Ornith is ahead of
+Lightning and Qwen3.6's default-thinking 64k results on GPQA-Diamond (**80.81%** vs 76.26% / 71.72%),
+while its SWE-bench lead is much larger. **Benchmark-suite margins do not transfer across task families** — pick the model for the
 job, not for the leaderboard.
 
 ### Caveats (read before quoting the number)

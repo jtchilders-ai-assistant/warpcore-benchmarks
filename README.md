@@ -48,7 +48,7 @@ django-heavy sample (56/100) is reweighted.
 | ----- | ------- | ----- | ---------------------- | ------------ | ------------------ | ---------- | --------- |
 | [openai/gpt-oss-120b](results/gpt-oss-120b/README.md) | vLLM MXFP4 | 83.7% | 83.7% | 72.7% | blocked² | ~709 (c≈256) | [card](results/gpt-oss-120b/README.md) |
 | [nvidia/Nemotron-3-Super-120B-A12B-NVFP4](results/nemotron-3-super-120b/README.md) | vLLM NVFP4 (MARLIN) | **95.83%**¹⁶ | 85.40% | **73.74%**¹⁵ | — | **244.70 (c=128, floor)**¹⁷ | [card](results/nemotron-3-super-120b/README.md) |
-| [Qwen/Qwen3.6-35B-A3B-FP8](results/qwen3.6-35b-a3b/README.md) | vLLM FP8 (TRITON) | 97.04% | 84.84% | 82.32% | 44/100 (fair 44/78)¹ | ~487 (c=128) | [card](results/qwen3.6-35b-a3b/README.md) |
+| [Qwen/Qwen3.6-35B-A3B-FP8](results/qwen3.6-35b-a3b/README.md) | vLLM FP8 (TRITON) | 97.04% | 84.84% | **71.72%**¹⁸ | 44/100 (fair 44/78)¹ | ~487 (c=128) | [card](results/qwen3.6-35b-a3b/README.md) |
 | [nvidia/Nemotron-3.5-Lightning-30B-A3B-NVFP4](results/nemotron-3.5-lightning-30b/README.md) | vLLM NVFP4 (MARLIN) | 95.07% | **93.35%**¹³ | 76.26%³ | 51/100 (fair 51/99)⁵ | **926 (c=384, floor)**¹⁴ | [card](results/nemotron-3.5-lightning-30b/README.md) |
 | [Intel/Qwen3.5-122B-A10B-int4-AutoRound](results/qwen3.5-122b-a10b/README.md) | vLLM INT4 (MARLIN) | —⁴ | —⁴ | —⁴ | —⁴ | ~228 (c≈192) | [card](results/qwen3.5-122b-a10b/README.md) |
 | [ornith-ai/Ornith-1.0-35B-FP8](results/ornith-35b/README.md) | vLLM FP8 W8A8 (MARLIN)⁶ | **97.19%** | **88.54%**¹² | **80.81%**¹² | **73/100 (fair 73/100)**⁷ | **~559 (c≈256)** | [card](results/ornith-35b/README.md) |
@@ -116,6 +116,8 @@ output is retained under `results/<model>/raw/pi30/`; see the discrimination pan
 ¹⁶ **Nemotron-3-Super clean GSM8K (2026-09-09).** Under the same controlled vLLM 0.27.1 serving profile as the GPQA recovery, the custom anchored answer-line task scored **1264/1319 (95.83%)**; its explicitly labeled flexible fallback scored **1278/1319 (96.89%)**. One response was empty and remains counted wrong. An exact-prompt replay reproduced `finish_reason=length` at the 8,192-token ceiling, classifying it as a budget residual rather than a parser failure. The historical 76.65% row used a different extraction task and is preserved on the model card rather than mixed with this result. <br><br>
 
 ¹⁷ **Nemotron-3-Super short-context throughput (2026-09-09).** The clean current-profile 512-input/256-output raw-completions sweep completed every request and reached **244.70 output tok/s at c=128**. Throughput was still rising at the final tested point, so this is a **measured floor, not a proven hardware ceiling**. At c=128, mean TTFT was 9.82 s, P99 TTFT 39.46 s, and mean TPOT 481 ms; this is an offline saturation point, not an interactive recommendation.
+
+¹⁸ **Qwen3.6 thinking-mode GPQA at 64k (2026-09-09–10).** The full n=198 run scored **142/198 (71.72%, ±3.21)**, compared with 67/198 (33.84%) for the historical 16k thinking run and 163/198 (82.32%) for the separate non-thinking intervention. It completed in 14.45 h at concurrency 4. **37/198 (18.7%) emitted no visible content and remain counted wrong.** The retained lm-eval samples do not include `finish_reason` or hidden reasoning fields, so these empties cannot be classified after the fact as budget residuals, parser failures, or true empty generations. The served-only 142/161 (88.20%) is an upper bound, not a corrected score.
 
 ## What's measured
 

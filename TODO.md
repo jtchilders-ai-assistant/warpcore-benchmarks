@@ -273,10 +273,13 @@ Current budgets in the repo:
       Adopted 2026-09-08: GPQA-Diamond and IFEval for reasoning models now use
       `max_gen_toks=65536`; GSM8K remains 8192. `RUNBOOK.md` and the Ornith runner encode it.
       The ceiling is not a reservation; report residual `finish_reason=length` rates.
-- [ ] **2d-ii. Re-run Qwen3.6-35B GPQA in *thinking* mode at 64k.** The published **82.32%** is the
-      **non-thinking** run. Thinking mode at 16k scored **33.84%** — that is a truncation artifact,
-      not a capability measurement, and the model's intended mode has never been measured properly.
-      ~8 h.
+- [x] **2d-ii. Re-run Qwen3.6-35B GPQA in *thinking* mode at 64k.** Completed 2026-09-10:
+      **71.72% (142/198, ±3.21)** at the standardized 65,536-token ceiling, up from the historical
+      16k thinking-mode **33.84% (67/198)**. The full run took 14.45 h at concurrency 4. It retained
+      37/198 (18.7%) empty visible responses, but lm-eval did not retain their finish reasons or hidden
+      reasoning fields, so they cannot honestly be divided into budget, parser, and true-empty cases.
+      They remain counted wrong; the 88.20% served-only rate is an upper bound, not a correction.
+      The non-thinking intervention remains separately reported at **82.32% (163/198)**.
 
 ### 2e. Do the timeout arithmetic before launching
 
@@ -509,11 +512,10 @@ Lightning IFEval replay in §1c is complete.
 
 | Order | Item | Cost | Unblocks |
 | --: | --- | --- | --- |
-| 1 | §2d-ii Qwen3.6-35B GPQA thinking mode @64k | ~8 h | Qwen3.6's real reasoning ceiling |
-| 2 | §2a-i Qwen3.6 SWE-bench re-run | ~11 h | the most misleading number in the table |
-| 3 | §2b-i gpt-oss SWE-bench re-run | ~11 h | the only missing agentic score |
-| 4 | §2c-i gpt-oss GSM8K clean-task re-run | ~3 h | GSM8K column comparability |
-| 5 | §4a Qwen3.5-122B full suite (GSM8K, IFEval, GPQA-D, SWE-bench) | ~20 h | the one model with no quality data |
+| 1 | §2a-i Qwen3.6 SWE-bench re-run | ~11 h | the most misleading number in the table |
+| 2 | §2b-i gpt-oss SWE-bench re-run | ~11 h | the only missing agentic score |
+| 3 | §2c-i gpt-oss GSM8K clean-task re-run | ~3 h | GSM8K column comparability |
+| 4 | §4a Qwen3.5-122B full suite (GSM8K, IFEval, GPQA-D, SWE-bench) | ~20 h | the one model with no quality data |
 
 **Nemotron-3-Super consolidated campaign completed 2026-09-09.** Corrected GPQA is **73.74%**,
 clean answer-line GSM8K is **95.83%**, and the current-profile short-context sweep reached

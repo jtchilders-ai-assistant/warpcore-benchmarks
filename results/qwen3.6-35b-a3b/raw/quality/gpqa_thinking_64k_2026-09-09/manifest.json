@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "model": {
+    "id": "Qwen/Qwen3.6-35B-A3B-FP8",
+    "revision": "unrecorded",
+    "quantization": "FP8"
+  },
+  "benchmark": {
+    "name": "gpqa_diamond_cot_zeroshot_clean",
+    "sample": "full GPQA-Diamond validation split, n=198, seed 42",
+    "harness": "lm-evaluation-harness local-chat-completions",
+    "harness_version": "0.4.12",
+    "grading_harness": "lm-evaluation-harness exact_match",
+    "run_id": "qwen36-gpqa-thinking-64k-20260909"
+  },
+  "serving": {
+    "engine": "vLLM",
+    "version": "0.17.1rc1.dev96+g57431d823.d20260312",
+    "image": "unrecorded",
+    "image_digest": "unrecorded",
+    "host": "warpcore (NVIDIA DGX Spark / GB10, aarch64)",
+    "launch_script": "unrecorded",
+    "args": "unrecorded",
+    "env": "unrecorded",
+    "launch_script_matches_run": "unrecorded",
+    "launch_script_note": "No serving launch script was retained with this run.",
+    "generation_config": "auto",
+    "checkpoint_max_new_tokens": "absent"
+  },
+  "client": {
+    "host": "csi0359637.cels.anl.gov (Mac mini, x86_64)",
+    "concurrency": 4,
+    "agent_config": "not applicable",
+    "limits": {
+      "max_gen_toks": 65536,
+      "temperature": 0,
+      "max_retries": 8,
+      "request_timeout_seconds": 7200,
+      "tokenized_requests": false
+    }
+  },
+  "timing": {
+    "started": "2026-09-09T17:36:41-05:00",
+    "finished": "2026-09-10T08:03:24-05:00",
+    "evaluation_seconds": 52019.184481678996
+  },
+  "segments": [],
+  "repo_commit": "e010345",
+  "artifacts": [
+    "results_2026-09-10T08-03-24.755650.json",
+    "samples_gpqa_diamond_cot_zeroshot_clean_2026-09-10T08-03-24.755650.jsonl.gz",
+    "samples_gpqa_diamond_cot_zeroshot_clean_2026-09-10T08-03-24.755650.per_item.csv",
+    "audit_summary.json",
+    "run.log",
+    "run.sh",
+    "gpqa_diamond_cot_zeroshot_clean.yaml",
+    "gpqa_utils.py"
+  ],
+  "notes": "Default thinking mode; no enable_thinking=false override. The exact model identity passed before launch. The live endpoint still reported this model and vLLM version at archival time. The task helper import was renamed from the generic utils module to gpqa_utils before launch to avoid import collision; the effective task and process_docs source are embedded in the aggregate result. The run log contains a harmless post-evaluation 'fatal: not a git repository' emitted while lm-eval attempted metadata collection from the detached run directory; scoring and artifact writes completed. The retained samples omit finish_reason, hidden reasoning fields, and token usage, so 37 empty visible responses are auditable but not classifiable as budget or parser failures."
+}

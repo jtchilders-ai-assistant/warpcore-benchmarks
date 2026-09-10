@@ -28,7 +28,7 @@ QUALITY = {
     "qwen3.6-35b-a3b": dict(
         gsm8k="raw/gsm8k_results.json",
         ifeval="raw/ifeval_results.json",
-        gpqa="raw/gpqa_nothink_results.json"),
+        gpqa="raw/quality/gpqa_thinking_64k_2026-09-09/results_2026-09-10T08-03-24.755650.json"),
     "nemotron-3.5-lightning-30b": dict(
         gsm8k="raw/quality/gsm8k_cot_zeroshot_clean/nvidia__NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/results_2026-08-12T11-08-12.708266.json",
         ifeval="raw/quality/ifeval/nvidia__NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/results_2026-08-12T13-08-23.626945.json",
@@ -93,7 +93,9 @@ def collect() -> dict:
     ornith_ifeval["value"], ornith_ifeval["stderr"] = 88.54, 1.37
     ornith_ifeval["note"] = "64k replay composite; 11/541 (2.0%) still budget-truncated"
     ornith_ifeval["src"] += " + raw/quality/ifeval/results_64k_replay_corrected.json"
-    out["qwen3.6-35b-a3b"]["gpqa"]["note"] = "non-thinking mode"
+    out["qwen3.6-35b-a3b"]["gpqa"]["note"] = (
+        "thinking mode, 64k ceiling; 37/198 (18.7%) empty visible content; "
+        "finish reasons unrecorded")
 
     # Lightning IFEval: original 8k run plus byte-identical 64k replay of 47 parser empties.
     light_ifeval = out["nemotron-3.5-lightning-30b"]["ifeval"]
