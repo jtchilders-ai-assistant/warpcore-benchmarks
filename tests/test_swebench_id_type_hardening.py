@@ -66,6 +66,7 @@ def _make_suite_repo(tmpdir: Path, instances: list) -> tuple[Path, Path]:
     swe_dst = suite_dir / "swebench"
     swe_dst.mkdir()
     (tmpdir / "viz").mkdir()
+    (tmpdir / "adapters").mkdir()
 
     for p in SCHEMAS_DIR.iterdir():
         shutil.copy(p, schemas_dst / p.name)
@@ -231,6 +232,7 @@ class TestEmptyStringIds:
             swe_dst = suite_dir / "swebench"
             swe_dst.mkdir()
             (tmpdir / "viz").mkdir()
+            (tmpdir / "adapters").mkdir()
 
             for p in SCHEMAS_DIR.iterdir():
                 shutil.copy(p, schemas_dst / p.name)
@@ -279,6 +281,7 @@ class TestDuplicateAndCountSafeWithMalformedIds:
             swe_dst = suite_dir / "swebench"
             swe_dst.mkdir()
             (tmpdir / "viz").mkdir()
+            (tmpdir / "adapters").mkdir()
 
             for p in SCHEMAS_DIR.iterdir():
                 shutil.copy(p, schemas_dst / p.name)
@@ -381,6 +384,7 @@ class TestCLIUnhashableExitsOne:
             swe_dst = suite_dir / "swebench"
             swe_dst.mkdir()
             (tmpdir / "viz").mkdir()
+            (tmpdir / "adapters").mkdir()
 
             for p in SCHEMAS_DIR.iterdir():
                 shutil.copy(p, schemas_dst / p.name)

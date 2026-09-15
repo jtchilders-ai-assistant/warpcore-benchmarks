@@ -7,10 +7,26 @@ Public API:
     validate_json(instance: dict, schema_path: Path) -> list[str]
     validate_suite(repo: Path, suite_path: Path) -> list[str]
     validate_adapter(repo: Path, adapter_path: Path) -> list[str]
+    validate_adapter_campaign_ready(adapter: dict, slug: str, suite: dict | None) -> list[str]
+    validate_adapters_dir(repo: Path, adapters_dir: Path) -> list[str]
 
 validate_json enforces JSON Schema format annotations via FormatChecker.
 validate_suite and validate_adapter return [] on success, list[str] of
 human-readable error messages on failure.
+
+validate_adapter_campaign_ready checks whether a schema-valid adapter may
+launch a canonical warpcore-v1 campaign.  It is separate from validate_adapter
+because a noncanonical adapter is schema-valid (for historical documentation)
+but may not drive a canonical run.
+
+validate_adapters_dir validates every *.yaml file in a directory against the
+adapter schema and also performs cross-adapter checks (duplicate slugs).
+
+Context-length validation note:
+    Campaign readiness requires measured tokenized prompt maxima from the pinned
+    task/tokenizer path.  For each quality benchmark it proves
+    prompt_tokens + generation_ceiling <= max_model_len.  Missing evidence blocks
+    readiness rather than treating output-ceiling-only arithmetic as proof.
 
 Exit codes (for CLI callers):
     0 — valid
@@ -21,6 +37,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -362,5 +379,210 @@ def validate_adapter(repo: Path, adapter_path: Path) -> list[str]:
 
     schema_errors = validate_json(adapter, schema_path)
     errors.extend(schema_errors)
+
+    return errors
+
+
+# ---------------------------------------------------------------------------
+# Campaign-readiness validator
+# ---------------------------------------------------------------------------
+
+def validate_adapter_campaign_ready(
+    adapter: dict,
+    slug: str,
+    suite: dict | None = None,
+    prompt_token_maxima: dict[str, int] | None = None,
+) -> list[str]:
+    """Check whether a schema-valid adapter may launch a canonical warpcore-v1 campaign.
+
+    This check is SEPARATE from schema validation.  A noncanonical adapter is
+    schema-valid (it documents historical serving configuration) but must not
+    drive a canonical campaign.
+
+    Checks:
+    1. campaign_status must be 'canonical'.  If 'noncanonical', return errors
+       naming every unresolved field specified in noncanonical_reason.
+    2. model.revision must be a 40-char lowercase hex string (not 'unresolved').
+    3. serving.image must match the canonical repo@sha256:<64hex> pattern.
+    4. Context feasibility: when a suite is supplied, measured tokenized prompt
+       maxima must also be supplied for every benchmark with a generation ceiling,
+       and prompt_tokens + generation_ceiling must fit max_model_len.
+
+    Returns [] if the adapter is campaign-ready; list[str] of errors otherwise.
+    """
+    errors: list[str] = []
+    status = adapter.get("campaign_status", "canonical")
+
+    # -- 1. campaign_status gating --------------------------------------------
+    if status == "noncanonical":
+        reason = adapter.get("noncanonical_reason", "(no reason given)")
+        errors.append(
+            f"adapter for {slug!r} is noncanonical and may not launch a canonical campaign — "
+            f"unresolved provenance: {reason}"
+        )
+        # Also enumerate which specific immutable fields are unresolved
+        model_rev = (adapter.get("model") or {}).get("revision", "")
+        serving = adapter.get("serving") or {}
+        serving_image = serving.get("image", "")
+        if model_rev == "unresolved":
+            errors.append(
+                f"model.revision is 'unresolved' for {slug!r}: "
+                "the historical HuggingFace commit SHA was never recorded. "
+                "Verify the exact revision used and resolve before enabling canonical campaigns."
+            )
+        if serving_image == "unresolved":
+            errors.append(
+                f"serving.image is 'unresolved' for {slug!r}: "
+                "the historical container image digest was never recorded. "
+                "Verify the exact image digest used and resolve before enabling canonical campaigns."
+            )
+        for field in ("max_model_len", "gpu_memory_utilization", "max_num_seqs"):
+            if serving.get(field) == "unresolved":
+                errors.append(
+                    f"serving.{field} is 'unresolved' for {slug!r}: verify the effective "
+                    "serving value before enabling canonical campaigns."
+                )
+        # Return early — further checks assume a canonical adapter
+        return errors
+
+    # -- 2. Immutable revision check ------------------------------------------
+    _HEX40 = re.compile(r"^[0-9a-f]{40}$")
+    model_rev = (adapter.get("model") or {}).get("revision", "")
+    if not _HEX40.match(model_rev):
+        errors.append(
+            f"model.revision for {slug!r} is not a valid 40-char lowercase hex SHA: {model_rev!r}"
+        )
+
+    # -- 3. Immutable image digest check ---------------------------------------
+    _DIGEST = re.compile(r"^.+@sha256:[0-9a-f]{64}$")
+    serving_image = (adapter.get("serving") or {}).get("image", "")
+    if not _DIGEST.match(serving_image):
+        errors.append(
+            f"serving.image for {slug!r} does not carry an immutable digest "
+            f"(expected repo@sha256:<64hex>): {serving_image!r}"
+        )
+
+    # -- 4. Context feasibility -----------------------------------------------
+    # The gate requires measured tokenized prompt maxima from the real pinned
+    # task/tokenizer path. Without that evidence, readiness is inconclusive and
+    # therefore blocks canonical launch.
+    if suite is not None:
+        if prompt_token_maxima is None:
+            errors.append(
+                f"tokenized prompt evidence is missing for {slug!r}: cannot prove "
+                "prompt tokens plus suite output ceiling fit serving.max_model_len"
+            )
+            return errors
+
+        max_model_len = (adapter.get("serving") or {}).get("max_model_len")
+        if not isinstance(max_model_len, int):
+            errors.append(
+                f"serving.max_model_len for {slug!r} is unresolved; context feasibility cannot be proven"
+            )
+            return errors
+
+        benchmarks = suite.get("benchmarks", {})
+        for bench_name, bench in benchmarks.items():
+            if not isinstance(bench, dict):
+                continue
+            ceiling = bench.get("generation_ceiling")
+            if ceiling is None:
+                continue
+            prompt_tokens = prompt_token_maxima.get(bench_name)
+            if not isinstance(prompt_tokens, int) or prompt_tokens < 0:
+                errors.append(
+                    f"tokenized prompt maximum is missing or invalid for {bench_name!r}"
+                )
+                continue
+            required = prompt_tokens + ceiling
+            if max_model_len < required:
+                errors.append(
+                    f"serving.max_model_len={max_model_len} for {slug!r} is less than "
+                    f"the {bench_name!r} tokenized prompt plus output requirement={required} "
+                    f"({prompt_tokens}+{ceiling})"
+                )
+
+    return errors
+
+
+# ---------------------------------------------------------------------------
+# Directory-level adapter validator
+# ---------------------------------------------------------------------------
+
+def validate_adapters_dir(
+    repo: Path,
+    adapters_dir: Path,
+    suite: dict | None = None,
+    prompt_token_maxima_by_slug: dict[str, dict[str, int]] | None = None,
+) -> list[str]:
+    """Validate every *.yaml file in *adapters_dir* as a serving adapter.
+
+    Checks performed:
+    1. Each file is schema-valid against suite/schemas/adapter.schema.json.
+    2. Every canonical adapter passes campaign-readiness validation.
+    3. No two adapters share the same model.slug (duplicate slug detection).
+
+    Noncanonical adapters are retained as schema-valid drafts and are not treated
+    as CI failures solely because their unresolved provenance blocks launch.
+    """
+    repo = Path(repo).resolve()
+    adapters_dir = Path(adapters_dir).resolve()
+    errors: list[str] = []
+
+    if not adapters_dir.is_dir():
+        return [f"Adapters directory not found: {adapters_dir}"]
+
+    schema_path = repo / "suite" / "schemas" / "adapter.schema.json"
+    if not schema_path.exists():
+        errors.append(f"Adapter schema not found: {schema_path}")
+        return errors
+
+    # Collect all yaml files
+    yaml_files = sorted(adapters_dir.glob("*.yaml"))
+
+    slug_to_files: dict[str, list[str]] = {}  # slug -> [filename, ...]
+
+    for adapter_path in yaml_files:
+        filename = adapter_path.name
+
+        # Load
+        try:
+            adapter = load_yaml(adapter_path)
+        except Exception as exc:
+            errors.append(f"{filename}: cannot load YAML: {exc}")
+            continue
+
+        # Schema validation
+        schema_errors = validate_json(adapter, schema_path)
+        for err in schema_errors:
+            errors.append(f"{filename}: {err}")
+
+        # Track slugs (even if schema-invalid, to surface duplicate errors)
+        if isinstance(adapter, dict):
+            slug = (adapter.get("model") or {}).get("slug")
+            if slug:
+                slug_to_files.setdefault(slug, []).append(filename)
+                if not schema_errors and adapter.get("campaign_status") == "canonical":
+                    maxima = (
+                        (prompt_token_maxima_by_slug or {}).get(slug)
+                        if prompt_token_maxima_by_slug is not None
+                        else None
+                    )
+                    readiness_errors = validate_adapter_campaign_ready(
+                        adapter,
+                        slug,
+                        suite=suite,
+                        prompt_token_maxima=maxima,
+                    )
+                    for err in readiness_errors:
+                        errors.append(f"{filename}: {err}")
+
+    # Duplicate slug detection
+    for slug, files in slug_to_files.items():
+        if len(files) > 1:
+            errors.append(
+                f"Duplicate model slug {slug!r} found in multiple adapter files: "
+                f"{sorted(files)} — each model slug must be unique across all adapters."
+            )
 
     return errors

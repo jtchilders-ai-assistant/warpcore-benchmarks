@@ -33,7 +33,7 @@ _THIS_DIR = Path(__file__).resolve().parent
 if str(_THIS_DIR) not in sys.path:
     sys.path.insert(0, str(_THIS_DIR))
 
-from contract import validate_suite, validate_adapter
+from contract import load_yaml, validate_suite, validate_adapter, validate_adapters_dir
 
 
 def _find_repo_root(suite_path: Path) -> Path:
@@ -83,7 +83,7 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("Provide a suite YAML path and/or --adapter ADAPTER_YAML")
 
     all_errors: list[str] = []
-    exit_code = 0
+    repo: Path | None = None
 
     # ---- Suite validation ---------------------------------------------------
     if args.suite_path is not None:
@@ -110,6 +110,28 @@ def main(argv: list[str] | None = None) -> int:
             for e in errors:
                 print(f"SUITE ERROR: {e}")
             all_errors.extend(errors)
+
+    # Validate all checked-in adapters whenever the canonical suite is checked.
+    # Draft/noncanonical adapters are schema-valid, but malformed files, duplicate
+    # slugs, and unsupported schema versions are contract defects.
+    if args.suite_path is not None:
+        if repo is None:
+            print("ERROR: repo root could not be determined", file=sys.stderr)
+            return 2
+        suite_path = Path(args.suite_path)
+        try:
+            suite_document = load_yaml(suite_path)
+            adapter_errors = validate_adapters_dir(
+                repo,
+                repo / "adapters",
+                suite=suite_document,
+            )
+        except (OSError, IOError, yaml.YAMLError) as exc:
+            print(f"ERROR: cannot read adapter inputs — {exc}", file=sys.stderr)
+            return 2
+        for error in adapter_errors:
+            print(f"ADAPTER ERROR: {error}")
+        all_errors.extend(adapter_errors)
 
     # ---- Adapter validation -------------------------------------------------
     if args.adapter is not None:

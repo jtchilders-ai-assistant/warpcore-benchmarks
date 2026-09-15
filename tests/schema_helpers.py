@@ -56,8 +56,10 @@ def validate_doc(instance: dict, schema_path: Path) -> None:
 # ---------------------------------------------------------------------------
 
 #: A minimal, fully valid adapter document.  Deep-copy before mutating.
+#: campaign_status=canonical requires a resolved image digest and 40-hex revision.
 VALID_ADAPTER: dict = {
     "adapter_schema_version": 1,
+    "campaign_status": "canonical",
     "model": {
         "slug": "qwen3.6-35b-a3b",
         "id": "Qwen/Qwen3.6-35B-A3B-FP8",

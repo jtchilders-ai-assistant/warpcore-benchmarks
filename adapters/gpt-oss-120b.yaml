@@ -1,0 +1,80 @@
+# adapters/gpt-oss-120b.yaml — Serving adapter for openai/gpt-oss-120b
+#
+# CAMPAIGN STATUS: NONCANONICAL
+# ===========================================================================
+# This adapter documents the historical serving configuration used for the
+# gpt-oss-120b measurements in results/gpt-oss-120b/ (2026-07-27 – 2026-07-28).
+# It CANNOT launch a canonical warpcore-v1 campaign because two required
+# immutable identifiers were never recorded:
+#
+#   1. model.revision:  The HuggingFace commit SHA was not pinned at run time.
+#      Current HEAD of openai/gpt-oss-120b is b5c939de8f754692c1647ca79fbf85e8c1e70f8a
+#      (verified 2026-09-15), but this cannot be claimed as the historical revision
+#      because it may differ from the checkpoint served on 2026-07-27.
+#      Warpcore SSH is currently unreachable, preventing live model-ID inspection.
+#
+#   2. serving.image:   The container was referenced as eugr/spark-vllm:latest — a
+#      mutable tag. No digest was retained. The current arm64 digest for that tag is
+#      sha256:9b3d0bdac20712b23df0b714a8e377e7612fcf38175ed647592b478568d9d5e4
+#      (verified 2026-09-15), but this may not be the image that ran on 2026-07-27.
+#
+# To enable canonical campaigns:
+#   - Pin model.revision to the verified HuggingFace commit SHA for the checkpoint
+#     that will be used in the new campaign (do not guess the historical value).
+#   - Pin serving.image to the verified image digest for the serving container
+#     that will be used in the new campaign.
+#   - Set campaign_status to "canonical" and remove this noncanonical_reason.
+#   - Delete this explanatory comment block.
+# ===========================================================================
+#
+# Note on tool-call parser: historical runs used --tool-call-parser openai, which
+# caused RepeatedFormatError (79/100 SWE-bench instances aborted). Any new canonical
+# campaign must use a working parser; openai is documented here only as a historical
+# record. See results/gpt-oss-120b/README.md §SWE-bench and ISSUES.md.
+#
+# Note on engine_version: the historical vLLM build was a pre-release
+# 0.23.1rc1.dev961+gbc6fbf472.d20260708. The new campaign may use a newer build
+# that fixes the tool-call parser bug (see TODO §2b-i). Update engine_version
+# to match the actual build used.
+
+adapter_schema_version: 1
+campaign_status: noncanonical
+noncanonical_reason: >
+  model_revision_unrecorded: The HuggingFace commit SHA for the checkpoint served
+  on 2026-07-27 was never pinned or recorded. The current HEAD SHA
+  (b5c939de8f754692c1647ca79fbf85e8c1e70f8a, verified 2026-09-15) cannot be claimed
+  as the historical value. image_digest_unrecorded: The container was referenced as
+  eugr/spark-vllm:latest (mutable tag); no digest was retained from the historical run.
+  Both immutable identities and the unrecorded serving-capacity values must be verified
+  for the intended new campaign before enabling canonical status. Warpcore is currently
+  unreachable, preventing live inspection.
+
+model:
+  slug: gpt-oss-120b
+  id: openai/gpt-oss-120b
+  # revision: UNRESOLVED — see noncanonical_reason above.
+  # Do not substitute the current HEAD SHA as a historical claim.
+  revision: unresolved
+
+serving:
+  # image: UNRESOLVED — see noncanonical_reason above.
+  # Historical mutable reference: eugr/spark-vllm:latest (no digest retained).
+  # Current arm64 digest (2026-09-15): sha256:9b3d0bdac20712b23df0b714a8e377e7612fcf38175ed647592b478568d9d5e4
+  # Do not use the current digest as a historical claim.
+  image: unresolved
+  engine: vllm
+  # Historical build: 0.23.1rc1.dev961+gbc6fbf472.d20260708
+  # New canonical campaigns should use a build that fixes the tool-call parser bug.
+  engine_version: 0.23.1rc1.dev961+gbc6fbf472.d20260708
+  quantization: mxfp4
+  # Historical reasoning parser: openai_gptoss (from vLLM's gpt-oss support).
+  reasoning_parser: openai_gptoss
+  # Historical tool-call parser: openai — KNOWN BROKEN for multi-action output.
+  # See TODO §2b-i and results/gpt-oss-120b/README.md §SWE-bench for details.
+  tool_call_parser: openai
+  tokenizer: null
+  moe_backend: marlin
+  max_model_len: unresolved
+  gpu_memory_utilization: unresolved
+  max_num_seqs: unresolved
+  environment: {}

@@ -2,14 +2,24 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/jtchilders-ai-assistant/warpcore-benchmarks/suite/schemas/adapter.schema.json",
   "title": "Warpcore v1 Serving Adapter",
-  "description": "Schema for a model-specific serving adapter. Permits only model and serving fields. Experiment-level fields (generation ceilings, sampling, tasks, instance sets, denominators, scoring) are prohibited.",
+  "description": "Schema for a model-specific serving adapter. Permits only model and serving fields. Experiment-level fields (generation ceilings, sampling, tasks, instance sets, denominators, scoring) are prohibited.\n\nTwo adapter modes:\n- campaign_status=canonical: all immutable identifiers (revision, image) must be 40-hex/digest form.\n  These adapters may launch canonical warpcore-v1 campaigns.\n- campaign_status=noncanonical: revision and/or image may be 'unresolved' (provenance not yet\n  established). These adapters are schema-valid for historical documentation but are BLOCKED from\n  launching canonical campaigns by validate_adapter_campaign_ready(). They must carry\n  noncanonical_reason explaining exactly which identifiers are unresolved.",
   "type": "object",
-  "required": ["adapter_schema_version", "model", "serving"],
+  "required": ["adapter_schema_version", "campaign_status", "model", "serving"],
   "additionalProperties": false,
   "properties": {
     "adapter_schema_version": {
       "type": "integer",
       "const": 1
+    },
+    "campaign_status": {
+      "type": "string",
+      "enum": ["canonical", "noncanonical"],
+      "description": "canonical: all immutable provenance resolved; adapter may launch a canonical campaign. noncanonical: one or more required immutable identifiers are unresolved; adapter is blocked from canonical campaign launch."
+    },
+    "noncanonical_reason": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Required when campaign_status=noncanonical. Names the unresolved field(s) and explains why they cannot be resolved. E.g. 'model_revision_unrecorded: image_digest_unrecorded: historical image tag was eugr/spark-vllm:latest, no digest was retained'."
     },
     "model": {
       "type": "object",
@@ -28,8 +38,11 @@
         },
         "revision": {
           "type": "string",
-          "description": "Immutable checkpoint revision: exactly 40 lowercase hex characters (HuggingFace commit SHA). 'unrecorded' is not accepted for new adapter definitions; historical records belong in manifests/registry, not adapter files.",
-          "pattern": "^[0-9a-f]{40}$"
+          "description": "Immutable checkpoint revision: exactly 40 lowercase hex for canonical adapters, or 'unresolved' for noncanonical draft adapters.",
+          "oneOf": [
+            {"pattern": "^[0-9a-f]{40}$"},
+            {"const": "unresolved"}
+          ]
         }
       }
     },
@@ -53,8 +66,11 @@
       "properties": {
         "image": {
           "type": "string",
-          "description": "Container image reference with immutable digest. Must be repo@sha256:<64 lowercase hex>. Mutable tags alone are insufficient and will be rejected.",
-          "pattern": "^.+@sha256:[0-9a-f]{64}$"
+          "description": "Container image reference. For canonical adapters: must be repo@sha256:<64 lowercase hex>. For noncanonical adapters: may be 'unresolved' when the historical image digest was never recorded.",
+          "oneOf": [
+            {"pattern": "^.+@sha256:[0-9a-f]{64}$"},
+            {"const": "unresolved"}
+          ]
         },
         "engine": {
           "type": "string",
@@ -84,23 +100,28 @@
         },
         "moe_backend": {
           "type": ["string", "null"],
-          "description": "MoE kernel backend (e.g. 'marlin') or null"
+          "description": "MoE kernel backend (e.g. 'marlin', 'triton') or null"
         },
         "max_model_len": {
-          "type": "integer",
-          "description": "Model-supported and configured context length (tokens)",
-          "minimum": 1
+          "description": "Configured context length, or 'unresolved' only for a noncanonical draft adapter.",
+          "oneOf": [
+            {"type": "integer", "minimum": 1},
+            {"const": "unresolved"}
+          ]
         },
         "gpu_memory_utilization": {
-          "type": "number",
-          "description": "GPU memory utilization fraction [0, 1]",
-          "minimum": 0,
-          "maximum": 1
+          "description": "GPU memory utilization fraction, or 'unresolved' only for a noncanonical draft adapter.",
+          "oneOf": [
+            {"type": "number", "minimum": 0, "maximum": 1},
+            {"const": "unresolved"}
+          ]
         },
         "max_num_seqs": {
-          "type": "integer",
-          "description": "Maximum number of sequences (capacity control).",
-          "minimum": 1
+          "description": "Maximum sequence capacity, or 'unresolved' only for a noncanonical draft adapter.",
+          "oneOf": [
+            {"type": "integer", "minimum": 1},
+            {"const": "unresolved"}
+          ]
         },
         "environment": {
           "type": "object",
@@ -114,5 +135,38 @@
         }
       }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"campaign_status": {"const": "noncanonical"}},
+        "required": ["campaign_status"]
+      },
+      "then": {"required": ["noncanonical_reason"]}
+    },
+    {
+      "if": {
+        "properties": {"campaign_status": {"const": "canonical"}},
+        "required": ["campaign_status"]
+      },
+      "then": {
+        "properties": {
+          "model": {
+            "properties": {
+              "revision": {"pattern": "^[0-9a-f]{40}$"}
+            }
+          },
+          "serving": {
+            "properties": {
+              "image": {"pattern": "^.+@sha256:[0-9a-f]{64}$"},
+              "max_model_len": {"type": "integer", "minimum": 1},
+              "gpu_memory_utilization": {"type": "number", "minimum": 0, "maximum": 1},
+              "max_num_seqs": {"type": "integer", "minimum": 1}
+            }
+          }
+        },
+        "not": {"required": ["noncanonical_reason"]}
+      }
+    }
+  ]
 }

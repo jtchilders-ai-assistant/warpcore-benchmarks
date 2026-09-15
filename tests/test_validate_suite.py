@@ -73,6 +73,8 @@ def _make_minimal_suite(tmpdir: Path) -> tuple[Path, Path]:
     swe_dst.mkdir()
     viz_dst = tmpdir / "viz"
     viz_dst.mkdir()
+    adapters_dst = tmpdir / "adapters"
+    adapters_dst.mkdir()
 
     # Copy schemas
     for p in SCHEMAS_DIR.iterdir():
@@ -102,6 +104,7 @@ def _make_minimal_adapter(tmpdir: Path) -> Path:
     """
     adapter = {
         "adapter_schema_version": 1,
+        "campaign_status": "canonical",
         "model": {
             "slug": "test-model",
             "id": "TestOrg/TestModel",
@@ -193,6 +196,7 @@ class TestValidateJson:
     def _valid_adapter_dict(self) -> dict:
         return {
             "adapter_schema_version": 1,
+            "campaign_status": "canonical",
             "model": {
                 "slug": "qwen3.6-35b-a3b",
                 "id": "Qwen/Qwen3.6-35B-A3B-FP8",
