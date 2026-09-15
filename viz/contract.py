@@ -223,15 +223,38 @@ def _validate_swebench(repo: Path, bench: dict) -> list[str]:
         errors.append("swebench: instance set must be a JSON array")
         return errors
 
-    # Uniqueness
-    if len(instances) != len(set(instances)):
-        seen: set[str] = set()
-        dups: set[str] = set()
-        for iid in instances:
-            if iid in seen:
-                dups.add(iid)
-            seen.add(iid)
-        errors.append(f"swebench: duplicate instance IDs found: {sorted(dups)[:5]}")
+    # Type guard: every element must be a non-empty string.
+    # This must run BEFORE set(instances) so unhashable objects (dicts, lists,
+    # etc.) do not cause a TypeError — they are a diagnosed contract defect
+    # (exit 1), not an unreadable input (exit 2).
+    type_errors: list[str] = []
+    empty_errors: list[str] = []
+    for idx, iid in enumerate(instances):
+        if not isinstance(iid, str):
+            type_errors.append(
+                f"swebench: instance ID at position {idx} is not a string "
+                f"(got {type(iid).__name__!r}: {iid!r})"
+            )
+        elif iid == "":
+            empty_errors.append(
+                f"swebench: instance ID at position {idx} is an empty string"
+            )
+    errors.extend(type_errors)
+    errors.extend(empty_errors)
+
+    # Only run hash-based uniqueness check when all IDs are non-empty strings;
+    # otherwise the set() call would crash on unhashable objects, and duplicate
+    # detection on empty strings is already covered above.
+    if not type_errors and not empty_errors:
+        # Uniqueness
+        if len(instances) != len(set(instances)):
+            seen: set[str] = set()
+            dups: set[str] = set()
+            for iid in instances:
+                if iid in seen:
+                    dups.add(iid)
+                seen.add(iid)
+            errors.append(f"swebench: duplicate instance IDs found: {sorted(dups)[:5]}")
 
     # Count vs expected_item_count
     if expected_count is not None and len(instances) != expected_count:
