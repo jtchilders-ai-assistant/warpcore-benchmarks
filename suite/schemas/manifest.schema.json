@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jtchilders-ai-assistant/warpcore-benchmarks/suite/schemas/manifest.schema.json",
+  "title": "Warpcore v1 Run Manifest",
+  "description": "Immutable record created before launch. Must contain suite ID, task/adapter hashes, model revision, image digest, effective serving arguments, item inventory, timing, and artifact inventory. Unknown historical values use the literal 'unrecorded'; canonical new runs fail rather than publish with unknown required values.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "suite_id",
+    "suite_schema_version",
+    "run_id",
+    "benchmark",
+    "adapter_hash",
+    "suite_task_hash",
+    "model",
+    "serving",
+    "item_inventory",
+    "timing",
+    "artifact_inventory"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "suite_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "suite_schema_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "benchmark": {
+      "type": "string",
+      "enum": ["gsm8k", "ifeval", "gpqa_diamond", "swebench", "throughput"]
+    },
+    "adapter_hash": {
+      "type": "string",
+      "description": "SHA-256 of the adapter YAML file",
+      "minLength": 64
+    },
+    "suite_task_hash": {
+      "type": "string",
+      "description": "SHA-256 of the task YAML or instance set file",
+      "minLength": 64
+    },
+    "model": {
+      "type": "object",
+      "required": ["slug", "id", "revision"],
+      "additionalProperties": false,
+      "properties": {
+        "slug": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": "string",
+          "description": "Immutable checkpoint revision or 'unrecorded'",
+          "minLength": 1
+        }
+      }
+    },
+    "serving": {
+      "type": "object",
+      "required": ["image_digest", "engine", "engine_version", "effective_args"],
+      "additionalProperties": false,
+      "properties": {
+        "image_digest": {
+          "type": "string",
+          "description": "Resolved image digest (sha256:<hash>) or 'unrecorded'",
+          "minLength": 1
+        },
+        "engine": {
+          "type": "string",
+          "minLength": 1
+        },
+        "engine_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "effective_args": {
+          "type": "array",
+          "description": "Effective engine arguments as recorded at run time",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "item_inventory": {
+      "type": "object",
+      "required": ["expected", "submitted"],
+      "additionalProperties": false,
+      "properties": {
+        "expected": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "submitted": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "timing": {
+      "type": "object",
+      "required": ["started_utc", "completed_utc"],
+      "additionalProperties": false,
+      "properties": {
+        "started_utc": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "completed_utc": {
+          "type": ["string", "null"],
+          "description": "Null until the run completes"
+        }
+      }
+    },
+    "artifact_inventory": {
+      "type": "object",
+      "required": [
+        "samples_jsonl_gz",
+        "per_item_csv",
+        "run_log",
+        "command_txt",
+        "done_sentinel"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "samples_jsonl_gz": {
+          "type": "boolean",
+          "description": "Compressed raw sample JSONL present"
+        },
+        "per_item_csv": {
+          "type": "boolean",
+          "description": "Per-item audit CSV present"
+        },
+        "run_log": {
+          "type": "boolean",
+          "description": "Full run log present"
+        },
+        "command_txt": {
+          "type": "boolean",
+          "description": "Exact argv recorded in command.txt"
+        },
+        "done_sentinel": {
+          "type": "boolean",
+          "description": "DONE sentinel written after successful harness exit"
+        }
+      }
+    }
+  }
+}

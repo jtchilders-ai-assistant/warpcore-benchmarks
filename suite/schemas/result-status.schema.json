@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jtchilders-ai-assistant/warpcore-benchmarks/suite/schemas/result-status.schema.json",
+  "title": "Warpcore v1 Result Status",
+  "description": "Append-only campaign state record. Separates execution state from artifact lifecycle. State transitions are recorded in history; a later state never erases earlier failure or retry history.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "run_id",
+    "suite_id",
+    "execution_state",
+    "lifecycle",
+    "history"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "run_id": {
+      "type": "string",
+      "description": "Stable run identifier (e.g. run-2026-09-15T00-00-00)",
+      "minLength": 1
+    },
+    "suite_id": {
+      "type": "string",
+      "description": "Suite identifier (e.g. warpcore-v1)",
+      "minLength": 1
+    },
+    "execution_state": {
+      "type": "string",
+      "description": "Current execution state of the campaign",
+      "enum": [
+        "planned",
+        "preflight_passed",
+        "running",
+        "completed",
+        "validated",
+        "published",
+        "failed"
+      ]
+    },
+    "lifecycle": {
+      "type": "string",
+      "description": "Artifact lifecycle classification. 'current' means canonical publication candidate; other states remain visible in audit but cannot drive canonical rankings.",
+      "enum": [
+        "current",
+        "superseded",
+        "historical",
+        "diagnostic",
+        "replay",
+        "invalid"
+      ]
+    },
+    "history": {
+      "type": "array",
+      "description": "Append-only list of state transitions",
+      "items": {
+        "type": "object",
+        "required": ["state", "timestamp"],
+        "additionalProperties": false,
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "planned",
+              "preflight_passed",
+              "running",
+              "completed",
+              "validated",
+              "published",
+              "failed"
+            ]
+          },
+          "timestamp": {
+            "type": "string",
+            "description": "ISO 8601 UTC timestamp",
+            "format": "date-time"
+          },
+          "note": {
+            "type": "string",
+            "description": "Human-readable note about this transition"
+          },
+          "exit_code": {
+            "type": ["integer", "null"],
+            "description": "Harness exit code if applicable"
+          }
+        }
+      },
+      "minItems": 1
+    }
+  }
+}

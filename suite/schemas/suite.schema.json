@@ -1,0 +1,257 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jtchilders-ai-assistant/warpcore-benchmarks/suite/schemas/suite.schema.json",
+  "title": "Warpcore v1 Suite Specification",
+  "description": "Schema for the suite/warpcore-v1.yaml file. Defines the contract for all experiment-level settings owned by the suite.",
+  "type": "object",
+  "required": [
+    "suite_id",
+    "suite_schema_version",
+    "statistical_policy",
+    "benchmarks",
+    "required_harness",
+    "empty_response_classification",
+    "publication_rules",
+    "lifecycle_states",
+    "execution_states"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "suite_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "suite_schema_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "statistical_policy": {
+      "type": "object",
+      "required": [
+        "cross_model_comparison",
+        "binary_test",
+        "cross_model_requires_identical_item_sets",
+        "non_significant_means",
+        "interval_method",
+        "reweighted_requires_uncertainty"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "cross_model_comparison": {"type": "string"},
+        "binary_test": {"type": "string"},
+        "cross_model_requires_identical_item_sets": {"type": "boolean"},
+        "non_significant_means": {"type": "string"},
+        "interval_method": {"type": "string"},
+        "reweighted_requires_uncertainty": {"type": "boolean"}
+      }
+    },
+    "benchmarks": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "gsm8k": {"$ref": "#/$defs/quality_benchmark"},
+        "ifeval": {"$ref": "#/$defs/quality_benchmark"},
+        "gpqa_diamond": {"$ref": "#/$defs/quality_benchmark"},
+        "swebench": {"$ref": "#/$defs/swebench_benchmark"},
+        "throughput": {"$ref": "#/$defs/throughput_benchmark"}
+      }
+    },
+    "required_harness": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "lm_eval": {"type": "string"},
+        "mini_swe_agent": {"type": "string"}
+      }
+    },
+    "empty_response_classification": {
+      "type": "object",
+      "required": [
+        "finish_length_empty",
+        "finish_stop_reasoning_populated",
+        "finish_stop_nothing_anywhere"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "finish_length_empty": {"type": "string"},
+        "finish_stop_reasoning_populated": {"type": "string"},
+        "finish_stop_nothing_anywhere": {"type": "string"}
+      }
+    },
+    "publication_rules": {
+      "type": "object",
+      "required": [
+        "only_lifecycle_current",
+        "no_cross_task_overall_rank",
+        "missing_cells",
+        "no_imputation",
+        "denominator_must_be_published"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "only_lifecycle_current": {"type": "boolean"},
+        "no_cross_task_overall_rank": {"type": "boolean"},
+        "missing_cells": {"type": "string"},
+        "no_imputation": {"type": "boolean"},
+        "denominator_must_be_published": {"type": "boolean"}
+      }
+    },
+    "lifecycle_states": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "execution_states": {
+      "type": "array",
+      "items": {"type": "string"}
+    }
+  },
+  "$defs": {
+    "sampling": {
+      "type": "object",
+      "required": ["temperature", "do_sample"],
+      "additionalProperties": false,
+      "properties": {
+        "temperature": {"type": "number"},
+        "do_sample": {"type": "boolean"}
+      }
+    },
+    "dataset_ref": {
+      "type": "object",
+      "required": ["path", "split"],
+      "additionalProperties": false,
+      "properties": {
+        "path": {"type": "string"},
+        "name": {"type": ["string", "null"]},
+        "split": {"type": "string"}
+      }
+    },
+    "retry_policy": {
+      "type": "object",
+      "required": ["max_retries"],
+      "additionalProperties": false,
+      "properties": {
+        "max_retries": {"type": "integer", "minimum": 0}
+      }
+    },
+    "timeout_policy": {
+      "type": "object",
+      "required": ["use_arithmetic", "safety_factor"],
+      "additionalProperties": false,
+      "properties": {
+        "use_arithmetic": {"type": "boolean"},
+        "safety_factor": {"type": "number", "minimum": 1}
+      }
+    },
+    "quality_benchmark": {
+      "type": "object",
+      "required": [
+        "description",
+        "generation_ceiling",
+        "sampling",
+        "num_fewshot",
+        "canonical_headline",
+        "required_evidence"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "description": {"type": "string"},
+        "task_file": {"type": "string"},
+        "task_sha256": {"type": "string"},
+        "utils_file": {"type": "string"},
+        "utils_sha256": {"type": "string"},
+        "dataset": {"$ref": "#/$defs/dataset_ref"},
+        "generation_ceiling": {"type": "integer", "minimum": 1},
+        "sampling": {"$ref": "#/$defs/sampling"},
+        "num_fewshot": {"type": "integer", "minimum": 0},
+        "canonical_headline": {"type": "string"},
+        "expected_item_count": {"type": "integer", "minimum": 1},
+        "required_evidence": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "retry_policy": {"$ref": "#/$defs/retry_policy"},
+        "timeout_policy": {"$ref": "#/$defs/timeout_policy"}
+      }
+    },
+    "swebench_benchmark": {
+      "type": "object",
+      "required": [
+        "description",
+        "dataset",
+        "instance_set_file",
+        "instances_sha256",
+        "scaffold_file",
+        "scaffold_sha256",
+        "expected_item_count",
+        "canonical_headline",
+        "disposition_categories",
+        "cross_model_inference",
+        "client_host",
+        "required_evidence"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "description": {"type": "string"},
+        "dataset": {"type": "string"},
+        "instance_set_file": {"type": "string"},
+        "instances_sha256": {"type": "string"},
+        "scaffold_file": {"type": "string"},
+        "scaffold_sha256": {"type": "string"},
+        "expected_item_count": {"type": "integer", "minimum": 1},
+        "canonical_headline": {"type": "string"},
+        "disposition_categories": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "cross_model_inference": {"type": "string"},
+        "client_host": {"type": "string"},
+        "required_evidence": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "throughput_benchmark": {
+      "type": "object",
+      "required": [
+        "description",
+        "host",
+        "endpoint",
+        "workload",
+        "sampling",
+        "termination",
+        "concurrency_policy",
+        "report"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "description": {"type": "string"},
+        "host": {"type": "string"},
+        "endpoint": {"type": "string"},
+        "workload": {
+          "type": "object",
+          "required": ["input_tokens", "output_tokens"],
+          "additionalProperties": false,
+          "properties": {
+            "input_tokens": {"type": "integer", "minimum": 1},
+            "output_tokens": {"type": "integer", "minimum": 1}
+          }
+        },
+        "sampling": {
+          "type": "object",
+          "required": ["temperature"],
+          "additionalProperties": false,
+          "properties": {
+            "temperature": {"type": "number"}
+          }
+        },
+        "termination": {"type": "string"},
+        "concurrency_policy": {"type": "string"},
+        "report": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,209 @@
+# warpcore-v1 benchmark suite specification
+#
+# Single source of truth for all model-independent experiment variables.
+# A serving adapter may not override any value defined here.
+# Any change to a dataset, instance set, prompt, scoring rule, generation ceiling,
+# harness behavior, or denominator creates a new suite version.
+#
+# Authoritative design:
+#   docs/superpowers/specs/2026-09-15-warpcore-v1-apples-to-apples-design.md
+
+suite_id: "warpcore-v1"
+suite_schema_version: 1
+
+# ── Statistical reporting policy ────────────────────────────────────────────
+statistical_policy:
+  cross_model_comparison: "paired_per_item"
+  binary_test: "exact_mcnemar_binomial"
+  cross_model_requires_identical_item_sets: true
+  non_significant_means: "insufficient_evidence_not_equality"
+  interval_method: "wilson"
+  reweighted_requires_uncertainty: true
+
+# ── Benchmarks ───────────────────────────────────────────────────────────────
+benchmarks:
+
+  gsm8k:
+    description: "GSM8K clean anchored-answer extraction (zero-shot CoT)"
+    task_file: "suite/tasks/gsm8k_clean_v1.yaml"
+    task_sha256: "b5ef6745a85d9e30369f48bd68bc7bf193b7b2d98e03db67c141f0dc995de6b8"
+    dataset:
+      path: "openai/gsm8k"
+      name: "main"
+      split: "test"
+    generation_ceiling: 8192
+    sampling:
+      temperature: 0
+      do_sample: false
+    num_fewshot: 0
+    canonical_headline: "exact_match"
+    expected_item_count: 1319
+    # GSM8K canonical variant selection:
+    #   Two retained variants: results/qwen3.6-35b-a3b/raw/gsm8k_cot_zeroshot_clean.yaml
+    #   and results/nemotron-3.5-lightning-30b/raw/gsm8k_cot_zeroshot_clean.yaml.
+    #   The qwen variant is canonical because:
+    #   1. It contains metadata.version and metadata.fixed fields recording the fix history,
+    #      while the nemotron variant is the older file without that provenance.
+    #   2. The fix it records (2026-09-06: dataset_path gsm8k->openai/gsm8k; removed chained
+    #      double-regex that truncated to first digit) is an evidence-based improvement.
+    #   3. The qwen variant was the active task file for the successful Ornith clean-task run.
+    #   4. The nemotron variant is otherwise byte-for-byte identical to the qwen variant
+    #      minus only the metadata block, confirming it is the prior version.
+    required_evidence:
+      - "aggregate_result"
+      - "samples_jsonl_gz"
+      - "per_item_csv"
+      - "task_yaml"
+      - "run_log"
+      - "command_txt"
+      - "manifest_json"
+      - "status_json"
+      - "done_sentinel"
+    retry_policy:
+      max_retries: 0
+    timeout_policy:
+      use_arithmetic: true
+      safety_factor: 2
+
+  ifeval:
+    description: "IFEval standard task, prompt-level strict accuracy"
+    task_file: "lm_eval_builtin:ifeval"
+    dataset:
+      # lm-eval builtin; revision pinned by harness version declared in required_harness
+      path: "HuggingFaceH4/ifeval"
+      name: null
+      split: "train"
+    generation_ceiling: 65536
+    sampling:
+      temperature: 0
+      do_sample: false
+    num_fewshot: 0
+    canonical_headline: "prompt_level_strict_acc"
+    required_evidence:
+      - "aggregate_result"
+      - "samples_jsonl_gz"
+      - "per_item_csv"
+      - "task_yaml"
+      - "run_log"
+      - "command_txt"
+      - "manifest_json"
+      - "status_json"
+      - "done_sentinel"
+    retry_policy:
+      max_retries: 0
+    timeout_policy:
+      use_arithmetic: true
+      safety_factor: 2
+
+  gpqa_diamond:
+    description: "GPQA Diamond clean answer-line extraction (zero-shot CoT)"
+    task_file: "suite/tasks/gpqa_diamond_clean_v3.yaml"
+    task_sha256: "833259292b956a4bc620352c95ae43c30bb9d2b4049aebd3f67c4a1ec3b4267f"
+    utils_file: "suite/tasks/gpqa_utils.py"
+    utils_sha256: "7c755f2c3f8f4ac20de96fb68941c43424d2ded0552d5ab81e672e15c410655c"
+    dataset:
+      path: "Idavidrein/gpqa"
+      name: "gpqa_diamond"
+      split: "train"
+    generation_ceiling: 65536
+    sampling:
+      temperature: 0
+      do_sample: false
+    num_fewshot: 0
+    canonical_headline: "answer_line_exact_match"
+    expected_item_count: 198
+    required_evidence:
+      - "aggregate_result"
+      - "samples_jsonl_gz"
+      - "per_item_csv"
+      - "task_yaml"
+      - "run_log"
+      - "command_txt"
+      - "manifest_json"
+      - "status_json"
+      - "done_sentinel"
+    retry_policy:
+      max_retries: 0
+    timeout_policy:
+      use_arithmetic: true
+      safety_factor: 2
+
+  swebench:
+    description: "SWE-bench Verified, seed-42 n=100 instance set"
+    dataset: "SWE-bench/SWE-bench_Verified"
+    instance_set_file: "suite/swebench/instances-seed42-n100.json"
+    instances_sha256: "d46f257dc87482e432307a6e96d5ee2d14b372df0c43b413eba48a573c6d0a24"
+    scaffold_file: "suite/swebench/scaffold.yaml"
+    scaffold_sha256: "f3de13ae23f684022c223e14071b7413f5d39d0b9bcb5c66b751670ebdcbba59"
+    expected_item_count: 100
+    canonical_headline: "resolved_div_all_100_assigned"
+    # All 100 assigned instances remain in the denominator; disposition categories
+    # explain misses but do not erase them.
+    disposition_categories:
+      - "resolved"
+      - "submitted_but_wrong"
+      - "model_non_submission"
+      - "infrastructure_failure"
+    cross_model_inference: "paired_mcnemar_binomial_on_identical_instance_ids"
+    client_host: "mac_mini_x86"  # test containers are x86
+    required_evidence:
+      - "preds_json"
+      - "exit_statuses"
+      - "run_log"
+      - "command_txt"
+      - "manifest_json"
+      - "status_json"
+      - "done_sentinel"
+
+  throughput:
+    description: "Warpcore short-context throughput sweep"
+    host: "warpcore_on_box_client"
+    endpoint: "openai_compatible_completions"
+    workload:
+      input_tokens: 512
+      output_tokens: 256
+    sampling:
+      temperature: 0
+    termination: "ignore_eos"
+    concurrency_policy: "sweep_beyond_knee_to_plateau"
+    report:
+      - "output_tokens_per_second"
+      - "ttft"
+      - "tpot_itl"
+      - "end_to_end_latency"
+      - "success_count"
+      - "concurrency"
+
+# ── Suite-level policies ─────────────────────────────────────────────────────
+required_harness:
+  lm_eval: ">=0.4.12"
+  mini_swe_agent: "pinned_by_scaffold_hash"
+
+empty_response_classification:
+  finish_length_empty: "BUDGET"      # raise max_gen_toks
+  finish_stop_reasoning_populated: "PARSER"  # ISSUES #15
+  finish_stop_nothing_anywhere: "EMPTY"
+
+publication_rules:
+  only_lifecycle_current: true
+  no_cross_task_overall_rank: true
+  missing_cells: "not_measured"
+  no_imputation: true
+  denominator_must_be_published: true
+
+lifecycle_states:
+  - "current"
+  - "superseded"
+  - "historical"
+  - "diagnostic"
+  - "replay"
+  - "invalid"
+
+execution_states:
+  - "planned"
+  - "preflight_passed"
+  - "running"
+  - "completed"
+  - "validated"
+  - "published"
+  - "failed"

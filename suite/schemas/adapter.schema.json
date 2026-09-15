@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jtchilders-ai-assistant/warpcore-benchmarks/suite/schemas/adapter.schema.json",
+  "title": "Warpcore v1 Serving Adapter",
+  "description": "Schema for a model-specific serving adapter. Permits only model and serving fields. Experiment-level fields (generation ceilings, sampling, tasks, instance sets, denominators, scoring) are prohibited.",
+  "type": "object",
+  "required": ["adapter_schema_version", "model", "serving"],
+  "additionalProperties": false,
+  "properties": {
+    "adapter_schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "model": {
+      "type": "object",
+      "required": ["slug", "id", "revision"],
+      "additionalProperties": false,
+      "properties": {
+        "slug": {
+          "type": "string",
+          "description": "Model slug matching the result-directory name exactly (e.g. qwen3.6-35b-a3b)",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "description": "HuggingFace model ID or equivalent canonical identifier",
+          "minLength": 1
+        },
+        "revision": {
+          "type": "string",
+          "description": "Immutable checkpoint revision (HuggingFace commit SHA). Use 'unrecorded' only for historical runs; canonical new runs must fail with a real value.",
+          "minLength": 1
+        }
+      }
+    },
+    "serving": {
+      "type": "object",
+      "required": [
+        "image",
+        "engine",
+        "engine_version",
+        "quantization",
+        "reasoning_parser",
+        "tool_call_parser",
+        "tokenizer",
+        "moe_backend",
+        "max_model_len",
+        "gpu_memory_utilization",
+        "max_num_seqs",
+        "environment"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "image": {
+          "type": "string",
+          "description": "Container image reference including immutable digest (repo@sha256:<hash>). Mutable tags alone are insufficient.",
+          "minLength": 1
+        },
+        "engine": {
+          "type": "string",
+          "description": "Serving engine identifier (e.g. 'vllm')",
+          "minLength": 1
+        },
+        "engine_version": {
+          "type": "string",
+          "description": "Resolved engine version string",
+          "minLength": 1
+        },
+        "quantization": {
+          "type": ["string", "null"],
+          "description": "Quantization format (e.g. 'fp8', 'mxfp4') or null for none"
+        },
+        "reasoning_parser": {
+          "type": ["string", "null"],
+          "description": "vLLM reasoning parser plugin name or null"
+        },
+        "tool_call_parser": {
+          "type": ["string", "null"],
+          "description": "vLLM tool-call parser name or null"
+        },
+        "tokenizer": {
+          "type": ["string", "null"],
+          "description": "Tokenizer override or null to use model default"
+        },
+        "moe_backend": {
+          "type": ["string", "null"],
+          "description": "MoE kernel backend (e.g. 'marlin') or null"
+        },
+        "max_model_len": {
+          "type": "integer",
+          "description": "Model-supported and configured context length (tokens)",
+          "minimum": 1
+        },
+        "gpu_memory_utilization": {
+          "type": "number",
+          "description": "GPU memory utilization fraction [0, 1]",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "max_num_seqs": {
+          "type": ["integer", "string"],
+          "description": "Maximum number of sequences (capacity control). Use integer or 'unrecorded' for historical."
+        },
+        "environment": {
+          "type": "object",
+          "description": "Required environment variables and compatibility patches",
+          "additionalProperties": false,
+          "patternProperties": {
+            "^[A-Z_][A-Z0-9_]*$": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}
