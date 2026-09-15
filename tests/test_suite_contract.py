@@ -13,8 +13,20 @@ import hashlib
 import json
 from pathlib import Path
 
+import jsonschema
 import pytest
 import yaml
+
+from schema_helpers import (
+    SCHEMA_ADAPTER,
+    SCHEMA_MANIFEST,
+    SCHEMA_STATUS,
+    SCHEMA_SUITE,
+    VALID_ADAPTER,
+    VALID_MANIFEST,
+    VALID_STATUS,
+    validate_doc,
+)
 
 REPO = Path(__file__).parent.parent
 SUITE_DIR = REPO / "suite"
@@ -28,11 +40,6 @@ SCAFFOLD_FILE = SWEBENCH_DIR / "scaffold.yaml"
 GPQA_TASK = TASKS_DIR / "gpqa_diamond_clean_v3.yaml"
 GPQA_UTILS = TASKS_DIR / "gpqa_utils.py"
 GSM8K_TASK = TASKS_DIR / "gsm8k_clean_v1.yaml"
-
-SCHEMA_SUITE = SCHEMAS_DIR / "suite.schema.json"
-SCHEMA_ADAPTER = SCHEMAS_DIR / "adapter.schema.json"
-SCHEMA_MANIFEST = SCHEMAS_DIR / "manifest.schema.json"
-SCHEMA_STATUS = SCHEMAS_DIR / "result-status.schema.json"
 
 
 # ---------------------------------------------------------------------------
@@ -291,162 +298,74 @@ class TestSchemasAdditionalPropertiesFalse:
 # Schema validation: valid documents pass, invalid documents are rejected
 # ---------------------------------------------------------------------------
 
-import jsonschema  # required; plan tech-stack specifies jsonschema 4
-
-
-def _validate(instance: dict, schema_path: Path) -> None:
-    """Validate instance against schema; raise jsonschema.ValidationError on failure."""
-    schema = json.loads(schema_path.read_text())
-    jsonschema.validate(instance, schema)
-
-
 class TestAdapterSchemaValidation:
     """Adapter schema must accept valid documents and reject experiment-level overrides."""
 
-    VALID_ADAPTER = {
-        "adapter_schema_version": 1,
-        "model": {
-            "slug": "qwen3.6-35b-a3b",
-            "id": "Qwen/Qwen3.6-35B-A3B-FP8",
-            "revision": "abc123def456abc123def456abc123def456abc1",
-        },
-        "serving": {
-            "image": "eugr/spark-vllm@sha256:deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
-            "engine": "vllm",
-            "engine_version": "0.8.5",
-            "quantization": "fp8",
-            "reasoning_parser": None,
-            "tool_call_parser": None,
-            "tokenizer": None,
-            "moe_backend": None,
-            "max_model_len": 131072,
-            "gpu_memory_utilization": 0.90,
-            "max_num_seqs": 32,
-            "environment": {},
-        },
-    }
-
     def test_valid_adapter_passes(self):
-        _validate(self.VALID_ADAPTER, SCHEMA_ADAPTER)
+        validate_doc(VALID_ADAPTER, SCHEMA_ADAPTER)
 
     def test_adapter_with_generation_ceiling_rejected(self):
         """An adapter must not be allowed to override generation_ceiling."""
-        bad = {**self.VALID_ADAPTER, "generation_ceiling": 99999}
+        bad = {**VALID_ADAPTER, "generation_ceiling": 99999}
         with pytest.raises(jsonschema.ValidationError):
-            _validate(bad, SCHEMA_ADAPTER)
+            validate_doc(bad, SCHEMA_ADAPTER)
 
     def test_adapter_with_task_rejected(self):
-        bad = {**self.VALID_ADAPTER, "task": "gpqa_diamond_cot_zeroshot_clean"}
+        bad = {**VALID_ADAPTER, "task": "gpqa_diamond_cot_zeroshot_clean"}
         with pytest.raises(jsonschema.ValidationError):
-            _validate(bad, SCHEMA_ADAPTER)
+            validate_doc(bad, SCHEMA_ADAPTER)
 
     def test_adapter_with_sampling_rejected(self):
-        bad = {**self.VALID_ADAPTER, "sampling": {"temperature": 0.5}}
+        bad = {**VALID_ADAPTER, "sampling": {"temperature": 0.5}}
         with pytest.raises(jsonschema.ValidationError):
-            _validate(bad, SCHEMA_ADAPTER)
+            validate_doc(bad, SCHEMA_ADAPTER)
 
     def test_adapter_with_instance_ids_rejected(self):
-        bad = {**self.VALID_ADAPTER, "instance_ids": ["django__django-11299"]}
+        bad = {**VALID_ADAPTER, "instance_ids": ["django__django-11299"]}
         with pytest.raises(jsonschema.ValidationError):
-            _validate(bad, SCHEMA_ADAPTER)
+            validate_doc(bad, SCHEMA_ADAPTER)
 
     def test_adapter_missing_required_model_id_rejected(self):
-        bad_model = {k: v for k, v in self.VALID_ADAPTER["model"].items() if k != "id"}
-        bad = {**self.VALID_ADAPTER, "model": bad_model}
+        bad_model = {k: v for k, v in VALID_ADAPTER["model"].items() if k != "id"}
+        bad = {**VALID_ADAPTER, "model": bad_model}
         with pytest.raises(jsonschema.ValidationError):
-            _validate(bad, SCHEMA_ADAPTER)
+            validate_doc(bad, SCHEMA_ADAPTER)
 
 
 class TestResultStatusSchemaValidation:
     """result-status schema must separate execution state from lifecycle state."""
 
-    VALID_STATUS = {
-        "schema_version": 1,
-        "run_id": "run-2026-09-15T00-00-00",
-        "suite_id": "warpcore-v1",
-        "execution_state": "running",
-        "lifecycle": "current",
-        "history": [
-            {
-                "state": "planned",
-                "timestamp": "2026-09-15T00:00:00Z",
-                "note": "Campaign initialized",
-            }
-        ],
-    }
-
     def test_valid_status_passes(self):
-        _validate(self.VALID_STATUS, SCHEMA_STATUS)
+        validate_doc(VALID_STATUS, SCHEMA_STATUS)
 
     def test_status_unknown_execution_state_rejected(self):
-        bad = {**self.VALID_STATUS, "execution_state": "unknown_state"}
+        bad = {**VALID_STATUS, "execution_state": "unknown_state"}
         with pytest.raises(jsonschema.ValidationError):
-            _validate(bad, SCHEMA_STATUS)
+            validate_doc(bad, SCHEMA_STATUS)
 
     def test_status_unknown_lifecycle_rejected(self):
-        bad = {**self.VALID_STATUS, "lifecycle": "unknown_lifecycle"}
+        bad = {**VALID_STATUS, "lifecycle": "unknown_lifecycle"}
         with pytest.raises(jsonschema.ValidationError):
-            _validate(bad, SCHEMA_STATUS)
+            validate_doc(bad, SCHEMA_STATUS)
 
     def test_status_extra_field_rejected(self):
-        bad = {**self.VALID_STATUS, "extra_key": "surprise"}
+        bad = {**VALID_STATUS, "extra_key": "surprise"}
         with pytest.raises(jsonschema.ValidationError):
-            _validate(bad, SCHEMA_STATUS)
+            validate_doc(bad, SCHEMA_STATUS)
 
 
 class TestManifestSchemaValidation:
     """Manifest schema must require suite ID, hashes, model identity, etc."""
 
-    VALID_MANIFEST = {
-        "schema_version": 1,
-        "suite_id": "warpcore-v1",
-        "suite_schema_version": 1,
-        "run_id": "run-2026-09-15T00-00-00",
-        "benchmark": "gsm8k",
-        "adapter_hash": "a" * 64,
-        "suite_input_hashes": {
-            "suite/tasks/gsm8k_clean_v1.yaml": "b" * 64,
-        },
-        "serving_profile_digest": "sha256:" + "c" * 64,
-        "model": {
-            "slug": "qwen3.6-35b-a3b",
-            "id": "Qwen/Qwen3.6-35B-A3B-FP8",
-            "revision": "abc123def456abc123def456abc123def456abc1",
-        },
-        "serving": {
-            "image_digest": "sha256:" + "d" * 64,
-            "engine": "vllm",
-            "engine_version": "0.8.5",
-            "effective_args": [],
-            "environment": {},
-            "hardware_id": "dgx-spark-gb10",
-        },
-        "item_inventory": {
-            "expected": 1319,
-            "submitted": 1319,
-        },
-        "timing": {
-            "started_utc": "2026-09-15T00:00:00Z",
-            "completed_utc": "2026-09-15T01:00:00Z",
-        },
-        "artifact_inventory": {
-            "samples_jsonl_gz": True,
-            "per_item_csv": True,
-            "run_log": True,
-            "command_txt": True,
-            "done_sentinel": True,
-        },
-    }
-
     def test_valid_manifest_passes(self):
-        _validate(self.VALID_MANIFEST, SCHEMA_MANIFEST)
+        validate_doc(VALID_MANIFEST, SCHEMA_MANIFEST)
 
     def test_manifest_missing_suite_id_rejected(self):
-        bad = {k: v for k, v in self.VALID_MANIFEST.items() if k != "suite_id"}
+        bad = {k: v for k, v in VALID_MANIFEST.items() if k != "suite_id"}
         with pytest.raises(jsonschema.ValidationError):
-            _validate(bad, SCHEMA_MANIFEST)
+            validate_doc(bad, SCHEMA_MANIFEST)
 
     def test_manifest_extra_field_rejected(self):
-        bad = {**self.VALID_MANIFEST, "mystery_field": "no"}
+        bad = {**VALID_MANIFEST, "mystery_field": "no"}
         with pytest.raises(jsonschema.ValidationError):
-            _validate(bad, SCHEMA_MANIFEST)
+            validate_doc(bad, SCHEMA_MANIFEST)

@@ -16,15 +16,20 @@ import jsonschema
 import pytest
 import yaml
 
+from schema_helpers import (
+    SCHEMA_ADAPTER,
+    SCHEMA_MANIFEST,
+    SCHEMA_STATUS,
+    SCHEMA_SUITE,
+    VALID_ADAPTER,
+    VALID_MANIFEST,
+    validate_doc,
+)
+
 REPO = Path(__file__).parent.parent
 SUITE_DIR = REPO / "suite"
 SUITE_FILE = SUITE_DIR / "warpcore-v1.yaml"
 SCHEMAS_DIR = SUITE_DIR / "schemas"
-
-SCHEMA_SUITE = SCHEMAS_DIR / "suite.schema.json"
-SCHEMA_ADAPTER = SCHEMAS_DIR / "adapter.schema.json"
-SCHEMA_MANIFEST = SCHEMAS_DIR / "manifest.schema.json"
-SCHEMA_STATUS = SCHEMAS_DIR / "result-status.schema.json"
 
 REQ_FILE = REPO / "requirements-viz.txt"
 
@@ -35,80 +40,6 @@ def load_suite() -> dict:
 
 def load_schema(p: Path) -> dict:
     return json.loads(p.read_text())
-
-
-def validate(instance: dict, schema_path: Path, format_checker=None) -> None:
-    schema = json.loads(schema_path.read_text())
-    kwargs = {}
-    if format_checker is not None:
-        kwargs["format_checker"] = format_checker
-    jsonschema.validate(instance, schema, **kwargs)
-
-
-# ---------------------------------------------------------------------------
-# Shared valid documents used across test classes
-# ---------------------------------------------------------------------------
-
-VALID_ADAPTER = {
-    "adapter_schema_version": 1,
-    "model": {
-        "slug": "qwen3.6-35b-a3b",
-        "id": "Qwen/Qwen3.6-35B-A3B-FP8",
-        "revision": "abc123def456abc123def456abc123def456abc1",
-    },
-    "serving": {
-        "image": "eugr/spark-vllm@sha256:" + "dead" * 16,
-        "engine": "vllm",
-        "engine_version": "0.8.5",
-        "quantization": "fp8",
-        "reasoning_parser": None,
-        "tool_call_parser": None,
-        "tokenizer": None,
-        "moe_backend": None,
-        "max_model_len": 131072,
-        "gpu_memory_utilization": 0.90,
-        "max_num_seqs": 32,
-        "environment": {},
-    },
-}
-
-VALID_MANIFEST = {
-    "schema_version": 1,
-    "suite_id": "warpcore-v1",
-    "suite_schema_version": 1,
-    "run_id": "run-2026-09-15T00-00-00",
-    "benchmark": "gsm8k",
-    "adapter_hash": "a" * 64,
-    "suite_input_hashes": {
-        "suite/tasks/gsm8k_clean_v1.yaml": "b" * 64,
-    },
-    "serving_profile_digest": "sha256:" + "c" * 64,
-    "model": {
-        "slug": "qwen3.6-35b-a3b",
-        "id": "Qwen/Qwen3.6-35B-A3B-FP8",
-        "revision": "abc123def456abc123def456abc123def456abc1",
-    },
-    "serving": {
-        "image_digest": "sha256:" + "d" * 64,
-        "engine": "vllm",
-        "engine_version": "0.8.5",
-        "effective_args": [],
-        "environment": {},
-        "hardware_id": "dgx-spark-gb10",
-    },
-    "item_inventory": {"expected": 1319, "submitted": 1319},
-    "timing": {
-        "started_utc": "2026-09-15T00:00:00Z",
-        "completed_utc": "2026-09-15T01:00:00Z",
-    },
-    "artifact_inventory": {
-        "samples_jsonl_gz": True,
-        "per_item_csv": True,
-        "run_log": True,
-        "command_txt": True,
-        "done_sentinel": True,
-    },
-}
 
 
 # ---------------------------------------------------------------------------
@@ -137,7 +68,7 @@ class TestGapA_SuiteSchemaStructural:
     def test_empty_benchmarks_rejected(self):
         bad = self._suite_with(benchmarks={})
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_SUITE)
+            validate_doc(bad, SCHEMA_SUITE)
 
     # A2: missing task_file for quality benchmark (gsm8k) must be rejected
     def test_quality_benchmark_missing_task_file_rejected(self):
@@ -145,7 +76,7 @@ class TestGapA_SuiteSchemaStructural:
         bm = {k: v for k, v in suite["benchmarks"]["gsm8k"].items() if k != "task_file"}
         suite["benchmarks"]["gsm8k"] = bm
         with pytest.raises(jsonschema.ValidationError):
-            validate(suite, SCHEMA_SUITE)
+            validate_doc(suite, SCHEMA_SUITE)
 
     # A3: missing task_sha256 for quality benchmark must be rejected
     def test_quality_benchmark_missing_task_sha256_rejected(self):
@@ -153,7 +84,7 @@ class TestGapA_SuiteSchemaStructural:
         bm = {k: v for k, v in suite["benchmarks"]["gsm8k"].items() if k != "task_sha256"}
         suite["benchmarks"]["gsm8k"] = bm
         with pytest.raises(jsonschema.ValidationError):
-            validate(suite, SCHEMA_SUITE)
+            validate_doc(suite, SCHEMA_SUITE)
 
     # A4: missing dataset for quality benchmark must be rejected
     def test_quality_benchmark_missing_dataset_rejected(self):
@@ -161,50 +92,50 @@ class TestGapA_SuiteSchemaStructural:
         bm = {k: v for k, v in suite["benchmarks"]["gsm8k"].items() if k != "dataset"}
         suite["benchmarks"]["gsm8k"] = bm
         with pytest.raises(jsonschema.ValidationError):
-            validate(suite, SCHEMA_SUITE)
+            validate_doc(suite, SCHEMA_SUITE)
 
     # A5: malformed task_sha256 (single char 'x') must be rejected
     def test_quality_benchmark_malformed_task_sha256_rejected(self):
         bad = self._suite_with_gsm8k(task_sha256="x")
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_SUITE)
+            validate_doc(bad, SCHEMA_SUITE)
 
     # A6: task_sha256 with uppercase hex must be rejected
     def test_quality_benchmark_uppercase_sha256_rejected(self):
         bad = self._suite_with_gsm8k(task_sha256="A" * 64)
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_SUITE)
+            validate_doc(bad, SCHEMA_SUITE)
 
     # A7: task_sha256 with 63 chars must be rejected
     def test_quality_benchmark_short_sha256_rejected(self):
         bad = self._suite_with_gsm8k(task_sha256="a" * 63)
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_SUITE)
+            validate_doc(bad, SCHEMA_SUITE)
 
     # A8: empty required_evidence must be rejected
     def test_quality_benchmark_empty_required_evidence_rejected(self):
         bad = self._suite_with_gsm8k(required_evidence=[])
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_SUITE)
+            validate_doc(bad, SCHEMA_SUITE)
 
     # A9: suite_id must be exactly "warpcore-v1"
     def test_suite_id_must_be_exact_const(self):
         bad = self._suite_with(suite_id="warpcore-v2")
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_SUITE)
+            validate_doc(bad, SCHEMA_SUITE)
 
     # A10: suite_schema_version must be exactly 1
     def test_suite_schema_version_must_be_const_1(self):
         bad = self._suite_with(suite_schema_version=2)
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_SUITE)
+            validate_doc(bad, SCHEMA_SUITE)
 
     # A11: benchmarks must require all five benchmark keys (missing swebench)
     def test_benchmarks_missing_required_key_rejected(self):
         suite = load_suite()
         suite["benchmarks"] = {k: v for k, v in suite["benchmarks"].items() if k != "swebench"}
         with pytest.raises(jsonschema.ValidationError):
-            validate(suite, SCHEMA_SUITE)
+            validate_doc(suite, SCHEMA_SUITE)
 
     # A12: utils_sha256 pattern — if present, must be 64 lowercase hex
     def test_utils_sha256_malformed_rejected(self):
@@ -213,7 +144,7 @@ class TestGapA_SuiteSchemaStructural:
         bm["utils_sha256"] = "UPPERCASE" + "a" * 55
         suite["benchmarks"]["gpqa_diamond"] = bm
         with pytest.raises(jsonschema.ValidationError):
-            validate(suite, SCHEMA_SUITE)
+            validate_doc(suite, SCHEMA_SUITE)
 
     # A13: dataset revision must be exactly 40 lowercase hex chars
     def test_dataset_revision_must_be_40hex(self):
@@ -223,7 +154,7 @@ class TestGapA_SuiteSchemaStructural:
         bm["dataset"]["revision"] = "toolong" + "a" * 40
         suite["benchmarks"]["gsm8k"] = bm
         with pytest.raises(jsonschema.ValidationError):
-            validate(suite, SCHEMA_SUITE)
+            validate_doc(suite, SCHEMA_SUITE)
 
     def test_dataset_revision_uppercase_rejected(self):
         suite = load_suite()
@@ -232,7 +163,7 @@ class TestGapA_SuiteSchemaStructural:
         bm["dataset"]["revision"] = "A" * 40
         suite["benchmarks"]["gsm8k"] = bm
         with pytest.raises(jsonschema.ValidationError):
-            validate(suite, SCHEMA_SUITE)
+            validate_doc(suite, SCHEMA_SUITE)
 
     def test_dataset_revision_short_rejected(self):
         suite = load_suite()
@@ -241,7 +172,7 @@ class TestGapA_SuiteSchemaStructural:
         bm["dataset"]["revision"] = "abc123"
         suite["benchmarks"]["gsm8k"] = bm
         with pytest.raises(jsonschema.ValidationError):
-            validate(suite, SCHEMA_SUITE)
+            validate_doc(suite, SCHEMA_SUITE)
 
 
 # ---------------------------------------------------------------------------
@@ -288,60 +219,60 @@ class TestGapC_AdapterStrictPatterns:
     """
 
     def test_valid_adapter_passes(self):
-        validate(VALID_ADAPTER, SCHEMA_ADAPTER)
+        validate_doc(VALID_ADAPTER, SCHEMA_ADAPTER)
 
     # C1: mutable image tag (no digest) must be rejected
     def test_adapter_mutable_tag_only_rejected(self):
         bad = {**VALID_ADAPTER, "serving": {**VALID_ADAPTER["serving"], "image": "repo:latest"}}
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_ADAPTER)
+            validate_doc(bad, SCHEMA_ADAPTER)
 
     # C2: image with tag but no digest must be rejected
     def test_adapter_repo_tag_no_digest_rejected(self):
         bad = {**VALID_ADAPTER, "serving": {**VALID_ADAPTER["serving"], "image": "org/repo:v0.8.5"}}
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_ADAPTER)
+            validate_doc(bad, SCHEMA_ADAPTER)
 
     # C3: image with short sha must be rejected
     def test_adapter_image_short_sha_rejected(self):
         bad = {**VALID_ADAPTER, "serving": {**VALID_ADAPTER["serving"], "image": "repo@sha256:abc"}}
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_ADAPTER)
+            validate_doc(bad, SCHEMA_ADAPTER)
 
     # C4: image with uppercase sha must be rejected
     def test_adapter_image_uppercase_sha_rejected(self):
         bad = {**VALID_ADAPTER, "serving": {**VALID_ADAPTER["serving"], "image": "repo@sha256:" + "A" * 64}}
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_ADAPTER)
+            validate_doc(bad, SCHEMA_ADAPTER)
 
     # C5: model revision 'unrecorded' must be rejected for adapter (new definition)
     def test_adapter_model_revision_unrecorded_rejected(self):
         bad = {**VALID_ADAPTER, "model": {**VALID_ADAPTER["model"], "revision": "unrecorded"}}
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_ADAPTER)
+            validate_doc(bad, SCHEMA_ADAPTER)
 
     # C6: model revision arbitrary string must be rejected
     def test_adapter_model_revision_arbitrary_rejected(self):
         bad = {**VALID_ADAPTER, "model": {**VALID_ADAPTER["model"], "revision": "any-arbitrary-string"}}
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_ADAPTER)
+            validate_doc(bad, SCHEMA_ADAPTER)
 
     # C7: model revision short hex must be rejected
     def test_adapter_model_revision_short_sha_rejected(self):
         bad = {**VALID_ADAPTER, "model": {**VALID_ADAPTER["model"], "revision": "abc123"}}
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_ADAPTER)
+            validate_doc(bad, SCHEMA_ADAPTER)
 
     # C8: model revision uppercase hex must be rejected
     def test_adapter_model_revision_uppercase_rejected(self):
         bad = {**VALID_ADAPTER, "model": {**VALID_ADAPTER["model"], "revision": "A" * 40}}
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_ADAPTER)
+            validate_doc(bad, SCHEMA_ADAPTER)
 
     # C9: valid 40-char lowercase hex revision passes
     def test_adapter_model_revision_valid_40hex_passes(self):
         good = {**VALID_ADAPTER, "model": {**VALID_ADAPTER["model"], "revision": "a" * 40}}
-        validate(good, SCHEMA_ADAPTER)
+        validate_doc(good, SCHEMA_ADAPTER)
 
 
 # ---------------------------------------------------------------------------
@@ -355,50 +286,50 @@ class TestGapD_ManifestHashAndPaths:
     """
 
     def test_valid_manifest_passes(self):
-        validate(VALID_MANIFEST, SCHEMA_MANIFEST)
+        validate_doc(VALID_MANIFEST, SCHEMA_MANIFEST)
 
     # D1: adapter_hash 65 chars (too long) must be rejected
     def test_adapter_hash_65_chars_rejected(self):
         bad = {**VALID_MANIFEST, "adapter_hash": "a" * 65}
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_MANIFEST)
+            validate_doc(bad, SCHEMA_MANIFEST)
 
     # D2: adapter_hash uppercase must be rejected
     def test_adapter_hash_uppercase_rejected(self):
         bad = {**VALID_MANIFEST, "adapter_hash": "A" * 64}
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_MANIFEST)
+            validate_doc(bad, SCHEMA_MANIFEST)
 
     # D3: adapter_hash 63 chars must be rejected
     def test_adapter_hash_63_chars_rejected(self):
         bad = {**VALID_MANIFEST, "adapter_hash": "a" * 63}
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_MANIFEST)
+            validate_doc(bad, SCHEMA_MANIFEST)
 
     # D4: suite_input_hashes with traversal path must be rejected
     def test_suite_input_hashes_traversal_rejected(self):
         bad = {**VALID_MANIFEST, "suite_input_hashes": {"suite/../etc/passwd": "b" * 64}}
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_MANIFEST)
+            validate_doc(bad, SCHEMA_MANIFEST)
 
     # D5: suite_input_hashes with empty component must be rejected
     def test_suite_input_hashes_double_slash_rejected(self):
         bad = {**VALID_MANIFEST, "suite_input_hashes": {"suite//tasks/foo.yaml": "b" * 64}}
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_MANIFEST)
+            validate_doc(bad, SCHEMA_MANIFEST)
 
     # D6: suite_input_hashes path with dot-dot component must be rejected
     def test_suite_input_hashes_dotdot_rejected(self):
         bad = {**VALID_MANIFEST, "suite_input_hashes": {"suite/tasks/../../../x": "b" * 64}}
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_MANIFEST)
+            validate_doc(bad, SCHEMA_MANIFEST)
 
     # D7: manifest model revision arbitrary string must be rejected (for unrecorded - use oneOf)
     # Design: manifest allows 'unrecorded' for historical records OR exact 40-hex
     def test_manifest_model_revision_arbitrary_rejected(self):
         bad = {**VALID_MANIFEST, "model": {**VALID_MANIFEST["model"], "revision": "arbitrary-garbage-string"}}
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_MANIFEST)
+            validate_doc(bad, SCHEMA_MANIFEST)
 
     # D8: manifest serving image_digest arbitrary string must be rejected
     def test_manifest_serving_image_digest_arbitrary_rejected(self):
@@ -407,7 +338,7 @@ class TestGapD_ManifestHashAndPaths:
             "serving": {**VALID_MANIFEST["serving"], "image_digest": "not-a-digest"},
         }
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_MANIFEST)
+            validate_doc(bad, SCHEMA_MANIFEST)
 
     # D9: manifest serving image_digest 'unrecorded' passes (historical manifests)
     def test_manifest_serving_image_digest_unrecorded_passes(self):
@@ -416,7 +347,7 @@ class TestGapD_ManifestHashAndPaths:
             "model": {**VALID_MANIFEST["model"], "revision": "unrecorded"},
             "serving": {**VALID_MANIFEST["serving"], "image_digest": "unrecorded"},
         }
-        validate(doc, SCHEMA_MANIFEST)
+        validate_doc(doc, SCHEMA_MANIFEST)
 
     # D10: manifest serving image_digest sha256:<64hex> passes
     def test_manifest_serving_image_digest_sha256_passes(self):
@@ -424,7 +355,7 @@ class TestGapD_ManifestHashAndPaths:
             **VALID_MANIFEST,
             "serving": {**VALID_MANIFEST["serving"], "image_digest": "sha256:" + "d" * 64},
         }
-        validate(doc, SCHEMA_MANIFEST)
+        validate_doc(doc, SCHEMA_MANIFEST)
 
 
 # ---------------------------------------------------------------------------
@@ -488,7 +419,7 @@ class TestGapF_FormatCheckerValidation:
             "timing": {"started_utc": "not-a-date", "completed_utc": None},
         }
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_MANIFEST, format_checker=jsonschema.FormatChecker())
+            validate_doc(bad, SCHEMA_MANIFEST)
 
     # F2: invalid completed_utc must be rejected with FormatChecker (non-null)
     def test_manifest_invalid_completed_utc_rejected_with_format_checker(self):
@@ -497,11 +428,11 @@ class TestGapF_FormatCheckerValidation:
             "timing": {"started_utc": "2026-09-15T00:00:00Z", "completed_utc": "not-a-date"},
         }
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_MANIFEST, format_checker=jsonschema.FormatChecker())
+            validate_doc(bad, SCHEMA_MANIFEST)
 
     # F3: valid manifest passes with FormatChecker
     def test_manifest_valid_passes_with_format_checker(self):
-        validate(VALID_MANIFEST, SCHEMA_MANIFEST, format_checker=jsonschema.FormatChecker())
+        validate_doc(VALID_MANIFEST, SCHEMA_MANIFEST)
 
     # F4: null completed_utc passes with FormatChecker
     def test_manifest_null_completed_utc_passes_with_format_checker(self):
@@ -509,7 +440,7 @@ class TestGapF_FormatCheckerValidation:
             **VALID_MANIFEST,
             "timing": {"started_utc": "2026-09-15T00:00:00Z", "completed_utc": None},
         }
-        validate(doc, SCHEMA_MANIFEST, format_checker=jsonschema.FormatChecker())
+        validate_doc(doc, SCHEMA_MANIFEST)
 
     # F5: invalid status history timestamp must be rejected WITH FormatChecker
     def test_status_invalid_history_timestamp_rejected_with_format_checker(self):
@@ -522,7 +453,7 @@ class TestGapF_FormatCheckerValidation:
             "history": [{"state": "planned", "timestamp": "NOT-A-DATE", "note": "init"}],
         }
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad_status, SCHEMA_STATUS, format_checker=jsonschema.FormatChecker())
+            validate_doc(bad_status, SCHEMA_STATUS)
 
     # F6: valid status passes WITH FormatChecker
     def test_status_valid_passes_with_format_checker(self):
@@ -534,7 +465,7 @@ class TestGapF_FormatCheckerValidation:
             "lifecycle": "current",
             "history": [{"state": "planned", "timestamp": "2026-09-15T00:00:00Z", "note": "init"}],
         }
-        validate(good_status, SCHEMA_STATUS, format_checker=jsonschema.FormatChecker())
+        validate_doc(good_status, SCHEMA_STATUS)
 
     # F7: invalid suite_id in status must be rejected
     def test_status_invalid_suite_id_rejected(self):
@@ -547,7 +478,7 @@ class TestGapF_FormatCheckerValidation:
             "history": [{"state": "planned", "timestamp": "2026-09-15T00:00:00Z"}],
         }
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad_status, SCHEMA_STATUS)
+            validate_doc(bad_status, SCHEMA_STATUS)
 
 
 # ---------------------------------------------------------------------------
@@ -568,7 +499,7 @@ class TestGapG_HarnessVersionPatterns:
         bad["required_harness"] = dict(suite["required_harness"])
         bad["required_harness"]["lm_eval_version"] = ">=0.4.12"
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_SUITE)
+            validate_doc(bad, SCHEMA_SUITE)
 
     # G2: lm_eval_revision schema must have pattern rejecting arbitrary strings
     def test_lm_eval_revision_schema_rejects_arbitrary(self):
@@ -578,12 +509,12 @@ class TestGapG_HarnessVersionPatterns:
         bad["required_harness"] = dict(suite["required_harness"])
         bad["required_harness"]["lm_eval_revision"] = "not-a-sha"
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_SUITE)
+            validate_doc(bad, SCHEMA_SUITE)
 
     # G3: exact valid harness version passes
     def test_valid_harness_version_passes(self):
         suite = load_suite()
-        validate(suite, SCHEMA_SUITE)
+        validate_doc(suite, SCHEMA_SUITE)
 
     # G4: dataset revision must be exactly 40 lowercase hex (schema enforces pattern)
     def test_dataset_revision_schema_has_40hex_pattern(self):
@@ -712,7 +643,7 @@ class TestGapI_ThroughputTimeoutPolicy:
         """
         suite = load_suite()
         # After fix: suite validates without per_request_timeout_s
-        validate(suite, SCHEMA_SUITE)
+        validate_doc(suite, SCHEMA_SUITE)
 
 
 # ---------------------------------------------------------------------------
@@ -802,7 +733,7 @@ class TestGapK_UtilsFileSha256BidirectionalCoupling:
             # no utils_sha256
         )
         with pytest.raises(jsonschema.ValidationError):
-            validate(suite, SCHEMA_SUITE)
+            validate_doc(suite, SCHEMA_SUITE)
 
     # K2: utils_sha256 without utils_file must be rejected
     def test_utils_sha256_without_file_rejected(self):
@@ -812,19 +743,19 @@ class TestGapK_UtilsFileSha256BidirectionalCoupling:
             # no utils_file
         )
         with pytest.raises(jsonschema.ValidationError):
-            validate(suite, SCHEMA_SUITE)
+            validate_doc(suite, SCHEMA_SUITE)
 
     # K3: both utils_file and utils_sha256 present passes
     def test_utils_file_and_sha256_both_present_passes(self):
         """gpqa_diamond has both; must pass."""
         suite = self._suite_with_gpqa()  # already has both
-        validate(suite, SCHEMA_SUITE)
+        validate_doc(suite, SCHEMA_SUITE)
 
     # K4: neither utils_file nor utils_sha256 passes (gsm8k has neither)
     def test_neither_utils_file_nor_sha256_passes(self):
         """gsm8k has neither utils_file nor utils_sha256; must pass."""
         suite = self._suite_with_gsm8k()  # neither present
-        validate(suite, SCHEMA_SUITE)
+        validate_doc(suite, SCHEMA_SUITE)
 
 
 # ---------------------------------------------------------------------------
@@ -885,7 +816,7 @@ class TestGapL_RequiredEvidenceContentEnforcement:
         reduced = [c for c in QUALITY_REQUIRED_EVIDENCE_CLASSES if c != missing_class]
         suite = self._suite_with_gsm8k(required_evidence=reduced)
         with pytest.raises(jsonschema.ValidationError):
-            validate(suite, SCHEMA_SUITE)
+            validate_doc(suite, SCHEMA_SUITE)
 
     @pytest.mark.parametrize("missing_class", SWEBENCH_REQUIRED_EVIDENCE_CLASSES)
     def test_swebench_evidence_omission_rejected(self, missing_class: str):
@@ -893,14 +824,14 @@ class TestGapL_RequiredEvidenceContentEnforcement:
         reduced = [c for c in SWEBENCH_REQUIRED_EVIDENCE_CLASSES if c != missing_class]
         suite = self._suite_with_swebench(required_evidence=reduced)
         with pytest.raises(jsonschema.ValidationError):
-            validate(suite, SCHEMA_SUITE)
+            validate_doc(suite, SCHEMA_SUITE)
 
     def test_quality_evidence_all_present_passes(self):
         """All required quality evidence classes present must pass."""
         suite = self._suite_with_gsm8k(required_evidence=QUALITY_REQUIRED_EVIDENCE_CLASSES)
-        validate(suite, SCHEMA_SUITE)
+        validate_doc(suite, SCHEMA_SUITE)
 
     def test_swebench_evidence_all_present_passes(self):
         """All required swebench evidence classes present must pass."""
         suite = self._suite_with_swebench(required_evidence=SWEBENCH_REQUIRED_EVIDENCE_CLASSES)
-        validate(suite, SCHEMA_SUITE)
+        validate_doc(suite, SCHEMA_SUITE)

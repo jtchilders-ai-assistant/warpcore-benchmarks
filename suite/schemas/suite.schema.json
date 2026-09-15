@@ -38,19 +38,23 @@
       "additionalProperties": false,
       "properties": {
         "cross_model_comparison": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         },
         "binary_test": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         },
         "cross_model_requires_identical_item_sets": {
           "type": "boolean"
         },
         "non_significant_means": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         },
         "interval_method": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         },
         "reweighted_requires_uncertainty": {
           "type": "boolean"
@@ -216,7 +220,8 @@
       "additionalProperties": false,
       "properties": {
         "path": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         },
         "name": {
           "type": [
@@ -225,7 +230,8 @@
           ]
         },
         "split": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         },
         "revision": {
           "type": "string",

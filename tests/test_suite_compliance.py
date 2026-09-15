@@ -17,17 +17,21 @@ import jsonschema
 import pytest
 import yaml
 
+from schema_helpers import (
+    SCHEMA_ADAPTER,
+    SCHEMA_MANIFEST,
+    SCHEMA_STATUS,
+    SCHEMA_SUITE,
+    VALID_MANIFEST,
+    validate_doc,
+)
+
 REPO = Path(__file__).parent.parent
 SUITE_DIR = REPO / "suite"
 SUITE_FILE = SUITE_DIR / "warpcore-v1.yaml"
 SCHEMAS_DIR = SUITE_DIR / "schemas"
 TASKS_DIR = SUITE_DIR / "tasks"
 SWEBENCH_DIR = SUITE_DIR / "swebench"
-
-SCHEMA_SUITE = SCHEMAS_DIR / "suite.schema.json"
-SCHEMA_ADAPTER = SCHEMAS_DIR / "adapter.schema.json"
-SCHEMA_MANIFEST = SCHEMAS_DIR / "manifest.schema.json"
-SCHEMA_STATUS = SCHEMAS_DIR / "result-status.schema.json"
 
 IFEVAL_TASK_FILE = TASKS_DIR / "ifeval_v4.yaml"
 INSTANCES_FILE = SWEBENCH_DIR / "instances-seed42-n100.json"
@@ -60,14 +64,6 @@ def load_suite() -> dict:
 
 def load_schema(p: Path) -> dict:
     return json.loads(p.read_text())
-
-
-def validate(instance: dict, schema_path: Path, format_checker=None) -> None:
-    schema = json.loads(schema_path.read_text())
-    kwargs = {}
-    if format_checker is not None:
-        kwargs["format_checker"] = format_checker
-    jsonschema.validate(instance, schema, **kwargs)
 
 
 # ---------------------------------------------------------------------------
@@ -313,75 +309,35 @@ class TestNoSuiteDuplicateStates:
 # ---------------------------------------------------------------------------
 
 class TestServingProfileDigest:
-    VALID_MANIFEST = {
-        "schema_version": 1,
-        "suite_id": "warpcore-v1",
-        "suite_schema_version": 1,
-        "run_id": "run-2026-09-15T00-00-00",
-        "benchmark": "gsm8k",
-        "adapter_hash": "a" * 64,
-        "suite_input_hashes": {
-            "suite/tasks/gsm8k_clean_v1.yaml": "b" * 64,
-        },
-        "serving_profile_digest": "sha256:" + "c" * 64,
-        "model": {
-            "slug": "qwen3.6-35b-a3b",
-            "id": "Qwen/Qwen3.6-35B-A3B-FP8",
-            "revision": "abc123def456abc123def456abc123def456abc1",
-        },
-        "serving": {
-            "image_digest": "sha256:" + "d" * 64,
-            "engine": "vllm",
-            "engine_version": "0.8.5",
-            "effective_args": [],
-            "environment": {},
-            "hardware_id": "dgx-spark-gb10",
-        },
-        "item_inventory": {
-            "expected": 1319,
-            "submitted": 1319,
-        },
-        "timing": {
-            "started_utc": "2026-09-15T00:00:00Z",
-            "completed_utc": "2026-09-15T01:00:00Z",
-        },
-        "artifact_inventory": {
-            "samples_jsonl_gz": True,
-            "per_item_csv": True,
-            "run_log": True,
-            "command_txt": True,
-            "done_sentinel": True,
-        },
-    }
 
     def test_manifest_missing_serving_profile_digest_rejected(self):
-        bad = {k: v for k, v in self.VALID_MANIFEST.items() if k != "serving_profile_digest"}
+        bad = {k: v for k, v in VALID_MANIFEST.items() if k != "serving_profile_digest"}
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_MANIFEST)
+            validate_doc(bad, SCHEMA_MANIFEST)
 
     def test_manifest_with_serving_profile_digest_passes(self):
-        validate(self.VALID_MANIFEST, SCHEMA_MANIFEST)
+        validate_doc(VALID_MANIFEST, SCHEMA_MANIFEST)
 
     def test_serving_profile_digest_must_match_sha256_pattern(self):
-        bad = {**self.VALID_MANIFEST, "serving_profile_digest": "notadigest"}
+        bad = {**VALID_MANIFEST, "serving_profile_digest": "notadigest"}
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_MANIFEST)
+            validate_doc(bad, SCHEMA_MANIFEST)
 
     def test_manifest_serving_requires_hardware_id(self):
         bad = {
-            **self.VALID_MANIFEST,
-            "serving": {k: v for k, v in self.VALID_MANIFEST["serving"].items() if k != "hardware_id"},
+            **VALID_MANIFEST,
+            "serving": {k: v for k, v in VALID_MANIFEST["serving"].items() if k != "hardware_id"},
         }
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_MANIFEST)
+            validate_doc(bad, SCHEMA_MANIFEST)
 
     def test_manifest_serving_requires_environment(self):
         bad = {
-            **self.VALID_MANIFEST,
-            "serving": {k: v for k, v in self.VALID_MANIFEST["serving"].items() if k != "environment"},
+            **VALID_MANIFEST,
+            "serving": {k: v for k, v in VALID_MANIFEST["serving"].items() if k != "environment"},
         }
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_MANIFEST)
+            validate_doc(bad, SCHEMA_MANIFEST)
 
 
 # ---------------------------------------------------------------------------
@@ -389,32 +345,31 @@ class TestServingProfileDigest:
 # ---------------------------------------------------------------------------
 
 class TestSuiteInputHashes:
-    VALID_MANIFEST = TestServingProfileDigest.VALID_MANIFEST  # reuse
 
     def test_manifest_rejects_suite_task_hash(self):
         """suite_task_hash is abolished; manifest with it must be rejected."""
-        bad = {**self.VALID_MANIFEST, "suite_task_hash": "b" * 64}
+        bad = {**VALID_MANIFEST, "suite_task_hash": "b" * 64}
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_MANIFEST)
+            validate_doc(bad, SCHEMA_MANIFEST)
 
     def test_manifest_missing_suite_input_hashes_rejected(self):
-        bad = {k: v for k, v in self.VALID_MANIFEST.items() if k != "suite_input_hashes"}
+        bad = {k: v for k, v in VALID_MANIFEST.items() if k != "suite_input_hashes"}
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_MANIFEST)
+            validate_doc(bad, SCHEMA_MANIFEST)
 
     def test_suite_input_hashes_must_be_nonempty_object(self):
-        bad = {**self.VALID_MANIFEST, "suite_input_hashes": {}}
+        bad = {**VALID_MANIFEST, "suite_input_hashes": {}}
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_MANIFEST)
+            validate_doc(bad, SCHEMA_MANIFEST)
 
     def test_suite_input_hashes_value_must_be_sha256(self):
         """Values must be 64-char hex strings."""
-        bad = {**self.VALID_MANIFEST, "suite_input_hashes": {"suite/tasks/foo.yaml": "notahash"}}
+        bad = {**VALID_MANIFEST, "suite_input_hashes": {"suite/tasks/foo.yaml": "notahash"}}
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_MANIFEST)
+            validate_doc(bad, SCHEMA_MANIFEST)
 
     def test_suite_input_hashes_valid_passes(self):
-        validate(self.VALID_MANIFEST, SCHEMA_MANIFEST)
+        validate_doc(VALID_MANIFEST, SCHEMA_MANIFEST)
 
 
 # ---------------------------------------------------------------------------
@@ -422,31 +377,30 @@ class TestSuiteInputHashes:
 # ---------------------------------------------------------------------------
 
 class TestCompletedUtcFormat:
-    VALID_MANIFEST = TestServingProfileDigest.VALID_MANIFEST
 
     def test_invalid_completed_utc_rejected_with_format_checker(self):
         bad = {
-            **self.VALID_MANIFEST,
+            **VALID_MANIFEST,
             "timing": {
                 "started_utc": "2026-09-15T00:00:00Z",
                 "completed_utc": "not-a-timestamp",
             },
         }
         with pytest.raises(jsonschema.ValidationError):
-            validate(bad, SCHEMA_MANIFEST, format_checker=jsonschema.FormatChecker())
+            validate_doc(bad, SCHEMA_MANIFEST)
 
     def test_null_completed_utc_passes(self):
         doc = {
-            **self.VALID_MANIFEST,
+            **VALID_MANIFEST,
             "timing": {
                 "started_utc": "2026-09-15T00:00:00Z",
                 "completed_utc": None,
             },
         }
-        validate(doc, SCHEMA_MANIFEST, format_checker=jsonschema.FormatChecker())
+        validate_doc(doc, SCHEMA_MANIFEST)
 
     def test_valid_completed_utc_passes(self):
-        validate(self.VALID_MANIFEST, SCHEMA_MANIFEST, format_checker=jsonschema.FormatChecker())
+        validate_doc(VALID_MANIFEST, SCHEMA_MANIFEST)
 
 
 # ---------------------------------------------------------------------------
