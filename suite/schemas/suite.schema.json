@@ -59,7 +59,13 @@
     },
     "benchmarks": {
       "type": "object",
-      "required": ["gsm8k", "ifeval", "gpqa_diamond", "swebench", "throughput"],
+      "required": [
+        "gsm8k",
+        "ifeval",
+        "gpqa_diamond",
+        "swebench",
+        "throughput"
+      ],
       "additionalProperties": false,
       "minProperties": 5,
       "properties": {
@@ -350,7 +356,74 @@
             "type": "string"
           },
           "minItems": 1,
-          "uniqueItems": true
+          "uniqueItems": true,
+          "allOf": [
+            {
+              "contains": {
+                "const": "aggregate_result"
+              }
+            },
+            {
+              "contains": {
+                "const": "samples_jsonl_gz"
+              }
+            },
+            {
+              "contains": {
+                "const": "per_item_csv"
+              }
+            },
+            {
+              "contains": {
+                "const": "task_yaml"
+              }
+            },
+            {
+              "contains": {
+                "const": "scoring_implementation"
+              }
+            },
+            {
+              "contains": {
+                "const": "run_log"
+              }
+            },
+            {
+              "contains": {
+                "const": "command_txt"
+              }
+            },
+            {
+              "contains": {
+                "const": "manifest_json"
+              }
+            },
+            {
+              "contains": {
+                "const": "status_json"
+              }
+            },
+            {
+              "contains": {
+                "const": "done_sentinel"
+              }
+            },
+            {
+              "contains": {
+                "const": "completion_token_counts"
+              }
+            },
+            {
+              "contains": {
+                "const": "finish_reasons"
+              }
+            },
+            {
+              "contains": {
+                "const": "full_response_fields"
+              }
+            }
+          ]
         },
         "retry_policy": {
           "$ref": "#/$defs/retry_policy"
@@ -358,6 +431,14 @@
         "timeout_policy": {
           "$ref": "#/$defs/timeout_policy"
         }
+      },
+      "dependentRequired": {
+        "utils_file": [
+          "utils_sha256"
+        ],
+        "utils_sha256": [
+          "utils_file"
+        ]
       }
     },
     "swebench_benchmark": {
@@ -423,7 +504,44 @@
             "type": "string"
           },
           "minItems": 1,
-          "uniqueItems": true
+          "uniqueItems": true,
+          "allOf": [
+            {
+              "contains": {
+                "const": "preds_json"
+              }
+            },
+            {
+              "contains": {
+                "const": "exit_statuses"
+              }
+            },
+            {
+              "contains": {
+                "const": "run_log"
+              }
+            },
+            {
+              "contains": {
+                "const": "command_txt"
+              }
+            },
+            {
+              "contains": {
+                "const": "manifest_json"
+              }
+            },
+            {
+              "contains": {
+                "const": "status_json"
+              }
+            },
+            {
+              "contains": {
+                "const": "done_sentinel"
+              }
+            }
+          ]
         },
         "retry_policy": {
           "$ref": "#/$defs/retry_policy"

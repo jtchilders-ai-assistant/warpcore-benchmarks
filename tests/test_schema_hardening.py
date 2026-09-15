@@ -766,3 +766,141 @@ class TestGapJ_SwebenchDatasetProvenance:
                 f"suite YAML must not claim {pattern!r}; "
                 f"revisions are current local HF refs captured for v1 (prospective)"
             )
+
+
+# ---------------------------------------------------------------------------
+# Gap K: utils_file / utils_sha256 bidirectional coupling (dependentRequired)
+# ---------------------------------------------------------------------------
+
+class TestGapK_UtilsFileSha256BidirectionalCoupling:
+    """
+    Gap K: utils_file and utils_sha256 must be coupled bidirectionally.
+    If one is present, the other must be required. This prevents committing
+    a file path without a hash (unverified) or a hash without a file path
+    (meaningless orphan). Enforced via dependentRequired in quality_benchmark.
+    """
+
+    def _suite_with_gpqa(self, **overrides) -> dict:
+        import yaml
+        from pathlib import Path
+        suite = yaml.safe_load((Path(__file__).parent.parent / "suite" / "warpcore-v1.yaml").read_text())
+        suite["benchmarks"]["gpqa_diamond"] = dict(suite["benchmarks"]["gpqa_diamond"], **overrides)
+        return suite
+
+    def _suite_with_gsm8k(self, **overrides) -> dict:
+        import yaml
+        from pathlib import Path
+        suite = yaml.safe_load((Path(__file__).parent.parent / "suite" / "warpcore-v1.yaml").read_text())
+        suite["benchmarks"]["gsm8k"] = dict(suite["benchmarks"]["gsm8k"], **overrides)
+        return suite
+
+    # K1: utils_file without utils_sha256 must be rejected
+    def test_utils_file_without_sha256_rejected(self):
+        """If utils_file is present, utils_sha256 must also be present."""
+        suite = self._suite_with_gsm8k(
+            utils_file="suite/tasks/some_utils.py",
+            # no utils_sha256
+        )
+        with pytest.raises(jsonschema.ValidationError):
+            validate(suite, SCHEMA_SUITE)
+
+    # K2: utils_sha256 without utils_file must be rejected
+    def test_utils_sha256_without_file_rejected(self):
+        """If utils_sha256 is present, utils_file must also be present."""
+        suite = self._suite_with_gsm8k(
+            utils_sha256="a" * 64,
+            # no utils_file
+        )
+        with pytest.raises(jsonschema.ValidationError):
+            validate(suite, SCHEMA_SUITE)
+
+    # K3: both utils_file and utils_sha256 present passes
+    def test_utils_file_and_sha256_both_present_passes(self):
+        """gpqa_diamond has both; must pass."""
+        suite = self._suite_with_gpqa()  # already has both
+        validate(suite, SCHEMA_SUITE)
+
+    # K4: neither utils_file nor utils_sha256 passes (gsm8k has neither)
+    def test_neither_utils_file_nor_sha256_passes(self):
+        """gsm8k has neither utils_file nor utils_sha256; must pass."""
+        suite = self._suite_with_gsm8k()  # neither present
+        validate(suite, SCHEMA_SUITE)
+
+
+# ---------------------------------------------------------------------------
+# Gap L: required_evidence content enforcement via allOf+contains+const
+# ---------------------------------------------------------------------------
+
+QUALITY_REQUIRED_EVIDENCE_CLASSES = [
+    "aggregate_result",
+    "samples_jsonl_gz",
+    "per_item_csv",
+    "task_yaml",
+    "scoring_implementation",
+    "run_log",
+    "command_txt",
+    "manifest_json",
+    "status_json",
+    "done_sentinel",
+    "completion_token_counts",
+    "finish_reasons",
+    "full_response_fields",
+]
+
+SWEBENCH_REQUIRED_EVIDENCE_CLASSES = [
+    "preds_json",
+    "exit_statuses",
+    "run_log",
+    "command_txt",
+    "manifest_json",
+    "status_json",
+    "done_sentinel",
+]
+
+
+class TestGapL_RequiredEvidenceContentEnforcement:
+    """
+    Gap L: required_evidence must enforce specific evidence class names in the
+    schema, not merely minItems/uniqueItems. Omitting any canonical class must
+    cause schema validation to fail. Uses allOf+contains+const (or equivalent).
+    """
+
+    def _suite_with_gsm8k(self, **overrides) -> dict:
+        import yaml
+        from pathlib import Path
+        suite = yaml.safe_load((Path(__file__).parent.parent / "suite" / "warpcore-v1.yaml").read_text())
+        suite["benchmarks"]["gsm8k"] = dict(suite["benchmarks"]["gsm8k"], **overrides)
+        return suite
+
+    def _suite_with_swebench(self, **overrides) -> dict:
+        import yaml
+        from pathlib import Path
+        suite = yaml.safe_load((Path(__file__).parent.parent / "suite" / "warpcore-v1.yaml").read_text())
+        suite["benchmarks"]["swebench"] = dict(suite["benchmarks"]["swebench"], **overrides)
+        return suite
+
+    @pytest.mark.parametrize("missing_class", QUALITY_REQUIRED_EVIDENCE_CLASSES)
+    def test_quality_evidence_omission_rejected(self, missing_class: str):
+        """Omitting any single required evidence class from a quality benchmark must fail."""
+        reduced = [c for c in QUALITY_REQUIRED_EVIDENCE_CLASSES if c != missing_class]
+        suite = self._suite_with_gsm8k(required_evidence=reduced)
+        with pytest.raises(jsonschema.ValidationError):
+            validate(suite, SCHEMA_SUITE)
+
+    @pytest.mark.parametrize("missing_class", SWEBENCH_REQUIRED_EVIDENCE_CLASSES)
+    def test_swebench_evidence_omission_rejected(self, missing_class: str):
+        """Omitting any single required evidence class from swebench must fail."""
+        reduced = [c for c in SWEBENCH_REQUIRED_EVIDENCE_CLASSES if c != missing_class]
+        suite = self._suite_with_swebench(required_evidence=reduced)
+        with pytest.raises(jsonschema.ValidationError):
+            validate(suite, SCHEMA_SUITE)
+
+    def test_quality_evidence_all_present_passes(self):
+        """All required quality evidence classes present must pass."""
+        suite = self._suite_with_gsm8k(required_evidence=QUALITY_REQUIRED_EVIDENCE_CLASSES)
+        validate(suite, SCHEMA_SUITE)
+
+    def test_swebench_evidence_all_present_passes(self):
+        """All required swebench evidence classes present must pass."""
+        suite = self._suite_with_swebench(required_evidence=SWEBENCH_REQUIRED_EVIDENCE_CLASSES)
+        validate(suite, SCHEMA_SUITE)
