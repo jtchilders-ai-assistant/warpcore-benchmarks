@@ -12,6 +12,54 @@ by losing GPU-hours or publishing a wrong number.
 - `PROVENANCE.md` — what artifacts a run must leave behind
 - `ISSUES.md` — serving bugs, notably #15
 - `HARDWARE.md` — GB10 sizing rules
+- [`docs/superpowers/specs/2026-09-15-warpcore-v1-apples-to-apples-design.md`](docs/superpowers/specs/2026-09-15-warpcore-v1-apples-to-apples-design.md)
+  — the approved `warpcore-v1` comparison contract and P1 acceptance criteria
+
+---
+
+## The comparison contract is authoritative
+
+Read the approved `warpcore-v1` design before changing benchmark methodology, runners, adapters,
+validation, lifecycle metadata, or publication. If this file and the design disagree, stop and
+reconcile them in the same change; do not choose whichever rule is more convenient.
+
+**Apples-to-apples means a standardized experiment, not an identical serving stack.** The suite owns
+all model-independent variables: datasets and revisions, exact item IDs and ordering, prompts and
+chat-template policy, task/scorer hashes, sampling, output-token ceilings, retries, timeouts,
+denominators, evidence requirements, and statistical methods. A schema-validated serving adapter may
+contain only the model-specific settings required for correct execution, such as checkpoint revision,
+image digest, quantization/kernel backend, parsers, tokenizer override, context length, memory
+utilization, and capacity controls.
+
+An adapter or command line must never override suite-owned prompts, tasks, datasets, item sets,
+scoring, generation ceilings, sampling, or denominators. A methodology change requires an explicit
+suite-version change and corresponding design/documentation update; never silently mutate an existing
+suite.
+
+Until the P1 suite, schemas, runners, and validators exist and pass their acceptance tests, no run may
+be labeled canonical `warpcore-v1`. After they exist:
+
+- launch only through the contract runner; no ad hoc canonical campaigns;
+- require successful live preflight—exit 1 **or** 2 blocks launch;
+- record immutable model and image revisions, effective serving arguments, suite/task/instance hashes,
+  and the deterministic serving-profile identity;
+- keep long Mac-mini clients under `/usr/bin/screen` and Warpcore throughput sweeps under `tmux`, with
+  logs and outputs under stable `$HOME` paths, never `/tmp`;
+- retain compressed raw samples, per-item evidence, full response fields needed to classify empties,
+  logs, command, manifest, status history, and completion sentinel;
+- classify every expected item and reconcile all scores and counts from per-item evidence;
+- publish only validated artifacts whose lifecycle is `current`;
+- preserve historical evidence and explicitly classify it as `historical`, `superseded`, `diagnostic`,
+  `replay`, or `invalid` rather than moving, rewriting, or silently promoting it;
+- leave missing benchmark cells as `not measured`; never impute them or compute a cross-task overall
+  ranking; and
+- use paired per-item statistics for cross-model comparisons on identical item sets. A
+  non-significant result means “not distinguishable,” not “equal” or “tied.”
+
+The repository remains in dual-layout migration: historical evidence stays under existing
+`results/<model>/raw/...` paths, while new contract-driven runs use the normalized v1 layout. Any
+reader, validator, or publisher changed during P1 must support both until migration is explicitly
+closed.
 
 ---
 
