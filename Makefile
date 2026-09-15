@@ -24,7 +24,7 @@ FIGS       := fig1_pareto fig2_swebench fig3_discrimination
 # Instance set for the SWE-bench pre-flight check (seed-42 n=100, shared by all models).
 SWEBENCH_INSTANCES ?= results/qwen3.6-35b-a3b/raw/swebench/preds_shuffle100.json
 
-.PHONY: all figs data clean check preflight manifest check-artifacts audit samples ci preflight-serving preflight-selftest quality-preflight quality-preflight-selftest
+.PHONY: all figs data clean check preflight manifest check-artifacts audit samples ci preflight-serving preflight-selftest quality-preflight quality-preflight-selftest contract
 
 all: figs
 
@@ -109,11 +109,17 @@ preflight-selftest:
 	@$(PYTHON) $(VIZ)/preflight_serving.py --self-test
 
 # What CI runs. Kept as one target so `make ci` locally == the GitHub job.
-ci: check check-artifacts
+ci: check check-artifacts contract
 	@$(PYTHON) $(VIZ)/preflight_serving.py --self-test
 	@$(PYTHON) $(VIZ)/validate_samples.py --warn-only
 	@$(PYTHON) $(VIZ)/quality_preflight.py --self-test
-	@echo "OK: figures reproducible, no new provenance gaps."
+	@echo "OK: figures reproducible, no new provenance gaps, suite contract valid."
+
+# Suite and adapter contract validation (warpcore-v1 design §12 step 2).
+# Validates that suite canonical file hashes are fresh and the suite schema is
+# satisfied.  Exit 1 = diagnosed defect, 2 = unreadable input.
+contract:
+	@$(PYTHON) $(VIZ)/validate_suite.py suite/warpcore-v1.yaml
 
 # Mandatory quality-run gate: serving preflight + output budget + timeout arithmetic.
 # Run this BEFORE any quality run. All three checks must pass.

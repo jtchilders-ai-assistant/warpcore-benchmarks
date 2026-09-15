@@ -59,3 +59,10 @@ jobs:
       # the two would block legitimate runs, so the separation is a CI guard.
       - name: Preflight classifier (fixtures; live probing is a local target)
         run: python3 viz/preflight_serving.py --self-test
+
+      # warpcore-v1 design §12 step 2: validate that suite canonical file hashes
+      # are fresh, the suite schema is satisfied, and the instance set is intact.
+      # Exit 1 = diagnosed defect (suite drift), 2 = unreadable/inconclusive.
+      # There is exactly one code path: make contract -> viz/validate_suite.py.
+      - name: Suite contract (hash integrity, schema, instance set)
+        run: make contract
