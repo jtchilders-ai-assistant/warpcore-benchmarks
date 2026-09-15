@@ -26,6 +26,8 @@ import argparse
 import sys
 from pathlib import Path
 
+import yaml
+
 # Allow import from the viz/ directory when run as a script
 _THIS_DIR = Path(__file__).resolve().parent
 if str(_THIS_DIR) not in sys.path:
@@ -97,6 +99,9 @@ def main(argv: list[str] | None = None) -> int:
 
         try:
             errors = validate_suite(repo, suite_path)
+        except (OSError, IOError, yaml.YAMLError) as exc:
+            print(f"ERROR: cannot read/parse suite — {exc}", file=sys.stderr)
+            return 2
         except Exception as exc:
             print(f"ERROR: cannot validate suite — {exc}", file=sys.stderr)
             return 2

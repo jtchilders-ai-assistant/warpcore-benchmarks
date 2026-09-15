@@ -655,3 +655,268 @@ class TestValidateSuiteCLINegativeControls:
             result = subprocess.run(cmd, capture_output=True, text=True)
             assert result.returncode == 0, \
                 f"Expected exit 0 for valid adapter, got {result.returncode}:\n{result.stdout}{result.stderr}"
+
+
+# ===========================================================================
+# 16.  validate_suite — non-mapping YAML (Gap 1)
+#
+# Semantic contract:
+#   - Syntactically invalid YAML (unparseable) => unreadable/inconclusive => exit 2
+#   - Syntactically valid but structurally non-mapping YAML (null, scalar, list)
+#     => diagnosed contract defect => list[str] with error message, CLI exit 1
+# ===========================================================================
+
+class TestValidateSuiteNonMappingYaml:
+    """validate_suite must return list[str] (never crash) for non-mapping YAML."""
+
+    def _run_cli(self, *args: str) -> tuple[int, str]:
+        cmd = ["/usr/bin/python3", str(REPO / "viz" / "validate_suite.py")] + list(args)
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        return result.returncode, result.stdout + result.stderr
+
+    def _suite_path_with_content(self, tmpdir: Path, content: str) -> tuple[Path, Path]:
+        """Write *content* as a suite YAML inside a minimal repo layout.
+
+        Returns (repo_root, suite_path) so tests can call validate_suite directly.
+        """
+        import shutil
+        suite_dir = tmpdir / "suite"
+        suite_dir.mkdir(parents=True)
+        schemas_dst = suite_dir / "schemas"
+        schemas_dst.mkdir()
+        for p in SCHEMAS_DIR.iterdir():
+            shutil.copy(p, schemas_dst / p.name)
+        suite_path = suite_dir / "warpcore-v1.yaml"
+        suite_path.write_text(content)
+        (tmpdir / "viz").mkdir()
+        return tmpdir, suite_path
+
+    # ---- Library-level tests ------------------------------------------------
+
+    def test_null_yaml_returns_list_of_str(self):
+        """Null-document YAML (parses to None) => list[str], not crash."""
+        with tempfile.TemporaryDirectory() as td:
+            tmpdir = Path(td)
+            repo_root, suite_path = self._suite_path_with_content(tmpdir, "null\n")
+            result = validate_suite(repo_root, suite_path)
+            assert isinstance(result, list), f"Expected list, got {type(result)}"
+            assert len(result) > 0, "Expected at least one error for null YAML"
+            assert all(isinstance(e, str) for e in result), "All errors must be str"
+
+    def test_scalar_yaml_returns_list_of_str(self):
+        """Scalar YAML (parses to int/str) => list[str], not crash."""
+        with tempfile.TemporaryDirectory() as td:
+            tmpdir = Path(td)
+            repo_root, suite_path = self._suite_path_with_content(tmpdir, "42\n")
+            result = validate_suite(repo_root, suite_path)
+            assert isinstance(result, list), f"Expected list, got {type(result)}"
+            assert len(result) > 0, "Expected at least one error for scalar YAML"
+            assert all(isinstance(e, str) for e in result), "All errors must be str"
+
+    def test_list_yaml_returns_list_of_str(self):
+        """List-document YAML (parses to list) => list[str], not crash."""
+        with tempfile.TemporaryDirectory() as td:
+            tmpdir = Path(td)
+            repo_root, suite_path = self._suite_path_with_content(
+                tmpdir, "- item_a\n- item_b\n"
+            )
+            result = validate_suite(repo_root, suite_path)
+            assert isinstance(result, list), f"Expected list, got {type(result)}"
+            assert len(result) > 0, "Expected at least one error for list YAML"
+            assert all(isinstance(e, str) for e in result), "All errors must be str"
+
+    def test_string_scalar_yaml_returns_list_of_str(self):
+        """String-scalar YAML => list[str], not crash."""
+        with tempfile.TemporaryDirectory() as td:
+            tmpdir = Path(td)
+            repo_root, suite_path = self._suite_path_with_content(
+                tmpdir, "just a plain string\n"
+            )
+            result = validate_suite(repo_root, suite_path)
+            assert isinstance(result, list), f"Expected list, got {type(result)}"
+            assert len(result) > 0, "Expected at least one error for string scalar"
+            assert all(isinstance(e, str) for e in result), "All errors must be str"
+
+    # ---- Boundary: syntactically invalid YAML stays exit 2 ------------------
+
+    def test_syntactically_invalid_yaml_exits_2_via_cli(self):
+        """Unparseable YAML (broken syntax) => exit 2 (unreadable/inconclusive)."""
+        with tempfile.TemporaryDirectory() as td:
+            tmpdir = Path(td)
+            repo_root, suite_path = self._suite_path_with_content(
+                tmpdir, "key: : : broken {{{\n"
+            )
+            rc, output = self._run_cli("--repo", str(repo_root), str(suite_path))
+            assert rc == 2, (
+                f"Syntactically invalid YAML must exit 2 (unreadable), got {rc}:\n{output}"
+            )
+
+    # ---- CLI: non-mapping valid-parse YAML exits 1 (diagnosed defect) ------
+
+    def test_null_yaml_exits_1_via_cli(self):
+        """Null YAML parses successfully but is structurally invalid => exit 1."""
+        with tempfile.TemporaryDirectory() as td:
+            tmpdir = Path(td)
+            repo_root, suite_path = self._suite_path_with_content(tmpdir, "null\n")
+            rc, output = self._run_cli("--repo", str(repo_root), str(suite_path))
+            assert rc == 1, (
+                f"Null YAML is a diagnosed contract defect; expected exit 1, got {rc}:\n{output}"
+            )
+
+    def test_scalar_yaml_exits_1_via_cli(self):
+        """Scalar YAML is structurally invalid => diagnosed defect => exit 1."""
+        with tempfile.TemporaryDirectory() as td:
+            tmpdir = Path(td)
+            repo_root, suite_path = self._suite_path_with_content(tmpdir, "42\n")
+            rc, output = self._run_cli("--repo", str(repo_root), str(suite_path))
+            assert rc == 1, (
+                f"Scalar YAML is a diagnosed contract defect; expected exit 1, got {rc}:\n{output}"
+            )
+
+    def test_list_yaml_exits_1_via_cli(self):
+        """List YAML is structurally invalid => diagnosed defect => exit 1."""
+        with tempfile.TemporaryDirectory() as td:
+            tmpdir = Path(td)
+            repo_root, suite_path = self._suite_path_with_content(
+                tmpdir, "- item_a\n- item_b\n"
+            )
+            rc, output = self._run_cli("--repo", str(repo_root), str(suite_path))
+            assert rc == 1, (
+                f"List YAML is a diagnosed contract defect; expected exit 1, got {rc}:\n{output}"
+            )
+
+
+# ===========================================================================
+# 17.  validate_suite — SWE-bench scaffold_file / scaffold_sha256 (Gap 2)
+#
+# The swebench benchmark block declares scaffold_file and scaffold_sha256.
+# validate_suite must verify them with the same strictness as instance_set_file:
+#   - path escape => error
+#   - missing file => error
+#   - stale hash (file mutated without updating declared hash) => error
+# ===========================================================================
+
+class TestValidateSuiteScaffold:
+    """validate_suite must check scaffold_file/scaffold_sha256 in swebench block."""
+
+    def _make_suite_with_scaffold(self, tmpdir: Path) -> tuple[Path, Path]:
+        """Create minimal repo with real scaffold file + correct suite hashes.
+
+        Returns (repo_root, suite_path).
+        """
+        import shutil
+
+        suite_dir = tmpdir / "suite"
+        suite_dir.mkdir(parents=True)
+        schemas_dst = suite_dir / "schemas"
+        schemas_dst.mkdir()
+        tasks_dst = suite_dir / "tasks"
+        tasks_dst.mkdir()
+        swe_dst = suite_dir / "swebench"
+        swe_dst.mkdir()
+        (tmpdir / "viz").mkdir()
+
+        for p in SCHEMAS_DIR.iterdir():
+            shutil.copy(p, schemas_dst / p.name)
+        for p in TASKS_DIR.iterdir():
+            shutil.copy(p, tasks_dst / p.name)
+        for p in SWEBENCH_DIR.iterdir():
+            shutil.copy(p, swe_dst / p.name)
+
+        suite_path = suite_dir / "warpcore-v1.yaml"
+        shutil.copy(SUITE_FILE, suite_path)
+
+        return tmpdir, suite_path
+
+    # ---- Library tests ------------------------------------------------------
+
+    def test_valid_scaffold_passes(self):
+        """Real suite with correct scaffold hash must validate clean."""
+        with tempfile.TemporaryDirectory() as td:
+            tmpdir = Path(td)
+            repo_root, suite_path = self._make_suite_with_scaffold(tmpdir)
+            errors = validate_suite(repo_root, suite_path)
+            assert errors == [], f"Expected no errors for valid scaffold, got: {errors}"
+
+    def test_stale_scaffold_hash_detected(self):
+        """Mutating scaffold content without updating declared hash => error."""
+        with tempfile.TemporaryDirectory() as td:
+            tmpdir = Path(td)
+            repo_root, suite_path = self._make_suite_with_scaffold(tmpdir)
+
+            # Mutate the scaffold file
+            scaffold_path = tmpdir / "suite" / "swebench" / "scaffold.yaml"
+            scaffold_path.write_bytes(scaffold_path.read_bytes() + b"\n# mutated")
+
+            errors = validate_suite(repo_root, suite_path)
+            assert any(
+                "scaffold" in e.lower() or "hash" in e.lower() for e in errors
+            ), f"Expected scaffold hash error, got: {errors}"
+
+    def test_declared_stale_scaffold_sha256_detected(self):
+        """Suite declaring wrong scaffold_sha256 (file unchanged) => error."""
+        with tempfile.TemporaryDirectory() as td:
+            tmpdir = Path(td)
+            repo_root, suite_path = self._make_suite_with_scaffold(tmpdir)
+
+            suite = yaml.safe_load(suite_path.read_text())
+            suite["benchmarks"]["swebench"]["scaffold_sha256"] = "c" * 64
+            suite_path.write_text(yaml.dump(suite))
+
+            errors = validate_suite(repo_root, suite_path)
+            assert any(
+                "scaffold" in e.lower() or "hash" in e.lower() for e in errors
+            ), f"Expected scaffold hash mismatch error, got: {errors}"
+
+    def test_missing_scaffold_file_detected(self):
+        """Scaffold file declared in suite but absent on disk => error."""
+        with tempfile.TemporaryDirectory() as td:
+            tmpdir = Path(td)
+            repo_root, suite_path = self._make_suite_with_scaffold(tmpdir)
+
+            # Remove the scaffold file
+            scaffold_path = tmpdir / "suite" / "swebench" / "scaffold.yaml"
+            scaffold_path.unlink()
+
+            errors = validate_suite(repo_root, suite_path)
+            assert any(
+                "scaffold" in e.lower() or "not found" in e.lower() for e in errors
+            ), f"Expected missing scaffold error, got: {errors}"
+
+    def test_scaffold_path_escape_detected(self):
+        """Suite declaring a scaffold_file outside the repo => path escape error."""
+        with tempfile.TemporaryDirectory() as td:
+            tmpdir = Path(td)
+            repo_root, suite_path = self._make_suite_with_scaffold(tmpdir)
+
+            suite = yaml.safe_load(suite_path.read_text())
+            suite["benchmarks"]["swebench"]["scaffold_file"] = "/etc/passwd"
+            suite_path.write_text(yaml.dump(suite))
+
+            errors = validate_suite(repo_root, suite_path)
+            assert any(
+                "scaffold" in e.lower() or "escape" in e.lower() or "outside" in e.lower() or "path" in e.lower()
+                for e in errors
+            ), f"Expected path escape error for scaffold_file, got: {errors}"
+
+    # ---- CLI negative control -----------------------------------------------
+
+    def test_stale_scaffold_mutation_exits_1_via_cli(self):
+        """CLI: mutating scaffold file => exit 1 (diagnosed defect)."""
+        with tempfile.TemporaryDirectory() as td:
+            tmpdir = Path(td)
+            repo_root, suite_path = self._make_suite_with_scaffold(tmpdir)
+
+            scaffold_path = tmpdir / "suite" / "swebench" / "scaffold.yaml"
+            original = scaffold_path.read_bytes()
+            scaffold_path.write_bytes(original + b"\n# injected-mutation")
+
+            cmd = [
+                "/usr/bin/python3", str(REPO / "viz" / "validate_suite.py"),
+                "--repo", str(repo_root), str(suite_path),
+            ]
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            assert result.returncode == 1, (
+                f"Expected exit 1 for stale scaffold hash, got {result.returncode}:\n"
+                f"{result.stdout}{result.stderr}"
+            )

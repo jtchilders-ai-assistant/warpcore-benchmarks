@@ -93,8 +93,22 @@ def validate_suite(repo: Path, suite_path: Path) -> list[str]:
     schema_path = repo / "suite" / "schemas" / "suite.schema.json"
     try:
         suite = load_yaml(suite_path)
-    except Exception as exc:
-        return [f"Cannot load suite YAML: {exc}"]
+    except (OSError, IOError) as exc:
+        # Unreadable file: caller (CLI) should treat as exit 2 (inconclusive)
+        raise
+    except yaml.YAMLError as exc:
+        # Syntactically unparseable YAML: unreadable/inconclusive → re-raise
+        # so the CLI can map it to exit 2, not exit 1.
+        raise
+
+    # Structurally non-mapping YAML (null, scalar, list) is syntactically
+    # valid but is a diagnosed contract defect → return list[str], exit 1.
+    if not isinstance(suite, dict):
+        kind = type(suite).__name__ if suite is not None else "null"
+        return [
+            f"Suite YAML must be a mapping (got {kind}): "
+            f"the file parsed successfully but its top-level value is not a dict"
+        ]
 
     if schema_path.exists():
         schema_errors = validate_json(suite, schema_path)
@@ -155,7 +169,6 @@ def validate_suite(repo: Path, suite_path: Path) -> list[str]:
             errors.extend(_validate_swebench(repo, bench))
 
     return errors
-
 
 def _resolve_repo_path(repo: Path, rel: str) -> Path | None:
     """Resolve *rel* against *repo* and return the absolute path, or None if
@@ -230,6 +243,53 @@ def _validate_swebench(repo: Path, bench: dict) -> list[str]:
     # Non-empty
     if len(instances) == 0:
         errors.append("swebench: instance set is empty")
+
+    # scaffold_file / scaffold_sha256
+    errors.extend(_validate_file_hash_pair(repo, bench, "swebench", "scaffold_file", "scaffold_sha256"))
+
+    return errors
+
+
+def _validate_file_hash_pair(
+    repo: Path,
+    bench: dict,
+    bench_name: str,
+    file_key: str,
+    hash_key: str,
+) -> list[str]:
+    """Validate a declared file/hash pair within a benchmark block.
+
+    Returns [] if the pair is absent (not declared) or valid.
+    Returns list[str] of errors if declared but invalid (path escape, missing,
+    or hash mismatch).
+    """
+    errors: list[str] = []
+    file_rel = bench.get(file_key)
+    declared_hash = bench.get(hash_key)
+
+    if not file_rel:
+        return errors  # not declared; nothing to check
+
+    resolved = _resolve_repo_path(repo, file_rel)
+    if resolved is None:
+        errors.append(
+            f"{bench_name}: {file_key} path escapes repo root: {file_rel!r}"
+        )
+        return errors
+
+    if not resolved.exists():
+        errors.append(
+            f"{bench_name}: {file_key} not found: {resolved}"
+        )
+        return errors
+
+    if declared_hash:
+        actual = sha256_file(resolved)
+        if actual != declared_hash:
+            errors.append(
+                f"{bench_name}: {hash_key} mismatch — "
+                f"declared {declared_hash!r}, actual {actual!r} ({file_rel})"
+            )
 
     return errors
 
