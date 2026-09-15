@@ -28,8 +28,8 @@
         },
         "revision": {
           "type": "string",
-          "description": "Immutable checkpoint revision (HuggingFace commit SHA). Use 'unrecorded' only for historical runs; canonical new runs must fail with a real value.",
-          "minLength": 1
+          "description": "Immutable checkpoint revision: exactly 40 lowercase hex characters (HuggingFace commit SHA). 'unrecorded' is not accepted for new adapter definitions; historical records belong in manifests/registry, not adapter files.",
+          "pattern": "^[0-9a-f]{40}$"
         }
       }
     },
@@ -53,8 +53,8 @@
       "properties": {
         "image": {
           "type": "string",
-          "description": "Container image reference including immutable digest (repo@sha256:<hash>). Mutable tags alone are insufficient.",
-          "minLength": 1
+          "description": "Container image reference with immutable digest. Must be repo@sha256:<64 lowercase hex>. Mutable tags alone are insufficient and will be rejected.",
+          "pattern": "^.+@sha256:[0-9a-f]{64}$"
         },
         "engine": {
           "type": "string",
@@ -98,8 +98,9 @@
           "maximum": 1
         },
         "max_num_seqs": {
-          "type": ["integer", "string"],
-          "description": "Maximum number of sequences (capacity control). Use integer or 'unrecorded' for historical."
+          "type": "integer",
+          "description": "Maximum number of sequences (capacity control).",
+          "minimum": 1
         },
         "environment": {
           "type": "object",

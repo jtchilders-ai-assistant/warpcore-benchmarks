@@ -7,6 +7,10 @@
 #
 # Authoritative design:
 #   docs/superpowers/specs/2026-09-15-warpcore-v1-apples-to-apples-design.md
+#
+# Dataset revisions are current local HuggingFace refs captured for v1 (prospective).
+# They are pinned here for reproducibility; they are NOT claimed to match any
+# prior historical run.
 
 suite_id: "warpcore-v1"
 suite_schema_version: 1
@@ -50,12 +54,16 @@ benchmarks:
     #   3. The qwen variant was the active task file for the successful Ornith clean-task run.
     #   4. The nemotron variant is otherwise byte-for-byte identical to the qwen variant
     #      minus only the metadata block, confirming it is the prior version.
+    #
+    # scoring_implementation: GSM8K scoring is implemented entirely within the pinned
+    # task file (gsm8k_clean_v1.yaml, hash above). There is no separate utility file;
+    # the answer extraction regex and exact-match logic live in the task YAML.
     required_evidence:
       - "aggregate_result"
       - "samples_jsonl_gz"
       - "per_item_csv"
       - "task_yaml"
-      - "scoring_utility"
+      - "scoring_implementation"
       - "run_log"
       - "command_txt"
       - "manifest_json"
@@ -88,12 +96,15 @@ benchmarks:
     num_fewshot: 0
     canonical_headline: "prompt_level_strict_acc"
     expected_item_count: 541
+    # scoring_implementation: IFEval scoring utilities are embedded in the lm-eval harness
+    # (pinned to revision lm_eval_revision in required_harness). There is no separate
+    # external utility file; the instruction-following scorer runs within lm-eval.
     required_evidence:
       - "aggregate_result"
       - "samples_jsonl_gz"
       - "per_item_csv"
       - "task_yaml"
-      - "scoring_utility"
+      - "scoring_implementation"
       - "run_log"
       - "command_txt"
       - "manifest_json"
@@ -126,12 +137,15 @@ benchmarks:
     num_fewshot: 0
     canonical_headline: "answer_line_exact_match"
     expected_item_count: 198
+    # scoring_implementation: GPQA scoring is implemented in the pinned task file
+    # (gpqa_diamond_clean_v3.yaml) plus the pinned utility module (gpqa_utils.py,
+    # hash above). Both are required evidence; the utils_sha256 above pins them.
     required_evidence:
       - "aggregate_result"
       - "samples_jsonl_gz"
       - "per_item_csv"
       - "task_yaml"
-      - "scoring_utility"
+      - "scoring_implementation"
       - "run_log"
       - "command_txt"
       - "manifest_json"
@@ -149,7 +163,9 @@ benchmarks:
   swebench:
     description: "SWE-bench Verified, seed-42 n=100 instance set"
     dataset:
-      path: "SWE-bench/SWE-bench_Verified"
+      # Canonical HuggingFace repository: princeton-nlp/SWE-bench_Verified.
+      # Revision is a current local HF ref captured for v1 (prospective).
+      path: "princeton-nlp/SWE-bench_Verified"
       revision: "c104f840cc67f8b6eec6f759ebc8b2693d585d4a"
     instance_set_file: "suite/swebench/instances-seed42-n100.json"
     instances_sha256: "d46f257dc87482e432307a6e96d5ee2d14b372df0c43b413eba48a573c6d0a24"
@@ -207,9 +223,10 @@ benchmarks:
     retry_policy:
       max_retries: 0
     timeout_policy:
-      # vllm bench serve runs until plateau; no automatic client-level retries.
+      # vllm bench serve runs until the concurrency sweep reaches plateau naturally;
+      # no client-level per-request timeout is imposed. Termination is determined
+      # by the sweep logic, not a fixed numeric ceiling.
       use_arithmetic: false
-      per_request_timeout_s: 3600
 
 # ── Suite-level policies ─────────────────────────────────────────────────────
 required_harness:

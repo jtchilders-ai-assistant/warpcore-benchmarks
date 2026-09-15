@@ -25,8 +25,8 @@
     },
     "suite_id": {
       "type": "string",
-      "description": "Suite identifier (e.g. warpcore-v1)",
-      "minLength": 1
+      "description": "Suite identifier. Must be exactly 'warpcore-v1'.",
+      "const": "warpcore-v1"
     },
     "execution_state": {
       "type": "string",

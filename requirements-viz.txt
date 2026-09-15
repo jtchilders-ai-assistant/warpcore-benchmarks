@@ -19,3 +19,11 @@ numpy==2.0.2
 # locally while a clean checkout died with ModuleNotFoundError. A dependency that
 # is only satisfied by accident on one machine is not a dependency the repo has.
 PyYAML==6.0.3
+
+# Required for suite/schema validation (test_suite_contract.py, test_suite_compliance.py,
+# test_schema_hardening.py). jsonschema 4.x provides Draft 2020-12 support and FormatChecker.
+# rfc3339-validator is required by FormatChecker to validate date-time format annotations.
+# Both are installed on this machine (verified 2026-09-15) but must be declared here so
+# a clean checkout does not depend on user site-packages.
+jsonschema==4.25.1
+rfc3339-validator==0.1.4

@@ -459,7 +459,7 @@ class TestQualityEvidenceFields:
         "samples_jsonl_gz",
         "per_item_csv",
         "task_yaml",
-        "scoring_utility",
+        "scoring_implementation",  # renamed from scoring_utility (Gap H fix: honest class name)
         "run_log",
         "command_txt",
         "manifest_json",
