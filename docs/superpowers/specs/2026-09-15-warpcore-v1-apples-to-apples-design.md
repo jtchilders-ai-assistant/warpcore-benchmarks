@@ -40,6 +40,7 @@ A model adapter records only model-specific requirements:
 
 - model ID and immutable checkpoint revision;
 - quantization format and compatible kernels;
+- kernel and MoE backend selections;
 - serving image and immutable digest;
 - vLLM version;
 - reasoning parser and parser plugin;
@@ -60,7 +61,9 @@ Quality and agentic results compare model behavior under one fixed client-side e
 
 ### 3.2 Systems claims
 
-Throughput and latency compare complete declared serving profiles on the same Warpcore hardware. They are deployment measurements, not architecture-only claims. A profile name includes the model, checkpoint revision, image digest, engine arguments, and workload shape.
+Throughput and latency compare complete declared serving profiles on the same Warpcore hardware. They are deployment measurements, not architecture-only claims. A serving profile is identified by a deterministic digest over the model ID, checkpoint revision,
+image digest, effective engine arguments, environment compatibility settings, hardware identity, and
+workload shape. Human-readable labels are descriptive aliases and are not identity.
 
 ### 3.3 Noncanonical results
 
@@ -76,7 +79,15 @@ The first immutable suite is `warpcore-v1`.
 - Dataset revision: pinned by the suite manifest.
 - Generation ceiling: 8,192 output tokens.
 - Sampling: temperature 0.
-- Required evidence: aggregate result, compressed raw samples, per-item audit table, task YAML, scoring utility, run log, command record, manifest, status, completion sentinel.
+- Required evidence: aggregate result, compressed raw samples, per-item audit table, task YAML,
+  scoring utility, run log, command record, manifest, status, completion sentinel, completion-token
+  counts, finish reasons, and full response fields needed to classify empty visible content.
+
+The 8,192-token ceiling is retained from the established clean-task protocol and the successful
+full-size Ornith run. Preflight must nevertheless demonstrate that each candidate can emit usable
+answers at this ceiling and estimate the length-tail risk from the real harness. If evidence shows
+that the ceiling is not adequate for a candidate population, the remedy is a new suite version—not
+an adapter override or silent per-model increase.
 
 ### 4.2 IFEval
 
@@ -84,7 +95,7 @@ The first immutable suite is `warpcore-v1`.
 - Generation ceiling: 65,536 output tokens for the v1 reasoning-model comparison.
 - Sampling: temperature 0.
 - Canonical headline: prompt-level strict accuracy.
-- Required evidence: same quality-run evidence set as GSM8K.
+- Required evidence: the complete quality-run evidence set defined for GSM8K.
 
 The ceiling is a maximum, not a forced generation length. Residual `finish_reason=length` responses remain wrong at the declared operational ceiling and must be reported.
 
@@ -94,7 +105,7 @@ The ceiling is a maximum, not a forced generation length. Residual `finish_reaso
 - Generation ceiling: 65,536 output tokens.
 - Sampling: temperature 0.
 - Canonical headline: answer-line exact match.
-- Required evidence: same quality-run evidence set as GSM8K, including completion-token and finish-reason data for empty responses.
+- Required evidence: the complete quality-run evidence set defined for GSM8K.
 
 ### 4.4 SWE-bench Verified
 
@@ -112,7 +123,7 @@ An infrastructure-adjusted “fair” rate may characterize one run but may not 
 ### 4.5 Throughput
 
 - Host: Warpcore, on-box client.
-- Endpoint: raw completions.
+- Endpoint: OpenAI-compatible `POST /v1/completions` through `vllm bench serve`, not chat completions.
 - Workload: 512 input tokens and 256 output tokens.
 - Sampling: explicit temperature 0.
 - Termination: `--ignore-eos`.
@@ -131,6 +142,10 @@ Any change to a dataset, instance set, prompt, scoring rule, generation ceiling,
 
 ## 5. Repository architecture
 
+The following is the **target layout introduced by P1**. These paths are not claims about the
+pre-P1 tree. Existing validation and preflight behavior under `viz/` must be reused or wrapped rather
+than independently reimplemented, and `make ci` must remain the unified local/remote gate.
+
 ```text
 suite/
   warpcore-v1.yaml
@@ -142,6 +157,7 @@ suite/
     instances-seed42-n100.json
     scaffold.yaml
   schemas/
+    suite.schema.json
     adapter.schema.json
     manifest.schema.json
     result-status.schema.json
@@ -168,13 +184,18 @@ results/<model>/runs/<suite-version>/<benchmark>/<run-id>/
   DONE
 ```
 
-Historical result paths remain untouched. Migration registers their lifecycle and comparability status; it does not move or rewrite primary evidence.
+The normalized `runs/<suite-version>/...` layout applies to new contract-driven runs. Historical
+`results/<model>/raw/<benchmark>/...` paths remain untouched. During migration, provenance,
+collection, sample-audit, and publication tools must support both layouts; migration registers
+lifecycle and comparability status but does not move or rewrite primary evidence.
 
 ## 6. Suite specification
 
-`suite/warpcore-v1.yaml` is the single source of truth for experiment-level settings. It contains:
+`suite/warpcore-v1.yaml` is the single source of truth for experiment-level settings. Lifecycle
+state names and transition rules are instead owned by `result-status.schema.json`; the suite may
+reference that schema but does not duplicate its enum. The suite contains:
 
-- suite ID and schema version;
+- suite ID and `suite_schema_version`;
 - benchmark membership;
 - immutable task and utility-file hashes;
 - dataset identifiers and revisions;
@@ -186,7 +207,6 @@ Historical result paths remain untouched. Migration registers their lifecycle an
 - expected item counts;
 - required artifact classes;
 - scoring and publication metrics;
-- allowed lifecycle states;
 - statistical comparison policy.
 
 The suite validator computes hashes from files and rejects stale declared hashes. A changed canonical file without a suite-version change is a CI failure.
@@ -196,7 +216,7 @@ The suite validator computes hashes from files and rejects stale declared hashes
 A serving adapter is declarative and schema-validated. Example:
 
 ```yaml
-schema_version: 1
+adapter_schema_version: 1
 model:
   slug: gpt-oss-120b
   id: openai/gpt-oss-120b
@@ -216,7 +236,10 @@ serving:
   environment: {}
 ```
 
-The schema rejects unknown keys and every experiment-level key, including task names, prompts, dataset selectors, generation ceilings, sampling settings, scoring filters, instance sets, and denominators.
+Model slugs use the existing result-directory slug exactly (for example,
+`qwen3.6-35b-a3b`), so adapters and result records join without aliases. The schema rejects unknown
+keys and every experiment-level key, including task names, prompts, dataset selectors, generation
+ceilings, sampling settings, scoring filters, instance sets, and denominators.
 
 Mutable image tags alone are insufficient. Before publication, the manifest must contain the resolved image digest and effective engine arguments. Unknown historical values use the literal `"unrecorded"`; canonical new runs fail rather than publish with an unknown required value.
 
@@ -229,7 +252,10 @@ planned -> preflight_passed -> running -> completed -> validated -> published
                               \-> failed
 ```
 
-State transitions are append-only records in `status.json`; a later state does not erase earlier failure or retry history.
+State transitions are append-only records in `status.json`; a later state does not erase earlier
+failure or retry history. Campaign execution state and artifact lifecycle are separate dimensions:
+a campaign ending in execution state `failed` receives artifact lifecycle `invalid` unless its
+retained evidence is explicitly reclassified as `diagnostic`.
 
 ### 8.1 Planned
 
@@ -242,8 +268,11 @@ All applicable gates must pass:
 1. exact model identity from `/v1/models`;
 2. real completion with usable content;
 3. parser classification using the full response object;
-4. configured context and output-ceiling feasibility;
-5. checkpoint generation-config cap inspection;
+4. configured context feasibility, proving that the model context can hold the actual tokenized
+   prompt plus the suite's output ceiling (including framework overhead);
+5. checkpoint generation-config cap inspection, using or wrapping the existing
+   `viz/check_output_budget.py`; any lower effective `max_new_tokens` cap is a diagnosed defect and
+   exits 1;
 6. timeout arithmetic using measured throughput and a conservative tail policy;
 7. limit-5 task smoke through the real harness with raw-response extraction checked;
 8. SWE-bench image-cache, instance-set, scaffold, and submit-protocol checks when applicable;
@@ -253,7 +282,11 @@ Exit 1 means a diagnosed defect. Exit 2 means inconclusive or unreachable. Both 
 
 ### 8.3 Running and completed
 
-Long clients run under `/usr/bin/screen` on the Mac mini. Throughput sweeps run under `tmux` on Warpcore. Logs and artifacts live under stable `$HOME` paths, never `/tmp`. The runner writes `DONE` only after the harness exits successfully and the expected raw files exist.
+Long clients run under `/usr/bin/screen` on the Mac mini. Throughput sweeps run under `tmux` on
+Warpcore. A bounded runner must refuse a long launch outside the required persistent multiplexer or
+self-launch into it. Client artifacts live under stable Mac-mini `$HOME` paths and server-side
+throughput artifacts under stable Warpcore `$HOME` paths, never `/tmp`. The runner writes `DONE` only
+after the harness exits successfully and the expected raw files exist.
 
 A vanished multiplexer session is not completion evidence.
 
@@ -277,6 +310,11 @@ Validation is offline and fail-closed. It proves:
 
 Publication is generated, not hand-edited. Only validated `current` runs from the requested suite version may populate the canonical matrix. The generated entry links to the manifest and per-item evidence.
 
+The matrix may have explicit `not measured` cells while v1 coverage is being completed. A model is
+ranked only within a benchmark column for which it has a canonical result; there is no cross-task
+overall score, and missing cells are never imputed. Publishing the first matrix therefore does not
+claim that every included model has completed every v1 benchmark.
+
 ## 9. Artifact lifecycle
 
 Each run is assigned exactly one lifecycle state:
@@ -296,7 +334,7 @@ Hard CI thresholds apply only to `current` publication candidates. Other states 
 
 ### 10.1 Quality tasks
 
-- `finish_reason=length` with empty visible content: budget residual; count wrong at the declared ceiling and report it.
+- `finish_reason=length` with empty visible content: output-ceiling residual; count wrong at the declared ceiling and report it.
 - `finish_reason=stop` with answer text stranded in a reasoning field: parser/field-routing defect; the run is invalid unless affected items are exactly recovered.
 - request, transport, or server errors: infrastructure failure; the run is not canonical until exact-item recovery or a full rerun completes.
 - empty stop with no content anywhere: explicit empty generation; retain and classify rather than silently retrying it away.
@@ -331,6 +369,11 @@ The canonical table includes:
 
 Historical values appear only in a clearly labeled legacy view or model-card history.
 
+For GSM8K, IFEval, and GPQA-Diamond, cross-model claims likewise require identical item IDs and
+paired per-item outcomes. For binary headline metrics, report discordant-pair counts and an exact
+McNemar/binomial test. Do not infer equality or difference from overlap of marginal confidence
+intervals.
+
 For SWE-bench, cross-model claims require identical instance sets and paired statistics. Report discordant-pair counts, exact p-value, and interval for the paired difference. “Not distinguishable” means insufficient evidence, not equality.
 
 For reweighted or subset estimates, report uncertainty and label the target population. Do not rank models using different fair denominators.
@@ -340,18 +383,21 @@ For throughput, label every value with workload shape and concurrency. A rising 
 ## 12. Initial implementation and closure sequence
 
 1. Add `warpcore-v1` suite specification, schemas, canonical task files, and fixed SWE-bench instance list.
-2. Add initial adapters for gpt-oss-120b and Qwen3.6-35B.
-3. Implement suite, adapter, manifest, and lifecycle validators with negative tests.
+2. Implement suite, adapter, manifest, and lifecycle validators with negative tests, then wire them
+   into `make ci` and GitHub Actions so suite drift is enforced.
+3. Add and validate initial adapters for `gpt-oss-120b` and `qwen3.6-35b-a3b`.
 4. Implement one parameterized quality runner with mandatory preflight and durable launch.
 5. Implement one parameterized SWE-bench runner with cache, identity, instance-set, and scaffold gates.
 6. Implement lifecycle-aware post-run validation and generated publication.
-7. Register existing artifacts as `current`, `superseded`, `historical`, `diagnostic`, `replay`, or `invalid` without moving them.
+7. Update existing tooling to read both the historical and normalized v1 layouts, then register
+   existing artifacts as `current`, `superseded`, `historical`, `diagnostic`, `replay`, or `invalid`
+   without moving them.
 8. Run the first closure campaigns through the finished machinery:
    - Qwen3.6 SWE-bench rerun;
    - gpt-oss SWE-bench rerun;
    - gpt-oss clean GSM8K rerun.
 9. Publish the first canonical `warpcore-v1` comparison matrix.
-10. Add Qwen3.5-122B and later models only through the same contract.
+10. Add `qwen3.5-122b-a10b` and later models only through the same contract.
 
 The three closure reruns are not run before the contract and validators exist; otherwise they could create another generation of bespoke artifacts.
 
@@ -368,7 +414,10 @@ P1 is complete when:
 7. Empty, timeout, error, and SWE-bench disposition counts reconcile exactly.
 8. Only validated `current` runs enter the canonical comparison matrix.
 9. Historical and superseded failures remain visible but do not control current publication gates.
-10. Qwen3.6 SWE-bench, gpt-oss SWE-bench, and gpt-oss clean GSM8K have canonical v1 results or an explicitly retained, evidence-backed blocked status.
+10. Qwen3.6 SWE-bench, gpt-oss SWE-bench, and gpt-oss clean GSM8K have canonical v1 results. A
+    blocked attempt may explain schedule state but does not satisfy P1 closure, and neither an old
+    methodologically defective score nor a run that was never attempted qualifies as blocked
+    evidence.
 11. Local verification, remote CI, and secret scanning are green on the final `main` SHA.
 
 ## 14. Explicit non-goals
