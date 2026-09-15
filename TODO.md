@@ -353,29 +353,15 @@ retry events**, abandoned at 110/198). Raising concurrency to "go faster" is wha
 ## 5. Reporting hygiene (cheap, do alongside the re-runs)
 
 - [x] **5a. Put the measurement date and harness version in every README table row.** Runs span
-      2026-07-27 → 2026-08-24 across at least four vLLM builds (`v0.27.1`, `v0.27.2rc1`,
-      `cu129-nightly-aarch64`, `eugr/spark-vllm:latest`). **Done for Lightning, Ornith, and Laguna**
-      (this card) — every lm-eval and SWE-bench table row now carries a measurement date and lm-eval/
-      mini-swe-agent version, sourced from each `results_*.json`'s `date`/`lm_eval_version` field or the
-      run's own manifest/log, with `unrecorded` reserved for any value that cannot be traced to a
-      committed artifact (none was needed here — all dates/versions were recoverable). **Still open for
-      gpt-oss-120b, Nemotron-3-Super-120B, and Qwen3.6-35B**, which are out of this card's file scope
-      (results/nemotron-3.5-lightning-30b/README.md, results/ornith-35b/README.md,
-      results/laguna-s-2.1-118b/README.md, TODO.md only) and are owned by a separate concurrent card.
-      That card should follow the same evidence standard: date from `results_*.json`'s `date` field,
-      version from `lm_eval_version`/the harness's own recorded version, `unrecorded` where no artifact
-      supports a value — never inferred.
+      2026-07-27 → 2026-09-10 across multiple vLLM builds. **Done for all six cards with measured
+      quality results** (gpt-oss, Nemotron-Super, Qwen3.6, Lightning, Ornith, and Laguna). Dates and
+      versions come from committed `results_*.json`, manifests, or run logs; values unsupported by a
+      retained artifact are explicitly `unrecorded`, never inferred.
 - [x] **5b. Report empty-response rate as a column alongside every lm-eval score.** It is the single
       statistic that would have caught all five affected scores on the day they were produced. **Done
-      for Lightning, Ornith, and Laguna** — every lm-eval table row now carries an empty-response count
-      and rate, computed directly from each run's committed `*.per_item.csv` `empty_content` column (or,
-      where a per_item CSV does not classify emptiness the same way, from the run's own replay log /
-      finish_reason census, as for Laguna's GPQA non-termination case, which is a `finish=length` failure
-      mode rather than empty content). **Still open for gpt-oss-120b, Nemotron-3-Super-120B, and
-      Qwen3.6-35B** (separate concurrent card, per above) — those cards currently have no empty-response
-      column at all. Where a model's sample files were never retained (gpt-oss-120b, Qwen3.6-35B per
-      TODO §1e), that card must write `unrecorded` for the empty-response cell rather than guessing or
-      omitting it.
+      for all six cards with measured quality results.** Counts come from committed sample JSONL,
+      `*.per_item.csv`, or replay finish-reason censuses. Historical runs whose samples were never
+      retained are explicitly `unrecorded`, never treated as zero.
 - [x] **5c. Mark superseded numbers in place rather than replacing them.** Lightning's committed
       SWE-bench report says **47** resolved; the card says **51** after re-running 11 wedge-denied
       instances. Both are real and the repo should show the provenance of the correction, not just
@@ -383,14 +369,10 @@ retry events**, abandoned at 110/198). Raising concurrency to "go faster" is wha
       "Superseded: interim serving-wedge floor — 47/100" row alongside the final 51/100, with a note
       that it is the historical intermediate reading, not a second capability estimate. 51/100 remains
       the headline; 47/100 is preserved in place rather than only mentioned in prose.
-- [x] **5d. pi-30 is saturated and should be retired as a discriminator.** Four models at 29–30/30.
-      Keep it as a bring-up smoke test; stop reporting it as a capability comparison. **Done for
-      Lightning and Ornith** (this card's scope) — both cards now carry an explicit note that pi-30 is a
-      retired pass/fail smoke test, not a capability discriminator, while preserving the historical
-      29/30 and 30/30 measurements unchanged. Laguna has no pi-30 section (excluded for a hard
-      unified-memory incompatibility, unchanged by this card). gpt-oss-120b and Nemotron-3-Super-120B's
-      pi-30 sections are outside this card's file scope and are owned by the separate concurrent card;
-      that card should add the same retirement language to its 30/30 rows.
+- [x] **5d. pi-30 is saturated and retired as a discriminator.** Four models scored 29–30/30.
+      Every card that retains a historical pi-30 result now labels it as bring-up/pass-fail evidence,
+      not a capability ranking. Laguna remains excluded because an on-host agent harness conflicts
+      with the GB10 unified-memory serving profile.
 
 ---
 
