@@ -23,8 +23,9 @@ Settings: `--model local-chat-completions --apply_chat_template`, 0-shot CoT, `t
 | IFEval | inst-level loose acc | 91.01% | — | 541 | 2026-07-27 | lm-eval 0.4.9.1 | unrecorded (samples not retained) |
 | GPQA-Diamond (CoT, clean-extract) | exact_match, answer-line | **72.73%** | ±3.17 | 198 | 2026-07-28 | lm-eval 0.4.9.1 | unrecorded (samples not retained) |
 
-Dates/harness are read from each run's committed `results_*.json` (`date`, `lm_eval_version`
-fields). **No `samples_*.jsonl` was retained for any gpt-oss-120b lm-eval run** — only the
+Dates are UTC calendar dates derived from each run's committed `results_*.json` `date` field;
+harness versions come from `lm_eval_version`. **No `samples_*.jsonl` was retained for any
+gpt-oss-120b lm-eval run** — only the
 aggregate `results_*.json` files under `raw/` survive (see TODO §1e). Per-item empty-response
 counts are therefore permanently unauditable for this model and are reported as `unrecorded
 (samples not retained)`, never as zero.

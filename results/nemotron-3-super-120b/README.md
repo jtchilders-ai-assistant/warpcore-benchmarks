@@ -42,8 +42,10 @@ Settings: `--model local-chat-completions --apply_chat_template`, 0-shot CoT, `t
 | GPQA-Diamond (CoT, clean-extract), original 16K | exact_match, answer-line | **63.64%** ±3.43 | 72.73% | 198 | 2026-07-30 | lm-eval 0.4.12 | 56/198 = 28.28% |
 | GPQA-Diamond, corrected 64K composite | exact_match, answer-line | **73.74%** | 72.73% | 198 | 2026-07-30 orig. + 2026-09-09 replay | lm-eval 0.4.12 | 31/198 = 15.66% (remaining, budget residual) |
 
-Dates/harness come from each run's committed `results_*.json` (`date`, `lm_eval_version`) or,
-for the 64K composite, the replay's own `manifest.json`/`summary.json` timestamps. The historical
+Dates are UTC calendar dates derived from each run's committed `results_*.json` `date` field;
+harness versions come from `lm_eval_version`. For the 64K composite, the replay date is the
+explicit date encoded in `replay_64k_2026-09-09/` and corroborated by its retained run artifacts.
+The historical
 July GSM8K and IFEval runs have no retained `samples_*.jsonl`/`per_item.csv` — only the aggregate
 `results_*.json` survives — so their empty-response rates are `unrecorded (samples not
 retained)`, never zero. The two 64K-affected GPQA rows are **not the same campaign**: the 16K row
