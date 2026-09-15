@@ -404,7 +404,10 @@ class TestManifestSchemaValidation:
         "run_id": "run-2026-09-15T00-00-00",
         "benchmark": "gsm8k",
         "adapter_hash": "a" * 64,
-        "suite_task_hash": "b" * 64,
+        "suite_input_hashes": {
+            "suite/tasks/gsm8k_clean_v1.yaml": "b" * 64,
+        },
+        "serving_profile_digest": "sha256:" + "c" * 64,
         "model": {
             "slug": "qwen3.6-35b-a3b",
             "id": "Qwen/Qwen3.6-35B-A3B-FP8",
@@ -415,6 +418,8 @@ class TestManifestSchemaValidation:
             "engine": "vllm",
             "engine_version": "0.8.5",
             "effective_args": [],
+            "environment": {},
+            "hardware_id": "dgx-spark-gb10",
         },
         "item_inventory": {
             "expected": 1319,

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/jtchilders-ai-assistant/warpcore-benchmarks/suite/schemas/suite.schema.json",
   "title": "Warpcore v1 Suite Specification",
-  "description": "Schema for the suite/warpcore-v1.yaml file. Defines the contract for all experiment-level settings owned by the suite.",
+  "description": "Schema for the suite/warpcore-v1.yaml file. Defines the contract for all experiment-level settings owned by the suite. Lifecycle and execution state enums are owned by result-status.schema.json; the suite YAML must not duplicate them.",
   "type": "object",
   "required": [
     "suite_id",
@@ -11,9 +11,7 @@
     "benchmarks",
     "required_harness",
     "empty_response_classification",
-    "publication_rules",
-    "lifecycle_states",
-    "execution_states"
+    "publication_rules"
   ],
   "additionalProperties": false,
   "properties": {
@@ -58,10 +56,30 @@
     },
     "required_harness": {
       "type": "object",
+      "required": [
+        "lm_eval_version",
+        "lm_eval_revision",
+        "mini_swe_agent_version",
+        "swebench_version"
+      ],
       "additionalProperties": false,
       "properties": {
-        "lm_eval": {"type": "string"},
-        "mini_swe_agent": {"type": "string"}
+        "lm_eval_version": {
+          "type": "string",
+          "description": "Exact lm-eval package version (e.g. 0.4.12)"
+        },
+        "lm_eval_revision": {
+          "type": "string",
+          "description": "Exact lm-eval source git commit SHA"
+        },
+        "mini_swe_agent_version": {
+          "type": "string",
+          "description": "Exact mini-swe-agent package version"
+        },
+        "swebench_version": {
+          "type": "string",
+          "description": "Exact swebench grading harness package version"
+        }
       }
     },
     "empty_response_classification": {
@@ -95,14 +113,6 @@
         "no_imputation": {"type": "boolean"},
         "denominator_must_be_published": {"type": "boolean"}
       }
-    },
-    "lifecycle_states": {
-      "type": "array",
-      "items": {"type": "string"}
-    },
-    "execution_states": {
-      "type": "array",
-      "items": {"type": "string"}
     }
   },
   "$defs": {
@@ -115,14 +125,40 @@
         "do_sample": {"type": "boolean"}
       }
     },
+    "throughput_sampling": {
+      "type": "object",
+      "required": ["temperature"],
+      "additionalProperties": false,
+      "properties": {
+        "temperature": {"type": "number"}
+      }
+    },
     "dataset_ref": {
       "type": "object",
-      "required": ["path", "split"],
+      "required": ["path", "split", "revision"],
       "additionalProperties": false,
       "properties": {
         "path": {"type": "string"},
         "name": {"type": ["string", "null"]},
-        "split": {"type": "string"}
+        "split": {"type": "string"},
+        "revision": {
+          "type": "string",
+          "description": "Immutable HuggingFace dataset commit SHA",
+          "minLength": 1
+        }
+      }
+    },
+    "swebench_dataset_ref": {
+      "type": "object",
+      "required": ["path", "revision"],
+      "additionalProperties": false,
+      "properties": {
+        "path": {"type": "string"},
+        "revision": {
+          "type": "string",
+          "description": "Immutable HuggingFace dataset commit SHA",
+          "minLength": 1
+        }
       }
     },
     "retry_policy": {
@@ -135,11 +171,15 @@
     },
     "timeout_policy": {
       "type": "object",
-      "required": ["use_arithmetic", "safety_factor"],
+      "required": ["use_arithmetic"],
       "additionalProperties": false,
       "properties": {
         "use_arithmetic": {"type": "boolean"},
-        "safety_factor": {"type": "number", "minimum": 1}
+        "safety_factor": {"type": "number", "minimum": 1},
+        "command_timeout_s": {"type": "integer", "minimum": 1},
+        "llm_request_timeout_s": {"type": "integer", "minimum": 1},
+        "pull_timeout_s": {"type": "integer", "minimum": 1},
+        "per_request_timeout_s": {"type": "integer", "minimum": 1}
       }
     },
     "quality_benchmark": {
@@ -150,7 +190,10 @@
         "sampling",
         "num_fewshot",
         "canonical_headline",
-        "required_evidence"
+        "expected_item_count",
+        "required_evidence",
+        "retry_policy",
+        "timeout_policy"
       ],
       "additionalProperties": false,
       "properties": {
@@ -187,12 +230,14 @@
         "disposition_categories",
         "cross_model_inference",
         "client_host",
-        "required_evidence"
+        "required_evidence",
+        "retry_policy",
+        "timeout_policy"
       ],
       "additionalProperties": false,
       "properties": {
         "description": {"type": "string"},
-        "dataset": {"type": "string"},
+        "dataset": {"$ref": "#/$defs/swebench_dataset_ref"},
         "instance_set_file": {"type": "string"},
         "instances_sha256": {"type": "string"},
         "scaffold_file": {"type": "string"},
@@ -208,7 +253,9 @@
         "required_evidence": {
           "type": "array",
           "items": {"type": "string"}
-        }
+        },
+        "retry_policy": {"$ref": "#/$defs/retry_policy"},
+        "timeout_policy": {"$ref": "#/$defs/timeout_policy"}
       }
     },
     "throughput_benchmark": {
@@ -221,7 +268,9 @@
         "sampling",
         "termination",
         "concurrency_policy",
-        "report"
+        "report",
+        "retry_policy",
+        "timeout_policy"
       ],
       "additionalProperties": false,
       "properties": {
@@ -237,20 +286,15 @@
             "output_tokens": {"type": "integer", "minimum": 1}
           }
         },
-        "sampling": {
-          "type": "object",
-          "required": ["temperature"],
-          "additionalProperties": false,
-          "properties": {
-            "temperature": {"type": "number"}
-          }
-        },
+        "sampling": {"$ref": "#/$defs/throughput_sampling"},
         "termination": {"type": "string"},
         "concurrency_policy": {"type": "string"},
         "report": {
           "type": "array",
           "items": {"type": "string"}
-        }
+        },
+        "retry_policy": {"$ref": "#/$defs/retry_policy"},
+        "timeout_policy": {"$ref": "#/$defs/timeout_policy"}
       }
     }
   }

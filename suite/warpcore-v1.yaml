@@ -31,6 +31,7 @@ benchmarks:
       path: "openai/gsm8k"
       name: "main"
       split: "test"
+      revision: "740312add88f781978c0658806c59bc2815b9866"
     generation_ceiling: 8192
     sampling:
       temperature: 0
@@ -54,11 +55,15 @@ benchmarks:
       - "samples_jsonl_gz"
       - "per_item_csv"
       - "task_yaml"
+      - "scoring_utility"
       - "run_log"
       - "command_txt"
       - "manifest_json"
       - "status_json"
       - "done_sentinel"
+      - "completion_token_counts"
+      - "finish_reasons"
+      - "full_response_fields"
     retry_policy:
       max_retries: 0
     timeout_policy:
@@ -67,28 +72,36 @@ benchmarks:
 
   ifeval:
     description: "IFEval standard task, prompt-level strict accuracy"
-    task_file: "lm_eval_builtin:ifeval"
+    task_file: "suite/tasks/ifeval_v4.yaml"
+    task_sha256: "3d8a3eb32de03f6a23ac87b46951d972a4ec7cb137e753365c0271594e38f84b"
     dataset:
-      # lm-eval builtin; revision pinned by harness version declared in required_harness
-      path: "HuggingFaceH4/ifeval"
+      # Exact dataset and revision pinned.  Task content separately pinned by
+      # task_file/task_sha256 above (lm-eval 0.4.12 builtin ifeval.yaml).
+      path: "google/IFEval"
       name: null
       split: "train"
+      revision: "966cd89545d6b6acfd7638bc708b98261ca58e84"
     generation_ceiling: 65536
     sampling:
       temperature: 0
       do_sample: false
     num_fewshot: 0
     canonical_headline: "prompt_level_strict_acc"
+    expected_item_count: 541
     required_evidence:
       - "aggregate_result"
       - "samples_jsonl_gz"
       - "per_item_csv"
       - "task_yaml"
+      - "scoring_utility"
       - "run_log"
       - "command_txt"
       - "manifest_json"
       - "status_json"
       - "done_sentinel"
+      - "completion_token_counts"
+      - "finish_reasons"
+      - "full_response_fields"
     retry_policy:
       max_retries: 0
     timeout_policy:
@@ -105,6 +118,7 @@ benchmarks:
       path: "Idavidrein/gpqa"
       name: "gpqa_diamond"
       split: "train"
+      revision: "633f5ee89ab8ad4522a9f850766b73f62147ffdd"
     generation_ceiling: 65536
     sampling:
       temperature: 0
@@ -117,11 +131,15 @@ benchmarks:
       - "samples_jsonl_gz"
       - "per_item_csv"
       - "task_yaml"
+      - "scoring_utility"
       - "run_log"
       - "command_txt"
       - "manifest_json"
       - "status_json"
       - "done_sentinel"
+      - "completion_token_counts"
+      - "finish_reasons"
+      - "full_response_fields"
     retry_policy:
       max_retries: 0
     timeout_policy:
@@ -130,7 +148,9 @@ benchmarks:
 
   swebench:
     description: "SWE-bench Verified, seed-42 n=100 instance set"
-    dataset: "SWE-bench/SWE-bench_Verified"
+    dataset:
+      path: "SWE-bench/SWE-bench_Verified"
+      revision: "c104f840cc67f8b6eec6f759ebc8b2693d585d4a"
     instance_set_file: "suite/swebench/instances-seed42-n100.json"
     instances_sha256: "d46f257dc87482e432307a6e96d5ee2d14b372df0c43b413eba48a573c6d0a24"
     scaffold_file: "suite/swebench/scaffold.yaml"
@@ -154,6 +174,17 @@ benchmarks:
       - "manifest_json"
       - "status_json"
       - "done_sentinel"
+    retry_policy:
+      max_retries: 0
+    timeout_policy:
+      # Per-command timeout: 60 s (scaffold environment.timeout).
+      # LLM request timeout: 1800 s (scaffold model.model_kwargs.timeout).
+      # Docker pull timeout: 1800 s (scaffold environment.pull_timeout).
+      # No automatic harness-level retries; operator manual re-run only.
+      use_arithmetic: false
+      command_timeout_s: 60
+      llm_request_timeout_s: 1800
+      pull_timeout_s: 1800
 
   throughput:
     description: "Warpcore short-context throughput sweep"
@@ -173,11 +204,19 @@ benchmarks:
       - "end_to_end_latency"
       - "success_count"
       - "concurrency"
+    retry_policy:
+      max_retries: 0
+    timeout_policy:
+      # vllm bench serve runs until plateau; no automatic client-level retries.
+      use_arithmetic: false
+      per_request_timeout_s: 3600
 
 # ── Suite-level policies ─────────────────────────────────────────────────────
 required_harness:
-  lm_eval: ">=0.4.12"
-  mini_swe_agent: "pinned_by_scaffold_hash"
+  lm_eval_version: "0.4.12"
+  lm_eval_revision: "6d642546f4688648fced259eb3302efd36ece5af"
+  mini_swe_agent_version: "2.4.6"
+  swebench_version: "4.1.0"
 
 empty_response_classification:
   finish_length_empty: "BUDGET"      # raise max_gen_toks
@@ -190,20 +229,3 @@ publication_rules:
   missing_cells: "not_measured"
   no_imputation: true
   denominator_must_be_published: true
-
-lifecycle_states:
-  - "current"
-  - "superseded"
-  - "historical"
-  - "diagnostic"
-  - "replay"
-  - "invalid"
-
-execution_states:
-  - "planned"
-  - "preflight_passed"
-  - "running"
-  - "completed"
-  - "validated"
-  - "published"
-  - "failed"

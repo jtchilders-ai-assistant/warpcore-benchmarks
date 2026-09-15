@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/jtchilders-ai-assistant/warpcore-benchmarks/suite/schemas/manifest.schema.json",
   "title": "Warpcore v1 Run Manifest",
-  "description": "Immutable record created before launch. Must contain suite ID, task/adapter hashes, model revision, image digest, effective serving arguments, item inventory, timing, and artifact inventory. Unknown historical values use the literal 'unrecorded'; canonical new runs fail rather than publish with unknown required values.",
+  "description": "Immutable record created before launch. Must contain suite ID, task/adapter hashes, model revision, image digest, effective serving arguments, serving profile digest, item inventory, timing, and artifact inventory. Unknown historical values use the literal 'unrecorded'; canonical new runs fail rather than publish with unknown required values.",
   "type": "object",
   "required": [
     "schema_version",
@@ -11,7 +11,8 @@
     "run_id",
     "benchmark",
     "adapter_hash",
-    "suite_task_hash",
+    "suite_input_hashes",
+    "serving_profile_digest",
     "model",
     "serving",
     "item_inventory",
@@ -45,10 +46,22 @@
       "description": "SHA-256 of the adapter YAML file",
       "minLength": 64
     },
-    "suite_task_hash": {
+    "suite_input_hashes": {
+      "type": "object",
+      "description": "Mapping of repo-relative paths to SHA-256 hashes for all suite inputs used by this run (task YAML, utils, instance set, scaffold, etc.). Must be non-empty.",
+      "minProperties": 1,
+      "additionalProperties": false,
+      "patternProperties": {
+        "^suite/": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "serving_profile_digest": {
       "type": "string",
-      "description": "SHA-256 of the task YAML or instance set file",
-      "minLength": 64
+      "description": "Deterministic SHA-256 digest over the serving profile identity: model ID, checkpoint revision, image digest, effective engine args, environment compatibility settings, and hardware identity. Format: sha256:<64-char-hex>.",
+      "pattern": "^sha256:[0-9a-f]{64}$"
     },
     "model": {
       "type": "object",
@@ -72,7 +85,7 @@
     },
     "serving": {
       "type": "object",
-      "required": ["image_digest", "engine", "engine_version", "effective_args"],
+      "required": ["image_digest", "engine", "engine_version", "effective_args", "environment", "hardware_id"],
       "additionalProperties": false,
       "properties": {
         "image_digest": {
@@ -94,6 +107,21 @@
           "items": {
             "type": "string"
           }
+        },
+        "environment": {
+          "type": "object",
+          "description": "Effective environment variable compatibility settings for this serving profile",
+          "additionalProperties": false,
+          "patternProperties": {
+            "^[A-Z_][A-Z0-9_]*$": {
+              "type": "string"
+            }
+          }
+        },
+        "hardware_id": {
+          "type": "string",
+          "description": "Hardware identity string for this serving profile (e.g. 'dgx-spark-gb10')",
+          "minLength": 1
         }
       }
     },
@@ -122,8 +150,11 @@
           "format": "date-time"
         },
         "completed_utc": {
-          "type": ["string", "null"],
-          "description": "Null until the run completes"
+          "description": "Null until the run completes; must be a valid date-time when present.",
+          "oneOf": [
+            {"type": "string", "format": "date-time"},
+            {"type": "null"}
+          ]
         }
       }
     },
