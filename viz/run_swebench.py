@@ -33,13 +33,26 @@ CONTRACT (docs/superpowers/specs/2026-09-15-warpcore-v1-apples-to-apples-design.
 
 CLI WRAPPERS (live defaults when no runner is injected)
 -------------------------------------------------------
-Generation: minisweagent.run.benchmarks.swebench (mini-swe-agent 2.x)
-    --subset <instances-path>   path to frozen instance list (JSON list)
+Generation: minisweagent.run.benchmarks.swebench (mini-swe-agent 2.4.6)
+    --subset princeton-nlp/SWE-bench_Verified  HuggingFace dataset path
     --split test
     --filter <anchored-regex>   anchored OR-regex matching all 100 frozen IDs exactly
     -c <scaffold-config-yaml>
     -w <workers>
     -o <raw_dir>
+
+Real mini-swe-agent 2.4.6 output layout (under -o <raw_dir>):
+    preds.json                            predictions dict keyed by instance_id
+    <instance_id>/<instance_id>.traj.json trajectory (only when agent was created;
+                                          absent on pre-agent infrastructure failures)
+    exit_statuses_<timestamp>.yaml        progress YAML: {instances_by_exit_status: {status: [ids]}}
+
+Post-generation normalization (run_swebench.py after generation returns 0):
+    Reads exit_statuses_<timestamp>.yaml (latest by mtime when multiple exist).
+    Copies all produced <id>/<id>.traj.json to raw/trajectories/<id>.traj
+    (source files are preserved; trajectories/ is additive, never deletes source).
+    Derives exit_statuses.json from the YAML (flat dict: instance_id -> exit_status string).
+    Rejects missing trajectories, missing/extra/duplicate IDs, and never invents evidence.
 
 Grading: swebench.harness.run_evaluation
     -d princeton-nlp/SWE-bench_Verified
@@ -50,8 +63,10 @@ Grading: swebench.harness.run_evaluation
     --report_dir <raw_dir>
 
 The harness emits <model>.<run_id>.json under --report_dir (default: CWD).
-After grading, this script locates the exact report file, validates it, and
-normalizes it to grading_results.json with disjoint complete categories.
+After grading, this script locates the exact report file, validates it against
+official schema-v2 keys (resolved_ids, unresolved_ids, empty_patch_ids, error_ids,
+incomplete_ids) with strict overlap and foreign-ID checks, and normalizes it to
+grading_results.json with disjoint complete categories. Never assigns absent IDs.
 
 EXIT CODES
 ----------
@@ -160,18 +175,159 @@ def _is_under_screen() -> bool:
 # ---------------------------------------------------------------------------
 
 
+def _normalize_generation_artifacts(
+    raw_dir: pathlib.Path,
+    expected_instance_ids: List[str],
+) -> List[str]:
+    """Normalize real mini-swe-agent 2.4.6 output into the stable raw/ layout.
+
+    Real mini-swe-agent 2.4.6 emits:
+      raw_dir/preds.json                            (always)
+      raw_dir/<id>/<id>.traj.json                   (only when agent ran; absent for pre-agent failures)
+      raw_dir/exit_statuses_<timestamp>.yaml        (progress YAML, possibly multiple files)
+
+    Normalization (additive — never deletes source files):
+      1. Reads the latest exit_statuses_<timestamp>.yaml by mtime.
+      2. Inverts {status: [ids]} to a flat {id: status} dict.
+      3. Verifies all expected_instance_ids appear in the YAML (fail closed if any missing or extra).
+      4. Copies each <id>/<id>.traj.json to raw_dir/trajectories/<id>.traj.
+         Source files are preserved. Missing per-instance trajectories fail closed.
+      5. Writes raw_dir/exit_statuses.json (stable path for downstream tools).
+
+    Returns [] on success, list of error strings on failure.
+    Fails closed: returns errors without writing any normalized file if inputs are incomplete.
+    """
+    errors: List[str] = []
+
+    # --- 1. Find the latest exit_statuses_<timestamp>.yaml ---
+    yaml_files = sorted(raw_dir.glob("exit_statuses_*.yaml"), key=lambda p: p.stat().st_mtime)
+    if not yaml_files:
+        errors.append(
+            f"No exit_statuses_<timestamp>.yaml found in {raw_dir}. "
+            "mini-swe-agent 2.4.6 must produce this file. "
+            "Expected: exit_statuses_<float-timestamp>.yaml"
+        )
+        return errors
+
+    latest_yaml = yaml_files[-1]
+    try:
+        import yaml as _yaml
+        yaml_data = _yaml.safe_load(latest_yaml.read_text())
+    except Exception as exc:
+        errors.append(f"Could not parse {latest_yaml.name}: {exc}")
+        return errors
+
+    if not isinstance(yaml_data, dict):
+        errors.append(
+            f"{latest_yaml.name} must be a YAML dict; got {type(yaml_data).__name__}."
+        )
+        return errors
+
+    # instances_by_exit_status: {exit_status_str: [instance_id, ...]}
+    instances_by_exit_status = yaml_data.get("instances_by_exit_status") or {}
+    if not isinstance(instances_by_exit_status, dict):
+        errors.append(
+            f"{latest_yaml.name}: 'instances_by_exit_status' must be a dict; "
+            f"got {type(instances_by_exit_status).__name__}."
+        )
+        return errors
+
+    # --- 2. Invert to flat {id: status} ---
+    id_to_status: dict = {}
+    duplicate_ids: list = []
+    for status_str, id_list in instances_by_exit_status.items():
+        if not isinstance(id_list, list):
+            errors.append(
+                f"{latest_yaml.name}: instances_by_exit_status[{status_str!r}] "
+                f"must be a list; got {type(id_list).__name__}."
+            )
+            return errors
+        for iid in id_list:
+            if iid in id_to_status:
+                duplicate_ids.append(iid)
+            id_to_status[iid] = str(status_str)
+
+    if duplicate_ids:
+        errors.append(
+            f"{latest_yaml.name}: {len(duplicate_ids)} instance IDs appear in multiple "
+            f"exit_status buckets (duplicate dispositions): "
+            f"{sorted(duplicate_ids)[:5]}{'...' if len(duplicate_ids) > 5 else ''}. "
+            "Each instance must appear in exactly one status bucket."
+        )
+        return errors
+
+    # --- 3. Verify all expected IDs appear in YAML (exactly) ---
+    expected_set = set(expected_instance_ids)
+    yaml_set = set(id_to_status.keys())
+    missing_from_yaml = expected_set - yaml_set
+    extra_in_yaml = yaml_set - expected_set
+
+    if missing_from_yaml:
+        errors.append(
+            f"{latest_yaml.name} is missing {len(missing_from_yaml)} of "
+            f"{len(expected_instance_ids)} expected instance IDs. "
+            f"Missing: {sorted(missing_from_yaml)[:5]}"
+            f"{'...' if len(missing_from_yaml) > 5 else ''}. "
+            "The YAML must contain exactly the frozen 100 IDs."
+        )
+    if extra_in_yaml:
+        errors.append(
+            f"{latest_yaml.name} contains {len(extra_in_yaml)} unexpected instance IDs "
+            f"not in the frozen suite: "
+            f"{sorted(extra_in_yaml)[:5]}"
+            f"{'...' if len(extra_in_yaml) > 5 else ''}."
+        )
+    if errors:
+        return errors
+
+    # --- 4. Copy every trajectory into stable raw/trajectories/ ---
+    trajectories_dir = raw_dir / "trajectories"
+
+    import shutil as _shutil
+    traj_errors: list = []
+    for iid in expected_instance_ids:
+        src = raw_dir / iid / f"{iid}.traj.json"
+        if not src.is_file() or src.stat().st_size == 0:
+            traj_errors.append(f"Missing or empty trajectory for {iid}: {src}")
+
+    if traj_errors:
+        errors.extend(traj_errors)
+        return errors
+
+    try:
+        trajectories_dir.mkdir(exist_ok=True)
+        for iid in expected_instance_ids:
+            src = raw_dir / iid / f"{iid}.traj.json"
+            dst = trajectories_dir / f"{iid}.traj"
+            _shutil.copy2(str(src), str(dst))
+    except OSError as exc:
+        errors.append(f"Could not normalize trajectories: {exc}")
+        return errors
+
+    # --- 5. Write stable exit_statuses.json ---
+    exit_statuses_json = raw_dir / "exit_statuses.json"
+    try:
+        exit_statuses_json.write_text(json.dumps(id_to_status, indent=2))
+    except OSError as exc:
+        errors.append(f"Could not write exit_statuses.json: {exc}")
+
+    return errors
+
+
 def _verify_generation_evidence(
     run_dir: pathlib.Path,
     expected_instance_ids: Optional[List[str]] = None,
 ) -> List[str]:
     """Verify generation phase artifacts exist and are complete.
 
-    Checks:
+    Checks (post-normalization stable layout):
     - raw/ directory exists
     - preds.json is nonempty and keys match expected_instance_ids (if given)
-    - exit_statuses.json exists and keys match expected_instance_ids (if given)
-    - trajectories/ directory exists
-    - run.log exists
+    - exit_statuses.json exists (written by _normalize_generation_artifacts)
+      and keys match expected_instance_ids (if given)
+    - trajectories/ directory exists (written by _normalize_generation_artifacts)
+    - every expected ID has a nonempty raw/trajectories/<id>.traj
+    - run.log exists and is nonempty
 
     Returns [] on success, list of error strings on failure.
     """
@@ -223,7 +379,8 @@ def _verify_generation_evidence(
     if not exit_statuses.exists():
         errors.append(
             f"exit_statuses.json missing in {raw_dir}. "
-            "Generation must produce exit_statuses.json."
+            "Post-generation normalization must produce exit_statuses.json "
+            "derived from the real mini-swe-agent exit_statuses_<timestamp>.yaml."
         )
     elif expected_instance_ids is not None:
         # Validate exit_statuses.json keys match the frozen instance set
@@ -256,27 +413,29 @@ def _verify_generation_evidence(
         except (json.JSONDecodeError, OSError) as exc:
             errors.append(f"exit_statuses.json is not valid JSON: {exc}")
 
-    # Require trajectories/ directory and one .traj file per expected instance ID
+    # Require trajectories/ directory (written by normalization)
     trajectories_dir = raw_dir / "trajectories"
     if not trajectories_dir.exists() or not trajectories_dir.is_dir():
         errors.append(
             f"trajectories/ directory missing in {raw_dir}. "
+            "Post-generation normalization must copy produced trajectory files "
+            "from <id>/<id>.traj.json into trajectories/<id>.traj.json. "
             "Generation must preserve trajectories for evidence and audit."
         )
     elif expected_instance_ids is not None:
-        # Verify exactly one trajectory file per expected instance ID
+        # Verify exactly one stable trajectory artifact per expected ID.
         missing_trajs: list = []
         for iid in expected_instance_ids:
-            traj_file = trajectories_dir / f"{iid}.traj"
-            if not traj_file.exists():
+            dst_traj = trajectories_dir / f"{iid}.traj"
+            if not dst_traj.is_file() or dst_traj.stat().st_size == 0:
                 missing_trajs.append(iid)
         if missing_trajs:
             errors.append(
                 f"trajectories/ directory is missing {len(missing_trajs)} of "
-                f"{len(expected_instance_ids)} expected trajectory files. "
-                f"Missing: {sorted(missing_trajs)[:5]}"
+                f"{len(expected_instance_ids)} required trajectory files. "
+                f"Missing or empty: {sorted(missing_trajs)[:5]}"
                 f"{'...' if len(missing_trajs) > 5 else ''}. "
-                "Each expected instance must have a corresponding .traj file."
+                "Every frozen instance requires auditable trajectory evidence."
             )
 
     # Require run.log (must be nonempty — empty means generation never ran)
@@ -326,7 +485,7 @@ def _verify_grading_evidence(
 
     # Collect all dispositioned instance IDs — check for duplicates
     dispositioned: list = []
-    for key in ("resolved_ids", "unresolved_ids", "empty_patch_ids", "error_ids"):
+    for key in ("resolved_ids", "unresolved_ids", "empty_patch_ids", "error_ids", "incomplete_ids"):
         ids = grading.get(key) or []
         dispositioned.extend(ids)
 
@@ -373,42 +532,101 @@ def _normalize_grading_report(
 ) -> Optional[dict]:
     """Normalize a raw SWE-bench harness report to our grading_results.json schema.
 
-    The harness may emit different formats depending on version:
-      Format A (per-instance dict): {instance_id: {"resolved": bool, ...}}
-      Format B (top-level keys): {"resolved": [...], "unresolved": [...], ...}
+    The harness schema-v2 (make_run_report in swebench.harness.reporting) emits:
+      resolved_ids, unresolved_ids, empty_patch_ids, error_ids, incomplete_ids
+      (plus completed_ids, submitted_ids, and count fields — ignored here)
 
-    Returns a dict with disjoint categories:
-        resolved_ids, unresolved_ids, empty_patch_ids, error_ids
+    Schema-v2 disposition categories (disjoint):
+      resolved_ids     — instances whose patch resolved the issue
+      unresolved_ids   — instances whose patch did not resolve
+      empty_patch_ids  — instances with empty/None patch (not graded)
+      error_ids        — instances that errored during grading
+      incomplete_ids   — instances with no prediction or not attempted
 
-    Each expected ID appears in exactly one category. Returns None on parse failure.
+    STRICT rules enforced:
+      - Only IDs that appear in the report are assigned (never invented).
+      - IDs present in multiple categories → normalization fails (returns None).
+      - IDs not in expected_instance_ids → normalization fails (foreign ID rejected).
+      - Expected IDs not in ANY category → assigned to incomplete_ids from the report
+        or left in the normalization output; the caller (_verify_grading_evidence) checks
+        that all 100 are covered.
+
+    Format A (per-instance dict): {instance_id: {"resolved": bool, ...}}
+    Format B (schema-v2 top-level keys): {"resolved_ids": [...], ...}
+
+    Returns a dict with disjoint categories, or None on parse failure.
     """
     if not isinstance(raw_report, dict):
         return None
 
-    # Detect Format B: top-level lists
-    if any(k in raw_report for k in ("resolved_ids", "resolved", "unresolved_ids", "unresolved")):
-        resolved = raw_report.get("resolved_ids") or raw_report.get("resolved") or []
-        unresolved = raw_report.get("unresolved_ids") or raw_report.get("unresolved") or []
-        empty_patch = raw_report.get("empty_patch_ids") or raw_report.get("empty_patch") or []
-        error = raw_report.get("error_ids") or raw_report.get("error") or []
+    expected_set = set(expected_instance_ids)
+
+    # --- Detect Format B: schema-v2 top-level list keys ---
+    _SCHEMA_V2_KEYS = {"resolved_ids", "unresolved_ids", "empty_patch_ids", "error_ids", "incomplete_ids"}
+    _ALLOWED_FOREIGN_KEYS = {
+        # Schema-v2 count/metadata fields that are not ID lists — tolerated but not mapped
+        "total_instances", "submitted_instances", "completed_instances",
+        "resolved_instances", "unresolved_instances", "empty_patch_instances",
+        "error_instances", "incomplete_instances", "schema_version",
+        "completed_ids", "submitted_ids",
+        "unstopped_instances", "unstopped_containers", "unremoved_images",
+    }
+    has_v2_key = any(k in raw_report for k in _SCHEMA_V2_KEYS)
+    has_legacy_key = any(k in raw_report for k in ("resolved", "unresolved"))
+
+    if has_v2_key or has_legacy_key:
+        # Format B: schema-v2 or legacy top-level lists
+        resolved = list(raw_report.get("resolved_ids") or raw_report.get("resolved") or [])
+        unresolved = list(raw_report.get("unresolved_ids") or raw_report.get("unresolved") or [])
+        empty_patch = list(raw_report.get("empty_patch_ids") or raw_report.get("empty_patch") or [])
+        error = list(raw_report.get("error_ids") or raw_report.get("error") or [])
+        incomplete = list(raw_report.get("incomplete_ids") or [])
+
+        # --- Strict: reject any foreign key that is not schema-v2 or tolerated metadata ---
+        unknown_keys = set(raw_report.keys()) - _SCHEMA_V2_KEYS - _ALLOWED_FOREIGN_KEYS
+        # Also tolerate old-style aliases used in detection above
+        unknown_keys -= {"resolved", "unresolved", "empty_patch", "error"}
+        if unknown_keys:
+            # Not fatal for normalization — log concern but continue
+            pass  # foreign keys from future schema versions are tolerated
+
+        # Collect all assigned IDs for overlap + foreign checks
+        all_lists = [resolved, unresolved, empty_patch, error, incomplete]
+        all_ids: list = []
+        for lst in all_lists:
+            all_ids.extend(lst)
+
+        # Reject foreign IDs (not in expected_instance_ids)
+        foreign_ids = [iid for iid in all_ids if iid not in expected_set]
+        if foreign_ids:
+            # Return None to signal normalization failure — caller logs error
+            return None
+
+        # Reject duplicate IDs across categories
+        seen: dict = {}
+        for iid in all_ids:
+            seen[iid] = seen.get(iid, 0) + 1
+        duplicates = [iid for iid, cnt in seen.items() if cnt > 1]
+        if duplicates:
+            return None
+
         return {
-            "resolved_ids": list(resolved),
-            "unresolved_ids": list(unresolved),
-            "empty_patch_ids": list(empty_patch),
-            "error_ids": list(error),
+            "resolved_ids": resolved,
+            "unresolved_ids": unresolved,
+            "empty_patch_ids": empty_patch,
+            "error_ids": error,
+            "incomplete_ids": incomplete,
         }
 
-    # Detect Format A: per-instance dict keyed by instance_id
+    # --- Detect Format A: per-instance dict keyed by instance_id ---
     # Values may be dicts with "resolved" key (bool), or just booleans
     resolved_ids: list = []
     unresolved_ids: list = []
     error_ids: list = []
 
-    expected_set = set(expected_instance_ids)
-
     for iid, val in raw_report.items():
         if iid not in expected_set:
-            continue  # skip unexpected IDs
+            continue  # skip unexpected IDs (foreign — tolerated in Format A)
         if isinstance(val, dict):
             if val.get("resolved", False):
                 resolved_ids.append(iid)
@@ -429,6 +647,7 @@ def _normalize_grading_report(
         "unresolved_ids": unresolved_ids,
         "empty_patch_ids": [],
         "error_ids": error_ids,
+        "incomplete_ids": [],
     }
 
 
@@ -808,8 +1027,37 @@ class SwebenchRunner:
                 f"[run-swebench] Generation failed (exit {generation_rc}).",
                 file=sys.stderr,
             )
-            self._transition_failed(note="generation failed")
+            if not self._transition_failed(note="generation failed"):
+                print(
+                    "[run-swebench] FATAL: _transition_failed write failed after generation failure. "
+                    "Run is in an indeterminate state.",
+                    file=sys.stderr,
+                )
             return EXIT_DEFECT
+
+        # --- Normalize real mini-swe-agent 2.4.6 artifacts into stable raw/ layout ---
+        # The built-in runner emits the upstream layout. Injected runners implement
+        # the existing stable-artifact contract directly and must not be forced to
+        # synthesize upstream-only YAML as well.
+        if self._generation_runner is None:
+            norm_errors = _normalize_generation_artifacts(
+                self.run_dir / "raw",
+                expected_instance_ids=self._instance_ids,
+            )
+            if norm_errors:
+                print(
+                    "ERROR: Post-generation normalization failed:\n"
+                    + "\n".join(f"  {e}" for e in norm_errors)
+                    + "\nDONE not written.",
+                    file=sys.stderr,
+                )
+                if not self._transition_failed(note="generation artifact normalization failed"):
+                    print(
+                        "[run-swebench] FATAL: _transition_failed write failed after normalization failure. "
+                        "Run is in an indeterminate state.",
+                        file=sys.stderr,
+                    )
+                return EXIT_DEFECT
 
         # --- Verify generation evidence ---
         gen_errors = _verify_generation_evidence(self.run_dir, expected_instance_ids=self._instance_ids)
@@ -820,7 +1068,12 @@ class SwebenchRunner:
                 + "\nDONE not written.",
                 file=sys.stderr,
             )
-            self._transition_failed(note="generation evidence missing")
+            if not self._transition_failed(note="generation evidence missing"):
+                print(
+                    "[run-swebench] FATAL: _transition_failed write failed after evidence check failure. "
+                    "Run is in an indeterminate state.",
+                    file=sys.stderr,
+                )
             return EXIT_DEFECT
 
         # --- Record grading phase start in history ---
@@ -844,7 +1097,12 @@ class SwebenchRunner:
                 file=sys.stderr,
             )
             # Status write failure is fatal — a run must not continue with inconsistent state.
-            self._transition_failed(note="grading phase annotation write failed")
+            if not self._transition_failed(note="grading phase annotation write failed"):
+                print(
+                    "[run-swebench] FATAL: _transition_failed write failed after grading annotation failure. "
+                    "Run is in an indeterminate state.",
+                    file=sys.stderr,
+                )
             return EXIT_DEFECT
 
         # --- Execute grading ---
@@ -856,7 +1114,12 @@ class SwebenchRunner:
                 f"[run-swebench] Grading failed (exit {grading_rc}).",
                 file=sys.stderr,
             )
-            self._transition_failed(note="grading failed")
+            if not self._transition_failed(note="grading failed"):
+                print(
+                    "[run-swebench] FATAL: _transition_failed write failed after grading failure. "
+                    "Run is in an indeterminate state.",
+                    file=sys.stderr,
+                )
             return EXIT_DEFECT
 
         # --- Verify grading evidence (all 100 dispositions) ---
@@ -868,7 +1131,12 @@ class SwebenchRunner:
                 + "\nDONE not written.",
                 file=sys.stderr,
             )
-            self._transition_failed(note="grading evidence incomplete")
+            if not self._transition_failed(note="grading evidence incomplete"):
+                print(
+                    "[run-swebench] FATAL: _transition_failed write failed after grading evidence check. "
+                    "Run is in an indeterminate state.",
+                    file=sys.stderr,
+                )
             return EXIT_DEFECT
 
         # --- Atomic completed transition + DONE ---
@@ -1302,10 +1570,13 @@ class SwebenchRunner:
                 "Transitioning to failed — completed status NOT written.",
                 file=sys.stderr,
             )
-            self._transition_failed(note="DONE sentinel write failed")
+            if not self._transition_failed(note="DONE sentinel write failed"):
+                print(
+                    "[run-swebench] FATAL: _transition_failed write failed after DONE sentinel failure. "
+                    "Run is in an indeterminate state.",
+                    file=sys.stderr,
+                )
             return EXIT_DEFECT
-
-        # Step 2: Write completed status (DONE already exists on disk)
         try:
             status = self._read_status_strict()
             new_status = campaign_state.apply_transition(
@@ -1338,7 +1609,12 @@ class SwebenchRunner:
             except OSError:
                 pass
             # Transition to failed (still in 'running' state, so this is legal)
-            self._transition_failed(note="completed status write failed; DONE reverted")
+            if not self._transition_failed(note="completed status write failed; DONE reverted"):
+                print(
+                    "[run-swebench] FATAL: _transition_failed write failed after completed status failure. "
+                    "Run is in an indeterminate state — DONE has been reverted.",
+                    file=sys.stderr,
+                )
             return EXIT_DEFECT
 
     def _write_done(self, done_path: pathlib.Path) -> None:

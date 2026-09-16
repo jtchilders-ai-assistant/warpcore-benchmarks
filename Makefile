@@ -113,7 +113,7 @@ ci: check check-artifacts contract
 	@$(PYTHON) $(VIZ)/preflight_serving.py --self-test
 	@$(PYTHON) $(VIZ)/validate_samples.py --warn-only
 	@$(PYTHON) $(VIZ)/quality_preflight.py --self-test
-	@$(PYTHON) -m pytest tests/test_run_quality.py tests/test_task5_acceptance.py tests/test_run_swebench.py -q
+	@$(PYTHON) -m pytest tests/test_run_quality.py tests/test_task5_acceptance.py tests/test_run_swebench.py tests/test_task6_hardening.py -q
 	@echo "OK: figures reproducible, no new provenance gaps, suite contract valid."
 
 # Suite and adapter contract validation (warpcore-v1 design §12 step 2).
