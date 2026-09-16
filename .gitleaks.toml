@@ -1,0 +1,8 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Synthetic API-key sentinel used only by redaction tests"
+regexTarget = "secret"
+regexes = ['''MY_SECRET_API_KEY_XYZ123''']
+paths = ['''^tests/test_task6_hardening\.py$''']
