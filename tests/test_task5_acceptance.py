@@ -1261,6 +1261,11 @@ class TestMakefilePromptTokens(unittest.TestCase):
         self.assertIn("--prompt-tokens", makefile,
                       "Makefile must pass --prompt-tokens to run_quality.py")
 
+    def test_makefile_runs_task5_acceptance_tests(self):
+        """make ci must include adversarial Task 5 acceptance tests."""
+        makefile = (_REPO / "Makefile").read_text()
+        self.assertIn("tests/test_task5_acceptance.py", makefile)
+
     def test_make_run_quality_without_prompt_tokens_exits_nonzero(self):
         """make run-quality without PROMPT_TOKENS must exit nonzero (missing required variable)."""
         result = subprocess.run(
