@@ -24,7 +24,7 @@ FIGS       := fig1_pareto fig2_swebench fig3_discrimination
 # Instance set for the SWE-bench pre-flight check (seed-42 n=100, shared by all models).
 SWEBENCH_INSTANCES ?= results/qwen3.6-35b-a3b/raw/swebench/preds_shuffle100.json
 
-.PHONY: all figs data clean check preflight manifest check-artifacts audit samples ci preflight-serving preflight-selftest quality-preflight quality-preflight-selftest contract
+.PHONY: all figs data clean check preflight manifest check-artifacts audit samples ci preflight-serving preflight-selftest quality-preflight quality-preflight-selftest contract run-quality
 
 all: figs
 
@@ -154,3 +154,38 @@ quality-preflight:
 # Fixture-driven self-test (no GPU, no network, runs in CI).
 quality-preflight-selftest:
 	@$(PYTHON) $(VIZ)/quality_preflight.py --self-test
+
+# Contract-aware quality runner (Task 5).
+# Required variables: SUITE, ADAPTER, BENCH, ENDPOINT, THROUGHPUT, CONCURRENCY, TIMEOUT
+# Optional: RUN_ID, RUN_DIR, DRY_RUN=1, ALLOW_NO_SCREEN=1
+#
+# Dry-run (inspect generated command, no network/GPU):
+#   make run-quality SUITE=suite/warpcore-v1.yaml ADAPTER=adapters/qwen3.6-35b-a3b.yaml \
+#       BENCH=gsm8k ENDPOINT=http://h:8000/v1 THROUGHPUT=64 CONCURRENCY=8 TIMEOUT=14400 DRY_RUN=1
+#
+# Live run (must be inside /usr/bin/screen):
+#   screen -S quality-gsm8k
+#   make run-quality SUITE=suite/warpcore-v1.yaml ADAPTER=adapters/qwen3.6-35b-a3b.yaml \
+#       BENCH=gsm8k ENDPOINT=http://h:8000/v1 THROUGHPUT=64 CONCURRENCY=8 TIMEOUT=14400
+#
+# Exit 0 = success + DONE written, 1 = preflight/harness failure, 2 = screen guard, 3 = config error.
+run-quality:
+	@test -n "$(SUITE)"       || { echo "ERROR: SUITE is required (e.g. SUITE=suite/warpcore-v1.yaml)" >&2; exit 3; }
+	@test -n "$(ADAPTER)"     || { echo "ERROR: ADAPTER is required (e.g. ADAPTER=adapters/qwen3.6-35b-a3b.yaml)" >&2; exit 3; }
+	@test -n "$(BENCH)"       || { echo "ERROR: BENCH is required (e.g. BENCH=gsm8k)" >&2; exit 3; }
+	@test -n "$(ENDPOINT)"    || { echo "ERROR: ENDPOINT is required (e.g. ENDPOINT=http://host:8000/v1)" >&2; exit 3; }
+	@test -n "$(THROUGHPUT)"  || { echo "ERROR: THROUGHPUT is required (measured aggregate tok/s)" >&2; exit 3; }
+	@test -n "$(CONCURRENCY)" || { echo "ERROR: CONCURRENCY is required (number of parallel workers)" >&2; exit 3; }
+	@test -n "$(TIMEOUT)"     || { echo "ERROR: TIMEOUT is required (lm-eval --timeout in seconds)" >&2; exit 3; }
+	@$(PYTHON) $(VIZ)/run_quality.py \
+		--suite $(SUITE) \
+		--adapter $(ADAPTER) \
+		--benchmark $(BENCH) \
+		--endpoint $(ENDPOINT) \
+		--throughput $(THROUGHPUT) \
+		--concurrency $(CONCURRENCY) \
+		--timeout $(TIMEOUT) \
+		$(if $(RUN_ID),--run-id $(RUN_ID),) \
+		$(if $(RUN_DIR),--run-dir $(RUN_DIR),) \
+		$(if $(DRY_RUN),--dry-run,) \
+		$(if $(ALLOW_NO_SCREEN),--allow-no-screen,)
