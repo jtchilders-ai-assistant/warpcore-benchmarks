@@ -1215,6 +1215,32 @@ class TestDryRunNonCanonicalAndPromptTokens(unittest.TestCase):
         self.assertFalse((self.tmp / "results").exists(),
                          "dry-run must not create a results tree")
 
+    def test_live_explicit_run_dir_requires_resume_validation(self):
+        """An explicit live run dir may not bypass transactional resume checks."""
+        run_dir = _build_normalized_run_dir(
+            self.tmp, slug="test-canonical-model", bench="gsm8k", run_id="run-explicit"
+        )
+        # This hand-built manifest is intentionally incomplete compared with a
+        # create_campaign manifest. A live explicit path must reject it rather
+        # than launching based only on status.json.
+        rc = run_quality.main([
+            "--suite", str(_REAL_SUITE),
+            "--adapter", str(self.adapter_path),
+            "--benchmark", "gsm8k",
+            "--endpoint", "http://fake:8000/v1",
+            "--throughput", "64",
+            "--concurrency", "8",
+            "--timeout", "14400",
+            "--prompt-tokens", "gsm8k=500,ifeval=500,gpqa_diamond=500",
+            "--run-dir", str(run_dir),
+            "--repo", str(self.tmp),
+            "--allow-no-screen",
+        ])
+        self.assertNotEqual(rc, 0)
+        status = json.loads((run_dir / "status.json").read_text())
+        self.assertEqual(status["execution_state"], "planned")
+        self.assertFalse((run_dir / "command.txt").exists())
+
     def test_dry_run_accepts_prompt_tokens(self):
         """Dry-run must accept --prompt-tokens without error."""
         run_dir = _build_normalized_run_dir(

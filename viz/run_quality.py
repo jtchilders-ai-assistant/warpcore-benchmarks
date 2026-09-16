@@ -918,8 +918,11 @@ def main(argv=None) -> int:
     suite_path = pathlib.Path(args.suite).resolve()
     repo = pathlib.Path(args.repo).resolve() if args.repo else suite_path.parent.parent
 
-    # Resolve run directory
-    if args.run_dir is not None:
+    # Resolve run directory. Live execution always passes through
+    # create_campaign(..., resume=...), including an explicit --run-dir; this
+    # prevents hand-built or stale manifests from bypassing exact identity
+    # validation. Dry-run only derives/validates a path and performs no writes.
+    if args.run_dir is not None and args.dry_run:
         run_dir = pathlib.Path(args.run_dir).resolve()
         try:
             run_dir.relative_to(repo)
@@ -929,9 +932,7 @@ def main(argv=None) -> int:
                 file=sys.stderr,
             )
             return 3
-
     else:
-        # Derive run directory and call create_campaign transactionally
         import yaml
         with open(suite_path) as fh:
             suite = yaml.safe_load(fh)
@@ -940,7 +941,30 @@ def main(argv=None) -> int:
 
         suite_id = suite.get("suite_id", "warpcore-v1")
         model_slug = (adapter.get("model") or {}).get("slug", "unknown")
-        run_id = args.run_id or datetime.now(tz=timezone.utc).strftime("run-%Y-%m-%dT%H-%M-%S")
+        if args.run_dir is not None:
+            requested_run_dir = pathlib.Path(args.run_dir).resolve()
+            try:
+                requested_run_dir.relative_to(repo)
+            except ValueError:
+                print(
+                    f"ERROR: --run-dir {requested_run_dir} resolves outside repository {repo}.",
+                    file=sys.stderr,
+                )
+                return 3
+            run_id = requested_run_dir.name
+            expected = (
+                repo / "results" / model_slug / "runs"
+                / suite_id / args.benchmark / run_id
+            ).resolve()
+            if requested_run_dir != expected:
+                print(
+                    f"ERROR: --run-dir must equal normalized campaign path {expected}; "
+                    f"got {requested_run_dir}.",
+                    file=sys.stderr,
+                )
+                return 3
+        else:
+            run_id = args.run_id or datetime.now(tz=timezone.utc).strftime("run-%Y-%m-%dT%H-%M-%S")
 
         if args.dry_run:
             # Dry-run derives the path only. It must not create campaign state,
@@ -958,7 +982,6 @@ def main(argv=None) -> int:
                 )
                 return 3
         else:
-            # Live run: call create_campaign to create the run directory transactionally.
             try:
                 import create_campaign as cc_mod
                 run_dir = cc_mod.create_campaign(
@@ -967,7 +990,7 @@ def main(argv=None) -> int:
                     adapter_path=pathlib.Path(args.adapter).resolve(),
                     benchmark=args.benchmark,
                     run_id=run_id,
-                    resume=args.resume,
+                    resume=(args.resume or args.run_dir is not None),
                     prompt_token_maxima=prompt_token_maxima,
                 )
             except Exception as exc:
