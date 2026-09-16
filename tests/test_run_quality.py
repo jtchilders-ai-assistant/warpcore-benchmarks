@@ -18,6 +18,7 @@ Design contract (from docs/superpowers/specs/2026-09-15-warpcore-v1-apples-to-ap
 """
 from __future__ import annotations
 
+import gzip
 import json
 import os
 import pathlib
@@ -41,6 +42,59 @@ import run_quality  # noqa: E402  (expected ImportError during RED)
 
 
 # ---------------------------------------------------------------------------
+# Canonical adapter fixture
+# ---------------------------------------------------------------------------
+# A canonical adapter passes validate_adapter_campaign_ready() with a supplied
+# prompt_token_maxima. This is a real canonical adapter with valid immutable
+# revision, image digest, and capacity fields. No noncanonical bypass allowed.
+
+_CANONICAL_ADAPTER = {
+    "adapter_schema_version": 1,
+    "campaign_status": "canonical",
+    "model": {
+        "slug": "test-canonical-model",
+        "id": "testorg/TestCanonicalModel",
+        # 40-char lowercase hex SHA
+        "revision": "a" * 40,
+    },
+    "serving": {
+        # repo@sha256:<64hex>
+        "image": "testregistry.example.com/test@sha256:" + "b" * 64,
+        "engine": "vllm",
+        "engine_version": "0.6.6",
+        "quantization": "fp8",
+        "reasoning_parser": None,
+        "tool_call_parser": None,
+        "tokenizer": None,
+        "moe_backend": None,
+        "max_model_len": 300000,  # big enough for all benchmarks
+        "gpu_memory_utilization": 0.95,
+        "max_num_seqs": 256,
+        "environment": {},
+    },
+}
+
+# Prompt token maxima: measured for every benchmark with a generation_ceiling.
+# Must satisfy: prompt_tokens + ceiling <= max_model_len (300000).
+# gsm8k ceiling=8192, ifeval=65536, gpqa_diamond=65536
+_PROMPT_TOKEN_MAXIMA = {
+    "gsm8k": 500,
+    "ifeval": 2000,
+    "gpqa_diamond": 1000,
+}
+
+# Adapter slug derived from the canonical adapter
+_ADAPTER_SLUG = _CANONICAL_ADAPTER["model"]["slug"]  # "test-canonical-model"
+
+
+def _write_canonical_adapter(path: pathlib.Path) -> None:
+    """Write a canonical adapter YAML to *path*."""
+    import yaml
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(yaml.dump(_CANONICAL_ADAPTER, default_flow_style=False))
+
+
+# ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
@@ -48,43 +102,59 @@ _REAL_SUITE = _REPO / "suite" / "warpcore-v1.yaml"
 _SCHEMAS_DIR = _REPO / "suite" / "schemas"
 
 
-def _minimal_status(state: str = "preflight_passed") -> dict:
+def _make_planned_status(run_id: str = "run-test", suite_id: str = "warpcore-v1") -> dict:
+    """Return a schema-valid planned status dict."""
     return {
-        "execution_state": state,
-        "lifecycle": "current",
-        "history": [
-            {"state": "planned", "timestamp": "2026-09-15T12:00:00Z"},
-            {"state": "preflight_passed", "timestamp": "2026-09-15T12:01:00Z"},
-        ],
-    }
-
-
-def _build_run_dir(tmp_path: pathlib.Path, bench: str = "gsm8k") -> pathlib.Path:
-    """Create a minimal normalized run directory for test use."""
-    run_dir = tmp_path / "results" / "test-model" / "runs" / "warpcore-v1" / bench / "run-test"
-    run_dir.mkdir(parents=True)
-    # Include all schema-required fields: schema_version, run_id, suite_id
-    status = {
         "schema_version": 1,
-        "run_id": "run-test",
-        "suite_id": "warpcore-v1",
-        "execution_state": "preflight_passed",
+        "run_id": run_id,
+        "suite_id": suite_id,
+        "execution_state": "planned",
         "lifecycle": "current",
         "history": [
             {"state": "planned", "timestamp": "2026-09-15T12:00:00Z"},
-            {"state": "preflight_passed", "timestamp": "2026-09-15T12:01:00Z"},
         ],
     }
-    (run_dir / "status.json").write_text(json.dumps(status))
+
+
+def _build_run_dir(
+    repo: pathlib.Path,
+    bench: str = "gsm8k",
+    slug: str = _ADAPTER_SLUG,
+    run_id: str = "run-test",
+    suite_id: str = "warpcore-v1",
+) -> pathlib.Path:
+    """Create a minimal normalized run directory for test use.
+
+    Layout: repo/results/<slug>/runs/<suite_id>/<bench>/<run_id>
+    This is the exact normalized path the runner enforces.
+    Initial state is 'planned' — the only state QualityRunner accepts to start a run.
+    """
+    run_dir = repo / "results" / slug / "runs" / suite_id / bench / run_id
+    run_dir.mkdir(parents=True, exist_ok=True)
+    # Schema-valid planned status
+    (run_dir / "status.json").write_text(json.dumps(_make_planned_status(run_id, suite_id)))
     manifest = {
-        "suite_id": "warpcore-v1",
-        "run_id": "run-test",
+        "suite_id": suite_id,
+        "run_id": run_id,
         "benchmark": bench,
-        "model": {"slug": "test-model", "id": "test/model", "revision": "abc123"},
+        "model": {"slug": slug, "id": "testorg/TestCanonicalModel", "revision": "a" * 40},
         "item_inventory": {"expected": 1319},
     }
     (run_dir / "manifest.json").write_text(json.dumps(manifest))
     return run_dir
+
+
+def _make_harness_artifacts(run_dir: pathlib.Path) -> None:
+    """Populate raw/ with minimal valid lm-eval artifacts."""
+    raw_dir = run_dir / "raw"
+    raw_dir.mkdir(exist_ok=True)
+    (raw_dir / "results_2026-01-01T00-00-00.json").write_text(
+        '{"results": {"gsm8k_cot_zeroshot_clean": {"exact_match,none": 0.5}}}\n'
+    )
+    sample_line = b'{"doc_id": 0, "resps": [[["42"]]], "filtered_resps": ["42"], "target": "42"}\n'
+    gz_path = raw_dir / "samples_gsm8k_cot_zeroshot_clean_2026-01-01T00-00-00.jsonl.gz"
+    with gzip.open(gz_path, "wb") as fh:
+        fh.write(sample_line)
 
 
 # ---------------------------------------------------------------------------
@@ -123,9 +193,16 @@ class TestModuleInterface(unittest.TestCase):
 class TestCommandConstruction(unittest.TestCase):
     """QualityRunner must build a deterministic lm-eval command from suite + adapter."""
 
+    def setUp(self):
+        self.tmp = pathlib.Path(tempfile.mkdtemp())
+        self.adapter_path = self.tmp / "adapters" / "test-canonical-model.yaml"
+        _write_canonical_adapter(self.adapter_path)
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
     def _make_runner(
         self,
-        tmp_path,
         bench="gsm8k",
         *,
         preflight_exit=0,
@@ -136,95 +213,80 @@ class TestCommandConstruction(unittest.TestCase):
         timeout=14400,
         dry_run=True,
     ):
-        run_dir = _build_run_dir(tmp_path, bench)
+        run_dir = _build_run_dir(self.tmp, bench)
         runner = run_quality.QualityRunner(
             suite_path=_REAL_SUITE,
-            adapter_path=_REPO / "adapters" / "qwen3.6-35b-a3b.yaml",
+            adapter_path=self.adapter_path,
             benchmark=bench,
             endpoint=endpoint,
             throughput=throughput,
             concurrency=concurrency,
             timeout=timeout,
             run_dir=run_dir,
+            repo=self.tmp,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
             dry_run=dry_run,
-            allow_noncanonical_adapter=True,
             preflight_runner=MagicMock(return_value=preflight_exit),
             harness_runner=MagicMock(return_value=harness_exit),
         )
         return runner, run_dir
 
-    def test_command_includes_task_from_suite(self, tmp_path=None):
+    def test_command_includes_task_from_suite(self):
         """Generated command must use the task name from the pinned task YAML's 'task:' field."""
-        if tmp_path is None:
-            tmp_path = pathlib.Path(tempfile.mkdtemp())
-        runner, run_dir = self._make_runner(tmp_path)
+        runner, run_dir = self._make_runner()
         cmd = runner.build_command()
         cmd_str = " ".join(cmd)
         # The task name comes from suite/tasks/gsm8k_clean_v1.yaml's 'task:' field,
         # which is 'gsm8k_cot_zeroshot_clean' — NOT the file stem.
         self.assertIn("gsm8k_cot_zeroshot_clean", cmd_str)
 
-    def test_command_includes_generation_ceiling(self, tmp_path=None):
+    def test_command_includes_generation_ceiling(self):
         """Generated command must include suite generation ceiling (max_gen_toks)."""
-        if tmp_path is None:
-            tmp_path = pathlib.Path(tempfile.mkdtemp())
-        runner, run_dir = self._make_runner(tmp_path)
+        runner, run_dir = self._make_runner()
         cmd = runner.build_command()
         cmd_str = " ".join(cmd)
         # Suite gsm8k generation_ceiling = 8192
         self.assertIn("8192", cmd_str)
         self.assertIn("max_gen_toks", cmd_str)
 
-    def test_command_includes_temperature_zero(self, tmp_path=None):
+    def test_command_includes_temperature_zero(self):
         """Generated command must include temperature=0 from suite sampling."""
-        if tmp_path is None:
-            tmp_path = pathlib.Path(tempfile.mkdtemp())
-        runner, run_dir = self._make_runner(tmp_path)
+        runner, run_dir = self._make_runner()
         cmd = runner.build_command()
         cmd_str = " ".join(cmd)
         self.assertIn("temperature", cmd_str)
         self.assertIn("0", cmd_str)
 
-    def test_command_includes_log_samples(self, tmp_path=None):
+    def test_command_includes_log_samples(self):
         """Generated command must include --log_samples."""
-        if tmp_path is None:
-            tmp_path = pathlib.Path(tempfile.mkdtemp())
-        runner, run_dir = self._make_runner(tmp_path)
+        runner, run_dir = self._make_runner()
         cmd = runner.build_command()
         self.assertIn("--log_samples", cmd)
 
-    def test_command_points_at_normalized_run_dir(self, tmp_path=None):
+    def test_command_points_at_normalized_run_dir(self):
         """Generated command must point output at the normalized run directory."""
-        if tmp_path is None:
-            tmp_path = pathlib.Path(tempfile.mkdtemp())
-        runner, run_dir = self._make_runner(tmp_path)
+        runner, run_dir = self._make_runner()
         cmd = runner.build_command()
         cmd_str = " ".join(cmd)
         self.assertIn(str(run_dir), cmd_str)
 
-    def test_command_includes_endpoint(self, tmp_path=None):
+    def test_command_includes_endpoint(self):
         """Generated command must include the specified endpoint."""
-        if tmp_path is None:
-            tmp_path = pathlib.Path(tempfile.mkdtemp())
-        runner, run_dir = self._make_runner(tmp_path, endpoint="http://custom:9000/v1")
+        runner, run_dir = self._make_runner(endpoint="http://custom:9000/v1")
         cmd = runner.build_command()
         cmd_str = " ".join(cmd)
         self.assertIn("http://custom:9000/v1", cmd_str)
 
-    def test_command_includes_concurrency(self, tmp_path=None):
+    def test_command_includes_concurrency(self):
         """Generated command must include concurrency."""
-        if tmp_path is None:
-            tmp_path = pathlib.Path(tempfile.mkdtemp())
-        runner, run_dir = self._make_runner(tmp_path, concurrency=12)
+        runner, run_dir = self._make_runner(concurrency=12)
         cmd = runner.build_command()
         cmd_str = " ".join(cmd)
         self.assertIn("12", cmd_str)
 
-    def test_command_includes_timeout(self, tmp_path=None):
+    def test_command_includes_timeout(self):
         """Generated command must include the client timeout."""
-        if tmp_path is None:
-            tmp_path = pathlib.Path(tempfile.mkdtemp())
-        runner, run_dir = self._make_runner(tmp_path, timeout=30000)
+        runner, run_dir = self._make_runner(timeout=30000)
         cmd = runner.build_command()
         cmd_str = " ".join(cmd)
         self.assertIn("30000", cmd_str)
@@ -287,6 +349,8 @@ class TestPreflightIntegration(unittest.TestCase):
 
     def setUp(self):
         self.tmp = pathlib.Path(tempfile.mkdtemp())
+        self.adapter_path = self.tmp / "adapters" / "test-canonical-model.yaml"
+        _write_canonical_adapter(self.adapter_path)
 
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
@@ -297,16 +361,17 @@ class TestPreflightIntegration(unittest.TestCase):
         harness_mock = MagicMock(return_value=harness_exit)
         runner = run_quality.QualityRunner(
             suite_path=_REAL_SUITE,
-            adapter_path=_REPO / "adapters" / "qwen3.6-35b-a3b.yaml",
+            adapter_path=self.adapter_path,
             benchmark="gsm8k",
             endpoint="http://fake:8000/v1",
             throughput=64.0,
             concurrency=8,
             timeout=14400,
             run_dir=run_dir,
+            repo=self.tmp,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
             dry_run=dry_run,
             allow_no_screen=True,
-            allow_noncanonical_adapter=True,
             preflight_runner=preflight_mock,
             harness_runner=harness_mock,
         )
@@ -315,8 +380,8 @@ class TestPreflightIntegration(unittest.TestCase):
     def test_preflight_called_before_harness(self):
         """Preflight must be invoked before harness on a non-dry-run."""
         runner, run_dir, preflight_mock, harness_mock = self._make_runner(dry_run=False)
-        # Create raw dir to satisfy DONE check
-        (run_dir / "raw").mkdir()
+        # Create raw dir and artifacts to satisfy DONE check
+        _make_harness_artifacts(run_dir)
         runner.run()
         preflight_mock.assert_called()
 
@@ -342,12 +407,12 @@ class TestPreflightIntegration(unittest.TestCase):
         """If preflight exits 0, harness must be called."""
         runner, run_dir, preflight_mock, harness_mock = self._make_runner(
             preflight_exit=0, harness_exit=0, dry_run=False)
-        (run_dir / "raw").mkdir()
+        _make_harness_artifacts(run_dir)
         runner.run()
         harness_mock.assert_called()
 
     def test_dry_run_skips_preflight_network_calls(self):
-        """In dry-run mode, preflight must not make network calls (preflight_runner not called or returns early)."""
+        """In dry-run mode, preflight must not make network calls (harness not called)."""
         runner, run_dir, preflight_mock, harness_mock = self._make_runner(dry_run=True)
         runner.run()
         harness_mock.assert_not_called()
@@ -363,6 +428,8 @@ class TestScreenGuard(unittest.TestCase):
 
     def setUp(self):
         self.tmp = pathlib.Path(tempfile.mkdtemp())
+        self.adapter_path = self.tmp / "adapters" / "test-canonical-model.yaml"
+        _write_canonical_adapter(self.adapter_path)
 
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
@@ -371,16 +438,17 @@ class TestScreenGuard(unittest.TestCase):
         run_dir = _build_run_dir(self.tmp)
         runner = run_quality.QualityRunner(
             suite_path=_REAL_SUITE,
-            adapter_path=_REPO / "adapters" / "qwen3.6-35b-a3b.yaml",
+            adapter_path=self.adapter_path,
             benchmark="gsm8k",
             endpoint="http://fake:8000/v1",
             throughput=64.0,
             concurrency=8,
             timeout=14400,
             run_dir=run_dir,
+            repo=self.tmp,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
             dry_run=dry_run,
             allow_no_screen=allow_no_screen,
-            allow_noncanonical_adapter=True,
             preflight_runner=MagicMock(return_value=0),
             harness_runner=MagicMock(return_value=0),
         )
@@ -389,7 +457,7 @@ class TestScreenGuard(unittest.TestCase):
     def test_refuses_launch_when_not_under_screen(self):
         """Without --allow-no-screen or --dry-run, must refuse launch outside screen."""
         runner, run_dir = self._make_runner(dry_run=False, allow_no_screen=False)
-        # Simulate not being under screen by ensuring TERM env does not include 'screen'
+        # Simulate not being under screen by ensuring STY env is absent
         env_backup = os.environ.pop("STY", None)
         term_backup = os.environ.get("TERM")
         try:
@@ -413,10 +481,10 @@ class TestScreenGuard(unittest.TestCase):
         try:
             if "STY" in os.environ:
                 del os.environ["STY"]
-            rc = runner.run()
             # Dry-run: should not fail due to screen check
-            # (May be nonzero for other reasons but not screen)
-            # We test this by verifying the preflight mock was not the cause
+            rc = runner.run()
+            # Should succeed (0) in dry-run
+            self.assertEqual(rc, 0)
         finally:
             if env_backup is not None:
                 os.environ["STY"] = env_backup
@@ -430,7 +498,7 @@ class TestScreenGuard(unittest.TestCase):
                 del os.environ["STY"]
             # Should proceed to preflight (which is mocked to return 0)
             # and harness (which returns 0), then check for raw files
-            (run_dir / "raw").mkdir()
+            _make_harness_artifacts(run_dir)
             rc = runner.run()
             # Should not fail on screen check
             self.assertIsNotNone(rc)
@@ -449,6 +517,8 @@ class TestCommandTxt(unittest.TestCase):
 
     def setUp(self):
         self.tmp = pathlib.Path(tempfile.mkdtemp())
+        self.adapter_path = self.tmp / "adapters" / "test-canonical-model.yaml"
+        _write_canonical_adapter(self.adapter_path)
 
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
@@ -458,15 +528,16 @@ class TestCommandTxt(unittest.TestCase):
         run_dir = _build_run_dir(self.tmp)
         runner = run_quality.QualityRunner(
             suite_path=_REAL_SUITE,
-            adapter_path=_REPO / "adapters" / "qwen3.6-35b-a3b.yaml",
+            adapter_path=self.adapter_path,
             benchmark="gsm8k",
             endpoint="http://fake:8000/v1",
             throughput=64.0,
             concurrency=8,
             timeout=14400,
             run_dir=run_dir,
+            repo=self.tmp,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
             dry_run=True,
-            allow_noncanonical_adapter=True,
             preflight_runner=MagicMock(return_value=0),
             harness_runner=MagicMock(return_value=0),
         )
@@ -479,15 +550,16 @@ class TestCommandTxt(unittest.TestCase):
         run_dir = _build_run_dir(self.tmp)
         runner = run_quality.QualityRunner(
             suite_path=_REAL_SUITE,
-            adapter_path=_REPO / "adapters" / "qwen3.6-35b-a3b.yaml",
+            adapter_path=self.adapter_path,
             benchmark="gsm8k",
             endpoint="http://fake:8000/v1",
             throughput=64.0,
             concurrency=8,
             timeout=14400,
             run_dir=run_dir,
+            repo=self.tmp,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
             dry_run=True,
-            allow_noncanonical_adapter=True,
             preflight_runner=MagicMock(return_value=0),
             harness_runner=MagicMock(return_value=0),
         )
@@ -503,15 +575,16 @@ class TestCommandTxt(unittest.TestCase):
         run_dir = _build_run_dir(self.tmp)
         runner = run_quality.QualityRunner(
             suite_path=_REAL_SUITE,
-            adapter_path=_REPO / "adapters" / "qwen3.6-35b-a3b.yaml",
+            adapter_path=self.adapter_path,
             benchmark="gsm8k",
             endpoint="http://fake:8000/v1",
             throughput=64.0,
             concurrency=8,
             timeout=14400,
             run_dir=run_dir,
+            repo=self.tmp,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
             dry_run=True,
-            allow_noncanonical_adapter=True,
             preflight_runner=MagicMock(return_value=0),
             harness_runner=MagicMock(return_value=0),
         )
@@ -532,6 +605,8 @@ class TestDoneSentinel(unittest.TestCase):
 
     def setUp(self):
         self.tmp = pathlib.Path(tempfile.mkdtemp())
+        self.adapter_path = self.tmp / "adapters" / "test-canonical-model.yaml"
+        _write_canonical_adapter(self.adapter_path)
 
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
@@ -539,30 +614,20 @@ class TestDoneSentinel(unittest.TestCase):
     def _make_runner(self, *, harness_exit=0, raw_exists=True, dry_run=False):
         run_dir = _build_run_dir(self.tmp)
         if raw_exists:
-            import gzip
-            raw_dir = run_dir / "raw"
-            raw_dir.mkdir()
-            # Populate with minimal fake harness artifacts matching lm-eval 0.4.12 naming.
-            # Verifier requires: raw/results_*.json and raw/samples_*.jsonl.gz (nonempty gzip).
-            (raw_dir / "results_2026-01-01T00-00-00.json").write_text(
-                '{"results": {"gsm8k_cot_zeroshot_clean": {"exact_match,none": 0.5}}}\n'
-            )
-            sample_line = b'{"doc_id": 0, "resps": [[["42"]]], "filtered_resps": ["42"], "target": "42"}\n'
-            gz_path = raw_dir / "samples_gsm8k_cot_zeroshot_clean_2026-01-01T00-00-00.jsonl.gz"
-            with gzip.open(gz_path, "wb") as fh:
-                fh.write(sample_line)
+            _make_harness_artifacts(run_dir)
         runner = run_quality.QualityRunner(
             suite_path=_REAL_SUITE,
-            adapter_path=_REPO / "adapters" / "qwen3.6-35b-a3b.yaml",
+            adapter_path=self.adapter_path,
             benchmark="gsm8k",
             endpoint="http://fake:8000/v1",
             throughput=64.0,
             concurrency=8,
             timeout=14400,
             run_dir=run_dir,
+            repo=self.tmp,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
             dry_run=dry_run,
             allow_no_screen=True,
-            allow_noncanonical_adapter=True,
             preflight_runner=MagicMock(return_value=0),
             harness_runner=MagicMock(return_value=harness_exit),
         )
@@ -603,6 +668,8 @@ class TestCampaignStateTransitions(unittest.TestCase):
 
     def setUp(self):
         self.tmp = pathlib.Path(tempfile.mkdtemp())
+        self.adapter_path = self.tmp / "adapters" / "test-canonical-model.yaml"
+        _write_canonical_adapter(self.adapter_path)
 
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
@@ -610,40 +677,40 @@ class TestCampaignStateTransitions(unittest.TestCase):
     def _make_runner(self, *, harness_exit=0, raw_exists=True):
         run_dir = _build_run_dir(self.tmp)
         if raw_exists:
-            import gzip
-            raw_dir = run_dir / "raw"
-            raw_dir.mkdir()
-            # Populate with minimal fake harness artifacts matching lm-eval 0.4.12 naming.
-            # Verifier requires: raw/results_*.json and raw/samples_*.jsonl.gz (nonempty gzip).
-            (raw_dir / "results_2026-01-01T00-00-00.json").write_text(
-                '{"results": {"gsm8k_cot_zeroshot_clean": {"exact_match,none": 0.5}}}\n'
-            )
-            sample_line = b'{"doc_id": 0, "resps": [[["42"]]], "filtered_resps": ["42"], "target": "42"}\n'
-            gz_path = raw_dir / "samples_gsm8k_cot_zeroshot_clean_2026-01-01T00-00-00.jsonl.gz"
-            with gzip.open(gz_path, "wb") as fh:
-                fh.write(sample_line)
+            _make_harness_artifacts(run_dir)
         runner = run_quality.QualityRunner(
             suite_path=_REAL_SUITE,
-            adapter_path=_REPO / "adapters" / "qwen3.6-35b-a3b.yaml",
+            adapter_path=self.adapter_path,
             benchmark="gsm8k",
             endpoint="http://fake:8000/v1",
             throughput=64.0,
             concurrency=8,
             timeout=14400,
             run_dir=run_dir,
+            repo=self.tmp,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
             allow_no_screen=True,
-            allow_noncanonical_adapter=True,
             preflight_runner=MagicMock(return_value=0),
             harness_runner=MagicMock(return_value=harness_exit),
         )
         return runner, run_dir
 
     def test_status_transitions_to_running(self):
-        """On launch, status must transition from preflight_passed -> running."""
+        """On launch, status must transition through planned -> preflight_passed -> running."""
         runner, run_dir = self._make_runner()
         runner.run()
         status = json.loads((run_dir / "status.json").read_text())
         states = [h["state"] for h in status["history"]]
+        self.assertIn("running", states)
+
+    def test_status_lifecycle_includes_preflight_passed(self):
+        """Lifecycle must include planned -> preflight_passed -> running -> completed."""
+        runner, run_dir = self._make_runner(harness_exit=0, raw_exists=True)
+        runner.run()
+        status = json.loads((run_dir / "status.json").read_text())
+        states = [h["state"] for h in status["history"]]
+        self.assertIn("planned", states)
+        self.assertIn("preflight_passed", states)
         self.assertIn("running", states)
 
     def test_status_transitions_to_completed_on_success(self):
@@ -691,34 +758,29 @@ class TestCLI(unittest.TestCase):
     def test_dry_run_flag_exists(self):
         """--dry-run flag must be accepted without error. Uses a tempdir to avoid repo mutation."""
         import tempfile
-        tmp_run = pathlib.Path(tempfile.mkdtemp())
+        tmp = pathlib.Path(tempfile.mkdtemp())
+        adapter_path = tmp / "adapters" / "test-canonical-model.yaml"
+        _write_canonical_adapter(adapter_path)
+        tmp_run = tmp / "results" / _ADAPTER_SLUG / "runs" / "warpcore-v1" / "gsm8k" / "run-test-cli"
+        tmp_run.mkdir(parents=True, exist_ok=True)
         try:
-            # Write a valid status.json in the temp dir so CLI can proceed
-            status = {
-                "schema_version": 1,
-                "run_id": "run-test-cli",
-                "suite_id": "warpcore-v1",
-                "execution_state": "preflight_passed",
-                "lifecycle": "current",
-                "history": [
-                    {"state": "planned", "timestamp": "2026-09-15T12:00:00Z"},
-                    {"state": "preflight_passed", "timestamp": "2026-09-15T12:01:00Z"},
-                ],
-            }
+            # Write a valid planned status.json in the temp dir so CLI can proceed
+            status = _make_planned_status("run-test-cli")
             (tmp_run / "status.json").write_text(json.dumps(status))
             argv = [
                 "--suite", str(_REAL_SUITE),
-                "--adapter", str(_REPO / "adapters" / "qwen3.6-35b-a3b.yaml"),
+                "--adapter", str(adapter_path),
                 "--benchmark", "gsm8k",
                 "--endpoint", "http://fake:8000/v1",
                 "--throughput", "64",
                 "--concurrency", "8",
                 "--timeout", "14400",
                 "--run-dir", str(tmp_run),
+                "--repo", str(tmp),
+                "--prompt-tokens", "gsm8k=500,ifeval=2000,gpqa_diamond=1000",
                 "--dry-run",
             ]
-            # In dry-run, should print command and exit 0 (or possibly nonzero due to
-            # noncanonical adapter — but must not fail on unknown argument)
+            # In dry-run, should print command and exit 0
             try:
                 rc = run_quality.main(argv)
             except SystemExit as e:
@@ -728,26 +790,27 @@ class TestCLI(unittest.TestCase):
             # The important thing: no SystemExit(2) from "unrecognized argument"
             self.assertNotEqual(rc, 2, "Exit code 2 suggests unrecognized --dry-run argument")
         finally:
-            import shutil
-            shutil.rmtree(tmp_run, ignore_errors=True)
-
+            shutil.rmtree(tmp, ignore_errors=True)
 
     def test_gpqa_diamond_ceiling_in_command(self):
         """GPQA benchmark must use 65536 generation ceiling from suite."""
         tmp = pathlib.Path(tempfile.mkdtemp())
+        adapter_path = tmp / "adapters" / "test-canonical-model.yaml"
+        _write_canonical_adapter(adapter_path)
         try:
             run_dir = _build_run_dir(tmp, bench="gpqa_diamond")
             runner = run_quality.QualityRunner(
                 suite_path=_REAL_SUITE,
-                adapter_path=_REPO / "adapters" / "qwen3.6-35b-a3b.yaml",
+                adapter_path=adapter_path,
                 benchmark="gpqa_diamond",
                 endpoint="http://fake:8000/v1",
                 throughput=64.0,
                 concurrency=8,
                 timeout=14400,
                 run_dir=run_dir,
+                repo=tmp,
+                prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
                 dry_run=True,
-                allow_noncanonical_adapter=True,
                 preflight_runner=MagicMock(return_value=0),
                 harness_runner=MagicMock(return_value=0),
             )
@@ -797,6 +860,8 @@ class TestDependencyInjection(unittest.TestCase):
 
     def setUp(self):
         self.tmp = pathlib.Path(tempfile.mkdtemp())
+        self.adapter_path = self.tmp / "adapters" / "test-canonical-model.yaml"
+        _write_canonical_adapter(self.adapter_path)
 
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
@@ -804,19 +869,20 @@ class TestDependencyInjection(unittest.TestCase):
     def test_harness_runner_is_called_with_command_list(self):
         """harness_runner must be called with the command as a list."""
         run_dir = _build_run_dir(self.tmp)
-        (run_dir / "raw").mkdir()
+        _make_harness_artifacts(run_dir)
         harness_mock = MagicMock(return_value=0)
         runner = run_quality.QualityRunner(
             suite_path=_REAL_SUITE,
-            adapter_path=_REPO / "adapters" / "qwen3.6-35b-a3b.yaml",
+            adapter_path=self.adapter_path,
             benchmark="gsm8k",
             endpoint="http://fake:8000/v1",
             throughput=64.0,
             concurrency=8,
             timeout=14400,
             run_dir=run_dir,
+            repo=self.tmp,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
             allow_no_screen=True,
-            allow_noncanonical_adapter=True,
             preflight_runner=MagicMock(return_value=0),
             harness_runner=harness_mock,
         )
@@ -830,19 +896,20 @@ class TestDependencyInjection(unittest.TestCase):
     def test_preflight_runner_receives_gate_args(self):
         """preflight_runner must be called with gate configuration arguments."""
         run_dir = _build_run_dir(self.tmp)
-        (run_dir / "raw").mkdir()
+        _make_harness_artifacts(run_dir)
         preflight_mock = MagicMock(return_value=0)
         runner = run_quality.QualityRunner(
             suite_path=_REAL_SUITE,
-            adapter_path=_REPO / "adapters" / "qwen3.6-35b-a3b.yaml",
+            adapter_path=self.adapter_path,
             benchmark="gsm8k",
             endpoint="http://fake:8000/v1",
             throughput=64.0,
             concurrency=8,
             timeout=14400,
             run_dir=run_dir,
+            repo=self.tmp,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
             allow_no_screen=True,
-            allow_noncanonical_adapter=True,
             preflight_runner=preflight_mock,
             harness_runner=MagicMock(return_value=0),
         )
@@ -859,19 +926,22 @@ class TestIFEvalCeiling(unittest.TestCase):
     def test_ifeval_uses_65536_ceiling(self):
         """IFEval must use 65536 generation ceiling from suite."""
         tmp = pathlib.Path(tempfile.mkdtemp())
+        adapter_path = tmp / "adapters" / "test-canonical-model.yaml"
+        _write_canonical_adapter(adapter_path)
         try:
             run_dir = _build_run_dir(tmp, bench="ifeval")
             runner = run_quality.QualityRunner(
                 suite_path=_REAL_SUITE,
-                adapter_path=_REPO / "adapters" / "qwen3.6-35b-a3b.yaml",
+                adapter_path=adapter_path,
                 benchmark="ifeval",
                 endpoint="http://fake:8000/v1",
                 throughput=64.0,
                 concurrency=8,
                 timeout=14400,
                 run_dir=run_dir,
+                repo=tmp,
+                prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
                 dry_run=True,
-                allow_noncanonical_adapter=True,
                 preflight_runner=MagicMock(return_value=0),
                 harness_runner=MagicMock(return_value=0),
             )
@@ -884,7 +954,6 @@ class TestIFEvalCeiling(unittest.TestCase):
 
 # ---------------------------------------------------------------------------
 # HARDENING TESTS — added after adversarial review CHANGES_REQUIRED
-# These must all fail (RED) against the pre-hardening implementation.
 # ---------------------------------------------------------------------------
 
 
@@ -893,6 +962,8 @@ class TestCommandUsesLocalChatCompletions(unittest.TestCase):
 
     def setUp(self):
         self.tmp = pathlib.Path(tempfile.mkdtemp())
+        self.adapter_path = self.tmp / "adapters" / "test-canonical-model.yaml"
+        _write_canonical_adapter(self.adapter_path)
 
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
@@ -901,15 +972,16 @@ class TestCommandUsesLocalChatCompletions(unittest.TestCase):
         run_dir = _build_run_dir(self.tmp, bench)
         return run_quality.QualityRunner(
             suite_path=_REAL_SUITE,
-            adapter_path=_REPO / "adapters" / "qwen3.6-35b-a3b.yaml",
+            adapter_path=self.adapter_path,
             benchmark=bench,
             endpoint="http://fake:8000/v1",
             throughput=64.0,
             concurrency=8,
             timeout=14400,
             run_dir=run_dir,
+            repo=self.tmp,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
             dry_run=True,
-            allow_noncanonical_adapter=True,
             preflight_runner=MagicMock(return_value=0),
             harness_runner=MagicMock(return_value=0),
         )
@@ -946,6 +1018,8 @@ class TestCommandUsesTaskNameNotPath(unittest.TestCase):
 
     def setUp(self):
         self.tmp = pathlib.Path(tempfile.mkdtemp())
+        self.adapter_path = self.tmp / "adapters" / "test-canonical-model.yaml"
+        _write_canonical_adapter(self.adapter_path)
 
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
@@ -954,15 +1028,16 @@ class TestCommandUsesTaskNameNotPath(unittest.TestCase):
         run_dir = _build_run_dir(self.tmp, bench)
         return run_quality.QualityRunner(
             suite_path=_REAL_SUITE,
-            adapter_path=_REPO / "adapters" / "qwen3.6-35b-a3b.yaml",
+            adapter_path=self.adapter_path,
             benchmark=bench,
             endpoint="http://fake:8000/v1",
             throughput=64.0,
             concurrency=8,
             timeout=14400,
             run_dir=run_dir,
+            repo=self.tmp,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
             dry_run=True,
-            allow_noncanonical_adapter=True,
             preflight_runner=MagicMock(return_value=0),
             harness_runner=MagicMock(return_value=0),
         )
@@ -1006,6 +1081,8 @@ class TestCommandMaxRetries(unittest.TestCase):
 
     def setUp(self):
         self.tmp = pathlib.Path(tempfile.mkdtemp())
+        self.adapter_path = self.tmp / "adapters" / "test-canonical-model.yaml"
+        _write_canonical_adapter(self.adapter_path)
 
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
@@ -1015,15 +1092,16 @@ class TestCommandMaxRetries(unittest.TestCase):
         run_dir = _build_run_dir(self.tmp)
         runner = run_quality.QualityRunner(
             suite_path=_REAL_SUITE,
-            adapter_path=_REPO / "adapters" / "qwen3.6-35b-a3b.yaml",
+            adapter_path=self.adapter_path,
             benchmark="gsm8k",
             endpoint="http://fake:8000/v1",
             throughput=64.0,
             concurrency=8,
             timeout=14400,
             run_dir=run_dir,
+            repo=self.tmp,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
             dry_run=True,
-            allow_noncanonical_adapter=True,
             preflight_runner=MagicMock(return_value=0),
             harness_runner=MagicMock(return_value=0),
         )
@@ -1038,6 +1116,8 @@ class TestReadStatusFailsClosedWhenMissing(unittest.TestCase):
 
     def setUp(self):
         self.tmp = pathlib.Path(tempfile.mkdtemp())
+        self.adapter_path = self.tmp / "adapters" / "test-canonical-model.yaml"
+        _write_canonical_adapter(self.adapter_path)
 
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
@@ -1045,28 +1125,30 @@ class TestReadStatusFailsClosedWhenMissing(unittest.TestCase):
     def test_missing_status_json_raises_not_fabricates(self):
         """If status.json is absent, run() must return nonzero (fail closed), not proceed."""
         # Create a run dir WITHOUT status.json (and without manifest.json)
-        run_dir = self.tmp / "bare-run"
-        run_dir.mkdir()
+        # Must be in the normalized path for identity to pass
+        run_dir = self.tmp / "results" / _ADAPTER_SLUG / "runs" / "warpcore-v1" / "gsm8k" / "bare-run"
+        run_dir.mkdir(parents=True)
         # Create raw dir so DONE check isn't the failure point
         (run_dir / "raw").mkdir()
 
         runner = run_quality.QualityRunner(
             suite_path=_REAL_SUITE,
-            adapter_path=_REPO / "adapters" / "qwen3.6-35b-a3b.yaml",
+            adapter_path=self.adapter_path,
             benchmark="gsm8k",
             endpoint="http://fake:8000/v1",
             throughput=64.0,
             concurrency=8,
             timeout=14400,
             run_dir=run_dir,
+            repo=self.tmp,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
             allow_no_screen=True,
-            allow_noncanonical_adapter=True,
             preflight_runner=MagicMock(return_value=0),
             harness_runner=MagicMock(return_value=0),
         )
         rc = runner.run()
         # Must not succeed — missing status.json must not be fabricated
-        self.assertNotEqual(rc, 0, "Missing status.json must fail closed, not fabricate preflight_passed")
+        self.assertNotEqual(rc, 0, "Missing status.json must fail closed, not fabricate planned state")
         # DONE must NOT be written
         self.assertFalse((run_dir / "DONE").exists(),
                          "DONE must not be written when status.json is absent")
@@ -1077,6 +1159,8 @@ class TestTransitionErrorsAreFatal(unittest.TestCase):
 
     def setUp(self):
         self.tmp = pathlib.Path(tempfile.mkdtemp())
+        self.adapter_path = self.tmp / "adapters" / "test-canonical-model.yaml"
+        _write_canonical_adapter(self.adapter_path)
 
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
@@ -1099,19 +1183,20 @@ class TestTransitionErrorsAreFatal(unittest.TestCase):
             ],
         }
         (run_dir / "status.json").write_text(json.dumps(terminal_status))
-        (run_dir / "raw").mkdir()
+        (run_dir / "raw").mkdir(exist_ok=True)
 
         runner = run_quality.QualityRunner(
             suite_path=_REAL_SUITE,
-            adapter_path=_REPO / "adapters" / "qwen3.6-35b-a3b.yaml",
+            adapter_path=self.adapter_path,
             benchmark="gsm8k",
             endpoint="http://fake:8000/v1",
             throughput=64.0,
             concurrency=8,
             timeout=14400,
             run_dir=run_dir,
+            repo=self.tmp,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
             allow_no_screen=True,
-            allow_noncanonical_adapter=True,
             preflight_runner=MagicMock(return_value=0),
             harness_runner=MagicMock(return_value=0),
         )
@@ -1135,19 +1220,20 @@ class TestTransitionErrorsAreFatal(unittest.TestCase):
             ],
         }
         (run_dir / "status.json").write_text(json.dumps(failed_status))
-        (run_dir / "raw").mkdir()
+        (run_dir / "raw").mkdir(exist_ok=True)
 
         runner = run_quality.QualityRunner(
             suite_path=_REAL_SUITE,
-            adapter_path=_REPO / "adapters" / "qwen3.6-35b-a3b.yaml",
+            adapter_path=self.adapter_path,
             benchmark="gsm8k",
             endpoint="http://fake:8000/v1",
             throughput=64.0,
             concurrency=8,
             timeout=14400,
             run_dir=run_dir,
+            repo=self.tmp,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
             allow_no_screen=True,
-            allow_noncanonical_adapter=True,
             preflight_runner=MagicMock(return_value=0),
             harness_runner=MagicMock(return_value=0),
         )
@@ -1160,6 +1246,8 @@ class TestEvidenceVerificationBeforeDone(unittest.TestCase):
 
     def setUp(self):
         self.tmp = pathlib.Path(tempfile.mkdtemp())
+        self.adapter_path = self.tmp / "adapters" / "test-canonical-model.yaml"
+        _write_canonical_adapter(self.adapter_path)
 
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
@@ -1168,15 +1256,16 @@ class TestEvidenceVerificationBeforeDone(unittest.TestCase):
         run_dir = _build_run_dir(self.tmp)
         runner = run_quality.QualityRunner(
             suite_path=_REAL_SUITE,
-            adapter_path=_REPO / "adapters" / "qwen3.6-35b-a3b.yaml",
+            adapter_path=self.adapter_path,
             benchmark="gsm8k",
             endpoint="http://fake:8000/v1",
             throughput=64.0,
             concurrency=8,
             timeout=14400,
             run_dir=run_dir,
+            repo=self.tmp,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
             allow_no_screen=True,
-            allow_noncanonical_adapter=True,
             preflight_runner=MagicMock(return_value=0),
             harness_runner=MagicMock(return_value=harness_exit),
         )
@@ -1201,7 +1290,6 @@ class TestEvidenceVerificationBeforeDone(unittest.TestCase):
         (raw_dir / "results_2026-09-15T12-00-00.json").write_text(
             '{"results": {"gsm8k_cot_zeroshot_clean": {"exact_match,none": 0.85}}}')
         samples_gz = raw_dir / "samples_gsm8k_cot_zeroshot_clean_2026-09-15T12-00-00.jsonl.gz"
-        import gzip
         samples_gz.write_bytes(gzip.compress(b'{"doc_id": 0, "target": "42", "filtered_resps": ["42"]}\n'))
         rc = runner.run()
         self.assertTrue((run_dir / "DONE").exists(), "DONE must be written when required artifacts exist")
@@ -1214,6 +1302,8 @@ class TestHarnessExitCodeInHistoryEntry(unittest.TestCase):
 
     def setUp(self):
         self.tmp = pathlib.Path(tempfile.mkdtemp())
+        self.adapter_path = self.tmp / "adapters" / "test-canonical-model.yaml"
+        _write_canonical_adapter(self.adapter_path)
 
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
@@ -1225,15 +1315,16 @@ class TestHarnessExitCodeInHistoryEntry(unittest.TestCase):
 
         runner = run_quality.QualityRunner(
             suite_path=_REAL_SUITE,
-            adapter_path=_REPO / "adapters" / "qwen3.6-35b-a3b.yaml",
+            adapter_path=self.adapter_path,
             benchmark="gsm8k",
             endpoint="http://fake:8000/v1",
             throughput=64.0,
             concurrency=8,
             timeout=14400,
             run_dir=run_dir,
+            repo=self.tmp,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
             allow_no_screen=True,
-            allow_noncanonical_adapter=True,
             preflight_runner=MagicMock(return_value=0),
             harness_runner=MagicMock(return_value=42),
         )
@@ -1260,15 +1351,16 @@ class TestHarnessExitCodeInHistoryEntry(unittest.TestCase):
 
         runner = run_quality.QualityRunner(
             suite_path=_REAL_SUITE,
-            adapter_path=_REPO / "adapters" / "qwen3.6-35b-a3b.yaml",
+            adapter_path=self.adapter_path,
             benchmark="gsm8k",
             endpoint="http://fake:8000/v1",
             throughput=64.0,
             concurrency=8,
             timeout=14400,
             run_dir=run_dir,
+            repo=self.tmp,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
             allow_no_screen=True,
-            allow_noncanonical_adapter=True,
             preflight_runner=MagicMock(return_value=0),
             harness_runner=MagicMock(return_value=1),
         )
@@ -1284,6 +1376,8 @@ class TestStatusSchemaRequiredFields(unittest.TestCase):
 
     def setUp(self):
         self.tmp = pathlib.Path(tempfile.mkdtemp())
+        self.adapter_path = self.tmp / "adapters" / "test-canonical-model.yaml"
+        _write_canonical_adapter(self.adapter_path)
 
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
@@ -1291,24 +1385,19 @@ class TestStatusSchemaRequiredFields(unittest.TestCase):
     def _make_runner(self, harness_exit=0, raw_exists=True):
         run_dir = _build_run_dir(self.tmp)
         if raw_exists:
-            raw_dir = run_dir / "raw"
-            raw_dir.mkdir()
-            import gzip
-            (raw_dir / "results_2026-09-15T12-00-00.json").write_text(
-                '{"results": {"gsm8k_cot_zeroshot_clean": {"exact_match,none": 0.85}}}')
-            samples_gz = raw_dir / "samples_gsm8k_cot_zeroshot_clean_2026-09-15T12-00-00.jsonl.gz"
-            samples_gz.write_bytes(gzip.compress(b'{"doc_id": 0}\n'))
+            _make_harness_artifacts(run_dir)
         runner = run_quality.QualityRunner(
             suite_path=_REAL_SUITE,
-            adapter_path=_REPO / "adapters" / "qwen3.6-35b-a3b.yaml",
+            adapter_path=self.adapter_path,
             benchmark="gsm8k",
             endpoint="http://fake:8000/v1",
             throughput=64.0,
             concurrency=8,
             timeout=14400,
             run_dir=run_dir,
+            repo=self.tmp,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
             allow_no_screen=True,
-            allow_noncanonical_adapter=True,
             preflight_runner=MagicMock(return_value=0),
             harness_runner=MagicMock(return_value=harness_exit),
         )
@@ -1351,7 +1440,16 @@ class TestAdapterValidationInInit(unittest.TestCase):
 
     def test_noncanonical_adapter_raises_on_init(self):
         """QualityRunner must reject noncanonical adapters at construction time."""
-        run_dir = _build_run_dir(self.tmp)
+        run_dir = self.tmp / "results" / "qwen3.6-35b-a3b" / "runs" / "warpcore-v1" / "gsm8k" / "run-test"
+        run_dir.mkdir(parents=True)
+        (run_dir / "status.json").write_text(json.dumps({
+            "schema_version": 1,
+            "run_id": "run-test",
+            "suite_id": "warpcore-v1",
+            "execution_state": "planned",
+            "lifecycle": "current",
+            "history": [{"state": "planned", "timestamp": "2026-09-15T12:00:00Z"}],
+        }))
         # The real adapter is noncanonical — QualityRunner must raise
         with self.assertRaises(Exception) as ctx:
             run_quality.QualityRunner(
@@ -1363,6 +1461,8 @@ class TestAdapterValidationInInit(unittest.TestCase):
                 concurrency=8,
                 timeout=14400,
                 run_dir=run_dir,
+                repo=self.tmp,
+                prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
                 dry_run=True,
                 preflight_runner=MagicMock(return_value=0),
                 harness_runner=MagicMock(return_value=0),
@@ -1379,6 +1479,8 @@ class TestDryRunNoMutation(unittest.TestCase):
 
     def setUp(self):
         self.tmp = pathlib.Path(tempfile.mkdtemp())
+        self.adapter_path = self.tmp / "adapters" / "test-canonical-model.yaml"
+        _write_canonical_adapter(self.adapter_path)
 
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
@@ -1388,15 +1490,16 @@ class TestDryRunNoMutation(unittest.TestCase):
         run_dir = _build_run_dir(self.tmp)
         runner = run_quality.QualityRunner(
             suite_path=_REAL_SUITE,
-            adapter_path=_REPO / "adapters" / "qwen3.6-35b-a3b.yaml",
+            adapter_path=self.adapter_path,
             benchmark="gsm8k",
             endpoint="http://fake:8000/v1",
             throughput=64.0,
             concurrency=8,
             timeout=14400,
             run_dir=run_dir,
+            repo=self.tmp,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
             dry_run=True,
-            allow_noncanonical_adapter=True,
             preflight_runner=MagicMock(return_value=0),
             harness_runner=MagicMock(return_value=0),
         )
@@ -1405,51 +1508,41 @@ class TestDryRunNoMutation(unittest.TestCase):
         self.assertTrue((run_dir / "command.txt").exists())
 
     def test_dry_run_cli_with_explicit_run_dir_no_repo_artifacts(self):
-        """CLI dry-run with explicit --run-dir must not create files inside the repo."""
-        run_dir = self.tmp / "test-run-cli"
-        run_dir.mkdir(parents=True)
-        # Write required status.json in the explicit run dir
-        status = {
-            "schema_version": 1,
-            "run_id": "test-run-cli",
-            "suite_id": "warpcore-v1",
-            "execution_state": "preflight_passed",
-            "lifecycle": "current",
-            "history": [
-                {"state": "planned", "timestamp": "2026-09-15T12:00:00Z"},
-                {"state": "preflight_passed", "timestamp": "2026-09-15T12:01:00Z"},
-            ],
-        }
-        (run_dir / "status.json").write_text(json.dumps(status))
-        (run_dir / "manifest.json").write_text(json.dumps({
+        """CLI dry-run with explicit --run-dir must not create files inside the real repo."""
+        # Build run dir in tmp (not real repo)
+        tmp_run = self.tmp / "results" / _ADAPTER_SLUG / "runs" / "warpcore-v1" / "gsm8k" / "test-run-cli"
+        tmp_run.mkdir(parents=True)
+        # Write required planned status.json
+        status = _make_planned_status("test-run-cli")
+        (tmp_run / "status.json").write_text(json.dumps(status))
+        (tmp_run / "manifest.json").write_text(json.dumps({
             "suite_id": "warpcore-v1", "run_id": "test-run-cli",
             "benchmark": "gsm8k",
-            "model": {"slug": "test-model", "id": "test/model", "revision": "abc123"},
+            "model": {"slug": _ADAPTER_SLUG, "id": "testorg/TestCanonicalModel", "revision": "a" * 40},
             "item_inventory": {"expected": 1319},
         }))
         argv = [
             "--suite", str(_REAL_SUITE),
-            "--adapter", str(_REPO / "adapters" / "qwen3.6-35b-a3b.yaml"),
+            "--adapter", str(self.adapter_path),
             "--benchmark", "gsm8k",
             "--endpoint", "http://fake:8000/v1",
             "--throughput", "64",
             "--concurrency", "8",
             "--timeout", "14400",
-            "--run-dir", str(run_dir),
+            "--run-dir", str(tmp_run),
+            "--repo", str(self.tmp),
+            "--prompt-tokens", "gsm8k=500,ifeval=2000,gpqa_diamond=1000",
             "--dry-run",
         ]
         try:
             run_quality.main(argv)
         except SystemExit:
             pass
-        # The repo's results/ dir must NOT have been created by this test
-        repo_results = _REPO / "results" / "qwen3.6-35b-a3b" / "runs"
-        # Check no new directories under repo were created by the CLI test
-        # (The pre-existing runs/ from prior test runs may exist — we can't assert
-        # it doesn't exist, but we can verify no NEW run-id was created there)
+        # The real repo's results/ dir must NOT have been created by this test
+        repo_results = _REPO / "results" / _ADAPTER_SLUG / "runs"
         new_run = repo_results / "warpcore-v1" / "gsm8k" / "test-run-cli"
         self.assertFalse(new_run.exists(),
-                         "CLI with explicit --run-dir must not create artifacts inside repo")
+                         "CLI with explicit --run-dir must not create artifacts inside real repo")
 
 
 class TestRunDirContainment(unittest.TestCase):
@@ -1457,6 +1550,8 @@ class TestRunDirContainment(unittest.TestCase):
 
     def setUp(self):
         self.tmp = pathlib.Path(tempfile.mkdtemp())
+        self.adapter_path = self.tmp / "adapters" / "test-canonical-model.yaml"
+        _write_canonical_adapter(self.adapter_path)
 
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
@@ -1464,36 +1559,31 @@ class TestRunDirContainment(unittest.TestCase):
     def test_run_dir_outside_repo_rejected(self):
         """CLI must reject --run-dir that resolves outside the repository."""
         # run_dir in /tmp (outside repo)
-        run_dir = self.tmp / "escape-run"
+        outside_tmp = pathlib.Path(tempfile.mkdtemp())
+        run_dir = outside_tmp / "escape-run"
         run_dir.mkdir()
-        # Write a valid status so we reach containment check
-        status = {
-            "schema_version": 1,
-            "run_id": "escape-run",
-            "suite_id": "warpcore-v1",
-            "execution_state": "preflight_passed",
-            "lifecycle": "current",
-            "history": [
-                {"state": "planned", "timestamp": "2026-09-15T12:00:00Z"},
-                {"state": "preflight_passed", "timestamp": "2026-09-15T12:01:00Z"},
-            ],
-        }
+        # Write a valid planned status so we reach containment check
+        status = _make_planned_status("escape-run")
         (run_dir / "status.json").write_text(json.dumps(status))
         argv = [
             "--suite", str(_REAL_SUITE),
-            "--adapter", str(_REPO / "adapters" / "qwen3.6-35b-a3b.yaml"),
+            "--adapter", str(self.adapter_path),
             "--benchmark", "gsm8k",
             "--endpoint", "http://fake:8000/v1",
             "--throughput", "64",
             "--concurrency", "8",
             "--timeout", "14400",
             "--run-dir", str(run_dir),
+            "--repo", str(self.tmp),  # repo is self.tmp, run_dir is outside_tmp
+            "--prompt-tokens", "gsm8k=500,ifeval=2000,gpqa_diamond=1000",
             "--dry-run",
         ]
         try:
             rc = run_quality.main(argv)
         except SystemExit as e:
             rc = e.code
+        finally:
+            shutil.rmtree(outside_tmp, ignore_errors=True)
         self.assertNotEqual(rc, 0,
                             "--run-dir outside repo must be rejected (nonzero exit)")
 
@@ -1503,6 +1593,8 @@ class TestTaskNameReadFromYaml(unittest.TestCase):
 
     def setUp(self):
         self.tmp = pathlib.Path(tempfile.mkdtemp())
+        self.adapter_path = self.tmp / "adapters" / "test-canonical-model.yaml"
+        _write_canonical_adapter(self.adapter_path)
 
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
@@ -1512,15 +1604,16 @@ class TestTaskNameReadFromYaml(unittest.TestCase):
         run_dir = _build_run_dir(self.tmp, bench="gpqa_diamond")
         runner = run_quality.QualityRunner(
             suite_path=_REAL_SUITE,
-            adapter_path=_REPO / "adapters" / "qwen3.6-35b-a3b.yaml",
+            adapter_path=self.adapter_path,
             benchmark="gpqa_diamond",
             endpoint="http://fake:8000/v1",
             throughput=64.0,
             concurrency=8,
             timeout=14400,
             run_dir=run_dir,
+            repo=self.tmp,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
             dry_run=True,
-            allow_noncanonical_adapter=True,
             preflight_runner=MagicMock(return_value=0),
             harness_runner=MagicMock(return_value=0),
         )
@@ -1537,6 +1630,8 @@ class TestExactArgvAssertions(unittest.TestCase):
 
     def setUp(self):
         self.tmp = pathlib.Path(tempfile.mkdtemp())
+        self.adapter_path = self.tmp / "adapters" / "test-canonical-model.yaml"
+        _write_canonical_adapter(self.adapter_path)
 
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
@@ -1545,15 +1640,16 @@ class TestExactArgvAssertions(unittest.TestCase):
         run_dir = _build_run_dir(self.tmp, bench)
         return run_quality.QualityRunner(
             suite_path=_REAL_SUITE,
-            adapter_path=_REPO / "adapters" / "qwen3.6-35b-a3b.yaml",
+            adapter_path=self.adapter_path,
             benchmark=bench,
             endpoint="http://fake:8000/v1",
             throughput=64.0,
             concurrency=8,
             timeout=14400,
             run_dir=run_dir,
+            repo=self.tmp,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
             dry_run=True,
-            allow_noncanonical_adapter=True,
             preflight_runner=MagicMock(return_value=0),
             harness_runner=MagicMock(return_value=0),
         )

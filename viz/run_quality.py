@@ -11,19 +11,26 @@ CONTRACT (from docs/superpowers/specs/2026-09-15-warpcore-v1-apples-to-apples-de
 - Uses --include_path <task_dir> and --tasks <task_name_from_yaml>.
 - Uses canonical task name from suite task_file YAML 'task:' field, not the file path.
 - Includes --log_samples.
-- Points output at normalized run directory.
+- Points output at normalized run directory's raw/ subdirectory.
 - CLI does NOT accept overrides for task, ceiling, sampling, scoring, datasets, or instances.
-- Runs QualityPreflightGate before harness; exit 1 or 2 blocks launch.
+- Lifecycle order: planned -> QualityPreflightGate -> preflight_passed -> running -> harness.
 - Refuses long launch outside /usr/bin/screen except in --dry-run or explicit test mode.
 - Uses dependency-injected process execution.
 - Does not duplicate preflight_serving.py, check_output_budget.py, or timeout arithmetic.
 - Writes exact argv to command.txt using shell-safe quoting.
+- Captures harness stdout+stderr in run.log (run_dir/run.log).
 - On success: verifies required raw files (aggregate result + nonempty samples) before writing DONE.
+  DONE is written only after completed status is schema-validated and written successfully.
 - On nonzero harness exit: does NOT write DONE; records exit_code in history entry;
   transitions to failed. Does NOT add top-level harness_exit_code (schema forbids it).
 - State transitions are fatal: missing/invalid status.json or illegal transition aborts run.
-- Noncanonical adapters are rejected at construction time.
-- Run directory must resolve inside the repository root (containment check).
+  _read_status_strict validates against JSON schema, verifies run_id==run_dir.name,
+  and verifies suite_id matches loaded suite.
+- Noncanonical adapters are rejected at construction time (no allow_noncanonical_adapter bypass).
+- Run directory must be exactly repo/results/<adapter-slug>/runs/<suite_id>/<bench>/<run_id>.
+- Completion is atomic: schema-validate completed status, write status, then write DONE.
+  If status write fails, return nonzero — never return success with running status.
+- Evidence validator recursively finds artifacts under raw/ subdirectories.
 
 USAGE
 -----
@@ -37,6 +44,7 @@ USAGE
         --concurrency 8 \\
         --timeout 14400 \\
         --run-id run-2026-09-15T12-00-00 \\
+        --prompt-tokens gsm8k=500 \\
         --dry-run
 
     # Live run (must be inside /usr/bin/screen):
@@ -49,7 +57,8 @@ USAGE
         --throughput 64 \\
         --concurrency 8 \\
         --timeout 14400 \\
-        --run-id run-2026-09-15T12-00-00
+        --run-id run-2026-09-15T12-00-00 \\
+        --prompt-tokens gsm8k=500
 
 EXIT CODES
 ----------
@@ -66,9 +75,10 @@ import os
 import pathlib
 import re
 import shlex
+import subprocess
 import sys
 from datetime import datetime, timezone
-from typing import Callable, List, Optional
+from typing import Callable, Dict, List, Optional
 
 # ---------------------------------------------------------------------------
 # Path setup — allow importing sibling viz modules
@@ -89,16 +99,16 @@ import campaign_state  # noqa: E402
 from contract import (  # noqa: E402
     load_yaml,
     validate_json,
-    validate_adapter,
     validate_adapter_campaign_ready,
 )
 
 # ---------------------------------------------------------------------------
-# Schemas dir
+# Schemas dir — always the real repo schemas, regardless of run-dir layout repo
 # ---------------------------------------------------------------------------
 
 _SCHEMAS_DIR = _REPO_DIR / "suite" / "schemas"
 _STATUS_SCHEMA = _SCHEMAS_DIR / "result-status.schema.json"
+_ADAPTER_SCHEMA = _SCHEMAS_DIR / "adapter.schema.json"
 
 # ---------------------------------------------------------------------------
 # Forbidden CLI override flags
@@ -139,16 +149,13 @@ def _utcnow() -> str:
 
 def _is_under_screen() -> bool:
     """Return True when the process is running inside a GNU screen session."""
-    # GNU screen sets STY to the session name
     return bool(os.environ.get("STY", ""))
 
 
 # ---------------------------------------------------------------------------
-# Evidence verification
+# Evidence verification (recursive)
 # ---------------------------------------------------------------------------
 
-# Patterns matching lm-eval 0.4.12 output file naming conventions.
-# These are the minimum required evidence: aggregate result + nonempty samples.
 _AGGREGATE_RESULT_RE = re.compile(r"^results_.*\.json$")
 _SAMPLES_JSONL_GZ_RE = re.compile(r"^samples_.*\.jsonl\.gz$")
 
@@ -157,11 +164,16 @@ def _verify_required_evidence(run_dir: pathlib.Path) -> List[str]:
     """Return a list of error strings if required harness artifacts are missing.
 
     Required minimum (subset of full required_evidence from suite):
-      - At least one aggregate result JSON (results_*.json) in raw/
-      - At least one nonempty samples JSONL.GZ (samples_*.jsonl.gz) in raw/
+      - At least one aggregate result JSON (results_*.json) that is nonempty
+      - At least one nonempty valid gzip samples file (samples_*.jsonl.gz)
+
+    Searches recursively under raw/ to find artifacts in subdirectories
+    (lm-eval 0.4.12 writes into named subdirs under the output path).
 
     Returns [] on success, list of errors on failure.
     """
+    import gzip as _gzip
+
     raw_dir = run_dir / "raw"
     errors: List[str] = []
 
@@ -169,32 +181,58 @@ def _verify_required_evidence(run_dir: pathlib.Path) -> List[str]:
         errors.append(f"raw/ directory does not exist at {raw_dir}")
         return errors
 
-    files = list(raw_dir.iterdir())
-    if not files:
+    # Recursive search for artifacts under raw/
+    all_files = list(raw_dir.rglob("*"))
+    if not any(f.is_file() for f in all_files):
         errors.append(f"raw/ directory is empty at {raw_dir} — no harness artifacts produced")
         return errors
 
-    aggregate_results = [f for f in files if _AGGREGATE_RESULT_RE.match(f.name)]
-    if not aggregate_results:
-        errors.append(
-            f"No aggregate result file (results_*.json) found in {raw_dir}. "
-            "lm-eval must produce at least one results JSON."
-        )
+    # Find aggregate result JSONs (nonempty)
+    aggregate_results = [
+        f for f in all_files
+        if f.is_file() and _AGGREGATE_RESULT_RE.match(f.name)
+    ]
+    nonempty_results = [f for f in aggregate_results if f.stat().st_size > 0]
+    if not nonempty_results:
+        if aggregate_results:
+            errors.append(
+                f"All results_*.json files in {raw_dir} (searched recursively) are empty. "
+                "lm-eval must produce a nonempty aggregate result JSON."
+            )
+        else:
+            errors.append(
+                f"No aggregate result file (results_*.json) found under {raw_dir} "
+                "(searched recursively). lm-eval must produce at least one results JSON."
+            )
 
-    samples_gz = [f for f in files if _SAMPLES_JSONL_GZ_RE.match(f.name)]
+    # Find samples JSONL.GZ files — must be valid nonempty gzip
+    samples_gz = [
+        f for f in all_files
+        if f.is_file() and _SAMPLES_JSONL_GZ_RE.match(f.name)
+    ]
     if not samples_gz:
         errors.append(
-            f"No samples file (samples_*.jsonl.gz) found in {raw_dir}. "
-            "lm-eval must produce compressed samples (--log_samples required)."
+            f"No samples file (samples_*.jsonl.gz) found under {raw_dir} "
+            "(searched recursively). lm-eval must produce compressed samples (--log_samples required)."
         )
     else:
-        # Verify at least one sample file is nonempty (gzip header at minimum)
-        nonempty = [f for f in samples_gz if f.stat().st_size > 20]
-        if not nonempty:
-            errors.append(
-                f"All samples_*.jsonl.gz files in {raw_dir} are empty. "
-                "Evidence is required to be nonempty."
-            )
+        valid_nonempty = []
+        for gz_path in samples_gz:
+            try:
+                with _gzip.open(gz_path, "rb") as fh:
+                    content = fh.read(1)
+                if len(content) > 0:
+                    valid_nonempty.append(gz_path)
+                else:
+                    errors.append(
+                        f"samples file {gz_path.name} is valid gzip but contains no data. "
+                        "Evidence must be a nonempty archive."
+                    )
+            except Exception:
+                errors.append(
+                    f"samples file {gz_path.name} is corrupt or not valid gzip. "
+                    "Evidence must be a valid nonempty gzip archive."
+                )
 
     return errors
 
@@ -205,31 +243,19 @@ def _verify_required_evidence(run_dir: pathlib.Path) -> List[str]:
 
 
 def _read_task_name_from_yaml(task_file_path: pathlib.Path) -> str:
-    """Read the registered 'task:' name from a lm-eval task YAML file.
-
-    lm-eval 0.4.12 registers tasks by the 'task:' field in the YAML, not by
-    filename. --tasks must receive this registered name, not the file path.
-
-    lm-eval task YAMLs may use custom tags (e.g. ``!function``) that PyYAML's
-    SafeLoader rejects.  We only need the scalar ``task:`` field, so we install
-    a permissive multi-tag constructor that yields ``None`` for any unknown tag
-    — sufficient for key extraction without executing any callables.
-
-    Raises ValueError if the 'task:' field is absent or empty.
-    """
+    """Read the registered 'task:' name from a lm-eval task YAML file."""
     import yaml as _yaml
 
     class _PermissiveLoader(_yaml.SafeLoader):
         pass
 
-    # Accept any !tag by returning None for unknown constructors
     _PermissiveLoader.add_multi_constructor(
         "",
         lambda loader, tag_suffix, node: None,
     )
 
     raw = pathlib.Path(task_file_path).read_text(encoding="utf-8")
-    data = _yaml.load(raw, Loader=_PermissiveLoader)  # noqa: S506 — not untrusted, local repo file
+    data = _yaml.load(raw, Loader=_PermissiveLoader)  # noqa: S506
     if not isinstance(data, dict):
         raise ValueError(
             f"Task YAML {task_file_path} did not parse to a mapping; got {type(data).__name__}."
@@ -237,10 +263,40 @@ def _read_task_name_from_yaml(task_file_path: pathlib.Path) -> str:
     task_name = data.get("task", "") or ""
     if not task_name:
         raise ValueError(
-            f"Task YAML {task_file_path} does not define a 'task:' field. "
-            "lm-eval registers tasks by name; the 'task:' field is required."
+            f"Task YAML {task_file_path} does not define a 'task:' field."
         )
     return str(task_name)
+
+
+# ---------------------------------------------------------------------------
+# Normalized run directory validation
+# ---------------------------------------------------------------------------
+
+
+def _validate_run_dir_identity(
+    run_dir: pathlib.Path,
+    repo: pathlib.Path,
+    adapter_slug: str,
+    suite_id: str,
+    benchmark: str,
+    run_id: str,
+) -> List[str]:
+    """Validate that run_dir exactly equals repo/results/<slug>/runs/<suite_id>/<bench>/<run_id>.
+
+    Returns [] on success, list of error strings on failure.
+    """
+    expected = (
+        repo / "results" / adapter_slug / "runs" / suite_id / benchmark / run_id
+    ).resolve()
+    actual = run_dir.resolve()
+    if actual != expected:
+        return [
+            f"Run directory identity mismatch: "
+            f"expected {expected}, got {actual}. "
+            f"Run directories must match the exact normalized layout: "
+            f"<repo>/results/<adapter-slug>/runs/<suite-id>/<benchmark>/<run-id>."
+        ]
+    return []
 
 
 # ---------------------------------------------------------------------------
@@ -256,34 +312,31 @@ class QualityRunner:
     suite_path : pathlib.Path
         Path to warpcore-v1.yaml.
     adapter_path : pathlib.Path
-        Path to adapter YAML (e.g. adapters/qwen3.6-35b-a3b.yaml).
+        Path to adapter YAML.
     benchmark : str
-        Benchmark key (e.g. "gsm8k", "gpqa_diamond").
+        Benchmark key (e.g. "gsm8k").
     endpoint : str
         OpenAI-compatible base URL ending in /v1.
     throughput : float
-        Measured aggregate token throughput (tok/s) across all workers.
+        Measured aggregate token throughput (tok/s).
     concurrency : int
         Number of parallel lm-eval workers.
     timeout : float
         lm-eval --timeout value in seconds.
     run_dir : pathlib.Path
-        Normalized run directory (already created by create_campaign).
+        Normalized run directory.
+    repo : pathlib.Path or None
+        Repository root for run directory layout. Defaults to parent of suite file.
+    prompt_token_maxima : dict or None
+        Measured tokenized prompt maxima keyed by benchmark.
     dry_run : bool
-        If True, build and print the command, write command.txt, but do not
-        invoke preflight or harness. Does not require /usr/bin/screen.
+        If True, build and print command without invoking preflight or harness.
     allow_no_screen : bool
-        If True, bypass the screen guard (for tests and special ops). Never
-        pass this from the CLI in production.
-    allow_noncanonical_adapter : bool
-        If True, skip the noncanonical adapter check (for test fixtures only).
-        Never pass this from the CLI in production.
+        Bypass the screen guard (tests and special ops only).
     preflight_runner : callable or None
-        Injected callable(model_id) -> int for running the preflight gate.
-        Defaults to gate.run().
+        Injected callable(model_id) -> int.
     harness_runner : callable or None
-        Injected callable(cmd: list) -> int for running the harness.
-        Defaults to subprocess.run.
+        Injected callable(cmd: list, **kw) -> int.
     """
 
     def __init__(
@@ -296,9 +349,10 @@ class QualityRunner:
         concurrency: int,
         timeout: float,
         run_dir: pathlib.Path,
+        repo: Optional[pathlib.Path] = None,
+        prompt_token_maxima: Optional[Dict[str, int]] = None,
         dry_run: bool = False,
         allow_no_screen: bool = False,
-        allow_noncanonical_adapter: bool = False,
         preflight_runner: Optional[Callable] = None,
         harness_runner: Optional[Callable] = None,
     ) -> None:
@@ -312,9 +366,16 @@ class QualityRunner:
         self.run_dir = pathlib.Path(run_dir).resolve()
         self.dry_run = dry_run
         self.allow_no_screen = allow_no_screen
+        self.prompt_token_maxima = prompt_token_maxima
+
+        # _repo: used ONLY for run directory layout (not for schema lookup)
+        if repo is not None:
+            self._repo = pathlib.Path(repo).resolve()
+        else:
+            self._repo = self.suite_path.parent.parent
 
         # Load suite
-        import yaml  # type: ignore
+        import yaml
         with open(self.suite_path) as fh:
             self._suite: dict = yaml.safe_load(fh)
 
@@ -322,27 +383,35 @@ class QualityRunner:
         with open(self.adapter_path) as fh:
             self._adapter: dict = yaml.safe_load(fh)
 
-        # -- Adapter validation (fail closed on noncanonical) --
-        if not allow_noncanonical_adapter:
-            repo = self.suite_path.parent.parent
-            adapter_errors = validate_adapter(repo, self.adapter_path)
-            if adapter_errors:
+        # -- Adapter schema validation --
+        # Always uses _ADAPTER_SCHEMA from the real repo (module-level constant),
+        # not from self._repo (which may be a temp dir in tests).
+        if _ADAPTER_SCHEMA.exists():
+            schema_errors = validate_json(self._adapter, _ADAPTER_SCHEMA)
+            if schema_errors:
                 raise ValueError(
                     f"Adapter schema validation failed for {self.adapter_path}:\n"
-                    + "\n".join(adapter_errors)
+                    + "\n".join(schema_errors)
                 )
-            model_slug = (self._adapter.get("model") or {}).get("slug", "")
-            readiness_errors = validate_adapter_campaign_ready(
-                self._adapter,
-                model_slug,
-                suite=self._suite,
-                prompt_token_maxima=None,
+        else:
+            raise ValueError(
+                f"Adapter schema not found at {_ADAPTER_SCHEMA}. "
+                "Cannot validate adapter without schema."
             )
-            if readiness_errors:
-                raise ValueError(
-                    f"Adapter {self.adapter_path} is not campaign-ready (noncanonical):\n"
-                    + "\n".join(readiness_errors)
-                )
+
+        # -- Campaign-readiness validation (noncanonical adapters blocked) --
+        model_slug = (self._adapter.get("model") or {}).get("slug", "")
+        readiness_errors = validate_adapter_campaign_ready(
+            self._adapter,
+            model_slug,
+            suite=self._suite,
+            prompt_token_maxima=self.prompt_token_maxima,
+        )
+        if readiness_errors:
+            raise ValueError(
+                f"Adapter {self.adapter_path} is not campaign-ready (noncanonical):\n"
+                + "\n".join(readiness_errors)
+            )
 
         # Resolve benchmark config from suite
         benchmarks = self._suite.get("benchmarks", {})
@@ -353,9 +422,10 @@ class QualityRunner:
             )
         self._bench_cfg: dict = benchmarks[benchmark]
 
-        # Suite-level IDs for status documents
+        # Suite-level IDs
         self._suite_id: str = self._suite.get("suite_id", "warpcore-v1")
-        self._run_id: str = self.run_dir.name  # last path component
+        self._run_id: str = self.run_dir.name
+        self._model_slug: str = model_slug
 
         # Injected runners
         self._preflight_runner = preflight_runner
@@ -366,58 +436,33 @@ class QualityRunner:
     # ------------------------------------------------------------------
 
     def build_command(self) -> List[str]:
-        """Build the canonical lm-eval argv list from suite + adapter settings.
-
-        This is the ONLY place the harness command is assembled.  It reads
-        task paths, generation ceilings, and sampling settings exclusively
-        from the suite; no caller-provided overrides are accepted.
-
-        Uses:
-          - local-chat-completions (routes to /v1/chat/completions, required for reasoning models)
-          - --apply_chat_template (required for chat-completion endpoint)
-          - tokenized_requests=False (prevents double-tokenization)
-          - --include_path <task_dir> + --tasks <task_name> (not file path)
-          - max_retries=0 (suite owns retry_policy)
-        """
+        """Build the canonical lm-eval argv list from suite + adapter settings."""
         bench = self._bench_cfg
 
-        # Task file path — canonical suite task, resolved from repo root
-        repo = self.suite_path.parent.parent  # suite/warpcore-v1.yaml -> repo root
         task_file = bench.get("task_file", "")
         if task_file:
-            canonical_task_path = (repo / task_file).resolve()
+            # Resolve from the actual task file location (always in real repo)
+            canonical_task_path = (_REPO_DIR / task_file).resolve()
             task_dir = str(canonical_task_path.parent)
-            # Read the registered task name from the YAML 'task:' field
             task_name = _read_task_name_from_yaml(canonical_task_path)
         else:
-            # Benchmark without a task file (e.g. swebench) — no lm-eval task
             task_dir = ""
             task_name = bench.get("task_name", self.benchmark)
 
-        # Generation ceiling from suite (never caller-overrideable)
         generation_ceiling: int = bench.get("generation_ceiling", 8192)
-
-        # Suite retry policy — max_retries=0 is suite-owned
         retry_policy = bench.get("retry_policy", {})
         max_retries: int = retry_policy.get("max_retries", 0)
-
-        # Temperature from suite sampling block
         sampling = bench.get("sampling", {})
         temperature = sampling.get("temperature", 0)
         do_sample = sampling.get("do_sample", False)
 
-        # Model ID from adapter
         model_id = (self._adapter.get("model") or {}).get("id", "")
 
-        # gen_kwargs — suite-owned temperature and ceiling only
         gen_kwargs = (
             f"max_gen_toks={generation_ceiling},"
             f"temperature={temperature},"
             f"do_sample={str(do_sample).lower()}"
         )
-
-        # model_args — tokenized_requests=False prevents double-tokenization on
-        # local-chat-completions endpoint (proven endpoint path for reasoning models)
         model_args = (
             f"base_url={self.endpoint},"
             f"model={model_id},"
@@ -426,8 +471,7 @@ class QualityRunner:
             f"tokenized_requests=False"
         )
 
-        # Output dir inside normalized run directory
-        output_path = str(self.run_dir)
+        output_path = str(self.run_dir / "raw")
 
         cmd = [
             sys.executable, "-m", "lm_eval",
@@ -442,7 +486,6 @@ class QualityRunner:
             "--timeout", str(int(self.timeout)),
         ]
 
-        # Add --include_path for benchmarks with a custom task YAML
         if task_dir:
             cmd.extend(["--include_path", task_dir])
 
@@ -455,9 +498,22 @@ class QualityRunner:
     def run(self) -> int:
         """Execute the full quality run lifecycle.
 
+        Lifecycle order (for live runs):
+          1. Read and strict-validate status.json (schema + run_id + suite_id).
+          2. Validate normalized run directory identity.
+          3. Accept only 'planned' state.
+          4. Build command, write command.txt.
+          5. Run QualityPreflightGate (while state is 'planned').
+          6. On preflight pass: transition planned -> preflight_passed.
+          7. Transition preflight_passed -> running.
+          8. Execute harness (stdout+stderr -> run.log).
+          9. On success: verify evidence, schema-validate completed status, write status,
+             then write DONE. If any step fails, return nonzero.
+         10. On failure: transition to failed (best-effort), return nonzero.
+
         Returns an exit code (0 = success, nonzero = failure).
         """
-        # --- Dry-run: build command, write command.txt, print, and exit 0 ---
+        # --- Dry-run: build command, write command.txt, print, exit 0 ---
         if self.dry_run:
             cmd = self.build_command()
             self._write_command_txt(cmd)
@@ -468,59 +524,83 @@ class QualityRunner:
         # --- Screen guard ---
         if not self.allow_no_screen and not _is_under_screen():
             print(
-                "ERROR: Long quality runs must be launched inside /usr/bin/screen "
-                "to survive terminal disconnection. Start a screen session first:\n"
-                "  screen -S quality-run\n"
+                "ERROR: Long quality runs must be launched inside /usr/bin/screen. "
+                "Start a screen session first:\n  screen -S quality-run\n"
                 "Or pass --allow-no-screen to bypass (tests/special ops only).",
                 file=sys.stderr,
             )
             return 2
 
-        # --- Read and validate status.json (fail closed if missing or invalid) ---
+        # --- Read and strict-validate status.json ---
         try:
             status = self._read_status_strict()
         except Exception as exc:
             print(
-                f"[run-quality] FATAL: Cannot read or validate status.json: {exc}. "
-                "Refusing to run against an uninitialized or corrupt run directory.",
+                f"[run-quality] FATAL: Cannot read or validate status.json: {exc}",
                 file=sys.stderr,
             )
             return 1
 
-        # --- Check that the current state allows launching (must be preflight_passed) ---
+        # --- Validate normalized run directory identity ---
+        identity_errors = _validate_run_dir_identity(
+            run_dir=self.run_dir,
+            repo=self._repo,
+            adapter_slug=self._model_slug,
+            suite_id=self._suite_id,
+            benchmark=self.benchmark,
+            run_id=self._run_id,
+        )
+        if identity_errors:
+            for err in identity_errors:
+                print(f"[run-quality] FATAL: {err}", file=sys.stderr)
+            return 1
+
+        # --- Accept only 'planned' state ---
         current_state = status.get("execution_state", "")
-        if current_state != "preflight_passed":
+        if current_state != "planned":
             print(
                 f"[run-quality] FATAL: Run directory is in state {current_state!r}; "
-                "expected 'preflight_passed'. Cannot launch a new run from this state. "
-                "Only a run directory that has completed preflight and not yet run may be launched.",
+                "expected 'planned'.",
                 file=sys.stderr,
             )
             return 1
 
-        # --- Build command ---
+        # --- Build command and write command.txt ---
         cmd = self.build_command()
         self._write_command_txt(cmd)
 
-        # --- Resolve model ID for preflight ---
+        # --- Run preflight gate while status is 'planned' ---
         model_id = (self._adapter.get("model") or {}).get("id", "")
-        bench_cfg = self._bench_cfg
-        generation_ceiling: int = bench_cfg.get("generation_ceiling", 8192)
+        generation_ceiling: int = self._bench_cfg.get("generation_ceiling", 8192)
 
-        # --- Run preflight gate (delegates; never re-implements arithmetic) ---
         preflight_rc = self._run_preflight(
             model_id=model_id,
             generation_ceiling=generation_ceiling,
         )
         if preflight_rc != 0:
             print(
-                f"[run-quality] Preflight gate failed (exit {preflight_rc}). "
-                "Harness not launched.",
+                f"[run-quality] Preflight gate failed (exit {preflight_rc}).",
                 file=sys.stderr,
             )
             return preflight_rc
 
-        # --- Transition to running (fatal if this fails) ---
+        # --- Transition planned -> preflight_passed ---
+        try:
+            status = self._read_status_strict()
+            new_status = campaign_state.apply_transition(
+                status=status,
+                new_state="preflight_passed",
+                timestamp=_utcnow(),
+            )
+            self._write_status(new_status)
+        except Exception as exc:
+            print(
+                f"[run-quality] FATAL: Lifecycle transition to 'preflight_passed' failed: {exc}",
+                file=sys.stderr,
+            )
+            return 1
+
+        # --- Transition preflight_passed -> running ---
         try:
             status = self._read_status_strict()
             new_status = campaign_state.apply_transition(
@@ -531,27 +611,35 @@ class QualityRunner:
             self._write_status(new_status)
         except Exception as exc:
             print(
-                f"[run-quality] FATAL: Lifecycle transition to 'running' failed: {exc}. "
-                "Aborting — run directory state machine refused the transition.",
+                f"[run-quality] FATAL: Lifecycle transition to 'running' failed: {exc}",
                 file=sys.stderr,
             )
             return 1
 
-        # --- Execute harness ---
+        # --- Execute harness (stdout+stderr captured to run.log) ---
         harness_rc = self._execute_harness(cmd)
 
-        # --- Post-run: verify required artifacts, write DONE or record failure ---
+        # --- Post-run: verify evidence, write DONE or record failure ---
         if harness_rc == 0:
             evidence_errors = _verify_required_evidence(self.run_dir)
             if not evidence_errors:
-                # Write DONE sentinel
-                (self.run_dir / "DONE").write_text("completed\n")
-                self._transition_status_completed()
+                # Completion atomicity: schema-validate completed status, write it,
+                # then write DONE.
+                rc = self._transition_status_completed_atomic()
+                if rc != 0:
+                    return rc
+                try:
+                    (self.run_dir / "DONE").write_text("completed\n")
+                except OSError as exc:
+                    print(
+                        f"[run-quality] FATAL: Cannot write DONE sentinel: {exc}",
+                        file=sys.stderr,
+                    )
+                    return 1
                 return 0
             else:
-                # Harness exited 0 but required artifacts missing — do not write DONE
                 print(
-                    f"ERROR: Harness exited 0 but required evidence is missing:\n"
+                    "ERROR: Harness exited 0 but required evidence is missing:\n"
                     + "\n".join(f"  {e}" for e in evidence_errors)
                     + "\nDONE not written.",
                     file=sys.stderr,
@@ -559,7 +647,6 @@ class QualityRunner:
                 self._transition_status_failed(harness_rc=0, reason="evidence_missing")
                 return 1
         else:
-            # Nonzero harness exit — record and transition to failed
             self._transition_status_failed(harness_rc=harness_rc)
             return harness_rc
 
@@ -574,16 +661,10 @@ class QualityRunner:
         (self.run_dir / "command.txt").write_text(shell_line + "\n", encoding="utf-8")
 
     def _run_preflight(self, model_id: str, generation_ceiling: int) -> int:
-        """Run the QualityPreflightGate; return its exit code.
-
-        Delegates to QualityPreflightGate (which already owns timeout arithmetic,
-        serving preflight, and budget checks). Never re-implements those.
-        """
+        """Run the QualityPreflightGate; return its exit code."""
         if self._preflight_runner is not None:
-            # Injected for tests
             return int(self._preflight_runner(model_id))
 
-        # Default: build and run the real gate
         try:
             gate = QualityPreflightGate(
                 endpoint=self.endpoint,
@@ -599,20 +680,32 @@ class QualityRunner:
             return int(ExitCode.INCONCLUSIVE)
 
     def _execute_harness(self, cmd: List[str]) -> int:
-        """Execute the lm-eval harness; return its exit code."""
+        """Execute the lm-eval harness; return its exit code.
+
+        Default: captures stdout+stderr to run.log in the run directory.
+        Injected harness_runner receives (cmd, **kw) and must return an int exit code.
+        """
         if self._harness_runner is not None:
             return int(self._harness_runner(cmd))
 
-        import subprocess
-        result = subprocess.run(cmd, check=False)
+        # Default subprocess execution: redirect stdout+stderr to run.log
+        run_log = self.run_dir / "run.log"
+        with open(run_log, "w", encoding="utf-8") as log_fh:
+            result = subprocess.run(cmd, stdout=log_fh, stderr=log_fh, check=False)
         return result.returncode
 
     def _read_status_strict(self) -> dict:
-        """Read and return status.json; raise if missing or unreadable.
+        """Read and return status.json; raise if missing, unreadable, or invalid.
 
-        This is the fail-closed variant. It never fabricates state.
+        Validates:
+          1. status.json exists and is valid JSON.
+          2. The document passes the result-status.schema.json JSON schema.
+          3. status.run_id == run_dir.name (last path component).
+          4. status.suite_id == the loaded suite's suite_id.
+
         Raises FileNotFoundError if status.json does not exist.
-        Raises ValueError if status.json cannot be parsed.
+        Raises ValueError if any validation fails.
+        Never adds missing identity fields — fails closed.
         """
         status_path = self.run_dir / "status.json"
         if not status_path.exists():
@@ -621,11 +714,44 @@ class QualityRunner:
                 "Run directory must be initialized by create_campaign before launching."
             )
         try:
-            return json.loads(status_path.read_text())
+            status = json.loads(status_path.read_text())
         except json.JSONDecodeError as exc:
             raise ValueError(
                 f"status.json in {self.run_dir} is not valid JSON: {exc}"
             ) from exc
+
+        # Schema validation (uses real repo schema always)
+        if _STATUS_SCHEMA.exists():
+            schema_errors = validate_json(status, _STATUS_SCHEMA)
+            if schema_errors:
+                raise ValueError(
+                    f"status.json in {self.run_dir} fails schema validation:\n"
+                    + "\n".join(schema_errors)
+                )
+        else:
+            raise ValueError(
+                f"result-status schema not found at {_STATUS_SCHEMA}"
+            )
+
+        # run_id must match run_dir.name — fail closed, never add missing identity
+        expected_run_id = self.run_dir.name
+        actual_run_id = status.get("run_id", "")
+        if actual_run_id != expected_run_id:
+            raise ValueError(
+                f"status.json run_id={actual_run_id!r} does not match "
+                f"run_dir.name={expected_run_id!r}."
+            )
+
+        # suite_id must match loaded suite
+        expected_suite_id = self._suite_id
+        actual_suite_id = status.get("suite_id", "")
+        if actual_suite_id != expected_suite_id:
+            raise ValueError(
+                f"status.json suite_id={actual_suite_id!r} does not match "
+                f"loaded suite suite_id={expected_suite_id!r}."
+            )
+
+        return status
 
     def _write_status(self, status: dict) -> None:
         campaign_state.write_status(
@@ -634,40 +760,50 @@ class QualityRunner:
             run_dir=self.run_dir,
         )
 
-    def _build_status_with_identity(self, status: dict) -> dict:
-        """Enrich a status dict with required schema fields (schema_version, run_id, suite_id).
+    def _build_completed_status(self, status: dict) -> dict:
+        """Build and schema-validate a completed status dict.
 
-        The result-status.schema.json requires schema_version, run_id, suite_id.
-        These may be absent from old/test status dicts; we inject them here.
+        Raises ValueError if schema validation fails (atomicity guard).
         """
-        enriched = dict(status)
-        if "schema_version" not in enriched:
-            enriched["schema_version"] = 1
-        if "run_id" not in enriched:
-            enriched["run_id"] = self._run_id
-        if "suite_id" not in enriched:
-            enriched["suite_id"] = self._suite_id
-        return enriched
+        new_status = campaign_state.apply_transition(
+            status=status,
+            new_state="completed",
+            timestamp=_utcnow(),
+        )
 
-    def _transition_status_completed(self) -> None:
-        """Apply completed transition and persist status.json."""
+        # Schema-validate before writing (atomicity)
+        if _STATUS_SCHEMA.exists():
+            schema_errors = validate_json(new_status, _STATUS_SCHEMA)
+            if schema_errors:
+                raise ValueError(
+                    f"Completed status failed schema validation:\n"
+                    + "\n".join(schema_errors)
+                )
+        return new_status
+
+    def _transition_status_completed_atomic(self) -> int:
+        """Apply completed transition atomically: validate schema then write.
+
+        Returns 0 on success, 1 on failure.
+        Never returns 0 if the status write fails.
+        """
         try:
             status = self._read_status_strict()
-            new_status = campaign_state.apply_transition(
-                status=status,
-                new_state="completed",
-                timestamp=_utcnow(),
-            )
-            enriched = self._build_status_with_identity(new_status)
-            self._write_status(enriched)
+            completed_status = self._build_completed_status(status)
+            self._write_status(completed_status)
+            return 0
         except Exception as exc:
-            # Completed transition failure is logged but run was already successful
-            print(f"[run-quality] Warning: status transition to 'completed' failed: {exc}", file=sys.stderr)
+            print(
+                f"[run-quality] FATAL: Completed status write failed: {exc}. "
+                "DONE not written — returning nonzero.",
+                file=sys.stderr,
+            )
+            return 1
 
     def _transition_status_failed(
         self, harness_rc: int, reason: Optional[str] = None
     ) -> None:
-        """Transition to failed and record the exit code in the history entry."""
+        """Transition to failed (best-effort); report failure."""
         try:
             status = self._read_status_strict()
             ts = _utcnow()
@@ -677,18 +813,54 @@ class QualityRunner:
                 timestamp=ts,
                 lifecycle="invalid",
             )
-            # Record the harness exit code in the LAST history entry (the 'failed' one).
-            # The result-status schema allows exit_code and note in history entries.
-            # It does NOT allow top-level harness_exit_code (additionalProperties: false).
+            # Record the harness exit code in the last history entry.
+            # Schema allows exit_code and note in history entries.
+            # Does NOT add top-level harness_exit_code (schema forbids it).
             if new_status["history"]:
                 last_entry = new_status["history"][-1]
                 last_entry["exit_code"] = harness_rc
                 if reason:
                     last_entry["note"] = reason
-            enriched = self._build_status_with_identity(new_status)
-            self._write_status(enriched)
+            self._write_status(new_status)
         except Exception as exc:
-            print(f"[run-quality] Warning: status transition to 'failed' failed: {exc}", file=sys.stderr)
+            print(
+                f"[run-quality] Warning: status transition to 'failed' failed: {exc}",
+                file=sys.stderr,
+            )
+
+
+# ---------------------------------------------------------------------------
+# CLI prompt-tokens parser
+# ---------------------------------------------------------------------------
+
+
+def _parse_prompt_tokens(value: str) -> Dict[str, int]:
+    """Parse --prompt-tokens: 'gsm8k=500,ifeval=2000' -> {'gsm8k': 500, 'ifeval': 2000}."""
+    result: Dict[str, int] = {}
+    for part in value.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        if "=" not in part:
+            raise argparse.ArgumentTypeError(
+                f"Invalid --prompt-tokens format {part!r}. "
+                "Expected: benchmark=tokens (e.g. gsm8k=500,ifeval=2000)"
+            )
+        bench, _, tok_str = part.partition("=")
+        bench = bench.strip()
+        tok_str = tok_str.strip()
+        try:
+            tokens = int(tok_str)
+        except ValueError:
+            raise argparse.ArgumentTypeError(
+                f"Invalid token count {tok_str!r} for benchmark {bench!r}."
+            )
+        if tokens < 0:
+            raise argparse.ArgumentTypeError(
+                f"Token count must be non-negative for benchmark {bench!r}; got {tokens}."
+            )
+        result[bench] = tokens
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -699,41 +871,28 @@ class QualityRunner:
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(
         description=(
-            "Contract-aware quality runner for warpcore-v1 benchmarks. "
-            "Builds a canonical lm-eval command from suite settings; does NOT "
-            "accept overrides for task, ceiling, sampling, scoring, datasets, or instances."
+            "Contract-aware quality runner for warpcore-v1 benchmarks."
         )
     )
 
-    # Required arguments
-    ap.add_argument("--suite", required=True, type=pathlib.Path,
-                    help="Path to suite YAML (e.g. suite/warpcore-v1.yaml)")
-    ap.add_argument("--adapter", required=True, type=pathlib.Path,
-                    help="Path to adapter YAML (e.g. adapters/qwen3.6-35b-a3b.yaml)")
-    ap.add_argument("--benchmark", required=True,
-                    help="Benchmark key (e.g. gsm8k, gpqa_diamond, ifeval)")
-    ap.add_argument("--endpoint", required=True,
-                    help="OpenAI-compatible base URL ending in /v1")
-    ap.add_argument("--throughput", required=True, type=float,
-                    help="Measured aggregate tok/s across all workers")
-    ap.add_argument("--concurrency", required=True, type=int,
-                    help="Number of parallel lm-eval workers")
-    ap.add_argument("--timeout", required=True, type=float,
-                    help="lm-eval --timeout value in seconds")
+    ap.add_argument("--suite", required=True, type=pathlib.Path)
+    ap.add_argument("--adapter", required=True, type=pathlib.Path)
+    ap.add_argument("--benchmark", required=True)
+    ap.add_argument("--endpoint", required=True)
+    ap.add_argument("--throughput", required=True, type=float)
+    ap.add_argument("--concurrency", required=True, type=int)
+    ap.add_argument("--timeout", required=True, type=float)
+    ap.add_argument("--prompt-tokens", type=str, default=None,
+                    help="Measured prompt maxima: 'bench=N,...' (e.g. gsm8k=500,ifeval=2000).")
+    ap.add_argument("--run-id", default=None)
+    ap.add_argument("--run-dir", type=pathlib.Path, default=None)
+    ap.add_argument("--repo", type=pathlib.Path, default=None)
+    ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--allow-no-screen", action="store_true")
+    ap.add_argument("--resume", action="store_true",
+                    help="Resume an existing campaign run directory.")
 
-    # Optional
-    ap.add_argument("--run-id", default=None,
-                    help="Run identifier. If omitted and --run-dir is not given, auto-generated.")
-    ap.add_argument("--run-dir", type=pathlib.Path, default=None,
-                    help="Explicit run directory (normalized layout). If omitted, derived from repo/suite/adapter.")
-    ap.add_argument("--repo", type=pathlib.Path, default=None,
-                    help="Repository root. Defaults to parent of suite file.")
-    ap.add_argument("--dry-run", action="store_true",
-                    help="Build and print command; write command.txt; do not run preflight or harness.")
-    ap.add_argument("--allow-no-screen", action="store_true",
-                    help="Bypass the screen guard (tests and special ops only; never use in production).")
-
-    # Detect and reject forbidden override flags before argparse sees them
+    # Detect and reject forbidden override flags
     if argv is not None:
         args_to_check = argv
     else:
@@ -742,11 +901,19 @@ def main(argv=None) -> int:
     for flag in FORBIDDEN_OVERRIDE_FLAGS:
         if flag in args_to_check:
             ap.error(
-                f"'{flag}' is a suite-owned experiment variable and cannot be overridden "
-                f"through the runner CLI. The suite controls all experiment-level settings."
+                f"'{flag}' is a suite-owned experiment variable and cannot be overridden."
             )
 
     args = ap.parse_args(argv)
+
+    # Parse prompt_token_maxima
+    prompt_token_maxima: Optional[Dict[str, int]] = None
+    if args.prompt_tokens is not None:
+        try:
+            prompt_token_maxima = _parse_prompt_tokens(args.prompt_tokens)
+        except argparse.ArgumentTypeError as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 3
 
     # Resolve repository root
     suite_path = pathlib.Path(args.suite).resolve()
@@ -755,21 +922,17 @@ def main(argv=None) -> int:
     # Resolve run directory
     if args.run_dir is not None:
         run_dir = pathlib.Path(args.run_dir).resolve()
-
-        # -- Containment check: run_dir must reside inside the repository --
         try:
             run_dir.relative_to(repo)
         except ValueError:
             print(
-                f"ERROR: --run-dir {run_dir} resolves outside repository {repo}. "
-                "Run directories must reside inside the repository root for safety.",
+                f"ERROR: --run-dir {run_dir} resolves outside repository {repo}.",
                 file=sys.stderr,
             )
             return 3
 
     else:
-        # Derive from repo/suite/adapter — use create_campaign for transactional setup
-        # In dry-run mode, use a temporary directory to avoid mutating the repo
+        # Derive run directory and call create_campaign transactionally
         import yaml
         with open(suite_path) as fh:
             suite = yaml.safe_load(fh)
@@ -780,51 +943,61 @@ def main(argv=None) -> int:
         model_slug = (adapter.get("model") or {}).get("slug", "unknown")
         run_id = args.run_id or datetime.now(tz=timezone.utc).strftime("run-%Y-%m-%dT%H-%M-%S")
 
-        run_dir = (
-            repo / "results" / model_slug / "runs"
-            / suite_id / args.benchmark / run_id
-        )
+        if args.dry_run:
+            # Dry-run: derive path but do NOT call create_campaign.
+            run_dir = (
+                repo / "results" / model_slug / "runs"
+                / suite_id / args.benchmark / run_id
+            )
+            try:
+                run_dir.relative_to(repo)
+            except ValueError:
+                print(
+                    f"ERROR: Derived run directory {run_dir} would be outside repository {repo}.",
+                    file=sys.stderr,
+                )
+                return 3
 
-        # -- Containment check (always, even for derived dirs) --
+            # Create minimal planned status for dry-run
+            run_dir.mkdir(parents=True, exist_ok=True)
+            if not (run_dir / "status.json").exists():
+                status = {
+                    "schema_version": 1,
+                    "run_id": run_id,
+                    "suite_id": suite_id,
+                    "execution_state": "planned",
+                    "lifecycle": "current",
+                    "history": [
+                        {"state": "planned", "timestamp": _utcnow()},
+                    ],
+                }
+                (run_dir / "status.json").write_text(json.dumps(status))
+        else:
+            # Live run: call create_campaign to create the run directory transactionally.
+            try:
+                import create_campaign as cc_mod
+                run_dir = cc_mod.create_campaign(
+                    repo=repo,
+                    suite_path=suite_path,
+                    adapter_path=pathlib.Path(args.adapter).resolve(),
+                    benchmark=args.benchmark,
+                    run_id=run_id,
+                    resume=args.resume,
+                    prompt_token_maxima=prompt_token_maxima,
+                )
+            except Exception as exc:
+                print(f"ERROR: create_campaign failed: {exc}", file=sys.stderr)
+                return 3
+
+        # Containment check
         try:
             run_dir.relative_to(repo)
         except ValueError:
             print(
-                f"ERROR: Derived run directory {run_dir} would be outside repository {repo}. "
-                "Check that --repo and --suite are consistent.",
+                f"ERROR: Run directory {run_dir} resolves outside repository {repo}.",
                 file=sys.stderr,
             )
             return 3
-
-        if args.dry_run:
-            # Dry-run without explicit run dir: use a temporary directory so
-            # no artifacts are created inside the repository.
-            import tempfile
-            _tmp_dir = pathlib.Path(tempfile.mkdtemp(prefix="run-quality-dryrun-"))
-            run_dir = _tmp_dir
-            # Write a minimal valid status for dry-run command generation
-            status = {
-                "schema_version": 1,
-                "run_id": run_id,
-                "suite_id": suite_id,
-                "execution_state": "preflight_passed",
-                "lifecycle": "current",
-                "history": [
-                    {"state": "planned", "timestamp": _utcnow()},
-                    {"state": "preflight_passed", "timestamp": _utcnow()},
-                ],
-            }
-            run_dir.mkdir(parents=True, exist_ok=True)
-            (run_dir / "status.json").write_text(json.dumps(status))
-        else:
-            # Live run: run directory must already exist (created by create_campaign)
-            if not run_dir.exists():
-                print(
-                    f"ERROR: Run directory {run_dir} does not exist. "
-                    "Create it first with create_campaign, then re-run with --run-dir.",
-                    file=sys.stderr,
-                )
-                return 3
 
     try:
         runner = QualityRunner(
@@ -836,6 +1009,8 @@ def main(argv=None) -> int:
             concurrency=args.concurrency,
             timeout=args.timeout,
             run_dir=run_dir,
+            repo=repo,
+            prompt_token_maxima=prompt_token_maxima,
             dry_run=args.dry_run,
             allow_no_screen=args.allow_no_screen,
         )
