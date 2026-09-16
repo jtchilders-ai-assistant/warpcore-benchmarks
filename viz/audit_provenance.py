@@ -7,6 +7,11 @@ Checks the things PROVENANCE.md calls non-negotiable for a reported number:
   * raw result artifacts present for each claimed score (S2)
   * trajectories retained for agentic runs (S5a)
 
+Also integrates with the artifact registry (results/registry.json) introduced
+in Task 8.  Every published source path referenced by collect_matrix.py must
+have a classified registry entry.  audit_provenance.py surfaces any registry
+gaps as new provenance findings, consistent with the ratchet model.
+
 Prints a coverage table, then enforces a RATCHET: gaps already recorded in
 viz/data/provenance_baseline.json are tolerated (exit 0), but any NEW gap exits 1.
 Existing debt is visible without blocking, and cannot grow silently.
@@ -28,6 +33,15 @@ from validate_campaign import discover_runs
 
 REPO = pathlib.Path(__file__).resolve().parents[1]
 RESULTS = REPO / "results"
+
+# Artifact registry (Task 8): classifies every published source path.
+# Loaded lazily so audit_provenance remains usable even if registry is absent
+# (it will surface a gap for every unregistered path).
+try:
+    from viz_registry import load_registry as _load_registry, _PATH_INDEX as _reg_idx  # type: ignore
+    _REGISTRY_AVAILABLE = True
+except ImportError:
+    _REGISTRY_AVAILABLE = False
 
 # Which benchmarks each model actually reports, read from the top-level README
 # table rather than assumed, so the audit tracks what we CLAIM.
@@ -190,6 +204,47 @@ def main(argv=None) -> int:
         print("  none")
     for g in gaps:
         print("  -", g)
+
+    # --- Registry gap check (Task 8) ----------------------------------------
+    # Every published source path in collect_matrix.QUALITY and
+    # common.SWEBENCH_RESULTS must have a classified registry entry.
+    # Unregistered paths are surfaced here as new provenance gaps, consistent
+    # with the ratchet model.  Readers must use viz_registry.lookup_path()
+    # fail-closed; this check verifies coverage is maintained.
+    try:
+        from viz_registry import load_registry as _vr_load  # type: ignore[import]
+        import collect_matrix as _cm
+        import common as _common
+        reg = _vr_load()
+        registered_paths: set[str] = set()
+        for _e in reg["entries"]:
+            registered_paths.update(_e.get("paths", []))
+
+        unregistered: list[str] = []
+        for model, files in _cm.QUALITY.items():
+            for bench, rel in files.items():
+                p = f"results/{model}/{rel}"
+                if p not in registered_paths:
+                    unregistered.append(p)
+        for p in _common.SWEBENCH_RESULTS.values():
+            if p not in registered_paths:
+                unregistered.append(p)
+        for p in _cm.COMPOSITE_COMPONENTS:
+            if p not in registered_paths:
+                unregistered.append(p)
+
+        if unregistered:
+            print(f"\nREGISTRY GAPS (paths in collect_matrix with no registry entry):")
+            for p in sorted(unregistered):
+                gaps.append(f"registry: unregistered published path: {p}")
+                print(f"  - {p}")
+        else:
+            print("\nRegistry: all published source paths classified OK.")
+    except Exception as _exc:  # noqa: BLE001
+        gap = f"registry: validation unavailable or failed: {_exc}"
+        gaps.append(gap)
+        print(f"\nREGISTRY FAILURE (fail-closed):\n  - {gap}")
+    # ------------------------------------------------------------------------
 
     if args.update_baseline:
         args.baseline.parent.mkdir(parents=True, exist_ok=True)

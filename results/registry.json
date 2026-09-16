@@ -1,0 +1,195 @@
+{
+  "registry_version": 1,
+  "_comment": "Historical artifact registry for warpcore-benchmarks (Task 8). Every path referenced by viz/collect_matrix.py and viz/common.py must appear here with a classified status. Readers use viz/viz_registry.lookup_path() fail-closed: an unregistered path is an error, not a silent pass. Do NOT move, edit, or synthesize the raw artifacts listed here; classification is metadata only.",
+  "_statuses": {
+    "historical": "Pre-contract evidence. Artifact is real and committed; provenance is incomplete (no v1 manifest, ad-hoc task configs, or unrecorded serving details). Cannot become canonical implicitly.",
+    "superseded": "Replaced by a newer run with better methodology or provenance. Kept for auditability.",
+    "diagnostic": "Deliberate diagnostic-only run, not intended for publication in the matrix.",
+    "replay": "Composite of an earlier base run plus a targeted replay of failing/truncated items. Must carry base_run link. The published score combines both runs; neither alone is the headline.",
+    "invalid": "Run aborted, corrupt, or infrastructurally blocked. Not quotable as a benchmark result.",
+    "current": "v1-contract run. Requires v1_validated=true. No historical artifact has this status."
+  },
+  "entries": [
+    {
+      "id": "gpt-oss-120b/gsm8k/raw",
+      "status": "historical",
+      "paths": [
+        "results/gpt-oss-120b/raw/gsm8k_results.json"
+      ],
+      "note": "Pre-contract lm-eval run. No run manifest; serving version and exact task config unrecorded. Provenance partially missing per PROVENANCE.md §5 coverage table."
+    },
+    {
+      "id": "gpt-oss-120b/ifeval/raw",
+      "status": "historical",
+      "paths": [
+        "results/gpt-oss-120b/raw/ifeval_results.json"
+      ],
+      "note": "Pre-contract lm-eval run. No run manifest; serving version and exact task config unrecorded."
+    },
+    {
+      "id": "gpt-oss-120b/gpqa/raw",
+      "status": "historical",
+      "paths": [
+        "results/gpt-oss-120b/raw/gpqa_diamond_results.json"
+      ],
+      "note": "Pre-contract lm-eval run. No run manifest; serving version and exact task config unrecorded."
+    },
+    {
+      "id": "nemotron-3-super-120b/gsm8k/raw",
+      "status": "historical",
+      "paths": [
+        "results/nemotron-3-super-120b/raw/gsm8k_results.json"
+      ],
+      "note": "Pre-contract lm-eval run. No run manifest; serving version unrecorded. Classified alongside the 14-gap provenance ratchet baseline."
+    },
+    {
+      "id": "nemotron-3-super-120b/ifeval/raw",
+      "status": "historical",
+      "paths": [
+        "results/nemotron-3-super-120b/raw/ifeval_results.json"
+      ],
+      "note": "Pre-contract lm-eval run. No run manifest; serving version unrecorded."
+    },
+    {
+      "id": "nemotron-3-super-120b/gpqa/raw",
+      "status": "historical",
+      "paths": [
+        "results/nemotron-3-super-120b/raw/gpqa_diamond_results.json"
+      ],
+      "note": "Pre-contract lm-eval run. No run manifest; serving version unrecorded."
+    },
+    {
+      "id": "qwen3.6-35b-a3b/gsm8k/raw",
+      "status": "historical",
+      "paths": [
+        "results/qwen3.6-35b-a3b/raw/gsm8k_results.json"
+      ],
+      "note": "Pre-contract lm-eval run at standard 8k ceiling. No run manifest."
+    },
+    {
+      "id": "qwen3.6-35b-a3b/ifeval/raw",
+      "status": "historical",
+      "paths": [
+        "results/qwen3.6-35b-a3b/raw/ifeval_results.json"
+      ],
+      "note": "Pre-contract lm-eval run. No run manifest."
+    },
+    {
+      "id": "qwen3.6-35b-a3b/gpqa/thinking-64k-2026-09-09",
+      "status": "historical",
+      "paths": [
+        "results/qwen3.6-35b-a3b/raw/quality/gpqa_thinking_64k_2026-09-09/results_2026-09-10T08-03-24.755650.json"
+      ],
+      "note": "Pre-contract lm-eval run, thinking mode, 64k ceiling. 37/198 (18.7%) empty visible content; finish reasons unrecorded (ISSUES #15 class hazard). No run manifest. This is the single run used as the headline — not a composite.",
+      "caveats": "finish reasons unrecorded; 18.7% empty visible content"
+    },
+    {
+      "id": "nemotron-3.5-lightning-30b/gsm8k/2026-08-12",
+      "status": "historical",
+      "paths": [
+        "results/nemotron-3.5-lightning-30b/raw/quality/gsm8k_cot_zeroshot_clean/nvidia__NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/results_2026-08-12T11-08-12.708266.json"
+      ],
+      "note": "Pre-contract single lm-eval run at 8k ceiling. GSM8K had negligible truncation at this budget. No run manifest."
+    },
+    {
+      "id": "nemotron-3.5-lightning-30b/ifeval/2026-08-12-composite",
+      "status": "replay",
+      "paths": [
+        "results/nemotron-3.5-lightning-30b/raw/quality/ifeval/nvidia__NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/results_2026-08-12T13-08-23.626945.json",
+        "results/nemotron-3.5-lightning-30b/raw/quality/ifeval/results_64k_replay_corrected.json"
+      ],
+      "base_run": "results/nemotron-3.5-lightning-30b/raw/quality/ifeval/nvidia__NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/results_2026-08-12T13-08-23.626945.json",
+      "note": "Headline IFEval 93.35% is a 64k replay composite: original 8k run + byte-identical 64k replay of 47 parser-empty items. 5/541 (0.9%) still budget-truncated. The src field in collect_matrix annotates both component files. Pre-contract; no run manifest.",
+      "composite_note": "Published value 93.35% derived from this file + raw/quality/ifeval/results_64k_replay_corrected.json. 8k base plus 64k replay of 47 parser empties."
+    },
+    {
+      "id": "nemotron-3.5-lightning-30b/gpqa/2026-08-12-composite",
+      "status": "replay",
+      "paths": [
+        "results/nemotron-3.5-lightning-30b/raw/quality/gpqa_32k/nvidia__NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/results_2026-08-12T21-15-33.518368.json",
+        "results/nemotron-3.5-lightning-30b/raw/gpqa_64k_replay_results.json"
+      ],
+      "base_run": "results/nemotron-3.5-lightning-30b/raw/quality/gpqa_32k/nvidia__NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/results_2026-08-12T21-15-33.518368.json",
+      "note": "Headline GPQA 76.26% is a 64k composite: 32k base run (66.16%) + 64k replay of 41 budget-truncated items (151/198). Budget curve: 16k=53.03%, 32k=66.16%, 64k=76.26%. Pre-contract; no run manifest.",
+      "composite_note": "Published value 76.26% derived from this file (32k base) + raw/gpqa_64k_replay_results.json. Score history: 16k=53.03%, 32k=66.16%."
+    },
+    {
+      "id": "ornith-35b/gsm8k/2026-08-18",
+      "status": "historical",
+      "paths": [
+        "results/ornith-35b/raw/quality/gsm8k/results_2026-08-18T22-22-03.403814.json"
+      ],
+      "note": "Pre-contract single lm-eval run. No run manifest. Ornith's GSM8K 97.19% is from this single run with negligible truncation."
+    },
+    {
+      "id": "ornith-35b/ifeval/2026-08-19-composite",
+      "status": "replay",
+      "paths": [
+        "results/ornith-35b/raw/quality/ifeval/results_2026-08-19T01-18-15.177081.json",
+        "results/ornith-35b/raw/quality/ifeval/results_64k_replay_corrected.json"
+      ],
+      "base_run": "results/ornith-35b/raw/quality/ifeval/results_2026-08-19T01-18-15.177081.json",
+      "note": "Headline IFEval 88.54% is a 64k replay composite: original run + 64k replay of parser-empty items. 11/541 (2.0%) still budget-truncated after replay. Pre-contract; no run manifest.",
+      "composite_note": "Published value 88.54% derived from this file + raw/quality/ifeval/results_64k_replay_corrected.json."
+    },
+    {
+      "id": "ornith-35b/gpqa/2026-08-19-composite",
+      "status": "replay",
+      "paths": [
+        "results/ornith-35b/raw/quality/gpqa/results_2026-08-19T11-45-14.035924.json",
+        "results/ornith-35b/raw/quality/gpqa/results_64k_replay_corrected.json"
+      ],
+      "base_run": "results/ornith-35b/raw/quality/gpqa/results_2026-08-19T11-45-14.035924.json",
+      "note": "Headline GPQA 80.81% is a 64k replay composite: original 32k/8k run (which silently scored empty reasoning traces as zero) + 64k replay of affected items. 15/198 (7.6%) still budget-truncated after replay. Pre-contract; no run manifest.",
+      "composite_note": "Published value 80.81% derived from this file + raw/quality/gpqa/results_64k_replay_corrected.json."
+    },
+    {
+      "id": "laguna-s-2.1-118b/gsm8k/2026-08-22",
+      "status": "historical",
+      "paths": [
+        "results/laguna-s-2.1-118b/raw/quality/gsm8k/results_2026-08-22T04-37-53.389704.json"
+      ],
+      "note": "Pre-contract lm-eval run. Raw harness value 83.40% corrected to 96.13% via a re-serve (see collect_matrix.py note and laguna card). The correction is applied in collect_matrix, not by altering this file. Laguna is the only model with a manifest; this quality run predates the manifest standard."
+    },
+    {
+      "id": "laguna-s-2.1-118b/ifeval/2026-08-22",
+      "status": "historical",
+      "paths": [
+        "results/laguna-s-2.1-118b/raw/quality/ifeval/results_2026-08-22T06-10-16.893966.json"
+      ],
+      "note": "Pre-contract lm-eval run. Floor note: 5.4% empty responses (RepeatedFormatError serving defect). Not a replay composite; value published as-is with caveat."
+    },
+    {
+      "id": "ornith-35b/swebench/n100",
+      "status": "historical",
+      "paths": [
+        "results/ornith-35b/raw/swebench/swebench_verified_n100_results.json"
+      ],
+      "note": "Pre-contract SWE-bench Verified n=100 seed-42 run. Best provenance of any SWE-bench run in the repo: exit_statuses committed, preds committed. Trajectories lost (left in /tmp, macOS-reaped — see PROVENANCE.md §5). No run manifest. 73/100 resolved."
+    },
+    {
+      "id": "nemotron-3.5-lightning-30b/swebench/n100",
+      "status": "historical",
+      "paths": [
+        "results/nemotron-3.5-lightning-30b/raw/swebench_verified_n100_results.json"
+      ],
+      "note": "Pre-contract SWE-bench Verified n=100 seed-42 run. Two-segment run (vLLM v0.27.1 + v0.27.2rc1 nightly after engine wedge). Exit statuses committed. Trajectories lost. No run manifest. 51/100 resolved."
+    },
+    {
+      "id": "laguna-s-2.1-118b/swebench/n100",
+      "status": "historical",
+      "paths": [
+        "results/laguna-s-2.1-118b/raw/swebench/swebench_verified_n100_results.json"
+      ],
+      "note": "Pre-contract SWE-bench Verified n=100 seed-42 run. Best-documented SWE-bench run in the repo: manifest committed, exit_statuses reconstructed from trajectories, trajectories.tar.gz committed. 55/100 resolved; 35 empty patches (25 RepeatedFormatError serving defect)."
+    },
+    {
+      "id": "qwen3.6-35b-a3b/swebench/shuffle100",
+      "status": "historical",
+      "paths": [
+        "results/qwen3.6-35b-a3b/raw/swebench/swebench_verified_shuffle100_report.json"
+      ],
+      "note": "Pre-contract SWE-bench Verified n=100 seed-42 run. 22/100 instances lost to cold Docker-cache pull timeouts (never ran). Exit statuses committed. Config reconstructed from trajectories post-hoc (see PROVENANCE.md §5a). 44/100 resolved."
+    }
+  ]
+}

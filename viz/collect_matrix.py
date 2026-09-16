@@ -22,6 +22,14 @@ import re
 
 from common import DATA, REPO, SWEBENCH_RESULTS
 
+# Artifact registry (Task 8): every published source path must be classified.
+# lookup_path() is fail-closed: an unregistered path raises KeyError, preventing
+# a newly added result file from silently entering the published matrix.
+# Direct model-specific scripts cannot produce canonical results — only the
+# v1-contract runner (viz/run_quality.py, viz/run_swebench.py) can create
+# 'current' entries, and only after validate_campaign.py passes.
+from viz_registry import lookup_path as _registry_lookup  # type: ignore[import]
+
 # Quality result files, relative to results/<model>/
 QUALITY = {
     "gpt-oss-120b": dict(
@@ -51,6 +59,15 @@ QUALITY = {
 
 SWEBENCH = SWEBENCH_RESULTS
 
+# Composite headline values consume both a base result and a replay result.
+# Register and gate every component, not just the first file read above.
+COMPOSITE_COMPONENTS = (
+    "results/ornith-35b/raw/quality/gpqa/results_64k_replay_corrected.json",
+    "results/ornith-35b/raw/quality/ifeval/results_64k_replay_corrected.json",
+    "results/nemotron-3.5-lightning-30b/raw/quality/ifeval/results_64k_replay_corrected.json",
+    "results/nemotron-3.5-lightning-30b/raw/gpqa_64k_replay_results.json",
+)
+
 METRIC_KEYS = {
     "gsm8k": ["exact_match,flexible-fallback", "exact_match,flexible-extract"],
     "ifeval": ["prompt_level_strict_acc,none"],
@@ -72,12 +89,23 @@ def pick(results: dict, keys: list[str]):
 def collect() -> dict:
     out: dict[str, dict] = {}
 
+    for rel_path in COMPOSITE_COMPONENTS:
+        _registry_lookup(rel_path)
+        if not (REPO / rel_path).is_file():
+            raise FileNotFoundError(f"registered composite component is absent: {rel_path}")
+
     for model, files in QUALITY.items():
         out[model] = {}
         for bench, rel in files.items():
             path = REPO / "results" / model / rel
             if not path.exists():
                 continue
+            # Fail-closed registry check: every published source must be
+            # classified in results/registry.json.  An unregistered path raises
+            # KeyError here, preventing silent promotion of unclassified
+            # artifacts into the matrix.
+            rel_path = f"results/{model}/{rel}"
+            _registry_lookup(rel_path)  # raises KeyError if unregistered
             results = json.loads(path.read_text())["results"]
             value, stderr = pick(results, METRIC_KEYS[bench])
             if value is None or stderr is None:
@@ -136,6 +164,8 @@ def collect() -> dict:
     #   resolve_rate -- resolved / submitted. Separates "can it fix bugs?" from
     #                   "can it drive the harness to completion?".
     for model, rel in SWEBENCH.items():
+        # Fail-closed registry check for SWE-bench source paths.
+        _registry_lookup(rel)  # raises KeyError if unregistered
         d = json.loads((REPO / rel).read_text())
         resolved = len(d["resolved_ids"])
         empty = len(d["empty_patch_ids"])

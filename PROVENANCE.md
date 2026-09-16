@@ -201,6 +201,77 @@ used 0.55).
 
 The third item — launch scripts writing their own resolved args — is still open, tracked in TODO.md §6.
 
+---
+
+## 6. Artifact lifecycle registry (Task 8, 2026-09-16)
+
+Every published source path referenced by `viz/collect_matrix.py` and `viz/common.py`
+(SWEBENCH_RESULTS) must have a classified entry in `results/registry.json`.
+
+### Lifecycle statuses
+
+| Status | Meaning |
+| --- | --- |
+| `historical` | Pre-contract evidence. Artifact is real and committed; provenance is incomplete (no v1 manifest, ad-hoc task configs, or unrecorded serving details). Cannot become canonical implicitly. |
+| `superseded` | Replaced by a newer run with better methodology or provenance. Kept for auditability. |
+| `diagnostic` | Deliberate diagnostic-only run, not intended for publication in the matrix. |
+| `replay` | Composite of an earlier base run + targeted replay of failing/truncated items. Must carry `base_run` link in the registry. The published score combines both runs; neither alone is the headline. |
+| `invalid` | Run aborted, corrupt, or infrastructurally blocked. Not quotable as a benchmark result. |
+| `current` | v1-contract run. Requires `v1_validated: true` in the registry entry. No pre-contract artifact may carry this status. |
+
+### Why the registry matters
+
+Every result file in `results/<model>/raw/` is **legacy evidence**. None of those files were produced
+by the warpcore-v1 contract runners — they predate the contract entirely. Classification makes that
+explicit rather than leaving readers to discover it by reading model cards.
+
+**Direct model-specific scripts (e.g. `run_ornith_quality.sh`, `run_laguna.sh`) cannot produce
+canonical results.** Only `make run-quality` and `make run-swebench` (the contract runners) can,
+and only after a successful live preflight exits 0, a run manifest is written, and
+`viz/validate_campaign.py` passes. The registry enforces this: a path produced by an ad-hoc script
+has no v1 manifest and therefore cannot carry `status: current` or `v1_validated: true`.
+
+### Fail-closed reader contract
+
+`viz/viz_registry.lookup_path(rel_path)` is the canonical reader API. It raises `KeyError` for any
+unregistered path. `viz/collect_matrix.py` calls it for every source path before reading the file;
+an unregistered path aborts collection rather than silently entering the matrix.
+
+```python
+from viz_registry import lookup_path
+
+entry = lookup_path("results/ornith-35b/raw/quality/gpqa/results_2026-08-19T11-45-14.035924.json")
+# entry["status"] == "replay"
+# entry["base_run"] == "results/ornith-35b/raw/quality/gpqa/results_2026-08-19T11-45-14.035924.json"
+```
+
+### Registry coexistence with the 14-gap ratchet
+
+The provenance ratchet (`viz/data/provenance_baseline.json`) and the artifact registry serve different
+purposes and coexist without conflict:
+
+- The **ratchet** tracks missing *physical* artifacts (manifest.json, exit_statuses, trajectories).
+  It fails on new gaps; existing 14 gaps are accepted until fixed.
+- The **registry** classifies the *lifecycle status* of every published source path (historical,
+  replay, etc.). It fails on unregistered paths and blocks any `current` claim without v1 validation.
+
+A historical artifact can have ratchet gaps (missing manifest) AND a registry entry
+(`status: historical`) simultaneously — the registry entry is metadata; it does not repair the
+physical gap. Both must be satisfied independently.
+
+### Adding a new published source
+
+1. Run a campaign through `make run-quality` or `make run-swebench` (not an ad-hoc script).
+2. After `viz/validate_campaign.py` passes, add an entry to `results/registry.json` with
+   `status: current` and `v1_validated: true`.
+3. Run `make ci` — the registry tests in `tests/test_result_registry.py` will verify the entry.
+4. Add the path to `viz/collect_matrix.py` or `viz/common.py` only after step 3 passes.
+
+**Never add a path to collect_matrix before adding its registry entry.**
+The fail-closed check will abort with a KeyError, which is the intended behaviour.
+
+---
+
 Also added: `make samples` (`viz/validate_samples.py`) fails when a task exceeds 2% empty responses,
 the silent-zero defect of ISSUES #15. It is **warn-only in CI** today because three committed
 Lightning tasks already breach it (GPQA 41.4%, GPQA-32k 20.7%, IFEval 8.7%); flipping it to a hard

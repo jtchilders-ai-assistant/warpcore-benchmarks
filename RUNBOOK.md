@@ -9,6 +9,59 @@ for the 7 models already in the repo. It replaces ad-hoc adaptation of prior scr
 
 ---
 
+## New campaigns (warpcore-v1 contract) — use contract runners, not scripts
+
+**As of Task 8 (2026-09-16), the warpcore-v1 contract runners exist and must be used for all new
+canonical benchmark campaigns.** The steps below (Steps 1–5) remain valid for historical reference
+and for forensic investigation of pre-contract artifacts, but they are **not** the workflow for new
+runs.
+
+**Direct model-specific scripts (e.g. `run_laguna_quality.sh`, `run_ornith_quality.sh`) cannot
+produce canonical warpcore-v1 results.** A result is canonical only when it is produced by the
+contract runner, passes `viz/validate_campaign.py`, carries a v1 manifest, and has a registry entry
+with `status: current` and `v1_validated: true` in `results/registry.json`.
+
+### Contract runner workflow
+
+```bash
+# 1. Validate suite and adapter contract:
+make contract SUITE=suite/warpcore-v1.yaml ADAPTER=adapters/<model>.yaml
+
+# 2. Run live quality preflight:
+make quality-preflight MODE=live ENDPOINT=http://csi370295.alcf.anl.gov:8000/v1 \
+  MODEL=<exact-model-id> MAX_GEN_TOKS=<budget> AGGREGATE_TOK_S=<measured> \
+  CONCURRENCY=<workers> CLIENT_TIMEOUT=<seconds>
+
+# 3. Launch (inside /usr/bin/screen on Mac mini):
+make run-quality SUITE=suite/warpcore-v1.yaml ADAPTER=adapters/<model>.yaml \
+  BENCH=<gsm8k|ifeval|gpqa_diamond> ENDPOINT=... THROUGHPUT=... CONCURRENCY=... \
+  TIMEOUT=... PROMPT_TOKENS=<bench>=<N>
+
+# 4. Validate the completed run:
+make validate-campaign RUN_DIR=results/<model>/runs/warpcore-v1/<bench>/<run-id> \
+  SUITE=suite/warpcore-v1.yaml ADAPTER=adapters/<model>.yaml FOR_PUBLICATION=1
+
+# 5. Register and publish:
+# Add an entry to results/registry.json with status: current, v1_validated: true.
+# Then:
+make publish-campaign
+make ci   # must pass before committing
+```
+
+Refer to `AGENTS.md`, `PROVENANCE.md §6`, and the `warpcore-v1` design document for the full
+acceptance criteria.  Do not commit a run that fails `make ci`.
+
+---
+
+## Legacy evidence — historical reference and forensics
+
+The steps below describe the pre-contract ad-hoc workflow used for the 7 models already in the repo.
+They are preserved for forensic investigation of those historical artifacts.
+Every artifact produced by these steps has `status: historical` (or `replay`/`invalid`) in
+`results/registry.json` and cannot be treated as canonical v1 evidence.
+
+---
+
 ## Before you start
 
 ### Hardware
