@@ -191,6 +191,7 @@ def _extract_metadata(
         "reasoning": reasonings,
         "content_null_count": null_content_count,
         "empty_by_length": empty_by_length,
+        "run_id": os.environ.get("LMEVAL_SIDECAR_RUN_ID"),
     }
 
 

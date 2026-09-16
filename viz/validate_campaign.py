@@ -408,7 +408,13 @@ def _check_sample_field_evidence(
 
     try:
         from lmeval_sidecar.reconcile import reconcile_inventory
-        report = reconcile_inventory(sample_files, metadata_path)
+        manifest = json.loads((run_dir / "manifest.json").read_text(encoding="utf-8"))
+        expected_model = (manifest.get("model") or {}).get("id")
+        report = reconcile_inventory(
+            sample_files, metadata_path,
+            expected_run_id=run_dir.name,
+            expected_model=expected_model,
+        )
     except Exception as exc:
         errors.append(
             f"Suite required_evidence '{ev_name}' could not reconcile response "
@@ -802,10 +808,12 @@ class ValidationResult:
 # ---------------------------------------------------------------------------
 
 def discover_runs(repo: pathlib.Path) -> list[dict]:
-    """Discover all run directories (normalized + historical layouts).
+    """Discover manifest-bearing campaign runs in both repository layouts.
 
-    This is the SINGLE authoritative discovery path used by validate_samples,
-    audit_provenance, collect_matrix, and publish_campaign.
+    This is the authoritative campaign discovery path used by publication.
+    Artifact-oriented historical auditors additionally discover loose sample and
+    card files because those predate manifests and are intentionally ineligible
+    for canonical publication.
 
     Returns a list of dicts with keys:
         model_slug, run_id, layout, run_dir, manifest_path, status_path

@@ -27,42 +27,7 @@ jobs:
       - name: Install pinned figure toolchain
         run: python -m pip install --upgrade pip -r requirements-viz.txt
 
-      # Figures are plots-as-code: a clean checkout must reproduce the committed
-      # SVGs byte-identically. Now enforced, not just asserted.
-      - name: Figures reproduce from committed artifacts
-        run: make check
-
-      # Ratcheted. The 17 known gaps are accepted in
-      # viz/data/provenance_baseline.json; a NEW gap fails the build.
-      - name: No new provenance gaps
-        run: make check-artifacts
-
-      # ISSUES #15: items where the model returned no content are scored 0 and
-      # silently depress a published average.
-      #
-      # WARN-ONLY ON PURPOSE: three committed Lightning tasks are already over
-      # the 2% threshold (GPQA 41.4%, GPQA-32k 20.7%, IFEval 8.7%). Failing here
-      # today would just wedge CI red on known, documented debt. Change this to
-      # `make samples` once those runs are re-served -- that flip is the
-      # definition of done for the ISSUES #15 backlog.
-      - name: Silent scoring failures (warn-only until re-serve backlog clears)
-        run: python3 viz/validate_samples.py --warn-only
-
-      # validate_samples.py finds silent zeros AFTER a run; preflight_serving.py
-      # refuses to start one against an endpoint that would produce them.
-      #
-      # CI has no GPU, so it exercises the classifier against fixtures covering
-      # every branch -- including the case that matters most: an endpoint whose
-      # content is empty only because max_tokens was too small is BUDGET, not a
-      # parser defect. Measured on live warpcore 2026-09-03: the same healthy
-      # model returns content=None at max_tokens=64 and "4" at 512. Conflating
-      # the two would block legitimate runs, so the separation is a CI guard.
-      - name: Preflight classifier (fixtures; live probing is a local target)
-        run: python3 viz/preflight_serving.py --self-test
-
-      # warpcore-v1 design §12 step 2: validate that suite canonical file hashes
-      # are fresh, the suite schema is satisfied, and the instance set is intact.
-      # Exit 1 = diagnosed defect (suite drift), 2 = unreadable/inconclusive.
-      # There is exactly one code path: make contract -> viz/validate_suite.py.
-      - name: Suite contract (hash integrity, schema, instance set)
-        run: make contract
+      # Run the same aggregate target used locally so Task 7's adversarial,
+      # runner, validator, and publication tests cannot diverge from remote CI.
+      - name: Full repository CI
+        run: make ci

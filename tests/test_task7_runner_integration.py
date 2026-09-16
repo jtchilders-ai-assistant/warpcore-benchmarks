@@ -235,6 +235,7 @@ def _make_sidecar_for_samples(run_dir: pathlib.Path) -> pathlib.Path:
                     "reasoning": [None],
                     "content_null_count": 0,
                     "empty_by_length": False,
+                    "run_id": run_dir.name,
                 })
     path = run_dir / "raw" / "response_metadata.jsonl"
     with path.open("w", encoding="utf-8") as fh:

@@ -175,6 +175,9 @@ def _read_jsonl(path: pathlib.Path) -> List[dict]:
 def reconcile_inventory(
     sample_paths: List[pathlib.Path],
     metadata_path: pathlib.Path,
+    *,
+    expected_run_id: Optional[str] = None,
+    expected_model: Optional[str] = None,
 ) -> dict:
     """Reconcile the complete sample-file inventory with one metadata sidecar.
 
@@ -227,6 +230,14 @@ def reconcile_inventory(
     # --- Per-record field validation (all records) ---
     for i, rec in enumerate(metadata):
         rec_errors = _validate_record(rec)
+        if expected_run_id is not None and rec.get("run_id") != expected_run_id:
+            rec_errors.append(
+                f"run_id {rec.get('run_id')!r} does not match expected {expected_run_id!r}"
+            )
+        if expected_model is not None and rec.get("model") != expected_model:
+            rec_errors.append(
+                f"model {rec.get('model')!r} does not match expected {expected_model!r}"
+            )
         for e in rec_errors:
             errors.append(f"  metadata[{i}] fp={str(rec.get('fingerprint', ''))[:12]}…: {e}")
 

@@ -386,9 +386,14 @@ def _derive_per_item_data(
         # Look up sidecar metadata via fingerprint
         fp = item.get("_fp")
         meta_rec = meta_index.get(fp) if fp and meta_index else None
+        score_val = item["score"]
 
         if meta_rec and _classify is not None:
-            disposition = _classify(meta_rec)
+            response_class = _classify(meta_rec)
+            if response_class == "scored":
+                disposition = "correct" if score_val is not None and score_val > 0 else "wrong"
+            else:
+                disposition = response_class
             finish_reasons = meta_rec.get("finish_reasons") or []
             finish_reason = finish_reasons[0] if finish_reasons else ""
             if finish_reason is None:
@@ -397,7 +402,6 @@ def _derive_per_item_data(
             disposition = "empty_response" if empty else "scored"
             finish_reason = ""  # not stored in lm-eval JSONL without sidecar
 
-        score_val = item["score"]
         result[key] = {
             "item_id": key,
             "score": "" if score_val is None else str(score_val),
@@ -494,6 +498,7 @@ def _update_manifest_on_completion(
 def _verify_and_reconcile_sidecar(
     run_dir: pathlib.Path,
     sidecar_path: pathlib.Path,
+    expected_model: Optional[str] = None,
 ) -> int:
     """Verify sidecar file exists and passes reconciliation. Returns 0 on pass, 1 on fail.
 
@@ -548,7 +553,11 @@ def _verify_and_reconcile_sidecar(
     # Reconcile once across the complete inventory. Per-file reconciliation would
     # falsely classify metadata belonging to sibling sample files as foreign.
     try:
-        report = reconcile_inventory(sorted(samples_files), sidecar_path)
+        report = reconcile_inventory(
+            sorted(samples_files), sidecar_path,
+            expected_run_id=run_dir.name,
+            expected_model=expected_model,
+        )
     except Exception as exc:
         print(
             f"[run-quality] FATAL: Whole-inventory reconciliation raised: {exc}. "
@@ -1063,7 +1072,10 @@ class QualityRunner:
                 # --- Sidecar reconciliation gate (fail closed) ---
                 # The sidecar MUST exist and reconcile cleanly before DONE is written.
                 sidecar_path = self.run_dir / "raw" / "response_metadata.jsonl"
-                sidecar_rc = _verify_and_reconcile_sidecar(self.run_dir, sidecar_path)
+                model_id = (self._adapter.get("model") or {}).get("id", "")
+                sidecar_rc = _verify_and_reconcile_sidecar(
+                    self.run_dir, sidecar_path, expected_model=model_id
+                )
                 if sidecar_rc != 0:
                     if not self._transition_status_failed(
                         harness_rc=0, reason="sidecar_reconciliation_failed"
@@ -1193,8 +1205,12 @@ class QualityRunner:
 
         # Default subprocess execution: redirect stdout+stderr to run.log
         run_log = self.run_dir / "run.log"
+        env = os.environ.copy()
+        env["LMEVAL_SIDECAR_RUN_ID"] = self._run_id
         with open(run_log, "w", encoding="utf-8") as log_fh:
-            result = subprocess.run(cmd, stdout=log_fh, stderr=log_fh, check=False)
+            result = subprocess.run(
+                cmd, stdout=log_fh, stderr=log_fh, check=False, env=env
+            )
         return result.returncode
 
     def _read_status_strict(self) -> dict:

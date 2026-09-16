@@ -24,6 +24,8 @@ import pathlib
 import re
 import sys
 
+from validate_campaign import discover_runs
+
 REPO = pathlib.Path(__file__).resolve().parents[1]
 RESULTS = REPO / "results"
 
@@ -67,9 +69,12 @@ def audit_model(model_dir: pathlib.Path) -> dict:
     }
 
     # Also look for manifests in normalized layout: results/<model>/runs/<suite>/...
-    runs_root = model_dir / "runs"
-    if runs_root.is_dir():
-        normalized_manifests = list(runs_root.rglob("manifest.json"))
+    normalized_runs = [
+        run for run in discover_runs(REPO)
+        if run.get("layout") == "normalized" and run.get("model_slug") == model_dir.name
+    ]
+    if normalized_runs:
+        normalized_manifests = [pathlib.Path(run["manifest_path"]) for run in normalized_runs]
         if normalized_manifests:
             row["manifest_any"] = True
             # Check for normalized swebench runs

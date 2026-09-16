@@ -167,6 +167,8 @@ def _make_harness_artifacts(run_dir: pathlib.Path) -> None:
         "fingerprint": fingerprint, "finish_reasons": ["stop"],
         "usage": {"prompt_tokens": 3, "completion_tokens": 1, "total_tokens": 4},
         "content": ["42"], "reasoning_content": [None], "reasoning": [None],
+        "model": "testorg/TestCanonicalModel",
+        "run_id": run_dir.name,
     }) + "\n")
 
 
@@ -1349,6 +1351,8 @@ class TestEvidenceVerificationBeforeDone(unittest.TestCase):
             "fingerprint": fingerprint, "finish_reasons": ["stop"],
             "usage": {"prompt_tokens": 3, "completion_tokens": 1, "total_tokens": 4},
             "content": ["42"], "reasoning_content": [None], "reasoning": [None],
+            "model": "testorg/TestCanonicalModel",
+            "run_id": run_dir.name,
         }) + "\n")
         rc = runner.run()
         self.assertTrue((run_dir / "DONE").exists(), "DONE must be written when required artifacts exist")

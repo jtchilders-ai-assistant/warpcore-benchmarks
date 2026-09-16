@@ -27,3 +27,4 @@ PyYAML==6.0.3
 # a clean checkout does not depend on user site-packages.
 jsonschema==4.25.1
 rfc3339-validator==0.1.4
+pytest==8.4.2

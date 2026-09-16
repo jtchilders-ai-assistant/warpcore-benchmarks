@@ -33,6 +33,8 @@ import json
 import pathlib
 import sys
 
+from validate_campaign import discover_runs
+
 REPO = pathlib.Path(__file__).resolve().parents[1]
 RESULTS = REPO / "results"
 
@@ -171,8 +173,24 @@ def discover() -> list:
     between lifecycle states is enforced by validate_campaign.py, not here.
     """
     by_task: dict = {}
-    for p in sorted(set(RESULTS.rglob("samples_*.jsonl"))
-                    | set(RESULTS.rglob("samples_*.jsonl.gz"))):
+    # Normalized campaign directories come from the shared authoritative
+    # discovery routine. Historical loose artifacts predate manifests, so they
+    # are intentionally discovered under raw/ as an audit-only supplement.
+    normalized_roots = {
+        pathlib.Path(run["run_dir"])
+        for run in discover_runs(REPO)
+        if run.get("layout") == "normalized"
+    }
+    candidates = set()
+    for root in normalized_roots:
+        candidates.update(root.rglob("samples_*.jsonl"))
+        candidates.update(root.rglob("samples_*.jsonl.gz"))
+    for model_dir in RESULTS.iterdir() if RESULTS.exists() else ():
+        historical = model_dir / "raw"
+        if historical.is_dir():
+            candidates.update(historical.rglob("samples_*.jsonl"))
+            candidates.update(historical.rglob("samples_*.jsonl.gz"))
+    for p in sorted(candidates):
         by_task[(p.parent, p.name.split(".jsonl")[0])] = p
     for p in sorted(RESULTS.rglob("*.per_item.csv")):
         by_task.setdefault((p.parent, p.name[:-len(".per_item.csv")]), p)

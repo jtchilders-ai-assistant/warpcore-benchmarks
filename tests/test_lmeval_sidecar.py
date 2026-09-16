@@ -99,6 +99,7 @@ def _meta_record(
         "reasoning": [reasoning],
         "content_null_count": 0,
         "empty_by_length": False,
+        "run_id": "run-test",
     }
 
 
@@ -470,6 +471,36 @@ class TestReconcilerFullInventory(unittest.TestCase):
         meta[0]["usage"] = None
         rc, report = self._run_reconcile(samples, meta)
         self.assertNotEqual(rc, 0, "Missing usage must fail validation")
+
+    def test_replayed_sidecar_run_id_fails(self):
+        """Metadata captured for another campaign run must not be reusable."""
+        samples, meta = self._make_clean_pair(1)
+        meta[0]["run_id"] = "old-run"
+        samples_path = pathlib.Path(self.tmp) / "samples.jsonl.gz"
+        metadata_path = pathlib.Path(self.tmp) / "meta.jsonl"
+        _write_samples_gz(samples_path, samples)
+        _write_jsonl(metadata_path, meta)
+        from lmeval_sidecar.reconcile import reconcile_inventory
+        report = reconcile_inventory(
+            [samples_path], metadata_path,
+            expected_run_id="current-run", expected_model="fake-model",
+        )
+        self.assertNotEqual(report["exit_code"], 0, report)
+
+    def test_wrong_model_sidecar_fails(self):
+        """Metadata from another model must not satisfy this campaign."""
+        samples, meta = self._make_clean_pair(1)
+        meta[0]["model"] = "wrong-model"
+        samples_path = pathlib.Path(self.tmp) / "samples.jsonl.gz"
+        metadata_path = pathlib.Path(self.tmp) / "meta.jsonl"
+        _write_samples_gz(samples_path, samples)
+        _write_jsonl(metadata_path, meta)
+        from lmeval_sidecar.reconcile import reconcile_inventory
+        report = reconcile_inventory(
+            [samples_path], metadata_path,
+            expected_run_id="run-test", expected_model="fake-model",
+        )
+        self.assertNotEqual(report["exit_code"], 0, report)
 
     def test_malformed_completion_tokens_fails(self):
         """completion_tokens must be a nonnegative non-bool int."""
@@ -853,8 +884,11 @@ class TestCompletionGateRequiresSidecar(unittest.TestCase):
             sample["exact_match"] = 1.0 if response else 0.0
             samples.append(sample)
             if not missing_metadata or i != 0:
-                meta_records.append(_meta_record(msgs, content=response,
-                                                  finish_reason="stop" if response else "length"))
+                record = _meta_record(msgs, content=response,
+                                      finish_reason="stop" if response else "length")
+                record["run_id"] = run_dir.name
+                record["model"] = "testorg/TestCanonicalModel"
+                meta_records.append(record)
 
         gz_path = subdir / "samples_gsm8k_cot_zeroshot_clean_2026-01-01T00-00-00.jsonl.gz"
         _write_samples_gz(gz_path, samples)
