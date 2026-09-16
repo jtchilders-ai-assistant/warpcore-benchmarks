@@ -1188,12 +1188,32 @@ class TestDryRunNonCanonicalAndPromptTokens(unittest.TestCase):
         )
         runner.run()
 
-        # DONE must not exist
+        # Dry-run must create or mutate no persistent artifacts.
         self.assertFalse((run_dir / "DONE").exists(), "DONE must not be written in dry-run")
-        # status.json must not be modified
+        self.assertFalse((run_dir / "command.txt").exists(),
+                         "command.txt must not be written in dry-run")
         final_status = json.loads((run_dir / "status.json").read_text())
-        self.assertEqual(initial_status["execution_state"], final_status["execution_state"],
-                         "Dry-run must not modify status.json execution_state")
+        self.assertEqual(initial_status, final_status,
+                         "Dry-run must not modify status.json")
+
+    def test_cli_dry_run_without_run_dir_creates_no_campaign_tree(self):
+        """CLI dry-run must validate and print without creating results state."""
+        rc = run_quality.main([
+            "--suite", str(_REAL_SUITE),
+            "--adapter", str(self.adapter_path),
+            "--benchmark", "gsm8k",
+            "--endpoint", "http://fake:8000/v1",
+            "--throughput", "64",
+            "--concurrency", "8",
+            "--timeout", "14400",
+            "--prompt-tokens", "gsm8k=500,ifeval=500,gpqa_diamond=500",
+            "--run-id", "run-dry-no-state",
+            "--repo", str(self.tmp),
+            "--dry-run",
+        ])
+        self.assertEqual(rc, 0)
+        self.assertFalse((self.tmp / "results").exists(),
+                         "dry-run must not create a results tree")
 
     def test_dry_run_accepts_prompt_tokens(self):
         """Dry-run must accept --prompt-tokens without error."""

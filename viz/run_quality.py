@@ -513,10 +513,9 @@ class QualityRunner:
 
         Returns an exit code (0 = success, nonzero = failure).
         """
-        # --- Dry-run: build command, write command.txt, print, exit 0 ---
+        # --- Dry-run: validate/build/print only; persist nothing ---
         if self.dry_run:
             cmd = self.build_command()
-            self._write_command_txt(cmd)
             print("[dry-run] Command:")
             print(" ".join(shlex.quote(a) for a in cmd))
             return 0
@@ -944,7 +943,8 @@ def main(argv=None) -> int:
         run_id = args.run_id or datetime.now(tz=timezone.utc).strftime("run-%Y-%m-%dT%H-%M-%S")
 
         if args.dry_run:
-            # Dry-run: derive path but do NOT call create_campaign.
+            # Dry-run derives the path only. It must not create campaign state,
+            # command files, or even parent directories.
             run_dir = (
                 repo / "results" / model_slug / "runs"
                 / suite_id / args.benchmark / run_id
@@ -957,21 +957,6 @@ def main(argv=None) -> int:
                     file=sys.stderr,
                 )
                 return 3
-
-            # Create minimal planned status for dry-run
-            run_dir.mkdir(parents=True, exist_ok=True)
-            if not (run_dir / "status.json").exists():
-                status = {
-                    "schema_version": 1,
-                    "run_id": run_id,
-                    "suite_id": suite_id,
-                    "execution_state": "planned",
-                    "lifecycle": "current",
-                    "history": [
-                        {"state": "planned", "timestamp": _utcnow()},
-                    ],
-                }
-                (run_dir / "status.json").write_text(json.dumps(status))
         else:
             # Live run: call create_campaign to create the run directory transactionally.
             try:

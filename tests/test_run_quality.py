@@ -524,8 +524,16 @@ class TestCommandTxt(unittest.TestCase):
         shutil.rmtree(self.tmp, ignore_errors=True)
 
     def test_command_txt_written_before_harness(self):
-        """command.txt must exist after a dry-run build."""
+        """Live execution writes command.txt before invoking the harness."""
         run_dir = _build_run_dir(self.tmp)
+        observed = {}
+
+        def harness(_cmd):
+            observed["exists"] = (run_dir / "command.txt").exists()
+            observed["content"] = (run_dir / "command.txt").read_text().strip()
+            _make_harness_artifacts(run_dir)
+            return 0
+
         runner = run_quality.QualityRunner(
             suite_path=_REAL_SUITE,
             adapter_path=self.adapter_path,
@@ -537,17 +545,23 @@ class TestCommandTxt(unittest.TestCase):
             run_dir=run_dir,
             repo=self.tmp,
             prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
-            dry_run=True,
+            allow_no_screen=True,
             preflight_runner=MagicMock(return_value=0),
-            harness_runner=MagicMock(return_value=0),
+            harness_runner=harness,
         )
-        runner.run()
-        cmd_file = run_dir / "command.txt"
-        self.assertTrue(cmd_file.exists(), "command.txt must be written")
+        expected = runner.build_command()
+        self.assertEqual(runner.run(), 0)
+        self.assertTrue(observed["exists"], "command.txt must exist before harness")
+        self.assertEqual(shlex.split(observed["content"]), expected)
 
     def test_command_txt_is_shell_safe(self):
-        """command.txt content must be parseable by shlex.split."""
+        """The live command file must be parseable by shlex.split."""
         run_dir = _build_run_dir(self.tmp)
+
+        def harness(_cmd):
+            _make_harness_artifacts(run_dir)
+            return 0
+
         runner = run_quality.QualityRunner(
             suite_path=_REAL_SUITE,
             adapter_path=self.adapter_path,
@@ -559,20 +573,22 @@ class TestCommandTxt(unittest.TestCase):
             run_dir=run_dir,
             repo=self.tmp,
             prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
-            dry_run=True,
+            allow_no_screen=True,
             preflight_runner=MagicMock(return_value=0),
-            harness_runner=MagicMock(return_value=0),
+            harness_runner=harness,
         )
-        runner.run()
-        cmd_file = run_dir / "command.txt"
-        content = cmd_file.read_text().strip()
-        # Must be parseable
-        parsed = shlex.split(content)
+        self.assertEqual(runner.run(), 0)
+        parsed = shlex.split((run_dir / "command.txt").read_text().strip())
         self.assertGreater(len(parsed), 0)
 
     def test_command_txt_round_trips_argv(self):
-        """shlex.split(command.txt) must equal the generated argv."""
+        """shlex.split(command.txt) must equal the generated live argv."""
         run_dir = _build_run_dir(self.tmp)
+
+        def harness(_cmd):
+            _make_harness_artifacts(run_dir)
+            return 0
+
         runner = run_quality.QualityRunner(
             suite_path=_REAL_SUITE,
             adapter_path=self.adapter_path,
@@ -584,14 +600,13 @@ class TestCommandTxt(unittest.TestCase):
             run_dir=run_dir,
             repo=self.tmp,
             prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
-            dry_run=True,
+            allow_no_screen=True,
             preflight_runner=MagicMock(return_value=0),
-            harness_runner=MagicMock(return_value=0),
+            harness_runner=harness,
         )
         cmd = runner.build_command()
-        runner.run()
-        cmd_file = run_dir / "command.txt"
-        parsed = shlex.split(cmd_file.read_text().strip())
+        self.assertEqual(runner.run(), 0)
+        parsed = shlex.split((run_dir / "command.txt").read_text().strip())
         self.assertEqual(parsed, cmd)
 
 
@@ -1485,8 +1500,8 @@ class TestDryRunNoMutation(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
 
-    def test_dry_run_with_explicit_run_dir_writes_only_to_run_dir(self):
-        """With an explicit run dir in tmp, dry-run must write command.txt only to that dir."""
+    def test_dry_run_with_explicit_run_dir_writes_nothing(self):
+        """With an explicit run dir, dry-run must not create command artifacts."""
         run_dir = _build_run_dir(self.tmp)
         runner = run_quality.QualityRunner(
             suite_path=_REAL_SUITE,
@@ -1504,8 +1519,7 @@ class TestDryRunNoMutation(unittest.TestCase):
             harness_runner=MagicMock(return_value=0),
         )
         runner.run()
-        # command.txt should be in the explicit run_dir only
-        self.assertTrue((run_dir / "command.txt").exists())
+        self.assertFalse((run_dir / "command.txt").exists())
 
     def test_dry_run_cli_with_explicit_run_dir_no_repo_artifacts(self):
         """CLI dry-run with explicit --run-dir must not create files inside the real repo."""
