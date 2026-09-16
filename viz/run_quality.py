@@ -643,10 +643,12 @@ class QualityRunner:
                     + "\nDONE not written.",
                     file=sys.stderr,
                 )
-                self._transition_status_failed(harness_rc=0, reason="evidence_missing")
+                if not self._transition_status_failed(harness_rc=0, reason="evidence_missing"):
+                    return 1
                 return 1
         else:
-            self._transition_status_failed(harness_rc=harness_rc)
+            if not self._transition_status_failed(harness_rc=harness_rc):
+                return 1
             return harness_rc
 
     # ------------------------------------------------------------------
@@ -801,8 +803,8 @@ class QualityRunner:
 
     def _transition_status_failed(
         self, harness_rc: int, reason: Optional[str] = None
-    ) -> None:
-        """Transition to failed (best-effort); report failure."""
+    ) -> bool:
+        """Transition to failed; return whether the durable state write succeeded."""
         try:
             status = self._read_status_strict()
             ts = _utcnow()
@@ -821,11 +823,13 @@ class QualityRunner:
                 if reason:
                     last_entry["note"] = reason
             self._write_status(new_status)
+            return True
         except Exception as exc:
             print(
-                f"[run-quality] Warning: status transition to 'failed' failed: {exc}",
+                f"[run-quality] FATAL: status transition to 'failed' failed: {exc}",
                 file=sys.stderr,
             )
+            return False
 
 
 # ---------------------------------------------------------------------------

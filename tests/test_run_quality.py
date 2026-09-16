@@ -39,6 +39,7 @@ for _p in (str(_TESTS_DIR), str(_VIZ_DIR), str(_REPO)):
 
 # The module under test — will not exist until implementation
 import run_quality  # noqa: E402  (expected ImportError during RED)
+import campaign_state  # noqa: E402
 
 
 # ---------------------------------------------------------------------------
@@ -741,6 +742,24 @@ class TestCampaignStateTransitions(unittest.TestCase):
         runner.run()
         status = json.loads((run_dir / "status.json").read_text())
         self.assertEqual(status["execution_state"], "failed")
+
+    def test_failed_transition_write_error_is_fatal(self):
+        """A failed-state write error must be surfaced, not treated as recorded."""
+        runner, run_dir = self._make_runner(harness_exit=7)
+        original_write = campaign_state.write_status
+
+        def failing_write(dest, status, run_dir=None):
+            if status.get("execution_state") == "failed":
+                raise OSError("simulated failed-state write error")
+            return original_write(dest, status, run_dir=run_dir)
+
+        with patch.object(campaign_state, "write_status", side_effect=failing_write):
+            rc = runner.run()
+
+        self.assertEqual(rc, 1)
+        status = json.loads((run_dir / "status.json").read_text())
+        self.assertEqual(status["execution_state"], "running")
+        self.assertFalse((run_dir / "DONE").exists())
 
     def test_failed_status_records_exit_code(self):
         """On failure, status.json must record the harness exit code."""
