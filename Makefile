@@ -24,7 +24,7 @@ FIGS       := fig1_pareto fig2_swebench fig3_discrimination
 # Instance set for the SWE-bench pre-flight check (seed-42 n=100, shared by all models).
 SWEBENCH_INSTANCES ?= results/qwen3.6-35b-a3b/raw/swebench/preds_shuffle100.json
 
-.PHONY: all figs data clean check preflight manifest check-artifacts audit samples ci preflight-serving preflight-selftest quality-preflight quality-preflight-selftest contract run-quality
+.PHONY: all figs data clean check preflight manifest check-artifacts audit samples ci preflight-serving preflight-selftest quality-preflight quality-preflight-selftest contract run-quality run-swebench
 
 all: figs
 
@@ -113,7 +113,7 @@ ci: check check-artifacts contract
 	@$(PYTHON) $(VIZ)/preflight_serving.py --self-test
 	@$(PYTHON) $(VIZ)/validate_samples.py --warn-only
 	@$(PYTHON) $(VIZ)/quality_preflight.py --self-test
-	@$(PYTHON) -m pytest tests/test_run_quality.py tests/test_task5_acceptance.py -q
+	@$(PYTHON) -m pytest tests/test_run_quality.py tests/test_task5_acceptance.py tests/test_run_swebench.py -q
 	@echo "OK: figures reproducible, no new provenance gaps, suite contract valid."
 
 # Suite and adapter contract validation (warpcore-v1 design §12 step 2).
@@ -193,6 +193,43 @@ run-quality:
 		--prompt-tokens $(PROMPT_TOKENS) \
 		$(if $(RUN_ID),--run-id $(RUN_ID),) \
 		$(if $(RUN_DIR),--run-dir $(RUN_DIR),) \
+		$(if $(DRY_RUN),--dry-run,) \
+		$(if $(ALLOW_NO_SCREEN),--allow-no-screen,) \
+		$(if $(RESUME),--resume,)
+
+# Contract-aware SWE-bench runner (Task 6).
+# Required variables: SUITE, ADAPTER, ENDPOINT, PROMPT_TOKENS
+# Optional: RUN_ID, RUN_DIR, API_KEY, WORKERS, DRY_RUN=1, ALLOW_NO_SCREEN=1, RESUME=1
+#
+# PROMPT_TOKENS — measured tokenized prompt maxima for quality benchmarks (required for
+#   adapter campaign-readiness validation even for SWE-bench runs).
+#   Format: bench=N,bench2=N2  e.g. PROMPT_TOKENS=gsm8k=500,ifeval=2000,gpqa_diamond=1000
+#
+# Dry-run (inspect scaffold config, no network/GPU):
+#   make run-swebench SUITE=suite/warpcore-v1.yaml ADAPTER=adapters/qwen3.6-35b-a3b.yaml \
+#       ENDPOINT=http://h:8000/v1 PROMPT_TOKENS=gsm8k=500,ifeval=2000,gpqa_diamond=1000 DRY_RUN=1
+#
+# Live run (must be inside /usr/bin/screen on Mac mini):
+#   screen -S swebench-run
+#   make run-swebench SUITE=suite/warpcore-v1.yaml ADAPTER=adapters/qwen3.6-35b-a3b.yaml \
+#       ENDPOINT=http://h:8000/v1 PROMPT_TOKENS=gsm8k=500,ifeval=2000,gpqa_diamond=1000
+#
+# Exit 0 = success + DONE written, 1 = preflight/generation/grading failure,
+#          2 = screen guard or inconclusive, 3 = config error.
+run-swebench:
+	@test -n "$(SUITE)"         || { echo "ERROR: SUITE is required (e.g. SUITE=suite/warpcore-v1.yaml)" >&2; exit 3; }
+	@test -n "$(ADAPTER)"       || { echo "ERROR: ADAPTER is required (e.g. ADAPTER=adapters/qwen3.6-35b-a3b.yaml)" >&2; exit 3; }
+	@test -n "$(ENDPOINT)"      || { echo "ERROR: ENDPOINT is required (e.g. ENDPOINT=http://host:8000/v1)" >&2; exit 3; }
+	@test -n "$(PROMPT_TOKENS)" || { echo "ERROR: PROMPT_TOKENS is required (measured prompt maxima, e.g. gsm8k=500,ifeval=2000,gpqa_diamond=1000)" >&2; exit 3; }
+	@$(PYTHON) $(VIZ)/run_swebench.py \
+		--suite $(SUITE) \
+		--adapter $(ADAPTER) \
+		--endpoint $(ENDPOINT) \
+		--prompt-tokens $(PROMPT_TOKENS) \
+		$(if $(RUN_ID),--run-id $(RUN_ID),) \
+		$(if $(RUN_DIR),--run-dir $(RUN_DIR),) \
+		$(if $(API_KEY),--api-key $(API_KEY),) \
+		$(if $(WORKERS),--workers $(WORKERS),) \
 		$(if $(DRY_RUN),--dry-run,) \
 		$(if $(ALLOW_NO_SCREEN),--allow-no-screen,) \
 		$(if $(RESUME),--resume,)

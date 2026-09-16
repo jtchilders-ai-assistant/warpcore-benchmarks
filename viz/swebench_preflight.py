@@ -57,6 +57,9 @@ def image_for(instance_id: str) -> str:
 
 def load_instance_ids(path: Path) -> list[str]:
     data = json.loads(path.read_text())
+    # Canonical suite format: plain JSON list of instance IDs
+    if isinstance(data, list):
+        return list(data)
     if isinstance(data, dict) and any(
         k in data for k in ("resolved_ids", "unresolved_ids", "empty_patch_ids", "error_ids")
     ):
