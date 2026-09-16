@@ -70,6 +70,8 @@ EXIT CODES
 from __future__ import annotations
 
 import argparse
+import csv
+import gzip as _gzip_module
 import json
 import os
 import pathlib
@@ -157,7 +159,414 @@ def _is_under_screen() -> bool:
 # ---------------------------------------------------------------------------
 
 _AGGREGATE_RESULT_RE = re.compile(r"^results_.*\.json$")
+_SAMPLES_JSONL_RE = re.compile(r"^samples_.*\.jsonl$")
 _SAMPLES_JSONL_GZ_RE = re.compile(r"^samples_.*\.jsonl\.gz$")
+
+
+def _normalize_lmeval_samples(raw_dir: pathlib.Path) -> List[pathlib.Path]:
+    """Atomically gzip lm-eval 0.4.12's plain sample JSONL outputs.
+
+    The pinned harness writes ``samples_*.jsonl`` despite the campaign contract
+    requiring retained ``samples_*.jsonl.gz`` evidence. Existing compressed files
+    are retained. A basename present in both forms is rejected as ambiguous rather
+    than silently selecting one copy.
+    """
+    raw_dir = pathlib.Path(raw_dir)
+    plain_files = sorted(
+        p for p in raw_dir.rglob("*")
+        if p.is_file() and _SAMPLES_JSONL_RE.match(p.name)
+    )
+    compressed = {
+        p.resolve(): p for p in raw_dir.rglob("*")
+        if p.is_file() and _SAMPLES_JSONL_GZ_RE.match(p.name)
+    }
+
+    for source in plain_files:
+        destination = source.with_name(source.name + ".gz")
+        if destination.resolve() in compressed or destination.exists():
+            raise RuntimeError(
+                f"Ambiguous sample evidence: both {source} and {destination} exist"
+            )
+        temporary = destination.with_name(destination.name + ".tmp")
+        try:
+            with source.open("rb") as src, _gzip_module.open(temporary, "wb") as dst:
+                while True:
+                    chunk = src.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    dst.write(chunk)
+            os.replace(temporary, destination)
+            source.unlink()
+            compressed[destination.resolve()] = destination
+        except Exception:
+            try:
+                temporary.unlink()
+            except FileNotFoundError:
+                pass
+            raise
+
+    return sorted(compressed.values())
+
+
+def _response_text(rec: dict) -> str:
+    """Return the raw model generation for a lm-eval sample record."""
+    resps = rec.get("resps") or []
+    if resps and isinstance(resps[0], list) and resps[0]:
+        return resps[0][0] or ""
+    if resps and isinstance(resps[0], str):
+        return resps[0]
+    filt = rec.get("filtered_resps") or []
+    if filt and isinstance(filt[0], str):
+        return filt[0]
+    return ""
+
+
+def _score_of(rec: dict) -> Optional[float]:
+    """Extract the canonical score from a lm-eval sample record."""
+    for key in ("exact_match", "acc", "prompt_level_strict_acc", "acc_norm"):
+        if key in rec:
+            try:
+                return float(rec[key])
+            except (TypeError, ValueError):
+                pass
+    return None
+
+
+def _load_sidecar_metadata(sidecar_path: pathlib.Path) -> Dict[str, dict]:
+    """Load sidecar metadata into a fingerprint-indexed dict.
+
+    Returns dict[fingerprint_str, record] for fast lookup.
+    If sidecar_path does not exist or is empty, returns {}.
+    """
+    if not sidecar_path or not pathlib.Path(sidecar_path).exists():
+        return {}
+    meta_index: Dict[str, dict] = {}
+    try:
+        with open(sidecar_path, encoding="utf-8") as fh:
+            for line in fh:
+                line = line.strip()
+                if line:
+                    rec = json.loads(line)
+                    fp = rec.get("fingerprint")
+                    if fp and fp not in meta_index:
+                        meta_index[fp] = rec
+    except Exception:
+        pass  # caller has already reconciled; any failure here is secondary
+    return meta_index
+
+
+def _fingerprint_from_sample(sample: dict) -> Optional[str]:
+    """Compute request fingerprint from an lm-eval sample record.
+
+    lm-eval 0.4.12 stores messages at:
+        sample["arguments"]["gen_args_0"]["arg_0"][0]  (a JSON-encoded messages list)
+    """
+    import hashlib as _hashlib
+    try:
+        arg0 = sample["arguments"]["gen_args_0"]["arg_0"]
+        if isinstance(arg0, list):
+            msgs_str = arg0[0]
+        else:
+            msgs_str = arg0
+        messages = json.loads(msgs_str)
+        canonical = json.dumps(messages, sort_keys=True, ensure_ascii=False).encode("utf-8")
+        return _hashlib.sha256(canonical).hexdigest()
+    except (KeyError, TypeError, json.JSONDecodeError, IndexError):
+        return None
+
+
+def _derive_per_item_data(
+    run_dir: pathlib.Path,
+    sidecar_path: Optional[pathlib.Path] = None,
+) -> Dict[str, dict]:
+    """Derive per-item evidence from retained samples_*.jsonl.gz files.
+
+    Reads all samples_*.jsonl.gz under run_dir/raw/ (recursively).
+    Deduplicates by doc_id so multi-filter tasks (e.g. GPQA's answer-line +
+    flexible-fallback) produce exactly ONE row per item.
+
+    When sidecar_path is provided, enriches each item with:
+      - finish_reason: from sidecar metadata (not always available in lm-eval JSONL)
+      - disposition: from sidecar classify_response() classification:
+          "scored" | "budget" | "parser" | "empty"
+
+    Returns a dict keyed by str(doc_id):
+        {
+            "item_id":       str,   # str(doc_id)
+            "score":         str,   # float formatted, or "" if None
+            "response_chars": int,
+            "empty_content": int,   # 1 if empty, 0 otherwise
+            "disposition":   str,   # from metadata or "scored"/"empty_response"
+            "finish_reason": str,   # from metadata, or "" if unavailable
+        }
+
+    Raises RuntimeError if no samples files are found or if all are corrupt/empty.
+    Raises gzip.BadGzipFile / json.JSONDecodeError for individual corrupt files.
+    """
+    raw_dir = run_dir / "raw"
+    all_gz = [
+        f for f in raw_dir.rglob("*")
+        if f.is_file() and _SAMPLES_JSONL_GZ_RE.match(f.name)
+    ]
+    if not all_gz:
+        raise RuntimeError(
+            f"No samples_*.jsonl.gz found under {raw_dir} — cannot derive per-item evidence."
+        )
+
+    # Load sidecar metadata for enrichment (best-effort; reconciliation already passed)
+    meta_index = _load_sidecar_metadata(sidecar_path) if sidecar_path else {}
+
+    # Accumulate: for each doc_id keep the "best" view across all filter rows.
+    # "Best" = non-empty text preferred over empty; best non-None score kept.
+    # Also track the fingerprint so we can look up sidecar metadata.
+    items: Dict[str, dict] = {}
+
+    for gz_path in sorted(all_gz):
+        with _gzip_module.open(gz_path, "rt", encoding="utf-8") as fh:
+            content = fh.read()
+        lines = [l.strip() for l in content.splitlines() if l.strip()]
+        if not lines:
+            raise RuntimeError(
+                f"samples file {gz_path.name} contains no lines — "
+                "evidence is absent; refusing to proceed."
+            )
+        for line in lines:
+            rec = json.loads(line)
+            doc_id = rec.get("doc_id")
+            key = str(doc_id)
+            text = _response_text(rec)
+            score = _score_of(rec)
+            fp = _fingerprint_from_sample(rec)
+
+            prev = items.get(key)
+            if prev is None:
+                items[key] = {
+                    "item_id": key,
+                    "score": score,
+                    "_text": text,
+                    "_fp": fp,
+                }
+            else:
+                # Keep non-empty text if any filter produced output
+                if not prev["_text"].strip() and text.strip():
+                    prev["_text"] = text
+                # Keep fingerprint if we didn't have one
+                if prev["_fp"] is None and fp is not None:
+                    prev["_fp"] = fp
+                # Keep best score (prefer non-None, then highest)
+                if prev["score"] is None and score is not None:
+                    prev["score"] = score
+                elif (score is not None and prev["score"] is not None
+                      and score > prev["score"]):
+                    prev["score"] = score
+
+    if not items:
+        raise RuntimeError(
+            "No item records found in any samples file — cannot derive per-item evidence."
+        )
+
+    # Import classifier for sidecar-based disposition
+    _classify = None
+    if meta_index:
+        try:
+            if str(_VIZ_DIR) not in sys.path:
+                sys.path.insert(0, str(_VIZ_DIR))
+            from lmeval_sidecar.reconcile import classify_response as _cr
+            _classify = _cr
+        except ImportError:
+            pass
+
+    # Finalize: compute derived fields, enrich from sidecar where available
+    result: Dict[str, dict] = {}
+    for key, item in items.items():
+        text = item["_text"]
+        rc = len(text)
+        empty = 1 if rc == 0 else 0
+
+        # Look up sidecar metadata via fingerprint
+        fp = item.get("_fp")
+        meta_rec = meta_index.get(fp) if fp and meta_index else None
+
+        if meta_rec and _classify is not None:
+            disposition = _classify(meta_rec)
+            finish_reasons = meta_rec.get("finish_reasons") or []
+            finish_reason = finish_reasons[0] if finish_reasons else ""
+            if finish_reason is None:
+                finish_reason = ""
+        else:
+            disposition = "empty_response" if empty else "scored"
+            finish_reason = ""  # not stored in lm-eval JSONL without sidecar
+
+        score_val = item["score"]
+        result[key] = {
+            "item_id": key,
+            "score": "" if score_val is None else str(score_val),
+            "response_chars": rc,
+            "empty_content": empty,
+            "disposition": disposition,
+            "finish_reason": str(finish_reason),
+        }
+    return result
+
+
+
+
+def _write_per_item_csv(run_dir: pathlib.Path,
+                        items: Dict[str, dict]) -> pathlib.Path:
+    """Write run_dir/per_item.csv with the canonical schema expected by the validator.
+
+    Columns: item_id, score, response_chars, empty_content, disposition, finish_reason
+    Rows sorted by item_id (numeric sort when possible).
+    Returns the path to the written file.
+    """
+    out_path = run_dir / "per_item.csv"
+    fieldnames = [
+        "item_id", "score", "response_chars", "empty_content",
+        "disposition", "finish_reason",
+    ]
+
+    def sort_key(k: str) -> tuple:
+        try:
+            return (0, int(k))
+        except ValueError:
+            return (1, k)
+
+    with out_path.open("w", newline="", encoding="utf-8") as fh:
+        writer = csv.DictWriter(fh, fieldnames=fieldnames, extrasaction="ignore")
+        writer.writeheader()
+        for key in sorted(items.keys(), key=sort_key):
+            writer.writerow(items[key])
+    return out_path
+
+
+def _update_manifest_on_completion(
+    run_dir: pathlib.Path,
+    submitted_count: int,
+    completed_utc: str,
+) -> None:
+    """Update manifest.json with completion metadata.
+
+    Sets:
+      - timing.completed_utc = completed_utc
+      - item_inventory.submitted = submitted_count
+      - artifact_inventory.samples_jsonl_gz = True (if samples exist)
+      - artifact_inventory.per_item_csv = True (if per_item.csv exists)
+      - artifact_inventory.run_log = True (if run.log exists)
+      - artifact_inventory.command_txt = True (if command.txt exists)
+      - artifact_inventory.done_sentinel = True (always — DONE is written next)
+
+    Raises OSError if manifest cannot be read or written.
+    Raises json.JSONDecodeError if manifest is corrupt.
+    """
+    manifest_path = run_dir / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+
+    # Update timing
+    timing = manifest.setdefault("timing", {})
+    timing["completed_utc"] = completed_utc
+
+    # Update submitted count
+    inventory = manifest.setdefault("item_inventory", {})
+    inventory["submitted"] = submitted_count
+
+    # Update artifact_inventory
+    art = manifest.setdefault("artifact_inventory", {})
+    raw_dir = run_dir / "raw"
+    # samples_jsonl_gz: any samples file under raw/
+    art["samples_jsonl_gz"] = any(
+        f.is_file() and _SAMPLES_JSONL_GZ_RE.match(f.name)
+        for f in raw_dir.rglob("*")
+        if raw_dir.exists()
+    )
+    # per_item_csv: present at run_dir/per_item.csv
+    art["per_item_csv"] = (run_dir / "per_item.csv").exists()
+    # run_log: present at run_dir/run.log
+    art["run_log"] = (run_dir / "run.log").exists()
+    # command_txt: present at run_dir/command.txt
+    art["command_txt"] = (run_dir / "command.txt").exists()
+    # done_sentinel: about to be written; mark True now (atomicity: we write
+    # manifest before DONE so that manifest is never wrong)
+    art["done_sentinel"] = True
+
+    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+
+def _verify_and_reconcile_sidecar(
+    run_dir: pathlib.Path,
+    sidecar_path: pathlib.Path,
+) -> int:
+    """Verify sidecar file exists and passes reconciliation. Returns 0 on pass, 1 on fail.
+
+    Fail-closed: any issue (missing, corrupt, reconciliation failure) returns 1.
+    """
+    import sys
+
+    if not sidecar_path.exists():
+        print(
+            f"[run-quality] FATAL: Sidecar metadata file not found at {sidecar_path}. "
+            "The sidecar runner must produce this file before DONE can be written. "
+            "DONE not written.",
+            file=sys.stderr,
+        )
+        return 1
+
+    # Find the samples gz under raw/
+    raw_dir = run_dir / "raw"
+    if not raw_dir.exists():
+        print(
+            f"[run-quality] FATAL: raw/ directory does not exist at {raw_dir}.",
+            file=sys.stderr,
+        )
+        return 1
+
+    samples_files = [
+        f for f in raw_dir.rglob("*")
+        if f.is_file() and _SAMPLES_JSONL_GZ_RE.match(f.name)
+    ]
+    if not samples_files:
+        print(
+            f"[run-quality] FATAL: No samples_*.jsonl.gz found under {raw_dir} "
+            "for sidecar reconciliation.",
+            file=sys.stderr,
+        )
+        return 1
+
+    # Import reconciler (in the same viz/ package)
+    try:
+        # Add viz/ to path so lmeval_sidecar is importable
+        if str(_VIZ_DIR) not in sys.path:
+            sys.path.insert(0, str(_VIZ_DIR))
+        from lmeval_sidecar.reconcile import reconcile_inventory
+    except ImportError as exc:
+        print(
+            f"[run-quality] FATAL: Cannot import lmeval_sidecar.reconcile: {exc}. "
+            "Install the sidecar package or check PYTHONPATH.",
+            file=sys.stderr,
+        )
+        return 1
+
+    # Reconcile once across the complete inventory. Per-file reconciliation would
+    # falsely classify metadata belonging to sibling sample files as foreign.
+    try:
+        report = reconcile_inventory(sorted(samples_files), sidecar_path)
+    except Exception as exc:
+        print(
+            f"[run-quality] FATAL: Whole-inventory reconciliation raised: {exc}. "
+            "DONE not written.",
+            file=sys.stderr,
+        )
+        return 1
+
+    if report["exit_code"] != 0:
+        print(
+            "[run-quality] FATAL: Sidecar reconciliation FAILED. DONE not written.\n"
+            + "\n".join(report["errors"]),
+            file=sys.stderr,
+        )
+        return 1
+
+    return 0
+
 
 
 def _verify_required_evidence(run_dir: pathlib.Path) -> List[str]:
@@ -436,7 +845,16 @@ class QualityRunner:
     # ------------------------------------------------------------------
 
     def build_command(self) -> List[str]:
-        """Build the canonical lm-eval argv list from suite + adapter settings."""
+        """Build the canonical lm-eval argv list from suite + adapter settings.
+
+        Uses the sidecar wrapper (lmeval_sidecar_runner.py) instead of
+        `python -m lm_eval` so that response metadata is captured for every
+        request. The sidecar path is placed under run_dir/raw/ and passed via
+        environment (not argv) so no credentials appear in the command line.
+
+        The sidecar runner asserts lm_eval==0.4.12 at startup and fails closed
+        if the wrong version is installed.
+        """
         bench = self._bench_cfg
 
         task_file = bench.get("task_file", "")
@@ -463,19 +881,27 @@ class QualityRunner:
             f"temperature={temperature},"
             f"do_sample={str(do_sample).lower()}"
         )
+        # Sidecar path: under run_dir/raw/, passed via model_args (not env)
+        # so it is visible in command.txt for auditability; contains no credentials.
+        sidecar_path = str(self.run_dir / "raw" / "response_metadata.jsonl")
         model_args = (
             f"base_url={self.endpoint},"
             f"model={model_id},"
             f"num_concurrent={self.concurrency},"
             f"max_retries={max_retries},"
-            f"tokenized_requests=False"
+            f"timeout={int(self.timeout)},"
+            f"tokenized_requests=False,"
+            f"sidecar_path={sidecar_path}"
         )
 
         output_path = str(self.run_dir / "raw")
 
+        # Sidecar runner path (always in the same directory as run_quality.py)
+        runner_path = str(_VIZ_DIR / "lmeval_sidecar_runner.py")
+
         cmd = [
-            sys.executable, "-m", "lm_eval",
-            "--model", "local-chat-completions",
+            sys.executable, runner_path,
+            "--model", "sidecar-chat-completions",
             "--model_args", model_args,
             "--apply_chat_template",
             "--tasks", task_name,
@@ -483,7 +909,6 @@ class QualityRunner:
             "--output_path", output_path,
             "--log_samples",
             "--num_fewshot", "0",
-            "--timeout", str(int(self.timeout)),
         ]
 
         if task_dir:
@@ -618,15 +1043,92 @@ class QualityRunner:
         # --- Execute harness (stdout+stderr captured to run.log) ---
         harness_rc = self._execute_harness(cmd)
 
-        # --- Post-run: verify evidence, write DONE or record failure ---
+        # --- Post-run: normalize exact lm-eval 0.4.12 output, then verify evidence ---
         if harness_rc == 0:
+            try:
+                _normalize_lmeval_samples(self.run_dir / "raw")
+            except Exception as exc:
+                print(
+                    f"[run-quality] FATAL: Cannot normalize lm-eval sample evidence: {exc}. "
+                    "DONE not written.",
+                    file=sys.stderr,
+                )
+                if not self._transition_status_failed(
+                    harness_rc=0, reason="sample_normalization_failed"
+                ):
+                    return 1
+                return 1
             evidence_errors = _verify_required_evidence(self.run_dir)
             if not evidence_errors:
-                # Completion atomicity: schema-validate completed status, write it,
-                # then write DONE.
+                # --- Sidecar reconciliation gate (fail closed) ---
+                # The sidecar MUST exist and reconcile cleanly before DONE is written.
+                sidecar_path = self.run_dir / "raw" / "response_metadata.jsonl"
+                sidecar_rc = _verify_and_reconcile_sidecar(self.run_dir, sidecar_path)
+                if sidecar_rc != 0:
+                    if not self._transition_status_failed(
+                        harness_rc=0, reason="sidecar_reconciliation_failed"
+                    ):
+                        return 1
+                    return 1
+
+                # --- Derive per-item evidence and write per_item.csv ---
+                # Fail closed: if derivation fails, do NOT proceed to DONE.
+                # Uses sidecar metadata for finish_reason and disposition.
+                try:
+                    per_item_data = _derive_per_item_data(self.run_dir,
+                                                          sidecar_path=sidecar_path)
+                except Exception as exc:
+                    print(
+                        f"[run-quality] FATAL: Cannot derive per-item evidence: {exc}. "
+                        "DONE not written.",
+                        file=sys.stderr,
+                    )
+                    if not self._transition_status_failed(
+                        harness_rc=0, reason="per_item_derivation_failed"
+                    ):
+                        return 1
+                    return 1
+
+                try:
+                    _write_per_item_csv(self.run_dir, per_item_data)
+                except Exception as exc:
+                    print(
+                        f"[run-quality] FATAL: Cannot write per_item.csv: {exc}. "
+                        "DONE not written.",
+                        file=sys.stderr,
+                    )
+                    if not self._transition_status_failed(
+                        harness_rc=0, reason="per_item_csv_write_failed"
+                    ):
+                        return 1
+                    return 1
+
+                # --- Completion atomicity: schema-validate completed status, write it ---
                 rc = self._transition_status_completed_atomic()
                 if rc != 0:
                     return rc
+
+                # --- Update manifest durably before writing DONE ---
+                # Fail closed: if manifest update fails, return nonzero and
+                # do NOT write DONE (status is already completed, but DONE
+                # is never written — caller knows to re-inspect).
+                completed_utc = _utcnow()
+                submitted_count = len(per_item_data)
+                try:
+                    _update_manifest_on_completion(
+                        self.run_dir,
+                        submitted_count=submitted_count,
+                        completed_utc=completed_utc,
+                    )
+                except Exception as exc:
+                    print(
+                        f"[run-quality] FATAL: Cannot update manifest.json: {exc}. "
+                        "DONE not written.",
+                        file=sys.stderr,
+                    )
+                    return 1
+
+                # --- Write DONE sentinel (last — manifest is already durable) ---
                 try:
                     (self.run_dir / "DONE").write_text("completed\n")
                 except OSError as exc:

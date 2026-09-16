@@ -296,6 +296,7 @@ def _validate_resume_identity(
     expected_model_id: str,
     expected_model_revision: str,
     expected_item_count: int,
+    expected_instance_ids_hash: Optional[str] = None,
 ) -> None:
     """Validate that an existing manifest's identity matches all expected values.
 
@@ -324,8 +325,25 @@ def _validate_resume_identity(
     _check("suite_input_hashes", existing_hashes, expected_suite_input_hashes)
 
     # Item inventory
-    existing_count = (existing_manifest.get("item_inventory") or {}).get("expected")
+    existing_inv = existing_manifest.get("item_inventory") or {}
+    existing_count = existing_inv.get("expected")
     _check("item_inventory.expected", existing_count, expected_item_count)
+
+    # SWE-bench: instance_ids_hash must be present and exact
+    if expected_instance_ids_hash is not None:
+        existing_ids_hash = existing_inv.get("instance_ids_hash")
+        if not existing_ids_hash:
+            mismatches.append(
+                "item_inventory.instance_ids_hash: existing manifest is missing the "
+                "frozen instance set digest (instance_ids_hash). "
+                f"Expected: {expected_instance_ids_hash[:16]}..."
+            )
+        elif existing_ids_hash != expected_instance_ids_hash:
+            mismatches.append(
+                f"item_inventory.instance_ids_hash: existing={existing_ids_hash[:16]}..., "
+                f"expected={expected_instance_ids_hash[:16]}... "
+                "(frozen SWE-bench instance set has drifted or been replaced)"
+            )
 
     if mismatches:
         raise ResumeIdentityMismatchError(
@@ -335,8 +353,62 @@ def _validate_resume_identity(
 
 
 # ---------------------------------------------------------------------------
-# Inventory resolution
+# SWE-bench instance set digest
 # ---------------------------------------------------------------------------
+
+def _compute_swebench_instance_ids_hash(
+    repo: pathlib.Path,
+    suite: dict,
+) -> str:
+    """Load the frozen SWE-bench instance set and return its canonical digest.
+
+    The canonical algorithm matches validate_campaign:
+        sha256(json.dumps(sorted(ids), sort_keys=True).encode()).hexdigest()
+
+    The instance set is already validated (file exists, hash matches,
+    unique non-empty strings, correct count) by validate_suite before this
+    function is called, so we trust it here.
+
+    Returns the 64-char lowercase hex digest.
+    Raises SuiteValidationError if the instance file is unreadable or malformed
+    (belt-and-suspenders — should never trigger after validate_suite).
+    """
+    swe_cfg = (suite.get("benchmarks") or {}).get("swebench", {})
+    instance_set_file = swe_cfg.get("instance_set_file", "")
+    if not instance_set_file:
+        raise SuiteValidationError(
+            "Suite swebench benchmark config is missing 'instance_set_file'; "
+            "cannot compute instance_ids_hash."
+        )
+
+    abs_path = (repo / instance_set_file).resolve()
+    # Containment already checked by validate_suite; belt-and-suspenders
+    try:
+        abs_path.relative_to(repo)
+    except ValueError as exc:
+        raise SuiteValidationError(
+            f"instance_set_file {instance_set_file!r} resolves outside repo "
+            f"(symlink escape after suite validation): {abs_path}"
+        ) from exc
+
+    try:
+        raw = json.loads(abs_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise SuiteValidationError(
+            f"Cannot read instance_set_file {instance_set_file!r}: {exc}"
+        ) from exc
+
+    if not isinstance(raw, list):
+        raise SuiteValidationError(
+            f"instance_set_file {instance_set_file!r} must be a JSON list; "
+            f"got {type(raw).__name__}."
+        )
+
+    ids: list[str] = raw  # validated by validate_suite
+    return hashlib.sha256(
+        json.dumps(sorted(ids), sort_keys=True).encode()
+    ).hexdigest()
+
 
 def _resolve_item_count(
     suite: dict,
@@ -509,6 +581,13 @@ def create_campaign(
     suite_input_hashes = _collect_suite_input_hashes(repo, suite, suite_path, benchmark)
     profile_digest = _serving_profile_digest(adapter, hardware_id=hardware_id)
 
+    # -- 4b. For swebench: compute frozen instance set digest (fail-closed) --
+    # Must happen before directory creation — any invalid instance set aborts here.
+    instance_ids_hash: Optional[str] = None
+    if benchmark == "swebench":
+        # validate_suite has already checked the file; this re-reads to compute digest
+        instance_ids_hash = _compute_swebench_instance_ids_hash(repo, suite)
+
     # -- 5. Resolve item inventory -------------------------------------------
     expected_item_count = _resolve_item_count(suite, benchmark, item_count)
 
@@ -567,6 +646,10 @@ def create_campaign(
         manifest["serving"]["image_digest"] = digest_part
     else:
         manifest["serving"]["image_digest"] = "unrecorded"
+
+    # For swebench: record the frozen instance set digest in item_inventory
+    if instance_ids_hash is not None:
+        manifest["item_inventory"]["instance_ids_hash"] = instance_ids_hash
 
     status: dict = {
         "schema_version": 1,
@@ -637,6 +720,7 @@ def create_campaign(
             expected_model_id=model.get("id", ""),
             expected_model_revision=model.get("revision", ""),
             expected_item_count=expected_item_count,
+            expected_instance_ids_hash=instance_ids_hash,
         )
         status_mismatches = []
         if existing_status.get("run_id") != run_id:

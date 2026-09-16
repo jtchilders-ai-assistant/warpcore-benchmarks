@@ -5,6 +5,13 @@ Writes viz/data/bench_matrix.json. Values are cross-checked against the model
 cards; every deviation from a raw harness number is annotated with a `note`
 explaining why, so the figures can surface caveats rather than launder them.
 
+Layout support:
+  - Historical: reads from results/<model>/raw/ (legacy hardcoded paths)
+  - Normalized (v1 contract): normalized layout runs are published via
+    viz/publish_campaign.py (canonical_matrix.json), not this script.
+    This script preserves the historical ratchet without implicitly upgrading
+    historical debt to canonical.
+
 Usage:  python3 viz/collect_matrix.py
 """
 from __future__ import annotations

@@ -281,12 +281,33 @@ def _normalize_generation_artifacts(
         return errors
 
     # --- 4. Copy every trajectory into stable raw/trajectories/ ---
+    # Trajectories are absent for pre-agent infrastructure failures (e.g. docker
+    # pull timeout, vLLM 5xx). These IDs have exit statuses that indicate the
+    # agent was never invoked; their absence is expected and must not fail
+    # normalization. Only IDs with agent-level exit statuses (Submitted,
+    # RepeatedFormatError, ContextWindowExceededError, LimitsExceeded, etc.)
+    # are required to have trajectories.
+    #
+    # Infrastructure-failure exit statuses (no agent was ever created):
+    _INFRA_FAILURE_STATUSES = frozenset({
+        "TimeoutExpired",       # docker pull/test timeout, model never invoked
+        "InternalServerError",  # vLLM 5xx (e.g. GB10 long-context wedge)
+        # Generic test-mode names used in tests:
+        "infrastructure_error",
+        "infra_failure",
+    })
+
     trajectories_dir = raw_dir / "trajectories"
 
     import shutil as _shutil
     traj_errors: list = []
     for iid in expected_instance_ids:
         src = raw_dir / iid / f"{iid}.traj.json"
+        # Check if this ID had a pre-agent infrastructure failure
+        exit_status = id_to_status.get(iid, "")
+        if exit_status in _INFRA_FAILURE_STATUSES:
+            # No trajectory expected — skip without error
+            continue
         if not src.is_file() or src.stat().st_size == 0:
             traj_errors.append(f"Missing or empty trajectory for {iid}: {src}")
 
@@ -297,6 +318,10 @@ def _normalize_generation_artifacts(
     try:
         trajectories_dir.mkdir(exist_ok=True)
         for iid in expected_instance_ids:
+            # Skip infra-failure IDs — they have no trajectory to copy
+            exit_status = id_to_status.get(iid, "")
+            if exit_status in _INFRA_FAILURE_STATUSES:
+                continue
             src = raw_dir / iid / f"{iid}.traj.json"
             dst = trajectories_dir / f"{iid}.traj"
             _shutil.copy2(str(src), str(dst))
@@ -423,9 +448,31 @@ def _verify_generation_evidence(
             "Generation must preserve trajectories for evidence and audit."
         )
     elif expected_instance_ids is not None:
-        # Verify exactly one stable trajectory artifact per expected ID.
+        # Determine which IDs are infra-failure (no trajectory required).
+        # Read exit_statuses.json if present to identify exempt IDs.
+        _INFRA_FAILURE_STATUSES = frozenset({
+            "TimeoutExpired",       # docker pull/test timeout, model never invoked
+            "InternalServerError",  # vLLM 5xx
+            "infrastructure_error",
+            "infra_failure",
+        })
+        infra_exempt: set = set()
+        if exit_statuses.exists():
+            try:
+                es_data_for_exempt = json.loads(exit_statuses.read_text())
+                if isinstance(es_data_for_exempt, dict):
+                    for iid, status in es_data_for_exempt.items():
+                        if str(status) in _INFRA_FAILURE_STATUSES:
+                            infra_exempt.add(iid)
+            except (json.JSONDecodeError, OSError):
+                pass  # best-effort; if unreadable, exempt nothing
+
+        # Verify exactly one stable trajectory artifact per expected ID,
+        # excluding infra-failure IDs (no trajectory produced for them).
         missing_trajs: list = []
         for iid in expected_instance_ids:
+            if iid in infra_exempt:
+                continue  # pre-agent infra failure — no trajectory expected
             dst_traj = trajectories_dir / f"{iid}.traj"
             if not dst_traj.is_file() or dst_traj.stat().st_size == 0:
                 missing_trajs.append(iid)
@@ -1548,25 +1595,193 @@ class SwebenchRunner:
             run_dir=self.run_dir,
         )
 
-    def _transition_completed_atomic(self) -> int:
-        """Write DONE sentinel atomically, then write completed status. Returns 0 or EXIT_DEFECT.
+    def _write_manifest_atomic(self, manifest: dict) -> None:
+        """Write manifest.json atomically via sibling-temp + fsync + os.replace.
 
-        Lifecycle atomicity (fail-closed, Task5-preserving):
+        Uses the same durable-write pattern as campaign_state.write_status:
+          1. Write to a sibling temp file in the same directory (same filesystem).
+          2. fsync to flush to durable storage.
+          3. os.replace (atomic on POSIX) to swap in the new file.
+
+        Raises OSError on any failure; the destination is never half-written.
+        """
+        import tempfile as _tf
+        manifest_path = self.run_dir / "manifest.json"
+        payload = json.dumps(manifest, indent=2, ensure_ascii=False) + "\n"
+        fd, tmp_path = _tf.mkstemp(
+            dir=str(self.run_dir),
+            prefix=".tmp_manifest_",
+            suffix=".json",
+        )
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as fh:
+                fh.write(payload)
+                fh.flush()
+                os.fsync(fh.fileno())
+            os.replace(tmp_path, str(manifest_path))
+        except BaseException:
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
+            raise
+
+    def _update_manifest_on_completion(self) -> None:
+        """Update manifest.json with completion metadata BEFORE writing DONE.
+
+        Sets:
+          - timing.completed_utc = UTC timestamp
+          - item_inventory.submitted = total count across all grading disposition categories
+          - artifact_inventory.preds_json = True (if raw/preds.json exists)
+          - artifact_inventory.exit_statuses_json = True (if raw/exit_statuses.json exists)
+          - artifact_inventory.grading_results_json = True (if raw/grading_results.json exists)
+          - artifact_inventory.run_log = True (if raw/run.log exists)
+          - artifact_inventory.command_txt = True (if command.txt exists)
+          - artifact_inventory.done_sentinel = False  ← DONE not yet written; must not claim True
+
+        done_sentinel is set to True only AFTER DONE is successfully written, by a
+        separate call to _mark_manifest_done_sentinel_true().
+
+        Raises OSError if manifest cannot be read or written.
+        Raises json.JSONDecodeError if manifest is corrupt.
+        Raises ValueError if grading_results.json is malformed or missing required keys.
+        """
+        manifest_path = self.run_dir / "manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+
+        # Update timing
+        timing = manifest.setdefault("timing", {})
+        timing["completed_utc"] = _utcnow()
+
+        # Compute submitted count from grading_results.json.
+        # Grading has already been verified by _verify_grading_evidence before this
+        # method is called — any malformed or missing grading file would have caused
+        # an earlier EXIT_DEFECT.  We still parse strictly here (fail-closed, not
+        # best-effort) because the submitted count must equal the actual disposition
+        # union and silent submitted=0 would be a correctness violation.
+        raw_dir = self.run_dir / "raw"
+        grading_path = raw_dir / "grading_results.json"
+        if not grading_path.exists():
+            raise ValueError(
+                f"grading_results.json not found at {grading_path}. "
+                "Cannot compute submitted count for manifest — grading evidence is required."
+            )
+        try:
+            grading = json.loads(grading_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError) as exc:
+            raise ValueError(
+                f"grading_results.json at {grading_path} is not valid JSON: {exc}. "
+                "Manifest submitted count cannot be computed from malformed grading data."
+            ) from exc
+
+        if not isinstance(grading, dict):
+            raise ValueError(
+                f"grading_results.json must be a JSON object; got {type(grading).__name__}. "
+                "Cannot compute submitted count."
+            )
+
+        _DISPOSITION_KEYS = (
+            "resolved_ids", "unresolved_ids", "empty_patch_ids",
+            "error_ids", "incomplete_ids",
+        )
+        submitted_count = 0
+        seen_ids: set = set()
+        for key in _DISPOSITION_KEYS:
+            ids = grading.get(key) or []
+            if not isinstance(ids, list):
+                raise ValueError(
+                    f"grading_results.json[{key!r}] must be a list; "
+                    f"got {type(ids).__name__}."
+                )
+            for iid in ids:
+                if iid in seen_ids:
+                    raise ValueError(
+                        f"Instance ID {iid!r} appears in multiple grading disposition "
+                        "categories. Disposition union must be disjoint."
+                    )
+                seen_ids.add(iid)
+            submitted_count += len(ids)
+
+        # submitted must equal the number of expected instances
+        expected_count = manifest.get("item_inventory", {}).get("expected", 0)
+        if expected_count and submitted_count != expected_count:
+            raise ValueError(
+                f"Grading disposition union covers {submitted_count} instances but "
+                f"manifest.item_inventory.expected = {expected_count}. "
+                "submitted must equal expected — all instances must have a terminal disposition."
+            )
+
+        inventory = manifest.setdefault("item_inventory", {})
+        inventory["submitted"] = submitted_count
+
+        # Update artifact_inventory — done_sentinel stays False here.
+        # It will be set to True only after DONE is durably written.
+        art = manifest.setdefault("artifact_inventory", {})
+        art["preds_json"] = (raw_dir / "preds.json").exists()
+        art["exit_statuses_json"] = (raw_dir / "exit_statuses.json").exists()
+        art["grading_results_json"] = grading_path.exists()
+        art["run_log"] = (raw_dir / "run.log").exists()
+        art["command_txt"] = (self.run_dir / "command.txt").exists()
+        # IMPORTANT: done_sentinel MUST be False here — DONE has not been written yet.
+        # Setting it True before DONE exists would create an inconsistent manifest state.
+        art["done_sentinel"] = False
+
+        # Atomic write: sibling-temp + fsync + os.replace
+        self._write_manifest_atomic(manifest)
+
+    def _mark_manifest_done_sentinel_true(self) -> None:
+        """Update manifest.json to set artifact_inventory.done_sentinel = True.
+
+        Called AFTER DONE is successfully written on disk.  Uses the same atomic
+        write mechanism as _update_manifest_on_completion.
+
+        Raises OSError or json.JSONDecodeError on failure.
+        """
+        manifest_path = self.run_dir / "manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        art = manifest.setdefault("artifact_inventory", {})
+        art["done_sentinel"] = True
+        self._write_manifest_atomic(manifest)
+
+    def _transition_completed_atomic(self) -> int:
+        """Update manifest, write DONE, mark done_sentinel, write completed status. Returns 0 or EXIT_DEFECT.
+
+        Lifecycle atomicity (fail-closed):
+          0. Update manifest.json with completion metadata (timing, submitted count,
+             artifact_inventory booleans). done_sentinel stays False — DONE not yet written.
+             Fail closed if this fails — no DONE written.
           1. Write DONE via _write_done (default: atomic staged temp + os.replace).
              If this fails, status remains at 'running' → transition to failed.
-             No inconsistency: no DONE, no completed status.
-          2. Write completed status to disk (DONE already exists on disk).
-             If this fails, DONE exists but status is 'running' (inconsistent).
-             We revert: attempt to delete DONE, then transition running → failed.
+             No inconsistency: no DONE, no completed status, done_sentinel still False.
+          2. Mark manifest done_sentinel = True (atomic write, DONE now on disk).
+             If this fails: DONE exists but done_sentinel is False — inconsistent.
+             Revert: remove DONE, transition running → failed, persist failed manifest.
+          3. Write completed status to disk (DONE + done_sentinel both durable).
+             If this fails: DONE exists but status is 'running' (inconsistent).
+             Revert: attempt to delete DONE, re-write manifest done_sentinel=False,
+             then transition running → failed.
 
-        This ordering ensures: if status == 'completed', DONE definitely exists
-        (we wrote DONE before committing the status transition).
-
-        The _done_writer injectable allows tests to simulate DONE write failure without
-        patching the global pathlib.Path.write_text (which cannot be reliably targeted
-        by path identity due to macOS tmpdir symlink resolution).
+        This ordering ensures: if status == 'completed', DONE definitely exists and
+        manifest.done_sentinel is True.
         """
         done_path = self.run_dir / "DONE"
+
+        # Step 0: Update manifest.json before DONE (done_sentinel=False, fail-closed)
+        try:
+            self._update_manifest_on_completion()
+        except Exception as exc:
+            print(
+                f"[run-swebench] FATAL: Cannot update manifest.json: {exc}. "
+                "DONE not written.",
+                file=sys.stderr,
+            )
+            if not self._transition_failed(note="manifest update failed before DONE"):
+                print(
+                    "[run-swebench] FATAL: _transition_failed write failed after manifest update failure. "
+                    "Run is in an indeterminate state.",
+                    file=sys.stderr,
+                )
+            return EXIT_DEFECT
 
         # Step 1: Write DONE sentinel atomically (status stays at 'running')
         try:
@@ -1584,6 +1799,30 @@ class SwebenchRunner:
                     file=sys.stderr,
                 )
             return EXIT_DEFECT
+
+        # Step 2: Mark manifest done_sentinel = True (DONE now on disk).
+        # If this fails, revert DONE so no inconsistency persists.
+        try:
+            self._mark_manifest_done_sentinel_true()
+        except Exception as exc:
+            print(
+                f"[run-swebench] FATAL: Cannot mark manifest done_sentinel=True after DONE write: {exc}. "
+                "Reverting DONE and transitioning to failed.",
+                file=sys.stderr,
+            )
+            try:
+                done_path.unlink(missing_ok=True)
+            except OSError:
+                pass
+            if not self._transition_failed(note="manifest done_sentinel update failed; DONE reverted"):
+                print(
+                    "[run-swebench] FATAL: _transition_failed write failed after done_sentinel update failure. "
+                    "Run is in an indeterminate state — DONE has been reverted.",
+                    file=sys.stderr,
+                )
+            return EXIT_DEFECT
+
+        # Step 3: Write completed status (DONE + done_sentinel both durable).
         try:
             status = self._read_status_strict()
             new_status = campaign_state.apply_transition(
@@ -1615,6 +1854,20 @@ class SwebenchRunner:
                 done_path.unlink(missing_ok=True)
             except OSError:
                 pass
+            # Re-write manifest to clear done_sentinel=True (best-effort, don't re-raise)
+            try:
+                manifest_path = self.run_dir / "manifest.json"
+                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+                art = manifest.setdefault("artifact_inventory", {})
+                art["done_sentinel"] = False
+                self._write_manifest_atomic(manifest)
+            except Exception as manifest_exc:
+                print(
+                    f"[run-swebench] WARNING: Could not revert manifest done_sentinel to False "
+                    f"after status write failure: {manifest_exc}. "
+                    "Manifest may be inconsistent with DONE state.",
+                    file=sys.stderr,
+                )
             # Transition to failed (still in 'running' state, so this is legal)
             if not self._transition_failed(note="completed status write failed; DONE reverted"):
                 print(

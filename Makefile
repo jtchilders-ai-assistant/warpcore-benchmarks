@@ -24,7 +24,7 @@ FIGS       := fig1_pareto fig2_swebench fig3_discrimination
 # Instance set for the SWE-bench pre-flight check (seed-42 n=100, shared by all models).
 SWEBENCH_INSTANCES ?= results/qwen3.6-35b-a3b/raw/swebench/preds_shuffle100.json
 
-.PHONY: all figs data clean check preflight manifest check-artifacts audit samples ci preflight-serving preflight-selftest quality-preflight quality-preflight-selftest contract run-quality run-swebench
+.PHONY: all figs data clean check preflight manifest check-artifacts audit samples ci preflight-serving preflight-selftest quality-preflight quality-preflight-selftest contract run-quality run-swebench validate-campaign publish-campaign
 
 all: figs
 
@@ -113,7 +113,7 @@ ci: check check-artifacts contract
 	@$(PYTHON) $(VIZ)/preflight_serving.py --self-test
 	@$(PYTHON) $(VIZ)/validate_samples.py --warn-only
 	@$(PYTHON) $(VIZ)/quality_preflight.py --self-test
-	@$(PYTHON) -m pytest tests/test_run_quality.py tests/test_task5_acceptance.py tests/test_run_swebench.py tests/test_task6_hardening.py -q
+	@$(PYTHON) -m pytest tests/test_run_quality.py tests/test_task5_acceptance.py tests/test_run_swebench.py tests/test_task6_hardening.py tests/test_validate_campaign.py tests/test_publish_campaign.py tests/test_task7_adversarial.py tests/test_task7_contracts.py tests/test_task7_authoritative_validator.py tests/test_task7_evidence_paths.py tests/test_task7_runner_integration.py tests/test_task7_submitted_and_scoring_provenance.py tests/test_task7_swe_digest.py tests/test_task7_swebench_contracts.py tests/test_lmeval_sidecar.py -q
 	@echo "OK: figures reproducible, no new provenance gaps, suite contract valid."
 
 # Suite and adapter contract validation (warpcore-v1 design §12 step 2).
@@ -233,3 +233,28 @@ run-swebench:
 		$(if $(DRY_RUN),--dry-run,) \
 		$(if $(ALLOW_NO_SCREEN),--allow-no-screen,) \
 		$(if $(RESUME),--resume,)
+
+# Campaign validator (Task 7).
+# Validate a completed run directory before transitioning to 'validated'.
+# Required variables: RUN_DIR, SUITE, ADAPTER
+# Optional: FOR_PUBLICATION=1
+#
+# Exit 0 = all gates pass, 1 = at least one gate failed.
+validate-campaign:
+	@test -n "$(RUN_DIR)" || { echo "ERROR: RUN_DIR is required (path to the run directory)" >&2; exit 2; }
+	@test -n "$(SUITE)"   || { echo "ERROR: SUITE is required (e.g. SUITE=suite/warpcore-v1.yaml)" >&2; exit 2; }
+	@test -n "$(ADAPTER)" || { echo "ERROR: ADAPTER is required (e.g. ADAPTER=adapters/model.yaml)" >&2; exit 2; }
+	@$(PYTHON) $(VIZ)/validate_campaign.py $(RUN_DIR) \
+		--suite $(SUITE) \
+		--adapter $(ADAPTER) \
+		$(if $(FOR_PUBLICATION),--for-publication,)
+
+# Canonical publication gate (Task 7).
+# Read validated+current manifests and write canonical_matrix.json transactionally.
+# Optional: OUTPUT=path/to/canonical_matrix.json, SUITE_ID=warpcore-v1
+#
+# Exit 0 = published successfully.
+publish-campaign:
+	@$(PYTHON) $(VIZ)/publish_campaign.py \
+		$(if $(OUTPUT),--output $(OUTPUT),) \
+		$(if $(SUITE_ID),--suite-id $(SUITE_ID),)

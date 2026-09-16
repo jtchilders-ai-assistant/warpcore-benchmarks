@@ -152,10 +152,22 @@ def _make_harness_artifacts(run_dir: pathlib.Path) -> None:
     (raw_dir / "results_2026-01-01T00-00-00.json").write_text(
         '{"results": {"gsm8k_cot_zeroshot_clean": {"exact_match,none": 0.5}}}\n'
     )
-    sample_line = b'{"doc_id": 0, "resps": [[["42"]]], "filtered_resps": ["42"], "target": "42"}\n'
+    messages = [{"role": "user", "content": "fixture question"}]
+    sample = {"doc_id": 0, "resps": [["42"]], "filtered_resps": ["42"],
+              "target": "42", "exact_match": 1.0,
+              "arguments": {"gen_args_0": {"arg_0": [json.dumps(messages)]}}}
     gz_path = raw_dir / "samples_gsm8k_cot_zeroshot_clean_2026-01-01T00-00-00.jsonl.gz"
-    with gzip.open(gz_path, "wb") as fh:
-        fh.write(sample_line)
+    with gzip.open(gz_path, "wt", encoding="utf-8") as fh:
+        fh.write(json.dumps(sample) + "\n")
+    import hashlib
+    fingerprint = hashlib.sha256(
+        json.dumps(messages, sort_keys=True, ensure_ascii=False).encode("utf-8")
+    ).hexdigest()
+    (raw_dir / "response_metadata.jsonl").write_text(json.dumps({
+        "fingerprint": fingerprint, "finish_reasons": ["stop"],
+        "usage": {"prompt_tokens": 3, "completion_tokens": 1, "total_tokens": 4},
+        "content": ["42"], "reasoning_content": [None], "reasoning": [None],
+    }) + "\n")
 
 
 # ---------------------------------------------------------------------------
@@ -1020,13 +1032,12 @@ class TestCommandUsesLocalChatCompletions(unittest.TestCase):
             harness_runner=MagicMock(return_value=0),
         )
 
-    def test_model_is_local_chat_completions(self):
-        """--model must be local-chat-completions (routes to /v1/chat/completions)."""
+    def test_model_is_sidecar_chat_completions(self):
+        """--model must capture response metadata on the chat-completions path."""
         runner = self._make_runner()
         cmd = runner.build_command()
-        # Must use local-chat-completions, not local-completions
-        self.assertIn("local-chat-completions", cmd,
-                      "--model must be 'local-chat-completions'")
+        self.assertIn("sidecar-chat-completions", cmd,
+                      "--model must be 'sidecar-chat-completions'")
         self.assertNotIn("local-completions", cmd,
                          "--model must not be 'local-completions'")
 
@@ -1320,11 +1331,25 @@ class TestEvidenceVerificationBeforeDone(unittest.TestCase):
         runner, run_dir = self._make_runner(harness_exit=0)
         raw_dir = run_dir / "raw"
         raw_dir.mkdir()
-        # Simulate minimal real lm-eval output: results JSON + samples JSONL
+        # Simulate complete canonical response evidence, not reduced lm-eval fields.
         (raw_dir / "results_2026-09-15T12-00-00.json").write_text(
-            '{"results": {"gsm8k_cot_zeroshot_clean": {"exact_match,none": 0.85}}}')
+            '{"results": {"gsm8k_cot_zeroshot_clean": {"exact_match,none": 0.85}}}'
+        )
+        messages = [{"role": "user", "content": "fixture question"}]
+        sample = {"doc_id": 0, "target": "42", "resps": [["42"]],
+                  "filtered_resps": ["42"], "exact_match": 1.0,
+                  "arguments": {"gen_args_0": {"arg_0": [json.dumps(messages)]}}}
         samples_gz = raw_dir / "samples_gsm8k_cot_zeroshot_clean_2026-09-15T12-00-00.jsonl.gz"
-        samples_gz.write_bytes(gzip.compress(b'{"doc_id": 0, "target": "42", "filtered_resps": ["42"]}\n'))
+        samples_gz.write_bytes(gzip.compress((json.dumps(sample) + "\n").encode()))
+        import hashlib
+        fingerprint = hashlib.sha256(
+            json.dumps(messages, sort_keys=True, ensure_ascii=False).encode()
+        ).hexdigest()
+        (raw_dir / "response_metadata.jsonl").write_text(json.dumps({
+            "fingerprint": fingerprint, "finish_reasons": ["stop"],
+            "usage": {"prompt_tokens": 3, "completion_tokens": 1, "total_tokens": 4},
+            "content": ["42"], "reasoning_content": [None], "reasoning": [None],
+        }) + "\n")
         rc = runner.run()
         self.assertTrue((run_dir / "DONE").exists(), "DONE must be written when required artifacts exist")
         self.assertEqual(rc, 0)
@@ -1688,13 +1713,13 @@ class TestExactArgvAssertions(unittest.TestCase):
         )
 
     def test_model_arg_appears_as_discrete_token(self):
-        """'local-chat-completions' must appear as a discrete --model argument token."""
+        """'sidecar-chat-completions' must be the discrete --model token."""
         runner = self._make_runner()
         cmd = runner.build_command()
         # Find --model and check the next token
         if "--model" in cmd:
             model_idx = cmd.index("--model")
-            self.assertEqual(cmd[model_idx + 1], "local-chat-completions")
+            self.assertEqual(cmd[model_idx + 1], "sidecar-chat-completions")
         else:
             self.fail("--model not found in command")
 

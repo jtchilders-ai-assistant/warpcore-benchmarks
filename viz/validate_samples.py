@@ -160,6 +160,15 @@ def discover() -> list:
     Both may exist locally; only the CSV survives a clean checkout, because
     .gitignore excludes samples_*.jsonl. Keyed by task so the same run is not
     counted twice when both are present.
+
+    Supports both layouts:
+    - Historical: results/<model>/raw/ (existing)
+    - Normalized: results/<model>/runs/<suite>/<bench>/<run_id>/raw/ (v1 contract)
+
+    Lifecycle is not a discovery filter here: all runs (historical, current,
+    superseded, etc.) are audited for silent-zero defects. Hard gates (failing on
+    empty-response rates) apply to all discovered samples equally; the distinction
+    between lifecycle states is enforced by validate_campaign.py, not here.
     """
     by_task: dict = {}
     for p in sorted(set(RESULTS.rglob("samples_*.jsonl"))

@@ -175,10 +175,21 @@ def _populate_raw_evidence(run_dir: pathlib.Path) -> None:
     (raw_dir / "results_2026-09-15T12-00-00.json").write_text(
         '{"results": {"gsm8k_cot_zeroshot_clean": {"exact_match,none": 0.85}}}'
     )
+    messages = [{"role": "user", "content": "fixture question"}]
+    sample = {"doc_id": 0, "target": "42", "resps": [["42"]],
+              "filtered_resps": ["42"], "exact_match": 1.0,
+              "arguments": {"gen_args_0": {"arg_0": [json.dumps(messages)]}}}
     samples_gz = raw_dir / "samples_gsm8k_cot_zeroshot_clean_2026-09-15T12-00-00.jsonl.gz"
-    samples_gz.write_bytes(
-        gzip.compress(b'{"doc_id": 0, "target": "42", "filtered_resps": ["42"]}\n')
-    )
+    samples_gz.write_bytes(gzip.compress((json.dumps(sample) + "\n").encode()))
+    import hashlib
+    fingerprint = hashlib.sha256(
+        json.dumps(messages, sort_keys=True, ensure_ascii=False).encode()
+    ).hexdigest()
+    (raw_dir / "response_metadata.jsonl").write_text(json.dumps({
+        "fingerprint": fingerprint, "finish_reasons": ["stop"],
+        "usage": {"prompt_tokens": 3, "completion_tokens": 1, "total_tokens": 4},
+        "content": ["42"], "reasoning_content": [None], "reasoning": [None],
+    }) + "\n")
 
 
 # ---------------------------------------------------------------------------

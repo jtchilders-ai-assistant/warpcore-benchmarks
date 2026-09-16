@@ -65,6 +65,41 @@ def audit_model(model_dir: pathlib.Path) -> dict:
         "manifest_any": bool(list(raw.rglob("manifest.json"))) if raw.exists() else False,
         "swebench_run": swe.exists(),
     }
+
+    # Also look for manifests in normalized layout: results/<model>/runs/<suite>/...
+    runs_root = model_dir / "runs"
+    if runs_root.is_dir():
+        normalized_manifests = list(runs_root.rglob("manifest.json"))
+        if normalized_manifests:
+            row["manifest_any"] = True
+            # Check for normalized swebench runs
+            for m_path in normalized_manifests:
+                try:
+                    m = json.loads(m_path.read_text())
+                    if m.get("benchmark") == "swebench":
+                        row["swebench_run"] = True
+                        run_dir = m_path.parent
+                        row.setdefault("swe_manifest", True)
+                        row.setdefault("swe_exit_statuses",
+                                       bool(list(run_dir.glob("exit_statuses*.yaml"))))
+                        row.setdefault("swe_preds",
+                                       bool(list(run_dir.rglob("*preds*.json"))))
+                        row.setdefault("swe_results",
+                                       bool(list(run_dir.rglob("*results*.json"))
+                                            or list(run_dir.rglob("*report*.json"))))
+                        row.setdefault("swe_trajectories",
+                                       bool(list(run_dir.rglob("*trajector*"))
+                                            or list(run_dir.rglob("*.tar.gz"))))
+                        row.setdefault("swe_config",
+                                       bool(list(run_dir.rglob("*.yaml"))))
+                        row.setdefault("swe_config_reconstructed",
+                                       bool(list(run_dir.rglob("*RECONSTRUCTED*"))))
+                        row.setdefault("swe_no_score",
+                                       (run_dir / "DIAGNOSIS.json").exists()
+                                       and not row.get("swe_preds", False))
+                except (json.JSONDecodeError, OSError):
+                    pass
+
     if swe.exists():
         # Naming is not uniform across models: the graded report is
         # "*results*.json" for some runs and "*report*.json" for others. Match
@@ -72,9 +107,9 @@ def audit_model(model_dir: pathlib.Path) -> dict:
         row["swe_manifest"] = (swe / "manifest.json").exists()
         row["swe_exit_statuses"] = bool(list(swe.glob("exit_statuses*.yaml")))
         row["swe_preds"] = bool(list(swe.glob("*preds*.json")))
-        row["swe_results"] = bool(list(swe.glob("*results*.json"))
+        row["swe_results"] = bool(list(swe.glob("*results*.json"))\
                                   or list(swe.glob("*report*.json")))
-        row["swe_trajectories"] = bool(list(swe.glob("*trajector*"))
+        row["swe_trajectories"] = bool(list(swe.glob("*trajector*"))\
                                        or list(swe.glob("*.tar.gz")))
         row["swe_config"] = bool(list(swe.glob("*.yaml")))
         # A config the agent RECONSTRUCTED after the fact is weaker evidence than

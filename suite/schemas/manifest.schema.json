@@ -153,6 +153,11 @@
         "submitted": {
           "type": "integer",
           "minimum": 0
+        },
+        "instance_ids_hash": {
+          "type": "string",
+          "description": "SHA-256 hex digest of the sorted JSON-encoded instance ID list. Used to detect changed instance sets between manifest creation and publication.",
+          "pattern": "^[0-9a-f]{64}$"
         }
       }
     },
@@ -177,21 +182,20 @@
     "artifact_inventory": {
       "type": "object",
       "required": [
-        "samples_jsonl_gz",
-        "per_item_csv",
         "run_log",
         "command_txt",
         "done_sentinel"
       ],
       "additionalProperties": false,
+      "description": "Declares which artifacts were retained. Quality benchmarks include samples_jsonl_gz and per_item_csv; SWE-bench includes preds_json, exit_statuses_json, grading_results_json. All benchmarks include run_log, command_txt, done_sentinel.",
       "properties": {
         "samples_jsonl_gz": {
           "type": "boolean",
-          "description": "Compressed raw sample JSONL present"
+          "description": "Compressed raw sample JSONL present (quality benchmarks only)"
         },
         "per_item_csv": {
           "type": "boolean",
-          "description": "Per-item audit CSV present"
+          "description": "Per-item audit CSV present (quality benchmarks only)"
         },
         "run_log": {
           "type": "boolean",
@@ -204,6 +208,18 @@
         "done_sentinel": {
           "type": "boolean",
           "description": "Completion sentinel file present"
+        },
+        "preds_json": {
+          "type": "boolean",
+          "description": "SWE-bench predictions file present (swebench only)"
+        },
+        "exit_statuses_json": {
+          "type": "boolean",
+          "description": "SWE-bench exit statuses file present (swebench only)"
+        },
+        "grading_results_json": {
+          "type": "boolean",
+          "description": "SWE-bench grading results file present (swebench only)"
         }
       }
     }
