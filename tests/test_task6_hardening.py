@@ -1180,7 +1180,8 @@ class TestPreflightX86Strictness(unittest.TestCase):
 
         runner = self._make_runner()
         with patch.object(_sp, "run", return_value=FakeResult()):
-            rc = runner._run_preflight()
+            with patch("urllib.request.urlopen") as urlopen:
+                rc = runner._run_preflight()
         self.assertNotEqual(
             rc,
             0,
@@ -1193,6 +1194,7 @@ class TestPreflightX86Strictness(unittest.TestCase):
             run_swebench.EXIT_INCONCLUSIVE,
             f"Empty arch must return EXIT_INCONCLUSIVE (2), got {rc}.",
         )
+        urlopen.assert_not_called()
 
     def test_unknown_arch_is_inconclusive(self):
         """When docker info returns an unknown arch string, preflight must be EXIT_INCONCLUSIVE."""
@@ -1308,21 +1310,13 @@ class TestPreflightModelsApiKey(unittest.TestCase):
             len(captured_requests) > 0,
             "/v1/models must be called — no request was captured.",
         )
+        self.assertTrue(
+            all(isinstance(req, _req.Request) for req in captured_requests),
+            "urlopen must receive Request objects so headers can be verified.",
+        )
         for req in captured_requests:
-            if hasattr(req, "get_header"):
-                auth = req.get_header("Authorization")
-                self.assertIsNotNone(
-                    auth,
-                    "The /v1/models request must include an 'Authorization' header. "
-                    "Current implementation uses urlopen(url) without auth headers, "
-                    "which fails for authenticated endpoints.",
-                )
-                self.assertIn(
-                    "TEST_API_KEY_789",
-                    str(auth),
-                    "Authorization header must contain the api_key. "
-                    f"Got: {auth!r}",
-                )
+            auth = req.get_header("Authorization")
+            self.assertEqual(auth, "Bearer TEST_API_KEY_789")
 
     def test_models_request_does_not_leak_api_key_in_output(self):
         """The api_key must not appear in stdout/stderr during preflight."""

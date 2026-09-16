@@ -1215,9 +1215,8 @@ class SwebenchRunner:
                 )
                 return EXIT_INCONCLUSIVE
             arch = docker_info_result.stdout.strip().lower()
-            # SWE-bench containers are x86_64; arm64/aarch64 Docker cannot run them natively
-            if arch not in ("x86_64", "amd64", ""):
-                # Empty means docker desktop may bridge — only hard-fail on known arm
+            # SWE-bench containers are x86_64; unknown/empty cannot establish readiness.
+            if arch not in ("x86_64", "amd64"):
                 if "arm" in arch or "aarch" in arch:
                     print(
                         f"[run-swebench] PREFLIGHT FAIL: Docker host architecture is {arch!r}. "
@@ -1226,6 +1225,12 @@ class SwebenchRunner:
                         file=sys.stderr,
                     )
                     return EXIT_DEFECT
+                print(
+                    f"[run-swebench] PREFLIGHT INCONCLUSIVE: Docker returned unknown architecture {arch!r}; "
+                    "cannot confirm the required x86_64 host.",
+                    file=sys.stderr,
+                )
+                return EXIT_INCONCLUSIVE
         except Exception as exc:
             print(f"[run-swebench] PREFLIGHT INCONCLUSIVE: x86 check raised: {exc}", file=sys.stderr)
             return EXIT_INCONCLUSIVE
@@ -1234,8 +1239,10 @@ class SwebenchRunner:
         import urllib.request as _req
         import urllib.error as _uerr
         models_url = self.endpoint.rstrip("/") + "/models"
+        headers = {"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}
+        request = _req.Request(models_url, headers=headers, method="GET")
         try:
-            with _req.urlopen(models_url, timeout=30) as resp:  # noqa: S310
+            with _req.urlopen(request, timeout=30) as resp:  # noqa: S310
                 models_data = json.loads(resp.read())
             model_ids = [m.get("id", "") for m in (models_data.get("data") or [])]
             if self._model_id not in model_ids:
