@@ -880,5 +880,851 @@ class TestGenerationEvidenceExactIds(unittest.TestCase):
             shutil.rmtree(tmp, ignore_errors=True)
 
 
+# ---------------------------------------------------------------------------
+# N1: _run_generation / _run_grading must implement real subprocess wrappers
+#     (not just return EXIT_DEFECT when no runner is injected)
+# ---------------------------------------------------------------------------
+
+
+class TestLiveSubprocessRunners(unittest.TestCase):
+    """N1: Default _run_generation and _run_grading must call real subprocesses.
+
+    When no runner is injected, the runner should call mini-swe-agent and
+    python -m swebench.harness.run_evaluation rather than returning EXIT_DEFECT.
+    These tests verify the subprocess is actually attempted (using a fake
+    executable that fails fast), not that EXIT_DEFECT is returned immediately.
+    """
+
+    def setUp(self):
+        self.tmp = pathlib.Path(tempfile.mkdtemp())
+        self.adapter_path = self.tmp / "adapters" / "test-canonical-model.yaml"
+        _write_canonical_adapter(self.adapter_path)
+        self.run_dir = _build_run_dir(self.tmp)
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_run_generation_attempts_subprocess_not_immediate_defect(self):
+        """_run_generation without injected runner must attempt a subprocess call,
+        not immediately return EXIT_DEFECT with no subprocess attempt."""
+        import subprocess as _sp
+        attempted = []
+
+        def fake_run(cmd, *args, **kwargs):
+            attempted.append(cmd)
+            raise FileNotFoundError("fake: command not found")
+
+        runner = run_swebench.SwebenchRunner(
+            suite_path=_REAL_SUITE,
+            adapter_path=self.adapter_path,
+            endpoint="http://localhost:8000/v1",
+            run_dir=self.run_dir,
+            repo=self.tmp,
+            dry_run=False,
+            allow_no_screen=True,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
+        )
+        config = runner.build_scaffold_config("http://localhost:8000/v1", "warpcore")
+        with patch.object(_sp, "run", side_effect=fake_run):
+            rc = runner._run_generation(config)
+        self.assertTrue(
+            len(attempted) > 0,
+            "_run_generation without injected runner must attempt a subprocess, "
+            "not immediately return EXIT_DEFECT. Current implementation never "
+            "calls subprocess.run.",
+        )
+
+    def test_run_grading_attempts_subprocess_not_immediate_defect(self):
+        """_run_grading without injected runner must attempt a subprocess call,
+        not immediately return EXIT_DEFECT with no subprocess attempt."""
+        import subprocess as _sp
+        attempted = []
+
+        def fake_run(cmd, *args, **kwargs):
+            attempted.append(cmd)
+            raise FileNotFoundError("fake: command not found")
+
+        runner = run_swebench.SwebenchRunner(
+            suite_path=_REAL_SUITE,
+            adapter_path=self.adapter_path,
+            endpoint="http://localhost:8000/v1",
+            run_dir=self.run_dir,
+            repo=self.tmp,
+            dry_run=False,
+            allow_no_screen=True,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
+        )
+        preds_path = self.run_dir / "raw" / "preds.json"
+        preds_path.parent.mkdir(parents=True, exist_ok=True)
+        preds_path.write_text("{}")
+        with patch.object(_sp, "run", side_effect=fake_run):
+            rc = runner._run_grading(preds_path)
+        self.assertTrue(
+            len(attempted) > 0,
+            "_run_grading without injected runner must attempt a subprocess, "
+            "not immediately return EXIT_DEFECT. Current implementation never "
+            "calls subprocess.run.",
+        )
+
+    def test_run_generation_uses_argv_not_shell(self):
+        """_run_generation must use argv list, not shell=True."""
+        import subprocess as _sp
+        calls = []
+
+        def capture_run(cmd, *args, **kwargs):
+            calls.append({"cmd": cmd, "kwargs": kwargs})
+            raise FileNotFoundError("fake: not found")
+
+        runner = run_swebench.SwebenchRunner(
+            suite_path=_REAL_SUITE,
+            adapter_path=self.adapter_path,
+            endpoint="http://localhost:8000/v1",
+            run_dir=self.run_dir,
+            repo=self.tmp,
+            dry_run=False,
+            allow_no_screen=True,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
+        )
+        config = runner.build_scaffold_config("http://localhost:8000/v1", "warpcore")
+        with patch.object(_sp, "run", side_effect=capture_run):
+            runner._run_generation(config)
+
+        if calls:
+            for call in calls:
+                self.assertIsInstance(
+                    call["cmd"], list,
+                    f"subprocess.run must be called with a list (argv), not a string. "
+                    f"Got: {call['cmd']!r}"
+                )
+                self.assertFalse(
+                    call["kwargs"].get("shell", False),
+                    "subprocess.run must not use shell=True. "
+                    "Shell injection is a security risk."
+                )
+
+
+# ---------------------------------------------------------------------------
+# N2: main() --run-dir explicit path must call create_campaign with resume=True
+#     and demand returned normalized path equals requested path
+# ---------------------------------------------------------------------------
+
+
+class TestMainRunDirResume(unittest.TestCase):
+    """N2: Explicit --run-dir must imply resume=True and call create_campaign.
+
+    When --run-dir is given explicitly on a live (non-dry-run) path, main()
+    currently bypasses create_campaign entirely. It must instead derive the
+    run_id, call create_campaign(resume=True), and demand the returned path
+    equals the requested path.
+    """
+
+    def test_explicit_run_dir_calls_create_campaign_with_resume(self):
+        """When --run-dir is given explicitly for live run, create_campaign must be called."""
+        calls = []
+
+        tmp = pathlib.Path(tempfile.mkdtemp())
+        try:
+            adapter_path = tmp / "adapters" / "test-canonical-model.yaml"
+            _write_canonical_adapter(adapter_path)
+
+            # Build a normalized run_dir path (what the runner would use)
+            slug = _ADAPTER_SLUG
+            run_id = "run-existing-test"
+            run_dir = tmp / "results" / slug / "runs" / "warpcore-v1" / "swebench" / run_id
+            run_dir.mkdir(parents=True, exist_ok=True)
+            # Put a planned status there
+            (run_dir / "status.json").write_text(
+                json.dumps({
+                    "schema_version": 1,
+                    "run_id": run_id,
+                    "suite_id": "warpcore-v1",
+                    "execution_state": "planned",
+                    "lifecycle": "current",
+                    "history": [{"state": "planned", "timestamp": "2026-09-15T12:00:00Z"}],
+                })
+            )
+            (run_dir / "manifest.json").write_text(json.dumps({
+                "suite_id": "warpcore-v1", "run_id": run_id, "benchmark": "swebench",
+                "model": {"slug": slug, "id": _MODEL_ID, "revision": "a" * 40},
+                "item_inventory": {"expected": 100},
+            }))
+
+            import create_campaign as cc_mod
+            original_cc = cc_mod.create_campaign
+
+            def fake_create_campaign(**kwargs):
+                calls.append(kwargs)
+                raise RuntimeError("abort after recording")
+
+            cc_mod.create_campaign = fake_create_campaign
+            try:
+                out = io.StringIO()
+                err = io.StringIO()
+                with redirect_stdout(out), redirect_stderr(err):
+                    try:
+                        run_swebench.main([
+                            "--suite", str(_REAL_SUITE),
+                            "--adapter", str(adapter_path),
+                            "--endpoint", "http://localhost:8000/v1",
+                            "--run-dir", str(run_dir),
+                            "--repo", str(tmp),
+                            "--prompt-tokens", "gsm8k=500,ifeval=2000,gpqa_diamond=1000",
+                            "--allow-no-screen",
+                        ])
+                    except (SystemExit, RuntimeError, Exception):
+                        pass
+            finally:
+                cc_mod.create_campaign = original_cc
+
+            self.assertTrue(
+                len(calls) > 0,
+                "When --run-dir is given explicitly for a live (non-dry-run) run, "
+                "main() must call create_campaign(resume=True) to validate the run dir. "
+                "Current implementation bypasses create_campaign entirely when --run-dir is given.",
+            )
+            if calls:
+                self.assertTrue(
+                    calls[0].get("resume", False),
+                    "create_campaign must be called with resume=True when --run-dir is explicit. "
+                    f"Got: {calls[0]}",
+                )
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_default_path_calls_create_campaign(self):
+        """Default (no --run-dir) live path must call create_campaign for a fresh run."""
+        calls = []
+        tmp = pathlib.Path(tempfile.mkdtemp())
+        try:
+            adapter_path = tmp / "adapters" / "test-canonical-model.yaml"
+            _write_canonical_adapter(adapter_path)
+
+            import create_campaign as cc_mod
+            original_cc = cc_mod.create_campaign
+
+            def fake_create_campaign(**kwargs):
+                calls.append(kwargs)
+                raise RuntimeError("abort after recording")
+
+            cc_mod.create_campaign = fake_create_campaign
+            try:
+                out = io.StringIO()
+                err = io.StringIO()
+                with redirect_stdout(out), redirect_stderr(err):
+                    try:
+                        run_swebench.main([
+                            "--suite", str(_REAL_SUITE),
+                            "--adapter", str(adapter_path),
+                            "--endpoint", "http://localhost:8000/v1",
+                            "--run-id", "run-default-test",
+                            "--repo", str(tmp),
+                            "--prompt-tokens", "gsm8k=500,ifeval=2000,gpqa_diamond=1000",
+                            "--allow-no-screen",
+                        ])
+                    except (SystemExit, RuntimeError, Exception):
+                        pass
+            finally:
+                cc_mod.create_campaign = original_cc
+
+            self.assertTrue(
+                len(calls) > 0,
+                "Default (no --run-dir) live path must call create_campaign. "
+                "This verifies the basic create_campaign wiring for the non-resume path.",
+            )
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+
+# ---------------------------------------------------------------------------
+# N3: preflight x86 check must reject empty/unknown arch as inconclusive
+# ---------------------------------------------------------------------------
+
+
+class TestPreflightX86Strictness(unittest.TestCase):
+    """N3: Preflight x86 check must treat empty/unknown arch as inconclusive.
+
+    Current code: arch not in ("x86_64", "amd64", "") — empty string is accepted
+    as OK, which is wrong. An empty arch means docker info returned nothing usable,
+    and we cannot confirm x86 capability. Must return EXIT_INCONCLUSIVE.
+    """
+
+    def setUp(self):
+        self.tmp = pathlib.Path(tempfile.mkdtemp())
+        self.adapter_path = self.tmp / "adapters" / "test-canonical-model.yaml"
+        _write_canonical_adapter(self.adapter_path)
+        self.run_dir = _build_run_dir(self.tmp)
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def _make_runner(self):
+        return run_swebench.SwebenchRunner(
+            suite_path=_REAL_SUITE,
+            adapter_path=self.adapter_path,
+            endpoint="http://localhost:8000/v1",
+            run_dir=self.run_dir,
+            repo=self.tmp,
+            dry_run=False,
+            allow_no_screen=True,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
+        )
+
+    def test_empty_arch_is_inconclusive_not_ok(self):
+        """When docker info returns empty arch string, preflight must be EXIT_INCONCLUSIVE."""
+        import subprocess as _sp
+
+        class FakeResult:
+            returncode = 0
+            stdout = ""  # empty arch
+            stderr = ""
+
+        runner = self._make_runner()
+        with patch.object(_sp, "run", return_value=FakeResult()):
+            rc = runner._run_preflight()
+        self.assertNotEqual(
+            rc,
+            0,
+            "Empty arch string from 'docker info' must NOT be treated as a passing x86 check. "
+            "Current code accepts '' as a valid arch, which is a fail-open defect. "
+            "Expected EXIT_INCONCLUSIVE (2) but got 0.",
+        )
+        self.assertEqual(
+            rc,
+            run_swebench.EXIT_INCONCLUSIVE,
+            f"Empty arch must return EXIT_INCONCLUSIVE (2), got {rc}.",
+        )
+
+    def test_unknown_arch_is_inconclusive(self):
+        """When docker info returns an unknown arch string, preflight must be EXIT_INCONCLUSIVE."""
+        import subprocess as _sp
+
+        class FakeResult:
+            returncode = 0
+            stdout = "unknown_arch_xyz"
+            stderr = ""
+
+        runner = self._make_runner()
+        with patch.object(_sp, "run", return_value=FakeResult()):
+            rc = runner._run_preflight()
+        self.assertNotEqual(
+            rc,
+            0,
+            "Unknown arch string from 'docker info' must NOT be treated as passing. "
+            "Expected EXIT_INCONCLUSIVE (2) or EXIT_DEFECT (1), got 0.",
+        )
+
+    def test_x86_64_arch_passes_x86_check(self):
+        """When docker info returns 'x86_64', the x86 check must pass (proceed to next check)."""
+        import subprocess as _sp
+        import urllib.error as _uerr
+
+        class FakeResult:
+            returncode = 0
+            stdout = "x86_64"
+            stderr = ""
+
+        runner = self._make_runner()
+        with patch.object(_sp, "run", return_value=FakeResult()):
+            # After passing x86 check, /v1/models will fail (no real endpoint)
+            # We just want to confirm x86_64 doesn't fail the x86 check itself
+            with patch("urllib.request.urlopen", side_effect=_uerr.URLError("no endpoint")):
+                rc = runner._run_preflight()
+        # Should be INCONCLUSIVE (2) from the /v1/models check, not DEFECT from x86
+        self.assertEqual(
+            rc,
+            run_swebench.EXIT_INCONCLUSIVE,
+            f"x86_64 arch must pass the x86 check and proceed to /v1/models. "
+            f"Got rc={rc} instead of EXIT_INCONCLUSIVE from /v1/models failure.",
+        )
+
+
+# ---------------------------------------------------------------------------
+# N4: /v1/models request must send API key Authorization header
+# ---------------------------------------------------------------------------
+
+
+class TestPreflightModelsApiKey(unittest.TestCase):
+    """N4: /v1/models request must include Authorization: Bearer <api_key> header.
+
+    Current implementation uses urlopen(models_url) without any Authorization header.
+    Endpoints that require authentication will return 401 instead of 200, making
+    the preflight inconclusive rather than correctly authenticated.
+    """
+
+    def setUp(self):
+        self.tmp = pathlib.Path(tempfile.mkdtemp())
+        self.adapter_path = self.tmp / "adapters" / "test-canonical-model.yaml"
+        _write_canonical_adapter(self.adapter_path)
+        self.run_dir = _build_run_dir(self.tmp)
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_models_request_includes_authorization_header(self):
+        """The /v1/models GET request must include an Authorization: Bearer header."""
+        import subprocess as _sp
+        import urllib.request as _req
+
+        class FakeResult:
+            returncode = 0
+            stdout = "x86_64"
+            stderr = ""
+
+        captured_requests = []
+
+        class FakeResponse:
+            def __init__(self):
+                self.status = 200
+
+            def read(self):
+                return json.dumps({"data": [{"id": _MODEL_ID}]}).encode()
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *a):
+                pass
+
+        def fake_urlopen(req, **kwargs):
+            captured_requests.append(req)
+            return FakeResponse()
+
+        runner = run_swebench.SwebenchRunner(
+            suite_path=_REAL_SUITE,
+            adapter_path=self.adapter_path,
+            endpoint="http://localhost:8000/v1",
+            run_dir=self.run_dir,
+            repo=self.tmp,
+            dry_run=False,
+            allow_no_screen=True,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
+            api_key="TEST_API_KEY_789",
+        )
+        with patch.object(_sp, "run", return_value=FakeResult()):
+            with patch("urllib.request.urlopen", side_effect=fake_urlopen):
+                runner._run_preflight()
+
+        self.assertTrue(
+            len(captured_requests) > 0,
+            "/v1/models must be called — no request was captured.",
+        )
+        for req in captured_requests:
+            if hasattr(req, "get_header"):
+                auth = req.get_header("Authorization")
+                self.assertIsNotNone(
+                    auth,
+                    "The /v1/models request must include an 'Authorization' header. "
+                    "Current implementation uses urlopen(url) without auth headers, "
+                    "which fails for authenticated endpoints.",
+                )
+                self.assertIn(
+                    "TEST_API_KEY_789",
+                    str(auth),
+                    "Authorization header must contain the api_key. "
+                    f"Got: {auth!r}",
+                )
+
+    def test_models_request_does_not_leak_api_key_in_output(self):
+        """The api_key must not appear in stdout/stderr during preflight."""
+        import subprocess as _sp
+        import urllib.request as _req
+        import urllib.error as _uerr
+
+        secret = "SUPER_SECRET_KEY_PREFLIGHT_TEST"
+
+        class FakeResult:
+            returncode = 0
+            stdout = "x86_64"
+            stderr = ""
+
+        runner = run_swebench.SwebenchRunner(
+            suite_path=_REAL_SUITE,
+            adapter_path=self.adapter_path,
+            endpoint="http://localhost:8000/v1",
+            run_dir=self.run_dir,
+            repo=self.tmp,
+            dry_run=False,
+            allow_no_screen=True,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
+            api_key=secret,
+        )
+
+        out = io.StringIO()
+        err = io.StringIO()
+        with redirect_stdout(out), redirect_stderr(err):
+            with patch.object(_sp, "run", return_value=FakeResult()):
+                with patch("urllib.request.urlopen", side_effect=_uerr.URLError("no endpoint")):
+                    runner._run_preflight()
+
+        combined = out.getvalue() + err.getvalue()
+        self.assertNotIn(
+            secret,
+            combined,
+            f"API key '{secret}' must not appear in preflight output. "
+            f"Got: {combined[:500]}",
+        )
+
+
+# ---------------------------------------------------------------------------
+# N5: _transition_failed return value must be acted upon (fatal on write failure)
+# ---------------------------------------------------------------------------
+
+
+class TestTransitionFailedReturnValueActedOn(unittest.TestCase):
+    """N5: Every _transition_failed call site must act on the return value.
+
+    When _transition_failed returns False (write failed), the run is in an
+    indeterminate state — we cannot confirm 'failed' was durably written.
+    The run must abort with a fatal error, not silently continue.
+    """
+
+    def setUp(self):
+        self.tmp = pathlib.Path(tempfile.mkdtemp())
+        self.adapter_path = self.tmp / "adapters" / "test-canonical-model.yaml"
+        _write_canonical_adapter(self.adapter_path)
+        self.run_dir = _build_run_dir(self.tmp)
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_failed_state_write_failure_is_fatal_on_generation_failure(self):
+        """If _transition_failed write fails after generation failure, run must abort fatally."""
+        write_count = [0]
+        original_write = run_swebench.campaign_state.write_status
+
+        def fail_all_after_running(dest, status, run_dir=None):
+            # Allow writes until 'running'; fail all subsequent writes
+            if status.get("execution_state") in ("preflight_passed", "planned"):
+                return original_write(dest, status, run_dir=run_dir)
+            if status.get("execution_state") == "running":
+                return original_write(dest, status, run_dir=run_dir)
+            raise OSError("Simulated: failed-state write failure")
+
+        def failing_generation(config, run_dir, **kw):
+            return 1  # generation fails
+
+        runner = run_swebench.SwebenchRunner(
+            suite_path=_REAL_SUITE,
+            adapter_path=self.adapter_path,
+            endpoint="http://localhost:8000/v1",
+            run_dir=self.run_dir,
+            repo=self.tmp,
+            dry_run=False,
+            allow_no_screen=True,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
+            preflight_runner=lambda m: 0,
+            generation_runner=failing_generation,
+        )
+        with patch.object(run_swebench.campaign_state, "write_status",
+                          side_effect=fail_all_after_running):
+            rc = runner.run()
+
+        # Must return nonzero — not EXIT_SUCCESS
+        self.assertNotEqual(
+            rc,
+            run_swebench.EXIT_SUCCESS,
+            "When generation fails AND _transition_failed write fails, run must return nonzero. "
+            "Current code ignores the return value of _transition_failed.",
+        )
+        # The status must not be 'running' after a failed write — it should either be
+        # 'failed' (if the write somehow succeeded) or at minimum return nonzero
+        status = json.loads((self.run_dir / "status.json").read_text())
+        self.assertNotEqual(
+            status.get("execution_state"),
+            "completed",
+            "Status must not show 'completed' when generation failed.",
+        )
+
+
+# ---------------------------------------------------------------------------
+# N6: DONE write failure must not leave completed status without DONE
+#     (fail-closed ordering: write DONE before returning EXIT_SUCCESS)
+# ---------------------------------------------------------------------------
+
+
+class TestDoneWriteFailureFailClosed(unittest.TestCase):
+    """N6: If DONE write fails after completed status, run must return nonzero.
+
+    Current implementation writes completed status first, then writes DONE.
+    If DONE write fails, the status says 'completed' but there is no DONE
+    sentinel — a corrupt state. The run must return EXIT_DEFECT in this case.
+
+    The fix requires atomicity: either both succeed or neither commits.
+    In practice: write DONE first (or use a temp+rename), then write completed.
+    Or: write completed, if DONE fails, rewrite status to failed.
+    """
+
+    def setUp(self):
+        self.tmp = pathlib.Path(tempfile.mkdtemp())
+        self.adapter_path = self.tmp / "adapters" / "test-canonical-model.yaml"
+        _write_canonical_adapter(self.adapter_path)
+        self.run_dir = _build_run_dir(self.tmp)
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_done_write_failure_leaves_no_inconsistent_completed_status(self):
+        """If DONE cannot be written, the status must NOT be left as 'completed'.
+
+        The invariant is: DONE exists iff status == 'completed'.
+        Violation: status='completed' but no DONE file.
+
+        Uses done_writer injection (not pathlib.Path.write_text patching) because
+        macOS resolves /tmp → /private/tmp, making path identity comparisons in
+        a write_text patch unreliable.
+        """
+
+        def mock_generation(config, run_dir, **kw):
+            _make_generation_artifacts(run_dir)
+            return 0
+
+        def mock_grading(preds_path, run_dir, **kw):
+            _make_grading_artifacts(run_dir)
+            return 0
+
+        def failing_done_writer(done_path):
+            raise OSError("Simulated DONE write failure")
+
+        runner = run_swebench.SwebenchRunner(
+            suite_path=_REAL_SUITE,
+            adapter_path=self.adapter_path,
+            endpoint="http://localhost:8000/v1",
+            run_dir=self.run_dir,
+            repo=self.tmp,
+            dry_run=False,
+            allow_no_screen=True,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
+            preflight_runner=lambda m: 0,
+            generation_runner=mock_generation,
+            grading_runner=mock_grading,
+            done_writer=failing_done_writer,
+        )
+
+        rc = runner.run()
+
+        self.assertNotEqual(
+            rc,
+            run_swebench.EXIT_SUCCESS,
+            "DONE write failure must return nonzero (EXIT_DEFECT). "
+            "Current implementation already returns EXIT_DEFECT on DONE write failure. "
+            "This test verifies the status does not show 'completed' without DONE.",
+        )
+
+        done_path = self.run_dir / "DONE"
+        # Critical: if status shows 'completed' but no DONE exists, that's a corrupt state
+        if done_path.exists():
+            return  # DONE was written despite our injected failure — skip check
+        if (self.run_dir / "status.json").exists():
+            status = json.loads((self.run_dir / "status.json").read_text())
+            self.assertNotEqual(
+                status.get("execution_state"),
+                "completed",
+                "INVARIANT VIOLATION: status.json says 'completed' but DONE does not exist. "
+                "The fail-closed scheme must ensure this cannot happen. "
+                "The completed status must be reverted to 'failed' when DONE write fails.",
+            )
+
+    def test_done_and_completed_are_consistent_on_success(self):
+        """On a successful run, both DONE and completed status must exist."""
+
+        def mock_generation(config, run_dir, **kw):
+            _make_generation_artifacts(run_dir)
+            return 0
+
+        def mock_grading(preds_path, run_dir, **kw):
+            _make_grading_artifacts(run_dir)
+            return 0
+
+        runner = run_swebench.SwebenchRunner(
+            suite_path=_REAL_SUITE,
+            adapter_path=self.adapter_path,
+            endpoint="http://localhost:8000/v1",
+            run_dir=self.run_dir,
+            repo=self.tmp,
+            dry_run=False,
+            allow_no_screen=True,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
+            preflight_runner=lambda m: 0,
+            generation_runner=mock_generation,
+            grading_runner=mock_grading,
+        )
+        rc = runner.run()
+        self.assertEqual(rc, run_swebench.EXIT_SUCCESS)
+        self.assertTrue(
+            (self.run_dir / "DONE").exists(),
+            "DONE sentinel must exist after successful run.",
+        )
+        status = json.loads((self.run_dir / "status.json").read_text())
+        self.assertEqual(
+            status.get("execution_state"),
+            "completed",
+            "Status must be 'completed' after successful run.",
+        )
+
+
+# ---------------------------------------------------------------------------
+# N7: Generation evidence must check exactly one trajectory per expected ID
+# ---------------------------------------------------------------------------
+
+
+class TestGenerationEvidencePerIdTrajectory(unittest.TestCase):
+    """N7: trajectories/ must contain exactly one .traj file per expected instance ID.
+
+    Current code only checks that the trajectories/ directory exists.
+    It must also verify each expected ID has a corresponding trajectory file.
+    """
+
+    def test_trajectories_missing_for_some_ids(self):
+        """If some expected IDs have no trajectory file, evidence check must fail."""
+        tmp = pathlib.Path(tempfile.mkdtemp())
+        try:
+            raw = tmp / "raw"
+            raw.mkdir()
+            instances = json.loads(_REAL_INSTANCES.read_text())
+            preds = {iid: {"model_patch": "x", "instance_id": iid} for iid in instances}
+            (raw / "preds.json").write_text(json.dumps(preds))
+            (raw / "exit_statuses.json").write_text(json.dumps({iid: 0 for iid in instances}))
+            (raw / "run.log").write_text("done\n")
+            traj_dir = raw / "trajectories"
+            traj_dir.mkdir()
+            # Only write trajectories for the first 50 of 100 IDs
+            for iid in instances[:50]:
+                (traj_dir / f"{iid}.traj").write_text("{}")
+            # Leave instances[50:] without trajectory files
+            errors = run_swebench._verify_generation_evidence(
+                tmp, expected_instance_ids=instances
+            )
+            self.assertTrue(
+                len(errors) > 0,
+                "Missing trajectory files for 50 of 100 instances must produce evidence errors. "
+                "Current implementation only checks directory existence, not per-ID files.",
+            )
+            combined = " ".join(errors).lower()
+            self.assertIn(
+                "traject",
+                combined,
+                "Error must mention 'trajectory' or 'trajectories'.",
+            )
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    def test_trajectories_all_present_passes(self):
+        """When all 100 trajectory files are present, evidence check must pass."""
+        tmp = pathlib.Path(tempfile.mkdtemp())
+        try:
+            raw = tmp / "raw"
+            raw.mkdir()
+            instances = json.loads(_REAL_INSTANCES.read_text())
+            preds = {iid: {"model_patch": "x", "instance_id": iid} for iid in instances}
+            (raw / "preds.json").write_text(json.dumps(preds))
+            (raw / "exit_statuses.json").write_text(json.dumps({iid: 0 for iid in instances}))
+            (raw / "run.log").write_text("done\n")
+            traj_dir = raw / "trajectories"
+            traj_dir.mkdir()
+            for iid in instances:
+                (traj_dir / f"{iid}.traj").write_text("{}")
+            errors = run_swebench._verify_generation_evidence(
+                tmp, expected_instance_ids=instances
+            )
+            self.assertEqual(
+                errors,
+                [],
+                f"All 100 trajectory files present must produce no errors. Got: {errors}",
+            )
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+
+# ---------------------------------------------------------------------------
+# N8: exit_statuses.json must also check for EXTRA (unexpected) IDs
+# ---------------------------------------------------------------------------
+
+
+class TestGenerationEvidenceExitStatusExtra(unittest.TestCase):
+    """N8: exit_statuses.json must reject both missing AND extra IDs.
+
+    Current implementation only checks for missing IDs in exit_statuses.json.
+    Extra IDs (from a different instance set) must also be rejected.
+    """
+
+    def test_extra_exit_status_ids_rejected(self):
+        """exit_statuses.json with extra IDs not in the frozen set must be rejected."""
+        tmp = pathlib.Path(tempfile.mkdtemp())
+        try:
+            raw = tmp / "raw"
+            raw.mkdir()
+            instances = json.loads(_REAL_INSTANCES.read_text())
+            preds = {iid: {"model_patch": "x"} for iid in instances}
+            (raw / "preds.json").write_text(json.dumps(preds))
+            # exit_statuses has all 100 expected + 5 extra foreign IDs
+            extra = ["foreign__repo-0001", "foreign__repo-0002", "foreign__repo-0003",
+                     "foreign__repo-0004", "foreign__repo-0005"]
+            es = {iid: 0 for iid in instances}
+            for eid in extra:
+                es[eid] = 0
+            (raw / "exit_statuses.json").write_text(json.dumps(es))
+            traj_dir = raw / "trajectories"
+            traj_dir.mkdir()
+            for iid in instances:
+                (traj_dir / f"{iid}.traj").write_text("{}")
+            (raw / "run.log").write_text("done\n")
+            errors = run_swebench._verify_generation_evidence(
+                tmp, expected_instance_ids=instances
+            )
+            self.assertTrue(
+                len(errors) > 0,
+                "exit_statuses.json with extra IDs not in the frozen set must produce errors. "
+                "Current implementation only checks for missing IDs, not extra ones.",
+            )
+            combined = " ".join(errors).lower()
+            self.assertTrue(
+                "unexpected" in combined or "extra" in combined or "foreign" in combined,
+                f"Error must mention unexpected/extra IDs. Got: {errors}",
+            )
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+
+# ---------------------------------------------------------------------------
+# N9: run.log must be nonempty (not just exist)
+# ---------------------------------------------------------------------------
+
+
+class TestRunLogNonempty(unittest.TestCase):
+    """N9: run.log must be nonempty — an empty run.log is not valid evidence."""
+
+    def test_empty_run_log_fails_evidence_check(self):
+        """An empty run.log must produce a generation evidence error."""
+        tmp = pathlib.Path(tempfile.mkdtemp())
+        try:
+            raw = tmp / "raw"
+            raw.mkdir()
+            instances = json.loads(_REAL_INSTANCES.read_text())
+            preds = {iid: {"model_patch": "x", "instance_id": iid} for iid in instances}
+            (raw / "preds.json").write_text(json.dumps(preds))
+            (raw / "exit_statuses.json").write_text(json.dumps({iid: 0 for iid in instances}))
+            traj_dir = raw / "trajectories"
+            traj_dir.mkdir()
+            for iid in instances:
+                (traj_dir / f"{iid}.traj").write_text("{}")
+            (raw / "run.log").write_text("")  # empty run.log
+            errors = run_swebench._verify_generation_evidence(
+                tmp, expected_instance_ids=instances
+            )
+            self.assertTrue(
+                len(errors) > 0,
+                "An empty run.log must produce evidence errors. "
+                "Current implementation only checks existence, not content.",
+            )
+            combined = " ".join(errors).lower()
+            self.assertIn(
+                "run.log",
+                combined,
+                "Error must mention 'run.log'.",
+            )
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+
 if __name__ == "__main__":
     unittest.main()

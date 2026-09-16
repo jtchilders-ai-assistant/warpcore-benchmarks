@@ -31,6 +31,28 @@ CONTRACT (docs/superpowers/specs/2026-09-15-warpcore-v1-apples-to-apples-design.
 - Rejects noncanonical adapters at construction.
 - Does NOT launch live benchmark (generation_runner and grading_runner are injected).
 
+CLI WRAPPERS (live defaults when no runner is injected)
+-------------------------------------------------------
+Generation: minisweagent.run.benchmarks.swebench (mini-swe-agent 2.x)
+    --subset <instances-path>   path to frozen instance list (JSON list)
+    --split test
+    --filter <anchored-regex>   anchored OR-regex matching all 100 frozen IDs exactly
+    -c <scaffold-config-yaml>
+    -w <workers>
+    -o <raw_dir>
+
+Grading: swebench.harness.run_evaluation
+    -d princeton-nlp/SWE-bench_Verified
+    -s test
+    -i <instance_id> ...        all frozen IDs (space-separated)
+    -p <preds_path>
+    -id <run_id>
+    --report_dir <raw_dir>
+
+The harness emits <model>.<run_id>.json under --report_dir (default: CWD).
+After grading, this script locates the exact report file, validates it, and
+normalizes it to grading_results.json with disjoint complete categories.
+
 EXIT CODES
 ----------
     EXIT_SUCCESS (0)    Success: DONE written, 100 dispositions present.
@@ -216,6 +238,7 @@ def _verify_generation_evidence(
                 es_set = set(es_data.keys())
                 expected_set = set(expected_instance_ids)
                 missing_es = expected_set - es_set
+                extra_es = es_set - expected_set
                 if missing_es:
                     errors.append(
                         f"exit_statuses.json is missing {len(missing_es)} of "
@@ -223,23 +246,51 @@ def _verify_generation_evidence(
                         f"Missing: {sorted(missing_es)[:5]}"
                         f"{'...' if len(missing_es) > 5 else ''}."
                     )
+                if extra_es:
+                    errors.append(
+                        f"exit_statuses.json contains {len(extra_es)} unexpected instance IDs "
+                        f"not in the frozen suite: "
+                        f"{sorted(extra_es)[:5]}"
+                        f"{'...' if len(extra_es) > 5 else ''}."
+                    )
         except (json.JSONDecodeError, OSError) as exc:
             errors.append(f"exit_statuses.json is not valid JSON: {exc}")
 
-    # Require trajectories/ directory
+    # Require trajectories/ directory and one .traj file per expected instance ID
     trajectories_dir = raw_dir / "trajectories"
     if not trajectories_dir.exists() or not trajectories_dir.is_dir():
         errors.append(
             f"trajectories/ directory missing in {raw_dir}. "
             "Generation must preserve trajectories for evidence and audit."
         )
+    elif expected_instance_ids is not None:
+        # Verify exactly one trajectory file per expected instance ID
+        missing_trajs: list = []
+        for iid in expected_instance_ids:
+            traj_file = trajectories_dir / f"{iid}.traj"
+            if not traj_file.exists():
+                missing_trajs.append(iid)
+        if missing_trajs:
+            errors.append(
+                f"trajectories/ directory is missing {len(missing_trajs)} of "
+                f"{len(expected_instance_ids)} expected trajectory files. "
+                f"Missing: {sorted(missing_trajs)[:5]}"
+                f"{'...' if len(missing_trajs) > 5 else ''}. "
+                "Each expected instance must have a corresponding .traj file."
+            )
 
-    # Require run.log
+    # Require run.log (must be nonempty — empty means generation never ran)
     run_log = raw_dir / "run.log"
     if not run_log.exists():
         errors.append(
             f"run.log missing in {raw_dir}. "
             "Generation must produce run.log capturing subprocess output."
+        )
+    elif run_log.stat().st_size == 0:
+        errors.append(
+            f"run.log in {raw_dir} is empty. "
+            "A nonempty run.log is required as evidence that generation ran. "
+            "An empty run.log suggests the subprocess was never invoked or wrote nothing."
         )
 
     return errors
@@ -312,6 +363,76 @@ def _verify_grading_evidence(
 
 
 # ---------------------------------------------------------------------------
+# Grading report normalization
+# ---------------------------------------------------------------------------
+
+
+def _normalize_grading_report(
+    raw_report: dict,
+    expected_instance_ids: List[str],
+) -> Optional[dict]:
+    """Normalize a raw SWE-bench harness report to our grading_results.json schema.
+
+    The harness may emit different formats depending on version:
+      Format A (per-instance dict): {instance_id: {"resolved": bool, ...}}
+      Format B (top-level keys): {"resolved": [...], "unresolved": [...], ...}
+
+    Returns a dict with disjoint categories:
+        resolved_ids, unresolved_ids, empty_patch_ids, error_ids
+
+    Each expected ID appears in exactly one category. Returns None on parse failure.
+    """
+    if not isinstance(raw_report, dict):
+        return None
+
+    # Detect Format B: top-level lists
+    if any(k in raw_report for k in ("resolved_ids", "resolved", "unresolved_ids", "unresolved")):
+        resolved = raw_report.get("resolved_ids") or raw_report.get("resolved") or []
+        unresolved = raw_report.get("unresolved_ids") or raw_report.get("unresolved") or []
+        empty_patch = raw_report.get("empty_patch_ids") or raw_report.get("empty_patch") or []
+        error = raw_report.get("error_ids") or raw_report.get("error") or []
+        return {
+            "resolved_ids": list(resolved),
+            "unresolved_ids": list(unresolved),
+            "empty_patch_ids": list(empty_patch),
+            "error_ids": list(error),
+        }
+
+    # Detect Format A: per-instance dict keyed by instance_id
+    # Values may be dicts with "resolved" key (bool), or just booleans
+    resolved_ids: list = []
+    unresolved_ids: list = []
+    error_ids: list = []
+
+    expected_set = set(expected_instance_ids)
+
+    for iid, val in raw_report.items():
+        if iid not in expected_set:
+            continue  # skip unexpected IDs
+        if isinstance(val, dict):
+            if val.get("resolved", False):
+                resolved_ids.append(iid)
+            elif val.get("error"):
+                error_ids.append(iid)
+            else:
+                unresolved_ids.append(iid)
+        elif isinstance(val, bool):
+            if val:
+                resolved_ids.append(iid)
+            else:
+                unresolved_ids.append(iid)
+        else:
+            unresolved_ids.append(iid)
+
+    return {
+        "resolved_ids": resolved_ids,
+        "unresolved_ids": unresolved_ids,
+        "empty_patch_ids": [],
+        "error_ids": error_ids,
+    }
+
+
+# ---------------------------------------------------------------------------
 # SwebenchRunner
 # ---------------------------------------------------------------------------
 
@@ -362,6 +483,7 @@ class SwebenchRunner:
         preflight_runner: Optional[Callable] = None,
         generation_runner: Optional[Callable] = None,
         grading_runner: Optional[Callable] = None,
+        done_writer: Optional[Callable] = None,
     ) -> None:
         self.suite_path = pathlib.Path(suite_path).resolve()
         self.adapter_path = pathlib.Path(adapter_path).resolve()
@@ -516,6 +638,7 @@ class SwebenchRunner:
         self._preflight_runner = preflight_runner
         self._generation_runner = generation_runner
         self._grading_runner = grading_runner
+        self._done_writer = done_writer  # callable(done_path: Path) -> None; default: atomic rename
 
     # ------------------------------------------------------------------
     # Public API
@@ -749,20 +872,12 @@ class SwebenchRunner:
             return EXIT_DEFECT
 
         # --- Atomic completed transition + DONE ---
-        rc = self._transition_completed_atomic()
-        if rc != 0:
-            return rc
-
-        try:
-            (self.run_dir / "DONE").write_text("completed\n")
-        except OSError as exc:
-            print(
-                f"[run-swebench] FATAL: Cannot write DONE sentinel: {exc}",
-                file=sys.stderr,
-            )
-            return EXIT_DEFECT
-
-        return EXIT_SUCCESS
+        # Fail-closed ordering: write DONE sentinel first (before committing
+        # completed status). If DONE write fails, status stays as 'running'
+        # and we transition to 'failed' — no inconsistent completed-without-DONE state.
+        # If DONE write succeeds but completed status write fails, we attempt
+        # to remove DONE and transition to failed so no inconsistency persists.
+        return self._transition_completed_atomic()
 
     # ------------------------------------------------------------------
     # Internal helpers
@@ -906,30 +1021,205 @@ class SwebenchRunner:
                 pass
 
     def _run_generation(self, scaffold_config: dict) -> int:
-        """Execute mini-swe-agent generation; return exit code."""
+        """Execute mini-swe-agent generation; return exit code.
+
+        When generation_runner is injected (tests), delegates to it.
+        Default live path calls mini-swe-agent 2.x as a subprocess (argv list, no shell)
+        using module minisweagent.run.benchmarks.swebench with the injected scaffold
+        config written to a temp YAML file. Captures subprocess output to raw/run.log
+        for evidence. Writes preds.json, exit_statuses.json, and trajectories/ to raw/.
+
+        Instance selection: builds an anchored OR-regex from the frozen 100 IDs so that
+        --filter matches exactly the frozen set without relying on a local dataset file.
+        """
         if self._generation_runner is not None:
             return int(self._generation_runner(scaffold_config, self.run_dir))
 
-        # Default: this should never run in tests (always inject generation_runner).
-        # In live use, operators use the CLI wrapper or screen session.
-        print(
-            "[run-swebench] No generation_runner injected. "
-            "In live use, start generation via make run-swebench.",
-            file=sys.stderr,
-        )
-        return EXIT_DEFECT
+        # --- Live default: invoke mini-swe-agent 2.x as subprocess ---
+        import re
+        import subprocess as _sp
+        import tempfile as _tf
+        import yaml
+
+        raw_dir = self.run_dir / "raw"
+        raw_dir.mkdir(parents=True, exist_ok=True)
+        run_log = raw_dir / "run.log"
+
+        # Write the injected scaffold config to a temp file
+        with _tf.NamedTemporaryFile(
+            mode="w", suffix=".yaml", prefix="swe_config_", delete=False
+        ) as tf:
+            yaml.dump(scaffold_config, tf, default_flow_style=False)
+            config_path = tf.name
+
+        # Build an anchored exact-ID OR-regex for --filter
+        # Each ID is anchor-escaped: ^ ID $ with | between them
+        # re.escape handles any special chars in IDs (e.g. __ is safe but be defensive)
+        anchored_ids = [f"^{re.escape(iid)}$" for iid in self._instance_ids]
+        filter_regex = "|".join(anchored_ids)
+
+        try:
+            # mini-swe-agent 2.x invocation (argv only, no shell)
+            # Outputs land in raw/ as preds.json + exit_statuses.json + trajectories/
+            cmd = [
+                sys.executable, "-m", "minisweagent.run.benchmarks.swebench",
+                "--subset", "princeton-nlp/SWE-bench_Verified",
+                "--split", "test",
+                "--filter", filter_regex,
+                "-c", config_path,
+                "-w", str(self.workers),
+                "-o", str(raw_dir),
+            ]
+            print(
+                f"[run-swebench] Generation: {' '.join(shlex.quote(a) for a in cmd[:4])} "
+                f"--filter <anchored-{len(self._instance_ids)}-id-regex> "
+                f"-c {shlex.quote(config_path)} "
+                f"-w {self.workers} -o {shlex.quote(str(raw_dir))}",
+                file=sys.stderr,
+            )
+            with open(run_log, "w") as log_fh:
+                result = _sp.run(
+                    cmd,
+                    stdout=log_fh,
+                    stderr=_sp.STDOUT,
+                    check=False,
+                )
+            return result.returncode
+        except Exception as exc:
+            print(
+                f"[run-swebench] Generation subprocess failed: {exc}",
+                file=sys.stderr,
+            )
+            # Write the error to run.log for evidence
+            try:
+                with open(run_log, "a") as log_fh:
+                    log_fh.write(f"\nGeneration subprocess error: {exc}\n")
+            except OSError:
+                pass
+            return EXIT_DEFECT
+        finally:
+            try:
+                os.unlink(config_path)
+            except OSError:
+                pass
 
     def _run_grading(self, preds_path: pathlib.Path) -> int:
-        """Execute SWE-bench grading; return exit code."""
+        """Execute SWE-bench grading; return exit code.
+
+        When grading_runner is injected (tests), delegates to it.
+        Default live path calls python -m swebench.harness.run_evaluation as a
+        subprocess (argv only, no shell). Uses the frozen 100 instance IDs from
+        the suite.
+
+        The harness emits <model>.<run_id>.json under --report_dir. After a
+        successful run, this method locates the exact report file, validates it,
+        and normalizes it to grading_results.json with disjoint categories.
+        """
         if self._grading_runner is not None:
             return int(self._grading_runner(preds_path, self.run_dir))
 
+        # --- Live default: invoke swebench harness as subprocess ---
+        import subprocess as _sp
+
+        raw_dir = self.run_dir / "raw"
+        raw_dir.mkdir(parents=True, exist_ok=True)
+        grading_out = raw_dir / "grading_results.json"
+
+        # Build argv list (no shell)
+        # Official flags: -d dataset, -s split, -i instance_ids..., -p preds_path,
+        #                 -id run_id, --report_dir output_dir
+        cmd = [
+            sys.executable, "-m", "swebench.harness.run_evaluation",
+            "-d", "princeton-nlp/SWE-bench_Verified",
+            "-s", "test",
+            "-i", *self._instance_ids,
+            "-p", str(preds_path),
+            "-id", self._run_id,
+            "--report_dir", str(raw_dir),
+        ]
         print(
-            "[run-swebench] No grading_runner injected. "
-            "In live use, run grading via the SWE-bench harness.",
+            f"[run-swebench] Grading: {' '.join(shlex.quote(a) for a in cmd[:6])} "
+            f"[... {len(self._instance_ids)} instance IDs ...] "
+            f"-p {shlex.quote(str(preds_path))} -id {shlex.quote(self._run_id)} "
+            f"--report_dir {shlex.quote(str(raw_dir))}",
             file=sys.stderr,
         )
-        return EXIT_DEFECT
+        try:
+            result = _sp.run(
+                cmd,
+                capture_output=True,
+                check=False,
+                cwd=str(raw_dir),
+            )
+            if result.returncode != 0:
+                return result.returncode
+
+            # Locate the report file emitted by the harness.
+            # The harness writes <model_slug>.<run_id>.json under --report_dir.
+            # Scan for any JSON file matching *.<run_id>.json in raw_dir.
+            report_files = sorted(raw_dir.glob(f"*.{self._run_id}.json"))
+            if not report_files:
+                # Fallback: scan for any .json that isn't our known files
+                known = {"grading_results.json", "preds.json", "exit_statuses.json"}
+                report_files = [
+                    f for f in raw_dir.glob("*.json")
+                    if f.name not in known
+                ]
+            if not report_files:
+                print(
+                    f"[run-swebench] Grading succeeded but no report JSON found in {raw_dir}. "
+                    "grading_results.json will be missing.",
+                    file=sys.stderr,
+                )
+                return EXIT_DEFECT
+
+            # Use the first/only report file found
+            report_path = report_files[0]
+            if len(report_files) > 1:
+                print(
+                    f"[run-swebench] Multiple report files found: {[f.name for f in report_files]}. "
+                    f"Using {report_path.name}.",
+                    file=sys.stderr,
+                )
+
+            # Parse and normalize to grading_results.json
+            try:
+                raw_report = json.loads(report_path.read_text())
+            except (json.JSONDecodeError, OSError) as exc:
+                print(
+                    f"[run-swebench] Could not parse grading report {report_path}: {exc}",
+                    file=sys.stderr,
+                )
+                return EXIT_DEFECT
+
+            # Normalize: extract disjoint ID sets from the harness report.
+            # The harness report format: {instance_id: {"resolved": bool, ...}}
+            # or top-level keys "resolved", "unresolved", "empty_patch", "error"
+            normalized = _normalize_grading_report(raw_report, self._instance_ids)
+            if normalized is None:
+                print(
+                    f"[run-swebench] Could not normalize grading report from {report_path.name}. "
+                    "Unexpected format.",
+                    file=sys.stderr,
+                )
+                return EXIT_DEFECT
+
+            try:
+                grading_out.write_text(json.dumps(normalized, indent=2))
+            except OSError as exc:
+                print(
+                    f"[run-swebench] Could not write grading_results.json: {exc}",
+                    file=sys.stderr,
+                )
+                return EXIT_DEFECT
+
+            return 0
+        except Exception as exc:
+            print(
+                f"[run-swebench] Grading subprocess failed: {exc}",
+                file=sys.stderr,
+            )
+            return EXIT_DEFECT
 
     def _read_status_strict(self) -> dict:
         """Read and return status.json, raising on any validation failure."""
@@ -984,7 +1274,38 @@ class SwebenchRunner:
         )
 
     def _transition_completed_atomic(self) -> int:
-        """Schema-validate completed status then write atomically. Returns 0 or EXIT_DEFECT."""
+        """Write DONE sentinel atomically, then write completed status. Returns 0 or EXIT_DEFECT.
+
+        Lifecycle atomicity (fail-closed, Task5-preserving):
+          1. Write DONE via _write_done (default: atomic staged temp + os.replace).
+             If this fails, status remains at 'running' → transition to failed.
+             No inconsistency: no DONE, no completed status.
+          2. Write completed status to disk (DONE already exists on disk).
+             If this fails, DONE exists but status is 'running' (inconsistent).
+             We revert: attempt to delete DONE, then transition running → failed.
+
+        This ordering ensures: if status == 'completed', DONE definitely exists
+        (we wrote DONE before committing the status transition).
+
+        The _done_writer injectable allows tests to simulate DONE write failure without
+        patching the global pathlib.Path.write_text (which cannot be reliably targeted
+        by path identity due to macOS tmpdir symlink resolution).
+        """
+        done_path = self.run_dir / "DONE"
+
+        # Step 1: Write DONE sentinel atomically (status stays at 'running')
+        try:
+            self._write_done(done_path)
+        except OSError as exc:
+            print(
+                f"[run-swebench] FATAL: Cannot write DONE sentinel: {exc}. "
+                "Transitioning to failed — completed status NOT written.",
+                file=sys.stderr,
+            )
+            self._transition_failed(note="DONE sentinel write failed")
+            return EXIT_DEFECT
+
+        # Step 2: Write completed status (DONE already exists on disk)
         try:
             status = self._read_status_strict()
             new_status = campaign_state.apply_transition(
@@ -1004,14 +1325,49 @@ class SwebenchRunner:
                         + "\n".join(schema_errors)
                     )
             self._write_status(new_status)
-            return 0
+            return EXIT_SUCCESS
         except Exception as exc:
             print(
                 f"[run-swebench] FATAL: Completed status write failed: {exc}. "
-                "DONE not written — returning nonzero.",
+                "DONE sentinel was already written. Reverting DONE and transitioning to failed.",
                 file=sys.stderr,
             )
+            # Revert DONE so invariant (DONE ↔ completed) is preserved
+            try:
+                done_path.unlink(missing_ok=True)
+            except OSError:
+                pass
+            # Transition to failed (still in 'running' state, so this is legal)
+            self._transition_failed(note="completed status write failed; DONE reverted")
             return EXIT_DEFECT
+
+    def _write_done(self, done_path: pathlib.Path) -> None:
+        """Write the DONE sentinel atomically via a staged temp file + os.replace.
+
+        Uses a sibling temp file in the same directory so os.replace is atomic
+        on POSIX (same filesystem). Raises OSError on any failure.
+
+        Tests may override this by passing done_writer= to the constructor.
+        """
+        if self._done_writer is not None:
+            self._done_writer(done_path)
+            return
+
+        import tempfile as _tf
+        # Write to a sibling temp file first, then atomically rename
+        done_dir = done_path.parent
+        fd, tmp_path = _tf.mkstemp(dir=str(done_dir), prefix=".DONE_", suffix=".tmp")
+        try:
+            with os.fdopen(fd, "w") as fh:
+                fh.write("completed\n")
+            os.replace(tmp_path, str(done_path))
+        except Exception:
+            # Clean up temp file on failure
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
+            raise
 
     def _transition_failed(self, note: str = "") -> bool:
         """Transition to failed; return whether the durable state write succeeded."""
@@ -1112,7 +1468,42 @@ def main(argv=None) -> int:
 
     # Resolve run directory
     if args.run_dir is not None:
-        run_dir = pathlib.Path(args.run_dir).resolve()
+        explicit_run_dir = pathlib.Path(args.run_dir).resolve()
+        if args.dry_run:
+            # Dry-run: use the explicit path directly (no side effects)
+            run_dir = explicit_run_dir
+        else:
+            # Live run: explicit --run-dir implies resume=True.
+            # Derive run_id from the path and call create_campaign(resume=True)
+            # to validate the run dir and demand the normalized path matches.
+            run_id = explicit_run_dir.name
+            import yaml as _yaml
+            with open(suite_path) as fh:
+                suite = _yaml.safe_load(fh)
+            suite_id = suite.get("suite_id", "warpcore-v1")
+            try:
+                import create_campaign as cc_mod
+                normalized_run_dir = cc_mod.create_campaign(
+                    repo=repo,
+                    suite_path=suite_path,
+                    adapter_path=pathlib.Path(args.adapter).resolve(),
+                    benchmark=_SWEBENCH_BENCH,
+                    run_id=run_id,
+                    resume=True,
+                    prompt_token_maxima=prompt_token_maxima,
+                )
+                if pathlib.Path(normalized_run_dir).resolve() != explicit_run_dir:
+                    print(
+                        f"ERROR: Explicit --run-dir {explicit_run_dir} does not match "
+                        f"create_campaign normalized path {normalized_run_dir}. "
+                        "The run directory must be at the canonical location.",
+                        file=sys.stderr,
+                    )
+                    return EXIT_CONFIG
+                run_dir = pathlib.Path(normalized_run_dir).resolve()
+            except Exception as exc:
+                print(f"ERROR: create_campaign (resume) failed: {exc}", file=sys.stderr)
+                return EXIT_CONFIG
     else:
         import yaml
         with open(suite_path) as fh:
