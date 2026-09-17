@@ -113,14 +113,16 @@ ci: check check-artifacts contract
 	@$(PYTHON) $(VIZ)/preflight_serving.py --self-test
 	@$(PYTHON) $(VIZ)/validate_samples.py --warn-only
 	@$(PYTHON) $(VIZ)/quality_preflight.py --self-test
-	@$(PYTHON) -m pytest tests/test_run_quality.py tests/test_task5_acceptance.py tests/test_run_swebench.py tests/test_task6_hardening.py tests/test_validate_campaign.py tests/test_publish_campaign.py tests/test_task7_adversarial.py tests/test_task7_contracts.py tests/test_task7_authoritative_validator.py tests/test_task7_evidence_paths.py tests/test_task7_runner_integration.py tests/test_task7_submitted_and_scoring_provenance.py tests/test_task7_swe_digest.py tests/test_task7_swebench_contracts.py tests/test_lmeval_sidecar.py tests/test_result_registry.py -q
+	@$(PYTHON) -m pytest tests/test_run_quality.py tests/test_task5_acceptance.py tests/test_run_swebench.py tests/test_task6_hardening.py tests/test_validate_campaign.py tests/test_publish_campaign.py tests/test_task7_adversarial.py tests/test_task7_contracts.py tests/test_task7_authoritative_validator.py tests/test_task7_evidence_paths.py tests/test_task7_runner_integration.py tests/test_task7_submitted_and_scoring_provenance.py tests/test_task7_swe_digest.py tests/test_task7_swebench_contracts.py tests/test_lmeval_sidecar.py tests/test_result_registry.py tests/test_task9_readiness.py -q
 	@echo "OK: figures reproducible, no new provenance gaps, suite contract valid."
 
 # Suite and adapter contract validation (warpcore-v1 design §12 step 2).
 # Validates that suite canonical file hashes are fresh and the suite schema is
 # satisfied.  Exit 1 = diagnosed defect, 2 = unreadable input.
 contract:
-	@$(PYTHON) $(VIZ)/validate_suite.py suite/warpcore-v1.yaml
+	@$(PYTHON) $(VIZ)/validate_suite.py suite/warpcore-v1.yaml \
+		--adapter adapters/qwen3.6-35b-a3b.yaml \
+		--prompt-tokens gsm8k=256,ifeval=373,gpqa_diamond=2808
 
 # Mandatory quality-run gate: serving preflight + output budget + timeout arithmetic.
 # Run this BEFORE any quality run. All three checks must pass.

@@ -1,90 +1,41 @@
-# adapters/qwen3.6-35b-a3b.yaml — Serving adapter for Qwen/Qwen3.6-35B-A3B-FP8
+# adapters/qwen3.6-35b-a3b.yaml — canonical closure-run serving adapter
 #
-# CAMPAIGN STATUS: NONCANONICAL
-# ===========================================================================
-# This adapter documents the historical serving configuration used for the
-# Qwen3.6-35B-A3B-FP8 measurements in results/qwen3.6-35b-a3b/ (2026-08-01).
-# It CANNOT launch a canonical warpcore-v1 campaign because two required
-# immutable identifiers were never recorded:
+# This profile describes the live Qwen service inspected on Warpcore on
+# 2026-09-17. It does not retroactively supply provenance for historical runs.
 #
-#   1. model.revision:  The HuggingFace commit SHA was not pinned at run time.
-#      The README explicitly states the revision is "unrecorded". The current
-#      HEAD of Qwen/Qwen3.6-35B-A3B-FP8 is 95a723d08a9490559dae23d0cff1d9466213d989
-#      (verified 2026-09-15), but this cannot be claimed as the historical revision
-#      because it may differ from the checkpoint served on 2026-08-01.
-#      Warpcore SSH is currently unreachable, preventing live model-ID inspection.
+# Identity evidence:
+# - The live Hugging Face cache ref and loaded snapshot both resolve to the
+#   checkpoint commit below.
+# - The running container uses local image `vllm-node:latest`; that image has no
+#   registry RepoDigest. Its local Docker image ID is pinned below in Docker's
+#   `sha256:<64hex>` form, without fabricating a registry repository digest.
+# - The effective command and vLLM startup log directly establish
+#   gpu_memory_utilization=0.8 and the capacity/parser values below. Because
+#   max_num_seqs is absent from the non-default args, this exact vLLM build's
+#   SchedulerConfig default (inspected in-container) supplies 128.
 #
-#   2. serving.image:   The container was labeled "vllm_node" with no image reference
-#      or digest retained. This is not a Docker Hub reference; it appears to be a
-#      locally-built image name. No registry path or digest was recorded for the
-#      historical run, and the eugr/spark-vllm:latest digest (current arm64:
-#      sha256:9b3d0bdac20712b23df0b714a8e377e7612fcf38175ed647592b478568d9d5e4)
-#      cannot be claimed as the qwen3.6 historical image — the Qwen run used a
-#      different image label entirely.
-#
-# To enable canonical campaigns:
-#   - Pin model.revision to the verified HuggingFace commit SHA for the checkpoint
-#     that will be used in the new campaign (do not guess the historical value).
-#   - Pin serving.image to the verified image reference@digest for the container
-#     that will be used in the new campaign, in repo@sha256:<64hex> form.
-#   - Set campaign_status to "canonical" and remove this noncanonical_reason.
-#   - Delete this explanatory comment block.
-# ===========================================================================
-#
-# Note on reasoning parser: historical runs used --reasoning-parser qwen3, which
-# routes chain-of-thought into a separate reasoning_content channel. The historical
-# GPQA-Diamond 64k thinking-mode run (2026-09-09) used this parser and retained
-# 37/198 empty visible responses that could not be classified (no finish_reason
-# or hidden reasoning fields retained). Any new canonical campaign must preflight
-# the parser classification before launch (see AGENTS.md and ISSUES.md #15).
-#
-# Note on kv_cache_dtype: historical runs used --kv-cache-dtype fp8. This is
-# not currently captured in the adapter schema (it is an advanced serving argument).
-# It should be documented in the campaign manifest under serving.effective_args.
+# The image is local-only. Preserve it on Warpcore while this campaign remains
+# reproducible; deleting/rebuilding the image would make this exact profile
+# unavailable even though the image ID remains valid evidence for this run.
 
 adapter_schema_version: 1
-campaign_status: noncanonical
-noncanonical_reason: >
-  model_revision_unrecorded: The HuggingFace commit SHA for the checkpoint served on
-  2026-08-01 was never pinned or recorded (README explicitly states "unrecorded").
-  The current HEAD SHA (95a723d08a9490559dae23d0cff1d9466213d989, verified 2026-09-15)
-  cannot be claimed as the historical value. image_digest_unrecorded: The container
-  was labeled "vllm_node" — a local image name with no registry path or digest retained.
-  This is distinct from eugr/spark-vllm:latest (the gpt-oss image); its identity is
-  permanently unrecorded for the historical run. Both must be verified for the intended
-  new campaign before enabling canonical status. The unrecorded GPU-memory utilization
-  must also be resolved. Warpcore is currently unreachable, preventing live inspection.
+campaign_status: canonical
 
 model:
   slug: qwen3.6-35b-a3b
   id: Qwen/Qwen3.6-35B-A3B-FP8
-  # revision: UNRESOLVED — see noncanonical_reason above.
-  # README explicitly states: "unrecorded". Do not substitute current HEAD SHA
-  # (95a723d08a9490559dae23d0cff1d9466213d989) as a historical claim.
-  revision: unresolved
+  revision: 95a723d08a9490559dae23d0cff1d9466213d989
 
 serving:
-  # image: UNRESOLVED — see noncanonical_reason above.
-  # Historical image label: "vllm_node" (local image, no digest, no registry path).
-  # This is NOT the same image as eugr/spark-vllm:latest used by gpt-oss-120b.
-  image: unresolved
+  image: sha256:6a5355182ae6aba054d02066ed6e8c4c6a5355a737dca56afdcb899dfe1acdd6
   engine: vllm
-  # Historical build: 0.17.1rc1.dev96+g57431d823.d20260312
   engine_version: 0.17.1rc1.dev96+g57431d823.d20260312
   quantization: fp8
-  # Historical reasoning parser: qwen3 (routes reasoning to reasoning_content channel).
-  # Required for thinking-mode GPQA; creates ISSUES #15 risk if not preflighted.
   reasoning_parser: qwen3
-  # Historical tool-call parser for SWE-bench: qwen3_xml
   tool_call_parser: qwen3_xml
   tokenizer: null
-  # Historical MoE backend: TRITON (FP8 MoE backend, default auto-selection).
   moe_backend: triton
-  # Historical max_model_len: 262144 (explicitly set in serving command).
-  # This is the largest context in the suite; cross-validation: 262144 >= 65536 (OK).
-  # Note: this verifies only the necessary condition (output ceiling fits in window).
-  # Prompt tokenization is required for full feasibility proof — not performed here.
   max_model_len: 262144
-  gpu_memory_utilization: unresolved
-  max_num_seqs: 256
+  gpu_memory_utilization: 0.8
+  max_num_seqs: 128
   environment: {}

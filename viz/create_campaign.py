@@ -455,6 +455,17 @@ def _resolve_item_count(
 # ---------------------------------------------------------------------------
 
 
+def _image_digest(image: object) -> str:
+    """Return the immutable digest from a registry reference or local Docker ID."""
+    if not isinstance(image, str):
+        return "unrecorded"
+    if image.startswith("sha256:"):
+        return image
+    if "@sha256:" in image:
+        return image.split("@", 1)[1]
+    return "unrecorded"
+
+
 def create_campaign(
     repo: pathlib.Path,
     suite_path: pathlib.Path,
@@ -639,13 +650,8 @@ def create_campaign(
         },
     }
 
-    # Extract image digest from canonical adapter image reference
-    image_field = serving.get("image", "unrecorded")
-    if isinstance(image_field, str) and "@sha256:" in image_field:
-        digest_part = image_field.split("@", 1)[1]  # e.g. 'sha256:<hex>'
-        manifest["serving"]["image_digest"] = digest_part
-    else:
-        manifest["serving"]["image_digest"] = "unrecorded"
+    # Preserve either a registry manifest digest or a local Docker image ID.
+    manifest["serving"]["image_digest"] = _image_digest(serving.get("image"))
 
     # For swebench: record the frozen instance set digest in item_inventory
     if instance_ids_hash is not None:

@@ -29,6 +29,8 @@ import tempfile
 import unittest
 from unittest.mock import MagicMock, call, patch
 
+import yaml
+
 # Allow imports from viz/ and tests/
 _TESTS_DIR = pathlib.Path(__file__).parent
 _REPO = _TESTS_DIR.parent
@@ -1501,8 +1503,8 @@ class TestAdapterValidationInInit(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
 
-    def test_noncanonical_adapter_raises_on_init(self):
-        """QualityRunner must reject noncanonical adapters at construction time."""
+    def test_canonical_adapter_constructs_and_noncanonical_adapter_raises(self):
+        """QualityRunner accepts live Qwen but still rejects an explicit noncanonical copy."""
         run_dir = self.tmp / "results" / "qwen3.6-35b-a3b" / "runs" / "warpcore-v1" / "gsm8k" / "run-test"
         run_dir.mkdir(parents=True)
         (run_dir / "status.json").write_text(json.dumps({
@@ -1513,23 +1515,33 @@ class TestAdapterValidationInInit(unittest.TestCase):
             "lifecycle": "current",
             "history": [{"state": "planned", "timestamp": "2026-09-15T12:00:00Z"}],
         }))
-        # The real adapter is noncanonical — QualityRunner must raise
+        kwargs = dict(
+            suite_path=_REAL_SUITE,
+            benchmark="gsm8k",
+            endpoint="http://fake:8000/v1",
+            throughput=64.0,
+            concurrency=8,
+            timeout=14400,
+            run_dir=run_dir,
+            repo=self.tmp,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
+            dry_run=True,
+            preflight_runner=MagicMock(return_value=0),
+            harness_runner=MagicMock(return_value=0),
+        )
+        runner = run_quality.QualityRunner(
+            adapter_path=_REPO / "adapters" / "qwen3.6-35b-a3b.yaml",
+            **kwargs,
+        )
+        self.assertIsNotNone(runner)
+
+        adapter = yaml.safe_load((_REPO / "adapters" / "qwen3.6-35b-a3b.yaml").read_text())
+        adapter["campaign_status"] = "noncanonical"
+        adapter["noncanonical_reason"] = "test unresolved provenance"
+        bad_adapter = self.tmp / "noncanonical.yaml"
+        bad_adapter.write_text(yaml.safe_dump(adapter))
         with self.assertRaises(Exception) as ctx:
-            run_quality.QualityRunner(
-                suite_path=_REAL_SUITE,
-                adapter_path=_REPO / "adapters" / "qwen3.6-35b-a3b.yaml",
-                benchmark="gsm8k",
-                endpoint="http://fake:8000/v1",
-                throughput=64.0,
-                concurrency=8,
-                timeout=14400,
-                run_dir=run_dir,
-                repo=self.tmp,
-                prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
-                dry_run=True,
-                preflight_runner=MagicMock(return_value=0),
-                harness_runner=MagicMock(return_value=0),
-            )
+            run_quality.QualityRunner(adapter_path=bad_adapter, **kwargs)
         err_msg = str(ctx.exception).lower()
         self.assertTrue(
             "noncanonical" in err_msg or "canonical" in err_msg or "campaign" in err_msg,

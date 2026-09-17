@@ -454,12 +454,12 @@ def validate_adapter_campaign_ready(
         )
 
     # -- 3. Immutable image digest check ---------------------------------------
-    _DIGEST = re.compile(r"^.+@sha256:[0-9a-f]{64}$")
+    _DIGEST = re.compile(r"^(?:.+@)?sha256:[0-9a-f]{64}$")
     serving_image = (adapter.get("serving") or {}).get("image", "")
     if not _DIGEST.match(serving_image):
         errors.append(
             f"serving.image for {slug!r} does not carry an immutable digest "
-            f"(expected repo@sha256:<64hex>): {serving_image!r}"
+            f"(expected repo@sha256:<64hex> or local sha256:<64hex>): {serving_image!r}"
         )
 
     # -- 4. Context feasibility -----------------------------------------------

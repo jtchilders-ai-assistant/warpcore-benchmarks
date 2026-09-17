@@ -223,17 +223,15 @@ class TestT3_NoncanonicalGating:
             f"Got: {adapter.get('campaign_status')!r}"
         )
 
-    def test_qwen36_is_noncanonical(self):
-        """qwen3.6 adapter must be noncanonical: no image digest or revision were recorded."""
+    def test_qwen36_is_canonical_for_new_closure_campaigns(self):
+        """Qwen's live profile is canonical without rewriting historical provenance."""
         adapter_path = ADAPTERS_DIR / "qwen3.6-35b-a3b.yaml"
         if not adapter_path.exists():
             pytest.skip("adapter file not yet created")
         adapter = _load_yaml(adapter_path)
-        assert adapter.get("campaign_status") == "noncanonical", (
-            f"qwen3.6-35b-a3b.yaml must have campaign_status=noncanonical because "
-            f"historical image digest and model revision are unrecorded. "
-            f"Got: {adapter.get('campaign_status')!r}"
-        )
+        assert adapter.get("campaign_status") == "canonical"
+        assert adapter["model"]["revision"] != "unresolved"
+        assert adapter["serving"]["image"] != "unresolved"
 
     def test_gpt_oss_fails_campaign_ready(self):
         """validate_adapter_campaign_ready() must return errors for gpt-oss (noncanonical)."""
@@ -247,17 +245,19 @@ class TestT3_NoncanonicalGating:
             "it must fail loudly when provenance is unresolved."
         )
 
-    def test_qwen36_fails_campaign_ready(self):
-        """validate_adapter_campaign_ready() must return errors for qwen3.6 (noncanonical)."""
+    def test_qwen36_passes_campaign_ready_with_measured_prompt_evidence(self):
+        """The live Qwen adapter passes readiness with measured frozen-suite maxima."""
         adapter_path = ADAPTERS_DIR / "qwen3.6-35b-a3b.yaml"
         if not adapter_path.exists():
             pytest.skip("adapter file not yet created")
         adapter = _load_yaml(adapter_path)
-        errors = validate_adapter_campaign_ready(adapter, "qwen3.6-35b-a3b")
-        assert errors, (
-            "validate_adapter_campaign_ready() returned [] for a noncanonical adapter — "
-            "it must fail loudly when provenance is unresolved."
+        errors = validate_adapter_campaign_ready(
+            adapter,
+            "qwen3.6-35b-a3b",
+            suite=_load_suite(),
+            prompt_token_maxima={"gsm8k": 256, "ifeval": 373, "gpqa_diamond": 2808},
         )
+        assert errors == []
 
     def test_noncanonical_reason_present_gpt_oss(self):
         """noncanonical adapters must carry a noncanonical_reason field."""
@@ -595,7 +595,7 @@ class TestT8_ValidateAdaptersDir:
             pytest.skip("adapters/ not yet created")
         errors = validate_adapters_dir(_REPO, ADAPTERS_DIR)
         # Schema errors would be in errors. Campaign-readiness issues are separate.
-        # The real adapters are noncanonical, so we expect NO schema errors.
+        # Both canonical and noncanonical checked-in adapters must remain schema-valid.
         assert errors == [], (
             f"Real adapter files should be schema-valid; got errors: {errors}"
         )

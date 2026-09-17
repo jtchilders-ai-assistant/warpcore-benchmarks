@@ -77,7 +77,29 @@ def main(argv: list[str] | None = None) -> int:
         metavar="ADAPTER_YAML",
         help="Path to a serving adapter YAML file to validate.",
     )
+    parser.add_argument(
+        "--prompt-tokens",
+        metavar="BENCH=N,...",
+        help=(
+            "Measured tokenized prompt maxima for campaign-readiness validation "
+            "(for example gsm8k=256,ifeval=373,gpqa_diamond=2808,swebench_verified=0)."
+        ),
+    )
     args = parser.parse_args(argv)
+
+    prompt_token_maxima: dict[str, int] | None = None
+    if args.prompt_tokens is not None:
+        prompt_token_maxima = {}
+        try:
+            for entry in args.prompt_tokens.split(","):
+                name, value = entry.split("=", 1)
+                name = name.strip()
+                parsed = int(value)
+                if not name or parsed < 0:
+                    raise ValueError
+                prompt_token_maxima[name] = parsed
+        except (TypeError, ValueError):
+            parser.error("--prompt-tokens must be BENCH=N[,BENCH=N...] with nonnegative integers")
 
     if args.suite_path is None and args.adapter is None:
         parser.error("Provide a suite YAML path and/or --adapter ADAPTER_YAML")
@@ -124,7 +146,17 @@ def main(argv: list[str] | None = None) -> int:
             adapter_errors = validate_adapters_dir(
                 repo,
                 repo / "adapters",
-                suite=suite_document,
+                # Suite-only validation checks the frozen contract and adapter
+                # schemas. Campaign-readiness is benchmark/tokenizer-specific and
+                # is enabled only when measured prompt maxima are supplied.
+                suite=suite_document if prompt_token_maxima is not None else None,
+                prompt_token_maxima_by_slug=(
+                    {
+                        (load_yaml(Path(args.adapter)).get("model") or {}).get("slug", ""): prompt_token_maxima
+                    }
+                    if args.adapter and prompt_token_maxima is not None
+                    else None
+                ),
             )
         except (OSError, IOError, yaml.YAMLError) as exc:
             print(f"ERROR: cannot read adapter inputs — {exc}", file=sys.stderr)
