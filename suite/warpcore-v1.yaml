@@ -170,7 +170,7 @@ benchmarks:
     instance_set_file: "suite/swebench/instances-seed42-n100.json"
     instances_sha256: "d46f257dc87482e432307a6e96d5ee2d14b372df0c43b413eba48a573c6d0a24"
     scaffold_file: "suite/swebench/scaffold.yaml"
-    scaffold_sha256: "f3de13ae23f684022c223e14071b7413f5d39d0b9bcb5c66b751670ebdcbba59"
+    scaffold_sha256: "419244dc6060fc242ba4defb72c3098c351ed6b4325ac6742737a463ace6125f"
     expected_item_count: 100
     canonical_headline: "resolved_div_all_100_assigned"
     # All 100 assigned instances remain in the denominator; disposition categories

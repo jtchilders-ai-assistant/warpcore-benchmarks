@@ -1,0 +1,502 @@
+{
+  "astropy__astropy-13453": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "astropy__astropy-13453",
+    "model_patch": ""
+  },
+  "astropy__astropy-14096": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "astropy__astropy-14096",
+    "model_patch": ""
+  },
+  "astropy__astropy-13977": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "astropy__astropy-13977",
+    "model_patch": ""
+  },
+  "astropy__astropy-14369": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "astropy__astropy-14369",
+    "model_patch": ""
+  },
+  "django__django-10973": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-10973",
+    "model_patch": ""
+  },
+  "astropy__astropy-8872": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "astropy__astropy-8872",
+    "model_patch": ""
+  },
+  "django__django-11239": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-11239",
+    "model_patch": ""
+  },
+  "django__django-11163": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-11163",
+    "model_patch": ""
+  },
+  "django__django-11477": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-11477",
+    "model_patch": ""
+  },
+  "django__django-11299": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-11299",
+    "model_patch": ""
+  },
+  "django__django-11551": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-11551",
+    "model_patch": ""
+  },
+  "django__django-11999": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-11999",
+    "model_patch": ""
+  },
+  "django__django-11749": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-11749",
+    "model_patch": ""
+  },
+  "django__django-12143": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-12143",
+    "model_patch": ""
+  },
+  "django__django-12273": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-12273",
+    "model_patch": ""
+  },
+  "django__django-12193": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-12193",
+    "model_patch": ""
+  },
+  "django__django-12754": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-12754",
+    "model_patch": ""
+  },
+  "django__django-12774": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-12774",
+    "model_patch": ""
+  },
+  "django__django-13023": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-13023",
+    "model_patch": ""
+  },
+  "django__django-13012": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-13012",
+    "model_patch": ""
+  },
+  "django__django-13033": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-13033",
+    "model_patch": ""
+  },
+  "django__django-13028": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-13028",
+    "model_patch": ""
+  },
+  "django__django-13128": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-13128",
+    "model_patch": ""
+  },
+  "django__django-13794": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-13794",
+    "model_patch": ""
+  },
+  "django__django-13089": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-13089",
+    "model_patch": ""
+  },
+  "django__django-13568": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-13568",
+    "model_patch": ""
+  },
+  "django__django-13809": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-13809",
+    "model_patch": ""
+  },
+  "django__django-14017": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-14017",
+    "model_patch": ""
+  },
+  "django__django-13820": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-13820",
+    "model_patch": ""
+  },
+  "django__django-14053": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-14053",
+    "model_patch": ""
+  },
+  "django__django-14404": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-14404",
+    "model_patch": ""
+  },
+  "django__django-14434": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-14434",
+    "model_patch": ""
+  },
+  "django__django-14351": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-14351",
+    "model_patch": ""
+  },
+  "django__django-14559": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-14559",
+    "model_patch": ""
+  },
+  "django__django-14493": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-14493",
+    "model_patch": ""
+  },
+  "django__django-14608": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-14608",
+    "model_patch": ""
+  },
+  "django__django-14631": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-14631",
+    "model_patch": ""
+  },
+  "django__django-14672": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-14672",
+    "model_patch": ""
+  },
+  "django__django-15103": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-15103",
+    "model_patch": ""
+  },
+  "django__django-15037": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-15037",
+    "model_patch": ""
+  },
+  "django__django-14792": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-14792",
+    "model_patch": ""
+  },
+  "django__django-15128": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-15128",
+    "model_patch": ""
+  },
+  "django__django-15315": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-15315",
+    "model_patch": ""
+  },
+  "django__django-15277": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-15277",
+    "model_patch": ""
+  },
+  "django__django-15252": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-15252",
+    "model_patch": ""
+  },
+  "django__django-15569": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-15569",
+    "model_patch": ""
+  },
+  "django__django-15851": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-15851",
+    "model_patch": ""
+  },
+  "django__django-15368": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-15368",
+    "model_patch": ""
+  },
+  "django__django-15916": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-15916",
+    "model_patch": ""
+  },
+  "django__django-15987": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-15987",
+    "model_patch": ""
+  },
+  "django__django-15930": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-15930",
+    "model_patch": ""
+  },
+  "django__django-15957": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-15957",
+    "model_patch": ""
+  },
+  "django__django-16082": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-16082",
+    "model_patch": ""
+  },
+  "django__django-16263": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-16263",
+    "model_patch": ""
+  },
+  "django__django-16485": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-16485",
+    "model_patch": ""
+  },
+  "django__django-16454": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-16454",
+    "model_patch": ""
+  },
+  "django__django-16116": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-16116",
+    "model_patch": ""
+  },
+  "django__django-7530": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-7530",
+    "model_patch": ""
+  },
+  "django__django-16938": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-16938",
+    "model_patch": ""
+  },
+  "django__django-17084": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-17084",
+    "model_patch": ""
+  },
+  "pallets__flask-5014": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "pallets__flask-5014",
+    "model_patch": ""
+  },
+  "matplotlib__matplotlib-25332": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "matplotlib__matplotlib-25332",
+    "model_patch": ""
+  },
+  "matplotlib__matplotlib-22871": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "matplotlib__matplotlib-22871",
+    "model_patch": ""
+  },
+  "django__django-16901": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "django__django-16901",
+    "model_patch": ""
+  },
+  "psf__requests-6028": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "psf__requests-6028",
+    "model_patch": ""
+  },
+  "psf__requests-1766": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "psf__requests-1766",
+    "model_patch": ""
+  },
+  "pydata__xarray-3993": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "pydata__xarray-3993",
+    "model_patch": ""
+  },
+  "pydata__xarray-4075": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "pydata__xarray-4075",
+    "model_patch": ""
+  },
+  "pydata__xarray-6938": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "pydata__xarray-6938",
+    "model_patch": ""
+  },
+  "pylint-dev__pylint-4551": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "pylint-dev__pylint-4551",
+    "model_patch": ""
+  },
+  "pylint-dev__pylint-6903": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "pylint-dev__pylint-6903",
+    "model_patch": ""
+  },
+  "pytest-dev__pytest-5262": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "pytest-dev__pytest-5262",
+    "model_patch": ""
+  },
+  "pytest-dev__pytest-7205": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "pytest-dev__pytest-7205",
+    "model_patch": ""
+  },
+  "pytest-dev__pytest-5631": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "pytest-dev__pytest-5631",
+    "model_patch": ""
+  },
+  "pytest-dev__pytest-7521": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "pytest-dev__pytest-7521",
+    "model_patch": ""
+  },
+  "scikit-learn__scikit-learn-13135": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "scikit-learn__scikit-learn-13135",
+    "model_patch": ""
+  },
+  "scikit-learn__scikit-learn-14629": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "scikit-learn__scikit-learn-14629",
+    "model_patch": ""
+  },
+  "scikit-learn__scikit-learn-14710": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "scikit-learn__scikit-learn-14710",
+    "model_patch": ""
+  },
+  "scikit-learn__scikit-learn-14894": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "scikit-learn__scikit-learn-14894",
+    "model_patch": ""
+  },
+  "scikit-learn__scikit-learn-25232": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "scikit-learn__scikit-learn-25232",
+    "model_patch": ""
+  },
+  "sphinx-doc__sphinx-7440": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "sphinx-doc__sphinx-7440",
+    "model_patch": ""
+  },
+  "sphinx-doc__sphinx-7757": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "sphinx-doc__sphinx-7757",
+    "model_patch": ""
+  },
+  "sphinx-doc__sphinx-10449": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "sphinx-doc__sphinx-10449",
+    "model_patch": ""
+  },
+  "sphinx-doc__sphinx-7910": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "sphinx-doc__sphinx-7910",
+    "model_patch": ""
+  },
+  "sphinx-doc__sphinx-7985": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "sphinx-doc__sphinx-7985",
+    "model_patch": ""
+  },
+  "sphinx-doc__sphinx-8459": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "sphinx-doc__sphinx-8459",
+    "model_patch": ""
+  },
+  "sphinx-doc__sphinx-8593": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "sphinx-doc__sphinx-8593",
+    "model_patch": ""
+  },
+  "sphinx-doc__sphinx-9281": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "sphinx-doc__sphinx-9281",
+    "model_patch": ""
+  },
+  "sphinx-doc__sphinx-8595": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "sphinx-doc__sphinx-8595",
+    "model_patch": ""
+  },
+  "sphinx-doc__sphinx-9591": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "sphinx-doc__sphinx-9591",
+    "model_patch": ""
+  },
+  "sympy__sympy-11618": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "sympy__sympy-11618",
+    "model_patch": ""
+  },
+  "sympy__sympy-12096": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "sympy__sympy-12096",
+    "model_patch": ""
+  },
+  "sympy__sympy-13551": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "sympy__sympy-13551",
+    "model_patch": ""
+  },
+  "sympy__sympy-13852": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "sympy__sympy-13852",
+    "model_patch": ""
+  },
+  "sympy__sympy-13974": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "sympy__sympy-13974",
+    "model_patch": ""
+  },
+  "sympy__sympy-14248": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "sympy__sympy-14248",
+    "model_patch": ""
+  },
+  "sympy__sympy-15976": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "sympy__sympy-15976",
+    "model_patch": ""
+  },
+  "sympy__sympy-17655": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "sympy__sympy-17655",
+    "model_patch": ""
+  },
+  "sympy__sympy-20916": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "sympy__sympy-20916",
+    "model_patch": ""
+  },
+  "sympy__sympy-19040": {
+    "model_name_or_path": "hosted_vllm/Qwen/Qwen3.6-35B-A3B-FP8",
+    "instance_id": "sympy__sympy-19040",
+    "model_patch": ""
+  }
+}

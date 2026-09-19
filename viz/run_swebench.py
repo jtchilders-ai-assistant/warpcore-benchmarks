@@ -401,6 +401,7 @@ def _verify_generation_evidence(
             errors.append(f"preds.json is not valid JSON: {exc}")
 
     exit_statuses = raw_dir / "exit_statuses.json"
+    statuses: dict = {}
     if not exit_statuses.exists():
         errors.append(
             f"exit_statuses.json missing in {raw_dir}. "
@@ -417,6 +418,7 @@ def _verify_generation_evidence(
                     f"got {type(es_data).__name__}."
                 )
             else:
+                statuses = es_data
                 es_set = set(es_data.keys())
                 expected_set = set(expected_instance_ids)
                 missing_es = expected_set - es_set
@@ -497,6 +499,20 @@ def _verify_generation_evidence(
             f"run.log in {raw_dir} is empty. "
             "A nonempty run.log is required as evidence that generation ran. "
             "An empty run.log suggests the subprocess was never invoked or wrote nothing."
+        )
+
+    # --- Reject campaign-wide runtime/infrastructure failure before grading ---
+    # mini-swe-agent can return process exit 0 while every instance records
+    # RuntimeError (for example, unmapped LiteLLM cost metadata). Complete file/ID
+    # coverage is not scientific success in that case.
+    runtime_error_ids = [
+        iid for iid, disposition in statuses.items()
+        if isinstance(disposition, str) and disposition.lower() == "runtimeerror"
+    ]
+    if runtime_error_ids:
+        errors.append(
+            f"Generation contains {len(runtime_error_ids)}/{len(statuses)} RuntimeError "
+            "infrastructure dispositions; refusing to grade or complete the campaign."
         )
 
     return errors

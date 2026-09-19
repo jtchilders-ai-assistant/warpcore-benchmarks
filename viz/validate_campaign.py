@@ -1366,6 +1366,38 @@ def _validate_swebench_grading(
             all_graded.add(iid)
     errors.extend(dup_errors)
 
+    # A complete inventory of harness RuntimeError dispositions is an
+    # infrastructure failure, not a model score. Inspect generation evidence as
+    # well as grading buckets because the grader may classify empty predictions
+    # without producing any resolved/unresolved verdicts.
+    statuses_path = raw_dir / "exit_statuses.json"
+    if statuses_path.exists():
+        try:
+            statuses = json.loads(statuses_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError) as exc:
+            errors.append(f"exit_statuses.json could not be parsed for runtime-error gating: {exc}")
+            statuses = None
+        if isinstance(statuses, dict):
+            runtime_error_ids = {
+                iid for iid, disposition in statuses.items()
+                if isinstance(disposition, str) and disposition.lower() == "runtimeerror"
+            }
+            if runtime_error_ids:
+                errors.append(
+                    f"SWE-bench publication rejected: {len(runtime_error_ids)}/{len(statuses)} "
+                    "instances have RuntimeError infrastructure dispositions."
+                )
+
+    graded_verdict_count = len(grading.get("resolved_ids", [])) + len(
+        grading.get("unresolved_ids", [])
+    )
+    if for_publication and graded_verdict_count == 0:
+        errors.append(
+            "SWE-bench publication rejected: no graded verdict exists in resolved_ids "
+            "or unresolved_ids; empty/error/incomplete dispositions alone are not a "
+            "scientifically valid capability result."
+        )
+
     # Determine expected ID set: prefer suite frozen_ids, fall back to preds.json
     if frozen_ids is not None:
         expected_ids: set[str] = set(frozen_ids)

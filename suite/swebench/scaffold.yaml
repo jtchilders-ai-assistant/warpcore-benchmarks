@@ -144,6 +144,10 @@ environment:
   # 2026-08-04 run: docker run timed out before the agent ever started.
   pull_timeout: 1800
 model:
+  # Local/self-hosted model IDs are intentionally absent from LiteLLM's price map.
+  # Cost remains bounded by the suite-owned agent.cost_limit; do not abort the
+  # experiment merely because external pricing metadata is unavailable.
+  cost_tracking: ignore_errors
   observation_template: |
     {% if output.exception_info -%}
     <exception>{{output.exception_info}}</exception>

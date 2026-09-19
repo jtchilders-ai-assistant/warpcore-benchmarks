@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "run_id": "qwen36-swebench-n100-20260917",
+  "suite_id": "warpcore-v1",
+  "execution_state": "completed",
+  "lifecycle": "invalid",
+  "history": [
+    {
+      "state": "planned",
+      "timestamp": "2026-09-17T18:26:33Z",
+      "note": "Campaign initialized by create_campaign"
+    },
+    {
+      "state": "preflight_passed",
+      "timestamp": "2026-09-17T18:26:36Z"
+    },
+    {
+      "state": "running",
+      "timestamp": "2026-09-17T18:26:36Z",
+      "note": "generation phase started; grading phase started"
+    },
+    {
+      "state": "completed",
+      "timestamp": "2026-09-17T18:31:00Z",
+      "note": "Structurally completed, then invalidated by audit: all 100 instances exited RuntimeError before producing a patch because mini-swe-agent cost tracking rejected the unmapped hosted_vllm model; not a model-capability result."
+    }
+  ]
+}

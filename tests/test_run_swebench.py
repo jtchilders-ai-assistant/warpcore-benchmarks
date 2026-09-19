@@ -864,6 +864,44 @@ class TestCompletionEvidence(unittest.TestCase):
             "DONE sentinel must exist after successful run",
         )
 
+    def test_runtime_error_inventory_fails_runner_before_grading(self):
+        """A child exit 0 with RuntimeError evidence must fail without DONE/grading."""
+        grading_called = False
+
+        def mock_generation(config: dict, run_dir: pathlib.Path, **kw) -> int:
+            _make_generation_artifacts(run_dir)
+            status_path = run_dir / "raw" / "exit_statuses.json"
+            statuses = json.loads(status_path.read_text())
+            status_path.write_text(json.dumps({iid: "RuntimeError" for iid in statuses}))
+            return 0
+
+        def mock_grading(preds_path: pathlib.Path, run_dir: pathlib.Path, **kw) -> int:
+            nonlocal grading_called
+            grading_called = True
+            return 0
+
+        runner = run_swebench.SwebenchRunner(
+            suite_path=_REAL_SUITE,
+            adapter_path=self.adapter_path,
+            endpoint="http://localhost:8000/v1",
+            run_dir=self.run_dir,
+            repo=self.tmp,
+            dry_run=False,
+            allow_no_screen=True,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
+            preflight_runner=lambda m: 0,
+            generation_runner=mock_generation,
+            grading_runner=mock_grading,
+        )
+
+        rc = runner.run()
+
+        self.assertNotEqual(rc, run_swebench.EXIT_SUCCESS)
+        self.assertFalse(grading_called, "invalid generation must not reach grading")
+        self.assertFalse((self.run_dir / "DONE").exists())
+        status = json.loads((self.run_dir / "status.json").read_text())
+        self.assertEqual(status["execution_state"], "failed")
+
     def test_done_not_written_when_generation_fails(self):
         """DONE must not be written if generation exits nonzero."""
         def mock_preflight(model_id: str) -> int:
