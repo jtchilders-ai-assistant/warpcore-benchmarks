@@ -97,6 +97,11 @@ _SECRET_PATTERNS: list[re.Pattern] = [
     re.compile(r"--api[_-]?key=\S{8,}", re.I),
 ]
 
+# A full canonical SWE-bench campaign can exceed 175 MiB.  On the reference
+# Intel Mac mini, gitleaks needs about 45 seconds for that tree; retain a bounded
+# timeout while leaving conservative headroom for filesystem variance.
+_GITLEAKS_SCAN_TIMEOUT_SECONDS = 120
+
 # Files to scan for secrets
 _SECRET_SCAN_FILES = ["command.txt", "run.log"]
 
@@ -1601,7 +1606,7 @@ def _secret_scan(run_dir: pathlib.Path, errors: list) -> None:
             [gitleaks_bin, "dir", "--redact", "--exit-code", "1", str(run_dir)],
             capture_output=True,
             text=True,
-            timeout=30,
+            timeout=_GITLEAKS_SCAN_TIMEOUT_SECONDS,
         )
     except (OSError, _subprocess.TimeoutExpired) as exc:
         errors.append(f"gitleaks artifact scan could not be completed: {exc}")
