@@ -1,0 +1,1764 @@
+2026-09-20 03:40:46,089 - INFO - Creating container for sympy__sympy-19040...
+2026-09-20 03:40:46,248 - INFO - Container for sympy__sympy-19040 created: c308ea1e119a886856738ec57b7698f53151db21bf83317e4d0033e4409c7344
+2026-09-20 03:40:46,591 - INFO - Container for sympy__sympy-19040 started: c308ea1e119a886856738ec57b7698f53151db21bf83317e4d0033e4409c7344
+2026-09-20 03:40:46,592 - INFO - Intermediate patch for sympy__sympy-19040 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/patch.diff, now applying to container...
+2026-09-20 03:40:47,013 - INFO - >>>>> Applied Patch:
+/tmp/patch.diff:38: trailing whitespace.
+    
+/tmp/patch.diff:46: trailing whitespace.
+        
+/tmp/patch.diff:52: trailing whitespace.
+    
+Checking patch sympy/polys/factortools.py...
+Checking patch sympy/polys/factortools.py.backup...
+Applied patch sympy/polys/factortools.py cleanly.
+Applied patch sympy/polys/factortools.py.backup cleanly.
+warning: 3 lines add whitespace errors.
+
+2026-09-20 03:40:48,408 - INFO - Git diff before:
+diff --git a/sympy/polys/factortools.py b/sympy/polys/factortools.py
+index c6a5f9f063..e002882bf6 100644
+--- a/sympy/polys/factortools.py
++++ b/sympy/polys/factortools.py
+@@ -25,7 +25,8 @@
+     dup_inflate,
+     dmp_exclude, dmp_include,
+     dmp_inject, dmp_eject,
+-    dup_terms_gcd, dmp_terms_gcd)
++    dup_terms_gcd, dmp_terms_gcd,
++    dmp_one_p)
+ 
+ from sympy.polys.densearith import (
+     dup_neg, dmp_neg,
+@@ -1151,18 +1152,31 @@ def dmp_ext_factor(f, u, K):
+ 
+     factors = dmp_factor_list_include(r, u, K.dom)
+ 
+-    if len(factors) == 1:
+-        factors = [f]
+-    else:
+-        H = dmp_raise([K.one, s*K.unit], u, 0, K)
++    H = dmp_raise([K.one, s*K.unit], u, 0, K)
+ 
+-        for i, (factor, _) in enumerate(factors):
+-            h = dmp_convert(factor, u, K.dom, K)
+-            h, _, g = dmp_inner_gcd(h, g, u, K)
+-            h = dmp_compose(h, H, u, K)
+-            factors[i] = h
++    for i, (factor, _) in enumerate(factors):
++        h = dmp_convert(factor, u, K.dom, K)
++        h, _, g = dmp_inner_gcd(h, g, u, K)
++        h = dmp_compose(h, H, u, K)
++        factors[i] = h
+ 
+-    return lc, dmp_trial_division(F, factors, u, K)
++    result = dmp_trial_division(F, factors, u, K)
++    
++    # If we only found one factor, check if we need to factor the quotient
++    if len(result) == 1 and len(factors) == 1:
++        factor, k = result[0]
++        # Compute the quotient
++        quotient = F
++        for _ in range(k):
++            quotient, remainder = dmp_div(quotient, factor, u, K)
++        
++        # If quotient is not 1, factor it recursively
++        if not dmp_zero_p(quotient, u) and not dmp_one_p(quotient, u, K):
++            # Recursively factor the quotient
++            _, quotient_factors = dmp_ext_factor(quotient, u, K)
++            result.extend(quotient_factors)
++    
++    return lc, result
+ 
+ 
+ def dup_gf_factor(f, K):
+2026-09-20 03:40:48,409 - INFO - Eval script for sympy__sympy-19040 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/eval.sh; copying to container...
+2026-09-20 04:10:48,890 - INFO - Test runtime: 1_800.33 seconds
+2026-09-20 04:10:48,891 - INFO - Test output for sympy__sympy-19040 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/test_output.txt
+2026-09-20 04:10:48,913 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: <exception str() failed>
+
+2026-09-20 04:10:48,914 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,914 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,914 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,914 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,914 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,914 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,914 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,914 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,914 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,914 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,914 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,915 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,915 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,915 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,915 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,915 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,915 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,915 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,915 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,915 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,915 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,915 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,915 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,915 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,915 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,916 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,916 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,916 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,916 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,916 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,916 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,916 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,916 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,916 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,916 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,916 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,916 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,916 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,916 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,916 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,917 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,917 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,917 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,917 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,917 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,917 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,917 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,917 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,917 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,917 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,917 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,917 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,918 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,918 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,918 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,918 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,918 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,918 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,918 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,918 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,918 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,918 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,918 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,918 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,918 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,918 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,919 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,919 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,919 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,919 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,919 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,919 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,919 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,919 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,919 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,919 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,919 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,919 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,919 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,919 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,919 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,919 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,920 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,920 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,920 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,920 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,920 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,920 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,920 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,920 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,920 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,920 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,920 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,920 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,920 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,920 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,920 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,920 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,921 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,921 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,921 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,921 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,921 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,921 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,921 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,921 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,921 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,921 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,921 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,921 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,921 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,921 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,921 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,921 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,922 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,922 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,922 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,922 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,922 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,922 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,922 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,922 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,922 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,922 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,922 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,922 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,922 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,923 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,923 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,923 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,923 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,923 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,923 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,923 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,923 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,923 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,923 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,923 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,923 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,923 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,945 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: <exception str() failed>
+
+2026-09-20 04:10:48,946 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,946 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,946 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,946 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,946 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,946 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,946 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,946 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,946 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,946 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,946 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,946 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,946 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,946 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,946 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,947 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,947 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,947 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,947 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,947 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,947 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,947 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,947 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,947 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,947 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,947 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,947 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,947 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,947 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,947 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,948 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,948 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,948 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,948 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,948 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,948 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,948 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,948 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,948 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,948 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,948 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,948 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,948 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,948 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,949 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,949 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,949 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,949 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,949 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,949 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,949 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,949 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,949 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,949 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,949 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,949 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,949 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,949 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,950 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,950 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,950 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,950 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,950 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,950 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,950 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,950 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,950 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,950 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,950 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,950 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,951 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,951 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,951 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,951 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,951 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,951 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,951 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,951 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,951 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,951 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,951 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,952 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,952 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,952 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,952 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,952 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,952 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,952 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,952 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,952 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,952 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,952 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,952 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,952 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,952 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,952 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,952 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,953 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,953 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,953 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,953 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,953 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,953 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,953 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,953 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,953 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,953 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,953 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,953 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,954 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,954 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,954 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,954 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,954 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,954 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,954 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,954 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,954 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,954 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,954 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,954 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,954 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,954 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,954 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,955 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,955 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,955 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,955 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,955 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,955 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,955 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,955 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,955 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,955 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,955 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,955 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,955 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,955 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,955 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: sympy__sympy-19040: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-19040/run_instance.log) for more information.
+
+2026-09-20 04:10:48,955 - INFO - Attempting to stop container sweb.eval.sympy__sympy-19040.qwen36-swebench-n100-20260919...
+2026-09-20 04:11:04,141 - INFO - Attempting to remove container sweb.eval.sympy__sympy-19040.qwen36-swebench-n100-20260919...
+2026-09-20 04:11:04,242 - INFO - Container sweb.eval.sympy__sympy-19040.qwen36-swebench-n100-20260919 removed.

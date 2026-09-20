@@ -1,0 +1,49 @@
+2026-09-20 03:32:24,712 - INFO - Creating container for django__django-15851...
+2026-09-20 03:32:24,887 - INFO - Container for django__django-15851 created: 1146b8abfe7aabc1b914be4f30f2b587ac2ae952c390ba8bc17b7bdd36f860e5
+2026-09-20 03:32:25,167 - INFO - Container for django__django-15851 started: 1146b8abfe7aabc1b914be4f30f2b587ac2ae952c390ba8bc17b7bdd36f860e5
+2026-09-20 03:32:25,168 - INFO - Intermediate patch for django__django-15851 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/django__django-15851/patch.diff, now applying to container...
+2026-09-20 03:32:25,482 - INFO - >>>>> Applied Patch:
+Checking patch django/db/backends/postgresql/client.py...
+Applied patch django/db/backends/postgresql/client.py cleanly.
+
+2026-09-20 03:32:28,184 - INFO - Git diff before:
+diff --git a/django/db/backends/postgresql/client.py b/django/db/backends/postgresql/client.py
+index 4c9bd63546..3b5ddafaca 100644
+--- a/django/db/backends/postgresql/client.py
++++ b/django/db/backends/postgresql/client.py
+@@ -32,9 +32,9 @@ class DatabaseClient(BaseDatabaseClient):
+             args += ["-h", host]
+         if port:
+             args += ["-p", str(port)]
++        args.extend(parameters)
+         if dbname:
+             args += [dbname]
+-        args.extend(parameters)
+ 
+         env = {}
+         if passwd:
+2026-09-20 03:32:28,184 - INFO - Eval script for django__django-15851 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/django__django-15851/eval.sh; copying to container...
+2026-09-20 03:32:35,989 - INFO - Test runtime: 7.71 seconds
+2026-09-20 03:32:35,990 - INFO - Test output for django__django-15851 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/django__django-15851/test_output.txt
+2026-09-20 03:32:36,070 - INFO - Git diff after:
+diff --git a/django/db/backends/postgresql/client.py b/django/db/backends/postgresql/client.py
+index 4c9bd63546..3b5ddafaca 100644
+--- a/django/db/backends/postgresql/client.py
++++ b/django/db/backends/postgresql/client.py
+@@ -32,9 +32,9 @@ class DatabaseClient(BaseDatabaseClient):
+             args += ["-h", host]
+         if port:
+             args += ["-p", str(port)]
++        args.extend(parameters)
+         if dbname:
+             args += [dbname]
+-        args.extend(parameters)
+ 
+         env = {}
+         if passwd:
+2026-09-20 03:32:36,070 - INFO - Grading answer for django__django-15851...
+2026-09-20 03:32:36,071 - INFO - report: {'django__django-15851': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_parameters (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_accent (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_basic (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_column (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_crash_password_does_not_leak (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_nopass (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_passfile (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_service (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_ssl_certificate (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-15851: resolved: True
+2026-09-20 03:32:36,071 - INFO - Attempting to stop container sweb.eval.django__django-15851.qwen36-swebench-n100-20260919...
+2026-09-20 03:32:51,294 - INFO - Attempting to remove container sweb.eval.django__django-15851.qwen36-swebench-n100-20260919...
+2026-09-20 03:32:51,408 - INFO - Container sweb.eval.django__django-15851.qwen36-swebench-n100-20260919 removed.

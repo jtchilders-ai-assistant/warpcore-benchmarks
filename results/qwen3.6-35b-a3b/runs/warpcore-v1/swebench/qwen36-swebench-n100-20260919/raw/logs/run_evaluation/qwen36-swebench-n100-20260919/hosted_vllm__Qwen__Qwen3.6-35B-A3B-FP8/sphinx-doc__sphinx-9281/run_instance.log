@@ -1,0 +1,45 @@
+2026-09-20 03:38:49,374 - INFO - Creating container for sphinx-doc__sphinx-9281...
+2026-09-20 03:38:49,617 - INFO - Container for sphinx-doc__sphinx-9281 created: 7ee67b73adb42fa7308b9227b54dca53206070309dd44d9eea0a0a47b063f4b8
+2026-09-20 03:38:50,103 - INFO - Container for sphinx-doc__sphinx-9281 started: 7ee67b73adb42fa7308b9227b54dca53206070309dd44d9eea0a0a47b063f4b8
+2026-09-20 03:38:50,104 - INFO - Intermediate patch for sphinx-doc__sphinx-9281 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sphinx-doc__sphinx-9281/patch.diff, now applying to container...
+2026-09-20 03:38:50,640 - INFO - >>>>> Applied Patch:
+Checking patch sphinx/util/inspect.py...
+Applied patch sphinx/util/inspect.py cleanly.
+
+2026-09-20 03:38:51,868 - INFO - Git diff before:
+diff --git a/sphinx/util/inspect.py b/sphinx/util/inspect.py
+index a415a7074..515ffbd67 100644
+--- a/sphinx/util/inspect.py
++++ b/sphinx/util/inspect.py
+@@ -432,6 +432,8 @@ def safe_getattr(obj: Any, name: str, *defargs: Any) -> Any:
+ 
+ def object_description(object: Any) -> str:
+     """A repr() implementation that returns text safe to use in reST context."""
++    if isinstance(object, enum.Enum):
++        return f"{object.__class__.__name__}.{object.name}"
+     if isinstance(object, dict):
+         try:
+             sorted_keys = sorted(object)
+2026-09-20 03:38:51,869 - INFO - Eval script for sphinx-doc__sphinx-9281 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sphinx-doc__sphinx-9281/eval.sh; copying to container...
+2026-09-20 03:39:02,056 - INFO - Test runtime: 10.00 seconds
+2026-09-20 03:39:02,056 - INFO - Test output for sphinx-doc__sphinx-9281 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sphinx-doc__sphinx-9281/test_output.txt
+2026-09-20 03:39:02,183 - INFO - Git diff after:
+diff --git a/sphinx/util/inspect.py b/sphinx/util/inspect.py
+index a415a7074..515ffbd67 100644
+--- a/sphinx/util/inspect.py
++++ b/sphinx/util/inspect.py
+@@ -432,6 +432,8 @@ def safe_getattr(obj: Any, name: str, *defargs: Any) -> Any:
+ 
+ def object_description(object: Any) -> str:
+     """A repr() implementation that returns text safe to use in reST context."""
++    if isinstance(object, enum.Enum):
++        return f"{object.__class__.__name__}.{object.name}"
+     if isinstance(object, dict):
+         try:
+             sorted_keys = sorted(object)
+2026-09-20 03:39:02,183 - INFO - Grading answer for sphinx-doc__sphinx-9281...
+2026-09-20 03:39:02,187 - INFO - report: {'sphinx-doc__sphinx-9281': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['tests/test_util_inspect.py::test_object_description_enum'], 'failure': []}, 'PASS_TO_PASS': {'success': ['tests/test_util_inspect.py::test_TypeAliasNamespace', 'tests/test_util_inspect.py::test_signature', 'tests/test_util_inspect.py::test_signature_partial', 'tests/test_util_inspect.py::test_signature_methods', 'tests/test_util_inspect.py::test_signature_partialmethod', 'tests/test_util_inspect.py::test_signature_annotations', 'tests/test_util_inspect.py::test_signature_annotations_py38', 'tests/test_util_inspect.py::test_signature_from_str_basic', 'tests/test_util_inspect.py::test_signature_from_str_default_values', 'tests/test_util_inspect.py::test_signature_from_str_annotations', 'tests/test_util_inspect.py::test_signature_from_str_complex_annotations', 'tests/test_util_inspect.py::test_signature_from_str_kwonly_args', 'tests/test_util_inspect.py::test_signature_from_str_positionaly_only_args', 'tests/test_util_inspect.py::test_signature_from_str_invalid', 'tests/test_util_inspect.py::test_signature_from_ast', 'tests/test_util_inspect.py::test_safe_getattr_with_default', 'tests/test_util_inspect.py::test_safe_getattr_with_exception', 'tests/test_util_inspect.py::test_safe_getattr_with_property_exception', 'tests/test_util_inspect.py::test_safe_getattr_with___dict___override', 'tests/test_util_inspect.py::test_dictionary_sorting', 'tests/test_util_inspect.py::test_set_sorting', 'tests/test_util_inspect.py::test_set_sorting_fallback', 'tests/test_util_inspect.py::test_frozenset_sorting', 'tests/test_util_inspect.py::test_frozenset_sorting_fallback', 'tests/test_util_inspect.py::test_dict_customtype', 'tests/test_util_inspect.py::test_getslots', 'tests/test_util_inspect.py::test_isclassmethod', 'tests/test_util_inspect.py::test_isstaticmethod', 'tests/test_util_inspect.py::test_iscoroutinefunction', 'tests/test_util_inspect.py::test_isfunction', 'tests/test_util_inspect.py::test_isbuiltin', 'tests/test_util_inspect.py::test_isdescriptor', 'tests/test_util_inspect.py::test_isattributedescriptor', 'tests/test_util_inspect.py::test_isproperty', 'tests/test_util_inspect.py::test_isgenericalias', 'tests/test_util_inspect.py::test_unpartial', 'tests/test_util_inspect.py::test_getdoc_inherited_decorated_method', 'tests/test_util_inspect.py::test_is_builtin_class_method'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sphinx-doc__sphinx-9281: resolved: True
+2026-09-20 03:39:02,189 - INFO - Attempting to stop container sweb.eval.sphinx-doc__sphinx-9281.qwen36-swebench-n100-20260919...
+2026-09-20 03:39:17,440 - INFO - Attempting to remove container sweb.eval.sphinx-doc__sphinx-9281.qwen36-swebench-n100-20260919...
+2026-09-20 03:39:17,620 - INFO - Container sweb.eval.sphinx-doc__sphinx-9281.qwen36-swebench-n100-20260919 removed.

@@ -1,0 +1,59 @@
+2026-09-20 03:39:46,194 - INFO - Creating container for sympy__sympy-13551...
+2026-09-20 03:39:46,356 - INFO - Container for sympy__sympy-13551 created: 0d7d00200583d49b34ae033be0d46d5f3ab3a2ab2ff0c22d84926fca2d866ba9
+2026-09-20 03:39:46,861 - INFO - Container for sympy__sympy-13551 started: 0d7d00200583d49b34ae033be0d46d5f3ab3a2ab2ff0c22d84926fca2d866ba9
+2026-09-20 03:39:46,862 - INFO - Intermediate patch for sympy__sympy-13551 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-13551/patch.diff, now applying to container...
+2026-09-20 03:39:47,289 - INFO - >>>>> Applied Patch:
+Checking patch sympy/concrete/products.py...
+Applied patch sympy/concrete/products.py cleanly.
+
+2026-09-20 03:39:48,623 - INFO - Git diff before:
+diff --git a/sympy/concrete/products.py b/sympy/concrete/products.py
+index 66aafde2d..d5538d22e 100644
+--- a/sympy/concrete/products.py
++++ b/sympy/concrete/products.py
+@@ -283,9 +283,15 @@ def _eval_product(self, term, limits):
+                 # as_numer_denom(). E.g. n**(2/3) + 1 --> (n**(2/3) + 1, 1).
+                 # We have to catch this case.
+ 
++                # We cannot split the product of a sum into a sum of products.
++                # If p is not a polynomial in k, we cannot evaluate it symbolically.
++                if not p.is_polynomial(k):
++                    return None
+                 p = sum([self._eval_product(i, (k, a, n)) for i in p.as_coeff_Add()])
+             else:
+                 p = self._eval_product(p, (k, a, n))
++                if p is None:
++                    return None
+             return p / q
+ 
+         elif term.is_Mul:
+2026-09-20 03:39:48,623 - INFO - Eval script for sympy__sympy-13551 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-13551/eval.sh; copying to container...
+2026-09-20 03:40:23,016 - INFO - Test runtime: 34.25 seconds
+2026-09-20 03:40:23,016 - INFO - Test output for sympy__sympy-13551 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-13551/test_output.txt
+2026-09-20 03:40:23,194 - INFO - Git diff after:
+diff --git a/sympy/concrete/products.py b/sympy/concrete/products.py
+index 66aafde2d..d5538d22e 100644
+--- a/sympy/concrete/products.py
++++ b/sympy/concrete/products.py
+@@ -283,9 +283,15 @@ def _eval_product(self, term, limits):
+                 # as_numer_denom(). E.g. n**(2/3) + 1 --> (n**(2/3) + 1, 1).
+                 # We have to catch this case.
+ 
++                # We cannot split the product of a sum into a sum of products.
++                # If p is not a polynomial in k, we cannot evaluate it symbolically.
++                if not p.is_polynomial(k):
++                    return None
+                 p = sum([self._eval_product(i, (k, a, n)) for i in p.as_coeff_Add()])
+             else:
+                 p = self._eval_product(p, (k, a, n))
++                if p is None:
++                    return None
+             return p / q
+ 
+         elif term.is_Mul:
+2026-09-20 03:40:23,194 - INFO - Grading answer for sympy__sympy-13551...
+2026-09-20 03:40:23,195 - INFO - report: {'sympy__sympy-13551': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_issue_13546'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_karr_convention', 'test_karr_proposition_2a', 'test_karr_proposition_2b', 'test_simple_products', 'test_multiple_products', 'test_rational_products', 'test_special_products', 'test__eval_product', 'test_product_pow', 'test_infinite_product', 'test_conjugate_transpose', 'test_simplify', 'test_change_index', 'test_reorder', 'test_Product_is_convergent', 'test_reverse_order', 'test_issue_9983'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-13551: resolved: True
+2026-09-20 03:40:23,196 - INFO - Attempting to stop container sweb.eval.sympy__sympy-13551.qwen36-swebench-n100-20260919...
+2026-09-20 03:40:38,455 - INFO - Attempting to remove container sweb.eval.sympy__sympy-13551.qwen36-swebench-n100-20260919...
+2026-09-20 03:40:38,611 - INFO - Container sweb.eval.sympy__sympy-13551.qwen36-swebench-n100-20260919 removed.

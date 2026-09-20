@@ -1,0 +1,104 @@
+2026-09-20 03:36:56,300 - INFO - Creating container for sphinx-doc__sphinx-10449...
+2026-09-20 03:36:56,545 - INFO - Container for sphinx-doc__sphinx-10449 created: ef7ad8e589053a8162fa9cfacfa72ed712bbb9b0f92a818d162b2932703ecb66
+2026-09-20 03:36:57,007 - INFO - Container for sphinx-doc__sphinx-10449 started: ef7ad8e589053a8162fa9cfacfa72ed712bbb9b0f92a818d162b2932703ecb66
+2026-09-20 03:36:57,009 - INFO - Intermediate patch for sphinx-doc__sphinx-10449 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sphinx-doc__sphinx-10449/patch.diff, now applying to container...
+2026-09-20 03:36:57,417 - INFO - Failed to apply patch to container: git apply --verbose
+2026-09-20 03:36:57,567 - INFO - Failed to apply patch to container: git apply --verbose --reject
+2026-09-20 03:36:57,752 - INFO - >>>>> Applied Patch:
+The next patch would create the file sphinx/ext/autodoc/typehints.py.backup,
+which already exists!  Assuming -R.
+patching file sphinx/ext/autodoc/typehints.py.backup
+The next patch would create the file sphinx/ext/autodoc/typehints.py.fixed,
+which already exists!  Assuming -R.
+patching file sphinx/ext/autodoc/typehints.py.fixed
+The next patch would create the file sphinx/ext/autodoc/typehints.py.new,
+which already exists!  Assuming -R.
+patching file sphinx/ext/autodoc/typehints.py.new
+The next patch would create the file test_repro/docs/_build/.buildinfo,
+which already exists!  Assuming -R.
+patching file test_repro/docs/_build/.buildinfo
+patching file test_repro/docs/_build/.doctrees/environment.pickle
+patching file test_repro/docs/_build/.doctrees/index.doctree
+The next patch would create the file test_repro/docs/_build/_sources/index.rst.txt,
+which already exists!  Assuming -R.
+patching file test_repro/docs/_build/_sources/index.rst.txt
+The next patch would create the file test_repro/docs/_build/_static/_sphinx_javascript_frameworks_compat.js,
+which already exists!  Assuming -R.
+patching file test_repro/docs/_build/_static/_sphinx_javascript_frameworks_compat.js
+The next patch would create the file test_repro/docs/_build/_static/alabaster.css,
+which already exists!  Assuming -R.
+patching file test_repro/docs/_build/_static/alabaster.css
+The next patch would create the file test_repro/docs/_build/_static/basic.css,
+which already exists!  Assuming -R.
+patching file test_repro/docs/_build/_static/basic.css
+The next patch would create the file test_repro/docs/_build/_static/custom.css,
+which already exists!  Assuming -R.
+patching file test_repro/docs/_build/_static/custom.css
+The next patch would create the file test_repro/docs/_build/_static/doctools.js,
+which already exists!  Assuming -R.
+patching file test_repro/docs/_build/_static/doctools.js
+The next patch would create the file test_repro/docs/_build/_static/documentation_options.js,
+which already exists!  Assuming -R.
+patching file test_repro/docs/_build/_static/documentation_options.js
+patching file test_repro/docs/_build/_static/file.png
+The next patch would create the file test_repro/docs/_build/_static/jquery-3.6.0.js,
+which already exists!  Assuming -R.
+patching file test_repro/docs/_build/_static/jquery-3.6.0.js
+The next patch would create the file test_repro/docs/_build/_static/jquery.js,
+which already exists!  Assuming -R.
+patching file test_repro/docs/_build/_static/jquery.js
+The next patch would create the file test_repro/docs/_build/_static/language_data.js,
+which already exists!  Assuming -R.
+patching file test_repro/docs/_build/_static/language_data.js
+patching file test_repro/docs/_build/_static/minus.png
+patching file test_repro/docs/_build/_static/plus.png
+The next patch would create the file test_repro/docs/_build/_static/pygments.css,
+which already exists!  Assuming -R.
+patching file test_repro/docs/_build/_static/pygments.css
+The next patch would create the file test_repro/docs/_build/_static/searchtools.js,
+which already exists!  Assuming -R.
+patching file test_repro/docs/_build/_static/searchtools.js
+The next patch would create the file test_repro/docs/_build/_static/underscore-1.13.1.js,
+which already exists!  Assuming -R.
+patching file test_repro/docs/_build/_static/underscore-1.13.1.js
+The next patch would create the file test_repro/docs/_build/_static/underscore.js,
+which already exists!  Assuming -R.
+patching file test_repro/docs/_build/_static/underscore.js
+The next patch would create the file test_repro/docs/_build/genindex.html,
+which already exists!  Assuming -R.
+patching file test_repro/docs/_build/genindex.html
+The next patch would create the file test_repro/docs/_build/index.html,
+which already exists!  Assuming -R.
+patching file test_repro/docs/_build/index.html
+The next patch would create the file test_repro/docs/_build/objects.inv,
+which already exists!  Assuming -R.
+patching file test_repro/docs/_build/objects.inv
+The next patch would create the file test_repro/docs/_build/search.html,
+which already exists!  Assuming -R.
+patching file test_repro/docs/_build/search.html
+The next patch would create the file test_repro/docs/_build/searchindex.js,
+which already exists!  Assuming -R.
+patching file test_repro/docs/_build/searchindex.js
+The next patch would create the file test_repro/docs/conf.py,
+which already exists!  Assuming -R.
+patching file test_repro/docs/conf.py
+The next patch would create the file test_repro/docs/index.rst,
+which already exists!  Assuming -R.
+patching file test_repro/docs/index.rst
+The next patch would create the file test_repro/sample_package/__init__.py,
+which already exists!  Assuming -R.
+patching file test_repro/sample_package/__init__.py
+
+2026-09-20 03:36:58,872 - INFO - Git diff before:
+
+2026-09-20 03:36:58,873 - INFO - Eval script for sphinx-doc__sphinx-10449 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sphinx-doc__sphinx-10449/eval.sh; copying to container...
+2026-09-20 03:37:12,657 - INFO - Test runtime: 13.64 seconds
+2026-09-20 03:37:12,657 - INFO - Test output for sphinx-doc__sphinx-10449 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sphinx-doc__sphinx-10449/test_output.txt
+2026-09-20 03:37:12,824 - INFO - Git diff after:
+
+2026-09-20 03:37:12,824 - INFO - Grading answer for sphinx-doc__sphinx-10449...
+2026-09-20 03:37:12,834 - INFO - report: {'sphinx-doc__sphinx-10449': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['tests/test_ext_autodoc_configs.py::test_autodoc_typehints_description_with_documented_init']}, 'PASS_TO_PASS': {'success': ['tests/test_ext_autodoc_configs.py::test_autoclass_content_class', 'tests/test_ext_autodoc_configs.py::test_autoclass_content_init', 'tests/test_ext_autodoc_configs.py::test_autodoc_class_signature_mixed', 'tests/test_ext_autodoc_configs.py::test_autodoc_class_signature_separated_init', 'tests/test_ext_autodoc_configs.py::test_autodoc_class_signature_separated_new', 'tests/test_ext_autodoc_configs.py::test_autoclass_content_both', 'tests/test_ext_autodoc_configs.py::test_autodoc_inherit_docstrings', 'tests/test_ext_autodoc_configs.py::test_autodoc_docstring_signature', 'tests/test_ext_autodoc_configs.py::test_autoclass_content_and_docstring_signature_class', 'tests/test_ext_autodoc_configs.py::test_autoclass_content_and_docstring_signature_init', 'tests/test_ext_autodoc_configs.py::test_autoclass_content_and_docstring_signature_both', 'tests/test_ext_autodoc_configs.py::test_mocked_module_imports', 'tests/test_ext_autodoc_configs.py::test_autodoc_typehints_signature', 'tests/test_ext_autodoc_configs.py::test_autodoc_typehints_none', 'tests/test_ext_autodoc_configs.py::test_autodoc_typehints_none_for_overload', 'tests/test_ext_autodoc_configs.py::test_autodoc_typehints_description', 'tests/test_ext_autodoc_configs.py::test_autodoc_typehints_description_no_undoc', 'tests/test_ext_autodoc_configs.py::test_autodoc_typehints_description_no_undoc_doc_rtype', 'tests/test_ext_autodoc_configs.py::test_autodoc_typehints_description_with_documented_init_no_undoc', 'tests/test_ext_autodoc_configs.py::test_autodoc_typehints_description_with_documented_init_no_undoc_doc_rtype', 'tests/test_ext_autodoc_configs.py::test_autodoc_typehints_description_for_invalid_node', 'tests/test_ext_autodoc_configs.py::test_autodoc_typehints_both', 'tests/test_ext_autodoc_configs.py::test_autodoc_type_aliases', 'tests/test_ext_autodoc_configs.py::test_autodoc_typehints_description_and_type_aliases', 'tests/test_ext_autodoc_configs.py::test_autodoc_typehints_format_fully_qualified', 'tests/test_ext_autodoc_configs.py::test_autodoc_typehints_format_fully_qualified_for_class_alias', 'tests/test_ext_autodoc_configs.py::test_autodoc_typehints_format_fully_qualified_for_generic_alias', 'tests/test_ext_autodoc_configs.py::test_autodoc_typehints_format_fully_qualified_for_newtype_alias', 'tests/test_ext_autodoc_configs.py::test_autodoc_default_options', 'tests/test_ext_autodoc_configs.py::test_autodoc_default_options_with_values'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sphinx-doc__sphinx-10449: resolved: False
+2026-09-20 03:37:12,834 - INFO - Attempting to stop container sweb.eval.sphinx-doc__sphinx-10449.qwen36-swebench-n100-20260919...
+2026-09-20 03:37:28,129 - INFO - Attempting to remove container sweb.eval.sphinx-doc__sphinx-10449.qwen36-swebench-n100-20260919...
+2026-09-20 03:37:28,327 - INFO - Container sweb.eval.sphinx-doc__sphinx-10449.qwen36-swebench-n100-20260919 removed.

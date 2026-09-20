@@ -1,0 +1,73 @@
+2026-09-20 03:26:56,758 - INFO - Creating container for django__django-11239...
+2026-09-20 03:26:56,893 - INFO - Container for django__django-11239 created: 414df312c9b9f8dc0bd30516ecb14fd882b6a42cf19bdb4e57fdd038ba93c6ba
+2026-09-20 03:26:57,181 - INFO - Container for django__django-11239 started: 414df312c9b9f8dc0bd30516ecb14fd882b6a42cf19bdb4e57fdd038ba93c6ba
+2026-09-20 03:26:57,181 - INFO - Intermediate patch for django__django-11239 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/django__django-11239/patch.diff, now applying to container...
+2026-09-20 03:26:57,460 - INFO - >>>>> Applied Patch:
+Checking patch django/db/backends/postgresql/client.py...
+Applied patch django/db/backends/postgresql/client.py cleanly.
+
+2026-09-20 03:26:59,483 - INFO - Git diff before:
+diff --git a/django/db/backends/postgresql/client.py b/django/db/backends/postgresql/client.py
+index cf4df76882..c53dece83d 100644
+--- a/django/db/backends/postgresql/client.py
++++ b/django/db/backends/postgresql/client.py
+@@ -17,6 +17,9 @@ class DatabaseClient(BaseDatabaseClient):
+         dbname = conn_params.get('database', '')
+         user = conn_params.get('user', '')
+         passwd = conn_params.get('password', '')
++        sslrootcert = conn_params.get('sslrootcert', '')
++        sslcert = conn_params.get('sslcert', '')
++        sslkey = conn_params.get('sslkey', '')
+ 
+         if user:
+             args += ['-U', user]
+@@ -24,6 +27,12 @@ class DatabaseClient(BaseDatabaseClient):
+             args += ['-h', host]
+         if port:
+             args += ['-p', str(port)]
++        if sslrootcert:
++            args += ['--sslrootcert=%s' % sslrootcert]
++        if sslcert:
++            args += ['--sslcert=%s' % sslcert]
++        if sslkey:
++            args += ['--sslkey=%s' % sslkey]
+         args += [dbname]
+ 
+         sigint_handler = signal.getsignal(signal.SIGINT)
+2026-09-20 03:26:59,483 - INFO - Eval script for django__django-11239 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/django__django-11239/eval.sh; copying to container...
+2026-09-20 03:27:10,066 - INFO - Test runtime: 10.49 seconds
+2026-09-20 03:27:10,067 - INFO - Test output for django__django-11239 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/django__django-11239/test_output.txt
+2026-09-20 03:27:10,155 - INFO - Git diff after:
+diff --git a/django/db/backends/postgresql/client.py b/django/db/backends/postgresql/client.py
+index cf4df76882..c53dece83d 100644
+--- a/django/db/backends/postgresql/client.py
++++ b/django/db/backends/postgresql/client.py
+@@ -17,6 +17,9 @@ class DatabaseClient(BaseDatabaseClient):
+         dbname = conn_params.get('database', '')
+         user = conn_params.get('user', '')
+         passwd = conn_params.get('password', '')
++        sslrootcert = conn_params.get('sslrootcert', '')
++        sslcert = conn_params.get('sslcert', '')
++        sslkey = conn_params.get('sslkey', '')
+ 
+         if user:
+             args += ['-U', user]
+@@ -24,6 +27,12 @@ class DatabaseClient(BaseDatabaseClient):
+             args += ['-h', host]
+         if port:
+             args += ['-p', str(port)]
++        if sslrootcert:
++            args += ['--sslrootcert=%s' % sslrootcert]
++        if sslcert:
++            args += ['--sslcert=%s' % sslcert]
++        if sslkey:
++            args += ['--sslkey=%s' % sslkey]
+         args += [dbname]
+ 
+         sigint_handler = signal.getsignal(signal.SIGINT)
+2026-09-20 03:27:10,155 - INFO - Grading answer for django__django-11239...
+2026-09-20 03:27:10,155 - INFO - report: {'django__django-11239': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_ssl_certificate (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)']}, 'PASS_TO_PASS': {'success': ['test_accent (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_basic (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_column (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_nopass (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'SIGINT is ignored in Python and passed to psql to abort quries.'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-11239: resolved: False
+2026-09-20 03:27:10,156 - INFO - Attempting to stop container sweb.eval.django__django-11239.qwen36-swebench-n100-20260919...
+2026-09-20 03:27:25,336 - INFO - Attempting to remove container sweb.eval.django__django-11239.qwen36-swebench-n100-20260919...
+2026-09-20 03:27:25,454 - INFO - Container sweb.eval.django__django-11239.qwen36-swebench-n100-20260919 removed.

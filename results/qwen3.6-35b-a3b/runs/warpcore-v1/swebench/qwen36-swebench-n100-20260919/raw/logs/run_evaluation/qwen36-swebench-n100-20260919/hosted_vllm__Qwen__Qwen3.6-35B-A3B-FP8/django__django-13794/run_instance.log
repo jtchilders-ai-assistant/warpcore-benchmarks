@@ -1,0 +1,65 @@
+2026-09-20 03:29:00,396 - INFO - Creating container for django__django-13794...
+2026-09-20 03:29:00,590 - INFO - Container for django__django-13794 created: be13ded093783b59da272466b5c4eef3cafe22ce75f73944dace654d3487712d
+2026-09-20 03:29:00,920 - INFO - Container for django__django-13794 started: be13ded093783b59da272466b5c4eef3cafe22ce75f73944dace654d3487712d
+2026-09-20 03:29:00,920 - INFO - Intermediate patch for django__django-13794 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/django__django-13794/patch.diff, now applying to container...
+2026-09-20 03:29:01,282 - INFO - >>>>> Applied Patch:
+Checking patch django/template/defaultfilters.py...
+Checking patch test_fix2.py...
+Applied patch django/template/defaultfilters.py cleanly.
+Applied patch test_fix2.py cleanly.
+
+2026-09-20 03:29:04,185 - INFO - Git diff before:
+diff --git a/django/template/defaultfilters.py b/django/template/defaultfilters.py
+index 1c844580c6..59862d34c9 100644
+--- a/django/template/defaultfilters.py
++++ b/django/template/defaultfilters.py
+@@ -19,6 +19,7 @@ from django.utils.safestring import SafeData, mark_safe
+ from django.utils.text import (
+     Truncator, normalize_newlines, phone2numeric, slugify as _slugify, wrap,
+ )
++from django.utils.functional import Promise
+ from django.utils.timesince import timesince, timeuntil
+ from django.utils.translation import gettext, ngettext
+ 
+@@ -679,6 +680,10 @@ def add(value, arg):
+     except (ValueError, TypeError):
+         try:
+             return value + arg
++        except TypeError:
++            if isinstance(value, Promise) or isinstance(arg, Promise):
++                return str(value) + str(arg)
++            return ''
+         except Exception:
+             return ''
+2026-09-20 03:29:04,186 - INFO - Eval script for django__django-13794 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/django__django-13794/eval.sh; copying to container...
+2026-09-20 03:29:15,302 - INFO - Test runtime: 10.98 seconds
+2026-09-20 03:29:15,303 - INFO - Test output for django__django-13794 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/django__django-13794/test_output.txt
+2026-09-20 03:29:15,390 - INFO - Git diff after:
+diff --git a/django/template/defaultfilters.py b/django/template/defaultfilters.py
+index 1c844580c6..59862d34c9 100644
+--- a/django/template/defaultfilters.py
++++ b/django/template/defaultfilters.py
+@@ -19,6 +19,7 @@ from django.utils.safestring import SafeData, mark_safe
+ from django.utils.text import (
+     Truncator, normalize_newlines, phone2numeric, slugify as _slugify, wrap,
+ )
++from django.utils.functional import Promise
+ from django.utils.timesince import timesince, timeuntil
+ from django.utils.translation import gettext, ngettext
+ 
+@@ -679,6 +680,10 @@ def add(value, arg):
+     except (ValueError, TypeError):
+         try:
+             return value + arg
++        except TypeError:
++            if isinstance(value, Promise) or isinstance(arg, Promise):
++                return str(value) + str(arg)
++            return ''
+         except Exception:
+             return ''
+2026-09-20 03:29:15,390 - INFO - Grading answer for django__django-13794...
+2026-09-20 03:29:15,391 - INFO - report: {'django__django-13794': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_add08 (template_tests.filter_tests.test_add.AddTests)', 'test_add09 (template_tests.filter_tests.test_add.AddTests)'], 'failure': ['test_lazy_add (utils_tests.test_functional.FunctionalTests)']}, 'PASS_TO_PASS': {'success': ['test_add (template_tests.filter_tests.test_add.FunctionTests)', 'cached_property caches its value and behaves like a property.', 'test_cached_property_auto_name (utils_tests.test_functional.FunctionalTests)', "Disallow this case because the decorated function wouldn't be cached.", 'test_cached_property_reuse_same_name (utils_tests.test_functional.FunctionalTests)', 'test_cached_property_set_name_not_called (utils_tests.test_functional.FunctionalTests)', 'test_classproperty_getter (utils_tests.test_functional.FunctionalTests)', 'test_classproperty_override_getter (utils_tests.test_functional.FunctionalTests)', 'test_lazy (utils_tests.test_functional.FunctionalTests)', 'lazy also finds base class methods in the proxy object', 'lazy finds the correct (overridden) method implementation', 'test_lazy_class_preparation_caching (utils_tests.test_functional.FunctionalTests)', 'test_lazy_equality (utils_tests.test_functional.FunctionalTests)', 'test_lazy_object_to_string (utils_tests.test_functional.FunctionalTests)', 'test_lazy_repr_bytes (utils_tests.test_functional.FunctionalTests)', 'test_lazy_repr_int (utils_tests.test_functional.FunctionalTests)', 'test_lazy_repr_text (utils_tests.test_functional.FunctionalTests)', 'test_add01 (template_tests.filter_tests.test_add.AddTests)', 'test_add02 (template_tests.filter_tests.test_add.AddTests)', 'test_add03 (template_tests.filter_tests.test_add.AddTests)', 'test_add04 (template_tests.filter_tests.test_add.AddTests)', 'test_add05 (template_tests.filter_tests.test_add.AddTests)', 'test_add06 (template_tests.filter_tests.test_add.AddTests)', 'test_add07 (template_tests.filter_tests.test_add.AddTests)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-13794: resolved: False
+2026-09-20 03:29:15,392 - INFO - Attempting to stop container sweb.eval.django__django-13794.qwen36-swebench-n100-20260919...
+2026-09-20 03:29:30,613 - INFO - Attempting to remove container sweb.eval.django__django-13794.qwen36-swebench-n100-20260919...
+2026-09-20 03:29:30,781 - INFO - Container sweb.eval.django__django-13794.qwen36-swebench-n100-20260919 removed.

@@ -1,0 +1,159 @@
+2026-09-20 03:40:21,742 - INFO - Creating container for sympy__sympy-15976...
+2026-09-20 03:40:21,900 - INFO - Container for sympy__sympy-15976 created: dbe883dd8abc28a744582c50d76aed22d01ff632422d519c346847bdebc59084
+2026-09-20 03:40:22,212 - INFO - Container for sympy__sympy-15976 started: dbe883dd8abc28a744582c50d76aed22d01ff632422d519c346847bdebc59084
+2026-09-20 03:40:22,214 - INFO - Intermediate patch for sympy__sympy-15976 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-15976/patch.diff, now applying to container...
+2026-09-20 03:40:22,653 - INFO - >>>>> Applied Patch:
+Checking patch sympy/printing/mathml.py...
+Applied patch sympy/printing/mathml.py cleanly.
+
+2026-09-20 03:40:23,839 - INFO - Git diff before:
+diff --git a/sympy/printing/mathml.py b/sympy/printing/mathml.py
+index 3f8b8d49e..6df7cfa76 100644
+--- a/sympy/printing/mathml.py
++++ b/sympy/printing/mathml.py
+@@ -343,14 +343,26 @@ def join(items):
+                         mo = self.dom.createElement('mml:mo')
+                         mo.appendChild(self.dom.createTextNode(" "))
+                         mrow.appendChild(mo)
+-                    mi = self.dom.createElement('mml:mi')
+-                    mi.appendChild(self.dom.createTextNode(item))
+-                    mrow.appendChild(mi)
++                    # Check if the item is a number
++                    if item.lstrip('-').isdigit():
++                        mn = self.dom.createElement('mml:mn')
++                        mn.appendChild(self.dom.createTextNode(item))
++                        mrow.appendChild(mn)
++                    else:
++                        mi = self.dom.createElement('mml:mi')
++                        mi.appendChild(self.dom.createTextNode(item))
++                        mrow.appendChild(mi)
+                 return mrow
+             else:
+-                mi = self.dom.createElement('mml:mi')
+-                mi.appendChild(self.dom.createTextNode(items[0]))
+-                return mi
++                # Check if the item is a number
++                if items[0].lstrip('-').isdigit():
++                    mn = self.dom.createElement('mml:mn')
++                    mn.appendChild(self.dom.createTextNode(items[0]))
++                    return mn
++                else:
++                    mi = self.dom.createElement('mml:mi')
++                    mi.appendChild(self.dom.createTextNode(items[0]))
++                    return mi
+ 
+         # translate name, supers and subs to unicode characters
+         def translate(s):
+@@ -756,14 +768,26 @@ def join(items):
+                         mo = self.dom.createElement('mo')
+                         mo.appendChild(self.dom.createTextNode(" "))
+                         mrow.appendChild(mo)
+-                    mi = self.dom.createElement('mi')
+-                    mi.appendChild(self.dom.createTextNode(item))
+-                    mrow.appendChild(mi)
++                    # Check if the item is a number
++                    if item.lstrip('-').isdigit():
++                        mn = self.dom.createElement('mn')
++                        mn.appendChild(self.dom.createTextNode(item))
++                        mrow.appendChild(mn)
++                    else:
++                        mi = self.dom.createElement('mi')
++                        mi.appendChild(self.dom.createTextNode(item))
++                        mrow.appendChild(mi)
+                 return mrow
+             else:
+-                mi = self.dom.createElement('mi')
+-                mi.appendChild(self.dom.createTextNode(items[0]))
+-                return mi
++                # Check if the item is a number
++                if items[0].lstrip('-').isdigit():
++                    mn = self.dom.createElement('mn')
++                    mn.appendChild(self.dom.createTextNode(items[0]))
++                    return mn
++                else:
++                    mi = self.dom.createElement('mi')
++                    mi.appendChild(self.dom.createTextNode(items[0]))
++                    return mi
+ 
+         # translate name, supers and subs to unicode characters
+         def translate(s):
+2026-09-20 03:40:23,840 - INFO - Eval script for sympy__sympy-15976 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-15976/eval.sh; copying to container...
+2026-09-20 03:40:30,271 - INFO - Test runtime: 6.32 seconds
+2026-09-20 03:40:30,271 - INFO - Test output for sympy__sympy-15976 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-15976/test_output.txt
+2026-09-20 03:40:30,381 - INFO - Git diff after:
+diff --git a/sympy/printing/mathml.py b/sympy/printing/mathml.py
+index 3f8b8d49e..6df7cfa76 100644
+--- a/sympy/printing/mathml.py
++++ b/sympy/printing/mathml.py
+@@ -343,14 +343,26 @@ def join(items):
+                         mo = self.dom.createElement('mml:mo')
+                         mo.appendChild(self.dom.createTextNode(" "))
+                         mrow.appendChild(mo)
+-                    mi = self.dom.createElement('mml:mi')
+-                    mi.appendChild(self.dom.createTextNode(item))
+-                    mrow.appendChild(mi)
++                    # Check if the item is a number
++                    if item.lstrip('-').isdigit():
++                        mn = self.dom.createElement('mml:mn')
++                        mn.appendChild(self.dom.createTextNode(item))
++                        mrow.appendChild(mn)
++                    else:
++                        mi = self.dom.createElement('mml:mi')
++                        mi.appendChild(self.dom.createTextNode(item))
++                        mrow.appendChild(mi)
+                 return mrow
+             else:
+-                mi = self.dom.createElement('mml:mi')
+-                mi.appendChild(self.dom.createTextNode(items[0]))
+-                return mi
++                # Check if the item is a number
++                if items[0].lstrip('-').isdigit():
++                    mn = self.dom.createElement('mml:mn')
++                    mn.appendChild(self.dom.createTextNode(items[0]))
++                    return mn
++                else:
++                    mi = self.dom.createElement('mml:mi')
++                    mi.appendChild(self.dom.createTextNode(items[0]))
++                    return mi
+ 
+         # translate name, supers and subs to unicode characters
+         def translate(s):
+@@ -756,14 +768,26 @@ def join(items):
+                         mo = self.dom.createElement('mo')
+                         mo.appendChild(self.dom.createTextNode(" "))
+                         mrow.appendChild(mo)
+-                    mi = self.dom.createElement('mi')
+-                    mi.appendChild(self.dom.createTextNode(item))
+-                    mrow.appendChild(mi)
++                    # Check if the item is a number
++                    if item.lstrip('-').isdigit():
++                        mn = self.dom.createElement('mn')
++                        mn.appendChild(self.dom.createTextNode(item))
++                        mrow.appendChild(mn)
++                    else:
++                        mi = self.dom.createElement('mi')
++                        mi.appendChild(self.dom.createTextNode(item))
++                        mrow.appendChild(mi)
+                 return mrow
+             else:
+-                mi = self.dom.createElement('mi')
+-                mi.appendChild(self.dom.createTextNode(items[0]))
+-                return mi
++                # Check if the item is a number
++                if items[0].lstrip('-').isdigit():
++                    mn = self.dom.createElement('mn')
++                    mn.appendChild(self.dom.createTextNode(items[0]))
++                    return mn
++                else:
++                    mi = self.dom.createElement('mi')
++                    mi.appendChild(self.dom.createTextNode(items[0]))
++                    return mi
+ 
+         # translate name, supers and subs to unicode characters
+         def translate(s):
+2026-09-20 03:40:30,381 - INFO - Grading answer for sympy__sympy-15976...
+2026-09-20 03:40:30,382 - INFO - report: {'sympy__sympy-15976': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_presentation_symbol']}, 'PASS_TO_PASS': {'success': ['test_mathml_printer', 'test_content_printmethod', 'test_content_mathml_core', 'test_content_mathml_functions', 'test_content_mathml_limits', 'test_content_mathml_integrals', 'test_content_mathml_matrices', 'test_content_mathml_sums', 'test_content_mathml_tuples', 'test_content_mathml_add', 'test_content_mathml_Rational', 'test_content_mathml_constants', 'test_content_mathml_trig', 'test_content_mathml_relational', 'test_content_mathml_greek', 'test_content_mathml_order', 'test_content_settings', 'test_presentation_printmethod', 'test_presentation_mathml_core', 'test_presentation_mathml_functions', 'test_presentation_mathml_limits', 'test_presentation_mathml_integrals', 'test_presentation_mathml_matrices', 'test_presentation_mathml_sums', 'test_presentation_mathml_add', 'test_presentation_mathml_Rational', 'test_presentation_mathml_constants', 'test_presentation_mathml_trig', 'test_presentation_mathml_relational', 'test_presentation_mathml_greek', 'test_presentation_mathml_order', 'test_presentation_settings', 'test_toprettyxml_hooking', 'test_print_basic', 'test_root_notation_print', 'test_print_matrix_symbol'], 'failure': ['test_content_symbol']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-15976: resolved: False
+2026-09-20 03:40:30,382 - INFO - Attempting to stop container sweb.eval.sympy__sympy-15976.qwen36-swebench-n100-20260919...
+2026-09-20 03:40:45,678 - INFO - Attempting to remove container sweb.eval.sympy__sympy-15976.qwen36-swebench-n100-20260919...
+2026-09-20 03:40:45,839 - INFO - Container sweb.eval.sympy__sympy-15976.qwen36-swebench-n100-20260919 removed.

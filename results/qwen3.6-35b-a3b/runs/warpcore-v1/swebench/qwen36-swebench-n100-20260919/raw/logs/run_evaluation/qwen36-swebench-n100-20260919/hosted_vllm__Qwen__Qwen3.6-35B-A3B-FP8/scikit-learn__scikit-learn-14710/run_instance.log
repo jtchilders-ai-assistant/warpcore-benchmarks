@@ -1,0 +1,1710 @@
+2026-09-20 03:36:43,463 - INFO - Creating container for scikit-learn__scikit-learn-14710...
+2026-09-20 03:36:43,562 - INFO - Container for scikit-learn__scikit-learn-14710 created: 97f26e5293075dbcf980af32130aa3fea6ea085f8b474c76695ae930a37e7f36
+2026-09-20 03:36:43,791 - INFO - Container for scikit-learn__scikit-learn-14710 started: 97f26e5293075dbcf980af32130aa3fea6ea085f8b474c76695ae930a37e7f36
+2026-09-20 03:36:43,792 - INFO - Intermediate patch for scikit-learn__scikit-learn-14710 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/patch.diff, now applying to container...
+2026-09-20 03:36:44,023 - INFO - >>>>> Applied Patch:
+Checking patch sklearn/ensemble/_hist_gradient_boosting/gradient_boosting.py...
+Applied patch sklearn/ensemble/_hist_gradient_boosting/gradient_boosting.py cleanly.
+
+2026-09-20 03:36:44,589 - INFO - Git diff before:
+diff --git a/sklearn/ensemble/_hist_gradient_boosting/gradient_boosting.py b/sklearn/ensemble/_hist_gradient_boosting/gradient_boosting.py
+index ad6a5a8ca..88d92119f 100644
+--- a/sklearn/ensemble/_hist_gradient_boosting/gradient_boosting.py
++++ b/sklearn/ensemble/_hist_gradient_boosting/gradient_boosting.py
+@@ -426,11 +426,18 @@ class BaseHistGradientBoosting(BaseEstimator, ABC):
+ 
+         Scores are computed on validation data or on training data.
+         """
++        # If classes_ attribute exists (i.e., for classification with string
++        # targets), we need to decode the encoded y values back to the
++        # original class labels before scoring.
++        if hasattr(self, 'classes_'):
++            y_small_train = self.classes_[y_small_train.astype(int)]
+         self.train_score_.append(
+             self.scorer_(self, X_binned_small_train, y_small_train)
+         )
+ 
+         if self._use_validation_data:
++            if hasattr(self, 'classes_'):
++                y_val = self.classes_[y_val.astype(int)]
+             self.validation_score_.append(
+                 self.scorer_(self, X_binned_val, y_val)
+             )
+2026-09-20 03:36:44,590 - INFO - Eval script for scikit-learn__scikit-learn-14710 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/eval.sh; copying to container...
+2026-09-20 04:06:44,956 - INFO - Test runtime: 1_800.28 seconds
+2026-09-20 04:06:44,957 - INFO - Test output for scikit-learn__scikit-learn-14710 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/test_output.txt
+2026-09-20 04:06:45,012 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: <exception str() failed>
+
+2026-09-20 04:06:45,012 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,012 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,012 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,013 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,013 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,013 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,013 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,013 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,013 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,013 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,013 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,013 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,013 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,013 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,014 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,014 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,014 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,014 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,014 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,014 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,014 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,014 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,014 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,014 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,015 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,015 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,015 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,015 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,015 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,015 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,015 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,015 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,015 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,015 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,015 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,015 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,016 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,016 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,016 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,016 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,016 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,016 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,016 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,016 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,016 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,017 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,017 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,017 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,017 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,017 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,017 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,017 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,017 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,017 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,017 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,018 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,018 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,018 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,018 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,018 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,018 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,018 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,018 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,018 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,018 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,018 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,018 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,019 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,019 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,019 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,019 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,019 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,019 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,019 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,019 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,019 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,019 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,020 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,020 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,020 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,020 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,020 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,020 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,020 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,020 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,020 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,020 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,020 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,020 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,021 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,021 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,021 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,021 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,021 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,021 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,021 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,021 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,021 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,021 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,021 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,022 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,022 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,022 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,022 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,022 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,022 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,022 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,022 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,022 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,022 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,022 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,023 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,023 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,023 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,023 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,023 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,023 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,023 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,023 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,023 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,023 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,023 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,024 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,024 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,024 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,024 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,024 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,024 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,024 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,024 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,024 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,024 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,024 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,025 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,025 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,025 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,025 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,025 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,080 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: <exception str() failed>
+
+2026-09-20 04:06:45,080 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,080 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,080 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,080 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,080 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,080 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,080 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,080 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,080 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,080 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,081 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,081 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,081 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,081 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,081 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,081 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,081 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,081 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,081 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,081 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,081 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,081 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,082 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,082 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,082 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,082 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,082 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,082 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,082 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,082 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,082 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,082 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,083 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,083 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,083 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,083 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,083 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,083 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,083 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,083 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,083 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,084 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,084 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,084 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,084 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,084 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,084 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,084 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,084 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,084 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,084 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,084 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,085 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,085 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,085 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,085 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,085 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,085 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,085 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,085 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,085 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,086 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,086 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,086 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,086 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,086 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,086 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,086 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,086 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,086 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,086 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,086 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,086 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,087 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,087 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,087 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,087 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,087 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,087 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,087 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,087 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,087 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,087 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,088 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,088 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,088 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,088 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,088 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,088 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,088 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,088 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,088 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,088 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,089 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,089 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,089 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,089 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,089 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,089 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,089 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,089 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,089 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,089 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,089 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,089 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,090 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,090 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,090 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,090 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,090 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,090 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,090 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,090 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,090 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,090 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,090 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,091 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,091 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,091 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,091 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,091 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,091 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,091 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,091 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,091 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,091 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,092 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,092 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,092 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,092 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,092 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,092 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,092 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,092 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,092 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,092 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,092 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,093 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,093 - INFO - Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/swebench/harness/run_evaluation.py", line 216, in run_instance
+    raise EvaluationError(
+swebench.harness.utils.EvaluationError: scikit-learn__scikit-learn-14710: Test timed out after 1800 seconds.
+Check (logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/scikit-learn__scikit-learn-14710/run_instance.log) for more information.
+
+2026-09-20 04:06:45,093 - INFO - Attempting to stop container sweb.eval.scikit-learn__scikit-learn-14710.qwen36-swebench-n100-20260919...
+2026-09-20 04:07:00,335 - INFO - Attempting to remove container sweb.eval.scikit-learn__scikit-learn-14710.qwen36-swebench-n100-20260919...
+2026-09-20 04:07:00,466 - INFO - Container sweb.eval.scikit-learn__scikit-learn-14710.qwen36-swebench-n100-20260919 removed.

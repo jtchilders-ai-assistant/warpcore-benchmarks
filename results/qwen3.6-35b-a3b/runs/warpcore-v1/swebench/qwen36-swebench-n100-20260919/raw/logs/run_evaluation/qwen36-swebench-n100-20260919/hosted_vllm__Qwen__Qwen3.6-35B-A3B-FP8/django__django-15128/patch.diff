@@ -1,0 +1,18 @@
+diff --git a/django/db/models/sql/query.py b/django/db/models/sql/query.py
+index aaf35ee37c..6ba5348446 100644
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -761,7 +761,13 @@ class Query(BaseExpression):
+ 
+         # Create a new alias for this table.
+         if alias_list:
++            # Find a unique alias. The alias must not already exist in alias_map.
++            # This can happen when combining queries with OR where rhs has
++            # sequential aliases for the same table.
+             alias = '%s%d' % (self.alias_prefix, len(self.alias_map) + 1)
++            while alias in self.alias_map:
++                # Increment the alias number until we find one that doesn't exist
++                alias = '%s%d' % (self.alias_prefix, int(alias[1:]) + 1)
+             alias_list.append(alias)
+         else:
+             # The first occurrence of a table uses the table name directly.

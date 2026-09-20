@@ -1,0 +1,53 @@
+2026-09-20 03:25:29,320 - INFO - Creating container for astropy__astropy-13453...
+2026-09-20 03:25:29,502 - INFO - Container for astropy__astropy-13453 created: 82524fcb3dd066bf4fe6d8f3968e944a4c7aeaebc4f712a05e55d909ac914061
+2026-09-20 03:25:29,810 - INFO - Container for astropy__astropy-13453 started: 82524fcb3dd066bf4fe6d8f3968e944a4c7aeaebc4f712a05e55d909ac914061
+2026-09-20 03:25:29,811 - INFO - Intermediate patch for astropy__astropy-13453 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/astropy__astropy-13453/patch.diff, now applying to container...
+2026-09-20 03:25:30,241 - INFO - >>>>> Applied Patch:
+Checking patch astropy/io/ascii/html.py...
+Applied patch astropy/io/ascii/html.py cleanly.
+
+2026-09-20 03:25:32,073 - INFO - Git diff before:
+diff --git a/astropy/io/ascii/html.py b/astropy/io/ascii/html.py
+index 266cf229c..c5a110514 100644
+--- a/astropy/io/ascii/html.py
++++ b/astropy/io/ascii/html.py
+@@ -349,11 +349,13 @@ class HTML(core.BaseReader):
+         cols = list(table.columns.values())
+ 
+         self.data.header.cols = cols
++        self.data.cols = cols
+ 
+         if isinstance(self.data.fill_values, tuple):
+             self.data.fill_values = [self.data.fill_values]
+ 
+         self.data._set_fill_values(cols)
++        self.data._set_col_formats()
+ 
+         lines = []
+2026-09-20 03:25:32,074 - INFO - Eval script for astropy__astropy-13453 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/astropy__astropy-13453/eval.sh; copying to container...
+2026-09-20 03:27:06,807 - INFO - Test runtime: 94.62 seconds
+2026-09-20 03:27:06,808 - INFO - Test output for astropy__astropy-13453 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/astropy__astropy-13453/test_output.txt
+2026-09-20 03:27:06,930 - INFO - Git diff after:
+diff --git a/astropy/io/ascii/html.py b/astropy/io/ascii/html.py
+index 266cf229c..c5a110514 100644
+--- a/astropy/io/ascii/html.py
++++ b/astropy/io/ascii/html.py
+@@ -349,11 +349,13 @@ class HTML(core.BaseReader):
+         cols = list(table.columns.values())
+ 
+         self.data.header.cols = cols
++        self.data.cols = cols
+ 
+         if isinstance(self.data.fill_values, tuple):
+             self.data.fill_values = [self.data.fill_values]
+ 
+         self.data._set_fill_values(cols)
++        self.data._set_col_formats()
+ 
+         lines = []
+2026-09-20 03:27:06,930 - INFO - Grading answer for astropy__astropy-13453...
+2026-09-20 03:27:06,936 - INFO - report: {'astropy__astropy-13453': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['astropy/io/ascii/tests/test_html.py::test_write_table_formatted_columns'], 'failure': []}, 'PASS_TO_PASS': {'success': ['astropy/io/ascii/tests/test_html.py::test_listwriter', 'astropy/io/ascii/tests/test_html.py::test_htmlinputter_no_bs4', 'astropy/io/ascii/tests/test_html.py::test_multicolumn_write', 'astropy/io/ascii/tests/test_html.py::test_write_no_multicols', 'astropy/io/ascii/tests/test_html.py::test_write_table_html_fill_values', 'astropy/io/ascii/tests/test_html.py::test_write_table_html_fill_values_optional_columns', 'astropy/io/ascii/tests/test_html.py::test_write_table_html_fill_values_masked', 'astropy/io/ascii/tests/test_html.py::test_multicolumn_table_html_fill_values', 'astropy/io/ascii/tests/test_html.py::test_multi_column_write_table_html_fill_values_masked'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for astropy__astropy-13453: resolved: True
+2026-09-20 03:27:06,937 - INFO - Attempting to stop container sweb.eval.astropy__astropy-13453.qwen36-swebench-n100-20260919...
+2026-09-20 03:27:22,150 - INFO - Attempting to remove container sweb.eval.astropy__astropy-13453.qwen36-swebench-n100-20260919...
+2026-09-20 03:27:22,258 - INFO - Container sweb.eval.astropy__astropy-13453.qwen36-swebench-n100-20260919 removed.

@@ -344,8 +344,42 @@ def _verify_suite_hashes(repo: pathlib.Path, manifest: dict) -> bool:
     return True
 
 
-def _load_item_scores(run_dir: pathlib.Path) -> Optional[Dict[str, float]]:
-    """Load per-item scores keyed by item_id."""
+def _load_item_scores(
+    run_dir: pathlib.Path,
+    benchmark: str = "",
+) -> Optional[Dict[str, float]]:
+    """Load per-item scores keyed by item_id.
+
+    Quality campaigns store explicit scores in ``per_item.csv``. SWE-bench
+    campaigns instead store disjoint terminal verdict buckets in
+    ``raw/grading_results.json``; resolved items score 1 and every other frozen
+    item scores 0 so infrastructure/model non-submissions remain in the declared
+    denominator.
+    """
+    if benchmark == "swebench":
+        grading_path = run_dir / "raw" / "grading_results.json"
+        try:
+            grading = json.loads(grading_path.read_text())
+            bucket_scores = {
+                "resolved_ids": 1.0,
+                "unresolved_ids": 0.0,
+                "empty_patch_ids": 0.0,
+                "error_ids": 0.0,
+                "incomplete_ids": 0.0,
+            }
+            scores: Dict[str, float] = {}
+            for bucket, score in bucket_scores.items():
+                ids = grading.get(bucket)
+                if not isinstance(ids, list):
+                    return None
+                for iid in ids:
+                    if not isinstance(iid, str) or not iid or iid in scores:
+                        return None
+                    scores[iid] = score
+            return scores
+        except (OSError, json.JSONDecodeError, TypeError):
+            return None
+
     per_item_path = run_dir / "per_item.csv"
     if not per_item_path.exists():
         return None
@@ -373,7 +407,8 @@ def _build_entries(canonical_runs: list) -> list[dict]:
         run_info = r["run_info"]
         run_dir = run_info["run_dir"]
 
-        scores = _load_item_scores(run_dir)
+        benchmark = manifest.get("benchmark", "")
+        scores = _load_item_scores(run_dir, benchmark=benchmark)
         n = manifest.get("item_inventory", {}).get("expected", 0)
 
         if scores and n > 0:

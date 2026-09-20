@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "run_id": "qwen36-swebench-n100-20260919",
+  "suite_id": "warpcore-v1",
+  "execution_state": "validated",
+  "lifecycle": "current",
+  "history": [
+    {
+      "state": "planned",
+      "timestamp": "2026-09-19T17:39:15Z",
+      "note": "Campaign initialized by create_campaign"
+    },
+    {
+      "state": "preflight_passed",
+      "timestamp": "2026-09-19T17:39:18Z"
+    },
+    {
+      "state": "running",
+      "timestamp": "2026-09-19T17:39:18Z",
+      "note": "generation phase started; grading phase started"
+    },
+    {
+      "state": "completed",
+      "timestamp": "2026-09-20T09:11:27Z",
+      "note": "grading completed; all dispositions verified"
+    },
+    {
+      "state": "validated",
+      "timestamp": "2026-09-20T13:56:53Z",
+      "note": "authoritative publication validation passed at commit bbdb4e934580ce0803daa3dc873a9d09ad44f740"
+    }
+  ]
+}

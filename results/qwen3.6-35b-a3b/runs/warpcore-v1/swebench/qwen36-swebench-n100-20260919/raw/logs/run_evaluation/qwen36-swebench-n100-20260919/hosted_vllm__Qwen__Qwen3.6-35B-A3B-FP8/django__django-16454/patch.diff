@@ -1,0 +1,49 @@
+diff --git a/django/core/management/base.py b/django/core/management/base.py
+index abc6f79a15..0c97b254df 100644
+--- a/django/core/management/base.py
++++ b/django/core/management/base.py
+@@ -43,6 +43,28 @@ class SystemCheckError(CommandError):
+     pass
+ 
+ 
++class SubParsersAction(argparse._SubParsersAction):
++    """
++    Customized _SubParsersAction to propagate CommandParser attributes to
++    subparsers.
++    """
++
++    def __init__(self, *args, missing_args_message=None, called_from_command_line=None, **kwargs):
++        super().__init__(*args, **kwargs)
++        self.missing_args_message = missing_args_message
++        self.called_from_command_line = called_from_command_line
++
++    def add_parser(self, name, **kwargs):
++        # Propagate the special CommandParser attributes to subparsers.
++        kwargs.setdefault(
++            "missing_args_message", self.missing_args_message
++        )
++        kwargs.setdefault(
++            "called_from_command_line", self.called_from_command_line
++        )
++        return super().add_parser(name, **kwargs)
++
++
+ class CommandParser(ArgumentParser):
+     """
+     Customized ArgumentParser class to improve some error messages and prevent
+@@ -71,6 +93,15 @@ class CommandParser(ArgumentParser):
+         else:
+             raise CommandError("Error: %s" % message)
+ 
++    def add_subparsers(self, **kwargs):
++        # Register the custom SubParsersAction class to ensure subparsers
++        # also use the customized error handling.
++        self.register("action", "parsers", SubParsersAction)
++        # Pass the special attributes to the SubParsersAction.
++        kwargs.setdefault("missing_args_message", self.missing_args_message)
++        kwargs.setdefault("called_from_command_line", self.called_from_command_line)
++        return super().add_subparsers(**kwargs)
++
+ 
+ def handle_default_options(options):
+     """

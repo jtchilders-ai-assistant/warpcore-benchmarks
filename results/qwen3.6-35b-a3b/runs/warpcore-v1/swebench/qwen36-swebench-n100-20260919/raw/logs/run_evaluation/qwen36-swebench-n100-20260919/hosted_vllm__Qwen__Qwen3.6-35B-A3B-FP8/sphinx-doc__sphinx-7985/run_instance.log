@@ -1,0 +1,172 @@
+2026-09-20 03:37:54,472 - INFO - Creating container for sphinx-doc__sphinx-7985...
+2026-09-20 03:37:54,640 - INFO - Container for sphinx-doc__sphinx-7985 created: c674d26e603a2eec9790aeefa32d22c7cbca06204c439b4418173fd8443754fa
+2026-09-20 03:37:55,066 - INFO - Container for sphinx-doc__sphinx-7985 started: c674d26e603a2eec9790aeefa32d22c7cbca06204c439b4418173fd8443754fa
+2026-09-20 03:37:55,067 - INFO - Intermediate patch for sphinx-doc__sphinx-7985 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sphinx-doc__sphinx-7985/patch.diff, now applying to container...
+2026-09-20 03:37:55,453 - INFO - >>>>> Applied Patch:
+/tmp/patch.diff:30: trailing whitespace.
+        
+/tmp/patch.diff:38: trailing whitespace.
+        
+/tmp/patch.diff:41: trailing whitespace.
+        
+/tmp/patch.diff:51: trailing whitespace.
+        
+Checking patch sphinx/builders/linkcheck.py...
+Checking patch sphinx/builders/linkcheck.py.backup...
+Applied patch sphinx/builders/linkcheck.py cleanly.
+Applied patch sphinx/builders/linkcheck.py.backup cleanly.
+warning: 4 lines add whitespace errors.
+
+2026-09-20 03:37:56,549 - INFO - Git diff before:
+diff --git a/sphinx/builders/linkcheck.py b/sphinx/builders/linkcheck.py
+index dd5317087..9c0528c42 100644
+--- a/sphinx/builders/linkcheck.py
++++ b/sphinx/builders/linkcheck.py
+@@ -210,10 +210,16 @@ class CheckExternalLinksBuilder(Builder):
+ 
+         def check() -> Tuple[str, str, int]:
+             # check for various conditions without bothering the network
+-            if len(uri) == 0 or uri.startswith(('#', 'mailto:', 'ftp:')):
++            if len(uri) == 0 or uri.startswith(('mailto:', 'ftp:')):
+                 return 'unchecked', '', 0
++            elif uri.startswith('#'):
++                # Fragment-only links are checked as internal links
++                status = self.check_internal_link(uri, docname)
++                return status, '', 0
+             elif not uri.startswith(('http:', 'https:')):
+-                return 'local', '', 0
++                # For internal links, we need to check if they exist
++                status = self.check_internal_link(uri, docname)
++                return status, '', 0
+             elif uri in self.good:
+                 return 'working', 'old', 0
+             elif uri in self.broken:
+@@ -246,6 +252,48 @@ class CheckExternalLinksBuilder(Builder):
+             status, info, code = check()
+             self.rqueue.put((uri, docname, lineno, status, info, code))
+ 
++    def check_internal_link(self, uri: str, docname: str) -> str:
++        """Check if an internal link exists.
++        
++        Returns 'working' if the link exists, 'broken' if not.
++        """
++        # Split off anchor if present
++        if '#' in uri:
++            docname_part, anchor = uri.split('#', 1)
++        else:
++            docname_part, anchor = uri, None
++        
++        # Get the standard domain to check labels
++        std_domain = self.env.get_domain('std')
++        
++        # Check if it's a document reference
++        if docname_part:
++            # Check if the document exists
++            if docname_part not in self.env.found_docs:
++                return 'broken'
++            target_docname = docname_part
++        else:
++            # No document part, check in current document
++            target_docname = docname
++        
++        # If there's an anchor/label, check if it exists
++        if anchor:
++            # Check if it's a named label
++            if anchor in std_domain.labels or anchor in std_domain.anonlabels:
++                # Label exists, but verify it's in the correct document
++                if docname_part:
++                    label_docname = (std_domain.labels.get(anchor, ('',))[0] or
++                                   std_domain.anonlabels.get(anchor, ('',))[0])
++                    if label_docname != target_docname:
++                        return 'broken'
++                return 'working'
++            else:
++                # Label not found
++                return 'broken'
++        else:
++            # No anchor, just document reference
++            return 'working'
++
+     def process_result(self, result: Tuple[str, str, int, str, str, int]) -> None:
+         uri, docname, lineno, status, info, code = result
+2026-09-20 03:37:56,549 - INFO - Eval script for sphinx-doc__sphinx-7985 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sphinx-doc__sphinx-7985/eval.sh; copying to container...
+2026-09-20 03:38:05,630 - INFO - Test runtime: 8.90 seconds
+2026-09-20 03:38:05,630 - INFO - Test output for sphinx-doc__sphinx-7985 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sphinx-doc__sphinx-7985/test_output.txt
+2026-09-20 03:38:05,762 - INFO - Git diff after:
+diff --git a/sphinx/builders/linkcheck.py b/sphinx/builders/linkcheck.py
+index dd5317087..9c0528c42 100644
+--- a/sphinx/builders/linkcheck.py
++++ b/sphinx/builders/linkcheck.py
+@@ -210,10 +210,16 @@ class CheckExternalLinksBuilder(Builder):
+ 
+         def check() -> Tuple[str, str, int]:
+             # check for various conditions without bothering the network
+-            if len(uri) == 0 or uri.startswith(('#', 'mailto:', 'ftp:')):
++            if len(uri) == 0 or uri.startswith(('mailto:', 'ftp:')):
+                 return 'unchecked', '', 0
++            elif uri.startswith('#'):
++                # Fragment-only links are checked as internal links
++                status = self.check_internal_link(uri, docname)
++                return status, '', 0
+             elif not uri.startswith(('http:', 'https:')):
+-                return 'local', '', 0
++                # For internal links, we need to check if they exist
++                status = self.check_internal_link(uri, docname)
++                return status, '', 0
+             elif uri in self.good:
+                 return 'working', 'old', 0
+             elif uri in self.broken:
+@@ -246,6 +252,48 @@ class CheckExternalLinksBuilder(Builder):
+             status, info, code = check()
+             self.rqueue.put((uri, docname, lineno, status, info, code))
+ 
++    def check_internal_link(self, uri: str, docname: str) -> str:
++        """Check if an internal link exists.
++        
++        Returns 'working' if the link exists, 'broken' if not.
++        """
++        # Split off anchor if present
++        if '#' in uri:
++            docname_part, anchor = uri.split('#', 1)
++        else:
++            docname_part, anchor = uri, None
++        
++        # Get the standard domain to check labels
++        std_domain = self.env.get_domain('std')
++        
++        # Check if it's a document reference
++        if docname_part:
++            # Check if the document exists
++            if docname_part not in self.env.found_docs:
++                return 'broken'
++            target_docname = docname_part
++        else:
++            # No document part, check in current document
++            target_docname = docname
++        
++        # If there's an anchor/label, check if it exists
++        if anchor:
++            # Check if it's a named label
++            if anchor in std_domain.labels or anchor in std_domain.anonlabels:
++                # Label exists, but verify it's in the correct document
++                if docname_part:
++                    label_docname = (std_domain.labels.get(anchor, ('',))[0] or
++                                   std_domain.anonlabels.get(anchor, ('',))[0])
++                    if label_docname != target_docname:
++                        return 'broken'
++                return 'working'
++            else:
++                # Label not found
++                return 'broken'
++        else:
++            # No anchor, just document reference
++            return 'working'
++
+     def process_result(self, result: Tuple[str, str, int, str, str, int]) -> None:
+         uri, docname, lineno, status, info, code = result
+2026-09-20 03:38:05,762 - INFO - Grading answer for sphinx-doc__sphinx-7985...
+2026-09-20 03:38:05,775 - INFO - report: {'sphinx-doc__sphinx-7985': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['tests/test_build_linkcheck.py::test_defaults', 'tests/test_build_linkcheck.py::test_anchors_ignored']}, 'PASS_TO_PASS': {'success': ['tests/test_build_linkcheck.py::test_defaults_json', 'tests/test_build_linkcheck.py::test_auth', 'tests/test_build_linkcheck.py::test_linkcheck_request_headers'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sphinx-doc__sphinx-7985: resolved: False
+2026-09-20 03:38:05,776 - INFO - Attempting to stop container sweb.eval.sphinx-doc__sphinx-7985.qwen36-swebench-n100-20260919...
+2026-09-20 03:38:20,997 - INFO - Attempting to remove container sweb.eval.sphinx-doc__sphinx-7985.qwen36-swebench-n100-20260919...
+2026-09-20 03:38:21,199 - INFO - Container sweb.eval.sphinx-doc__sphinx-7985.qwen36-swebench-n100-20260919 removed.

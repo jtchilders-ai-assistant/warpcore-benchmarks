@@ -1,0 +1,31 @@
+diff --git a/django/db/models/query_utils.py b/django/db/models/query_utils.py
+index c957ffa564..ff2c410cb2 100644
+--- a/django/db/models/query_utils.py
++++ b/django/db/models/query_utils.py
+@@ -41,7 +41,12 @@ class Q(tree.Node):
+ 
+     def _combine(self, other, conn):
+         if not isinstance(other, Q):
+-            raise TypeError(other)
++            # If other is not a Q but has resolve_expression (like Exists),
++            # wrap it in a Q object.
++            if hasattr(other, 'resolve_expression'):
++                other = Q(other)
++            else:
++                raise TypeError(other)
+ 
+         # If the other Q() is empty, ignore it and just use `self`.
+         if not other:
+@@ -87,7 +92,11 @@ class Q(tree.Node):
+         args, kwargs = (), {}
+         if len(self.children) == 1 and not isinstance(self.children[0], Q):
+             child = self.children[0]
+-            kwargs = {child[0]: child[1]}
++            # Only treat as kwargs if child is subscriptable (e.g., a tuple)
++            if hasattr(child, '__getitem__'):
++                kwargs = {child[0]: child[1]}
++            else:
++                args = (child,)
+         else:
+             args = tuple(self.children)
+             if self.connector != self.default:

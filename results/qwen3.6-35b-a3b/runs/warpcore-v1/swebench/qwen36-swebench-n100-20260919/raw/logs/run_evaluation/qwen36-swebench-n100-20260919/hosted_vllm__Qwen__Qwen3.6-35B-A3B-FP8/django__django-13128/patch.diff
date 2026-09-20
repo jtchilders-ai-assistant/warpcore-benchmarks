@@ -1,0 +1,20 @@
+diff --git a/django/db/models/expressions.py b/django/db/models/expressions.py
+index d913658291..06d1dd18ae 100644
+--- a/django/db/models/expressions.py
++++ b/django/db/models/expressions.py
+@@ -478,6 +478,15 @@ class CombinedExpression(SQLiteNumericMixin, Expression):
+         c.is_summary = summarize
+         c.lhs = c.lhs.resolve_expression(query, allow_joins, reuse, summarize, for_save)
+         c.rhs = c.rhs.resolve_expression(query, allow_joins, reuse, summarize, for_save)
++        # Convert datetime subtraction to TemporalSubtraction to get DurationField output.
++        if (
++            self.connector == self.SUB and
++            c.lhs._output_field_or_none is not None and
++            c.rhs._output_field_or_none is not None and
++            c.lhs.output_field.get_internal_type() in {'DateField', 'DateTimeField', 'TimeField'} and
++            c.lhs.output_field.get_internal_type() == c.rhs.output_field.get_internal_type()
++        ):
++            return TemporalSubtraction(c.lhs, c.rhs)
+         return c
+ 
+ 

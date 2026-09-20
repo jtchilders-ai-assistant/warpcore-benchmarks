@@ -1,0 +1,14 @@
+diff --git a/sympy/geometry/point.py b/sympy/geometry/point.py
+index 593048464..1d6abcd1c 100644
+--- a/sympy/geometry/point.py
++++ b/sympy/geometry/point.py
+@@ -266,6 +266,9 @@ def distance(self, p):
+         sqrt(x**2 + y**2)
+ 
+         """
++        if isinstance(p, Point):
++            if self.ambient_dimension != p.ambient_dimension:
++                raise ValueError("Points must have the same number of dimensions")
+         return sqrt(sum([(a - b)**2 for a, b in zip(
+             self.args, p.args if isinstance(p, Point) else p)]))
+ 

@@ -16,7 +16,7 @@
       "paths": [
         "results/gpt-oss-120b/raw/gsm8k_results.json"
       ],
-      "note": "Pre-contract lm-eval run. No run manifest; serving version and exact task config unrecorded. Provenance partially missing per PROVENANCE.md §5 coverage table."
+      "note": "Pre-contract lm-eval run. No run manifest; serving version and exact task config unrecorded. Provenance partially missing per PROVENANCE.md \u00a75 coverage table."
     },
     {
       "id": "gpt-oss-120b/ifeval/raw",
@@ -80,7 +80,7 @@
       "paths": [
         "results/qwen3.6-35b-a3b/raw/quality/gpqa_thinking_64k_2026-09-09/results_2026-09-10T08-03-24.755650.json"
       ],
-      "note": "Pre-contract lm-eval run, thinking mode, 64k ceiling. 37/198 (18.7%) empty visible content; finish reasons unrecorded (ISSUES #15 class hazard). No run manifest. This is the single run used as the headline — not a composite.",
+      "note": "Pre-contract lm-eval run, thinking mode, 64k ceiling. 37/198 (18.7%) empty visible content; finish reasons unrecorded (ISSUES #15 class hazard). No run manifest. This is the single run used as the headline \u2014 not a composite.",
       "caveats": "finish reasons unrecorded; 18.7% empty visible content"
     },
     {
@@ -165,7 +165,7 @@
       "paths": [
         "results/ornith-35b/raw/swebench/swebench_verified_n100_results.json"
       ],
-      "note": "Pre-contract SWE-bench Verified n=100 seed-42 run. Best provenance of any SWE-bench run in the repo: exit_statuses committed, preds committed. Trajectories lost (left in /tmp, macOS-reaped — see PROVENANCE.md §5). No run manifest. 73/100 resolved."
+      "note": "Pre-contract SWE-bench Verified n=100 seed-42 run. Best provenance of any SWE-bench run in the repo: exit_statuses committed, preds committed. Trajectories lost (left in /tmp, macOS-reaped \u2014 see PROVENANCE.md \u00a75). No run manifest. 73/100 resolved."
     },
     {
       "id": "nemotron-3.5-lightning-30b/swebench/n100",
@@ -189,7 +189,17 @@
       "paths": [
         "results/qwen3.6-35b-a3b/raw/swebench/swebench_verified_shuffle100_report.json"
       ],
-      "note": "Pre-contract SWE-bench Verified n=100 seed-42 run. 22/100 instances lost to cold Docker-cache pull timeouts (never ran). Exit statuses committed. Config reconstructed from trajectories post-hoc (see PROVENANCE.md §5a). 44/100 resolved."
+      "note": "Pre-contract SWE-bench Verified n=100 seed-42 run. 22/100 instances lost to cold Docker-cache pull timeouts (never ran). Exit statuses committed. Config reconstructed from trajectories post-hoc (see PROVENANCE.md \u00a75a). 44/100 resolved."
+    },
+    {
+      "id": "qwen3.6-35b-a3b/swebench/warpcore-v1/qwen36-swebench-n100-20260919",
+      "status": "current",
+      "paths": [
+        "results/qwen3.6-35b-a3b/runs/warpcore-v1/swebench/qwen36-swebench-n100-20260919/raw/grading_results.json"
+      ],
+      "note": "Canonical warpcore-v1 SWE-bench Verified frozen seed-42 n=100 campaign. Full denominator: 57 resolved, 30 unresolved, 11 empty patches, and 2 official-grader timeout errors; generation had 89 Submitted, 10 LimitsExceeded, 1 RepeatedFormatError, and 0 RuntimeError. Exact 100-item evidence and publication validation passed.",
+      "v1_validated": true,
+      "run_dir": "results/qwen3.6-35b-a3b/runs/warpcore-v1/swebench/qwen36-swebench-n100-20260919"
     }
   ]
 }

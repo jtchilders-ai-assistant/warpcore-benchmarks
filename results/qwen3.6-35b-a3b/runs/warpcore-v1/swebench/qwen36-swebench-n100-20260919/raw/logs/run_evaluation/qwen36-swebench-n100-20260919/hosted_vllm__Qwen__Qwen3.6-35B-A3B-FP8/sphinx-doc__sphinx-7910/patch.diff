@@ -1,0 +1,22 @@
+diff --git a/sphinx/ext/napoleon/__init__.py b/sphinx/ext/napoleon/__init__.py
+index 10b1ff3a3..675c297df 100644
+--- a/sphinx/ext/napoleon/__init__.py
++++ b/sphinx/ext/napoleon/__init__.py
+@@ -440,7 +440,16 @@ def _skip_member(app: Sphinx, what: str, name: str, obj: Any,
+                     else:
+                         cls = obj.__globals__[cls_path]
+                 except Exception:
+-                    cls_is_owner = False
++                    # For decorated methods, __globals__ may not contain the class
++                    # Try to get it from the module instead
++                    import importlib
++                    mod = importlib.import_module(obj.__module__)
++                    cls = getattr(mod, cls_path, None)
++                    if cls:
++                        cls_is_owner = (hasattr(cls, name) and  # type: ignore
++                                        name in cls.__dict__)
++                    else:
++                        cls_is_owner = False
+                 else:
+                     cls_is_owner = (cls and hasattr(cls, name) and  # type: ignore
+                                     name in cls.__dict__)

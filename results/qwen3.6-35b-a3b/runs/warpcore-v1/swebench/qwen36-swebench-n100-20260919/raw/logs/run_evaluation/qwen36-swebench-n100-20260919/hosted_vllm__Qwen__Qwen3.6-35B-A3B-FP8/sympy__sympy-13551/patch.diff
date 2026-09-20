@@ -1,0 +1,20 @@
+diff --git a/sympy/concrete/products.py b/sympy/concrete/products.py
+index 66aafde2d..d5538d22e 100644
+--- a/sympy/concrete/products.py
++++ b/sympy/concrete/products.py
+@@ -283,9 +283,15 @@ def _eval_product(self, term, limits):
+                 # as_numer_denom(). E.g. n**(2/3) + 1 --> (n**(2/3) + 1, 1).
+                 # We have to catch this case.
+ 
++                # We cannot split the product of a sum into a sum of products.
++                # If p is not a polynomial in k, we cannot evaluate it symbolically.
++                if not p.is_polynomial(k):
++                    return None
+                 p = sum([self._eval_product(i, (k, a, n)) for i in p.as_coeff_Add()])
+             else:
+                 p = self._eval_product(p, (k, a, n))
++                if p is None:
++                    return None
+             return p / q
+ 
+         elif term.is_Mul:

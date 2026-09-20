@@ -1,0 +1,71 @@
+2026-09-20 03:40:38,803 - INFO - Creating container for sympy__sympy-17655...
+2026-09-20 03:40:38,974 - INFO - Container for sympy__sympy-17655 created: c7985800436b16c80712fa85a5639b210aeb172b4a0fe186faf631827ecd84d3
+2026-09-20 03:40:39,264 - INFO - Container for sympy__sympy-17655 started: c7985800436b16c80712fa85a5639b210aeb172b4a0fe186faf631827ecd84d3
+2026-09-20 03:40:39,265 - INFO - Intermediate patch for sympy__sympy-17655 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-17655/patch.diff, now applying to container...
+2026-09-20 03:40:39,672 - INFO - >>>>> Applied Patch:
+Checking patch sympy/geometry/point.py...
+Applied patch sympy/geometry/point.py cleanly.
+
+2026-09-20 03:40:40,836 - INFO - Git diff before:
+diff --git a/sympy/geometry/point.py b/sympy/geometry/point.py
+index 7c978c47be..90d7fb1a2a 100644
+--- a/sympy/geometry/point.py
++++ b/sympy/geometry/point.py
+@@ -213,6 +213,21 @@ def __add__(self, other):
+         sympy.geometry.point.Point.translate
+ 
+         """
++        from sympy.core.mul import Mul
++        # Handle the case where other is a Mul containing a Point
++        # e.g., sympy.sympify(2.0) * Point(1, 1)
++        if isinstance(other, Mul):
++            # Find the Point in the Mul and extract the scalar
++            point = None
++            scalar = S.One
++            for arg in other.args:
++                if getattr(arg, 'is_Point', False):
++                    point = arg
++                else:
++                    scalar = scalar * arg
++            if point is not None:
++                # Multiply the point by the scalar to get a Point
++                other = point * scalar
+         try:
+             s, o = Point._normalize_dimension(self, Point(other, evaluate=False))
+         except TypeError:
+2026-09-20 03:40:40,836 - INFO - Eval script for sympy__sympy-17655 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-17655/eval.sh; copying to container...
+2026-09-20 03:41:15,831 - INFO - Test runtime: 34.87 seconds
+2026-09-20 03:41:15,831 - INFO - Test output for sympy__sympy-17655 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sympy__sympy-17655/test_output.txt
+2026-09-20 03:41:15,943 - INFO - Git diff after:
+diff --git a/sympy/geometry/point.py b/sympy/geometry/point.py
+index 7c978c47be..90d7fb1a2a 100644
+--- a/sympy/geometry/point.py
++++ b/sympy/geometry/point.py
+@@ -213,6 +213,21 @@ def __add__(self, other):
+         sympy.geometry.point.Point.translate
+ 
+         """
++        from sympy.core.mul import Mul
++        # Handle the case where other is a Mul containing a Point
++        # e.g., sympy.sympify(2.0) * Point(1, 1)
++        if isinstance(other, Mul):
++            # Find the Point in the Mul and extract the scalar
++            point = None
++            scalar = S.One
++            for arg in other.args:
++                if getattr(arg, 'is_Point', False):
++                    point = arg
++                else:
++                    scalar = scalar * arg
++            if point is not None:
++                # Multiply the point by the scalar to get a Point
++                other = point * scalar
+         try:
+             s, o = Point._normalize_dimension(self, Point(other, evaluate=False))
+         except TypeError:
+2026-09-20 03:41:15,943 - INFO - Grading answer for sympy__sympy-17655...
+2026-09-20 03:41:15,944 - INFO - report: {'sympy__sympy-17655': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_point', 'test_point3D']}, 'PASS_TO_PASS': {'success': ['test_Point2D', 'test_issue_9214', 'test_issue_11617', 'test_transform', 'test_concyclic_doctest_bug', 'test_arguments', 'test_unit', 'test_dot', 'test__normalize_dimension'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-17655: resolved: False
+2026-09-20 03:41:15,944 - INFO - Attempting to stop container sweb.eval.sympy__sympy-17655.qwen36-swebench-n100-20260919...
+2026-09-20 03:41:31,186 - INFO - Attempting to remove container sweb.eval.sympy__sympy-17655.qwen36-swebench-n100-20260919...
+2026-09-20 03:41:31,354 - INFO - Container sweb.eval.sympy__sympy-17655.qwen36-swebench-n100-20260919 removed.

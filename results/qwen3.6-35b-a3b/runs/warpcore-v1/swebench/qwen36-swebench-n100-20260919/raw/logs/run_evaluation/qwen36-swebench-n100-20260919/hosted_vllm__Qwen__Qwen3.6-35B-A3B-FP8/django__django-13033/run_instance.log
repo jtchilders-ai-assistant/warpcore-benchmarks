@@ -1,0 +1,119 @@
+2026-09-20 03:28:30,874 - INFO - Creating container for django__django-13033...
+2026-09-20 03:28:31,009 - INFO - Container for django__django-13033 created: 91317033a5d8053e0b563d9ebbbc736145a64e3048d52afd53fe68a269e43dc8
+2026-09-20 03:28:31,296 - INFO - Container for django__django-13033 started: 91317033a5d8053e0b563d9ebbbc736145a64e3048d52afd53fe68a269e43dc8
+2026-09-20 03:28:31,297 - INFO - Intermediate patch for django__django-13033 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/django__django-13033/patch.diff, now applying to container...
+2026-09-20 03:28:31,596 - INFO - >>>>> Applied Patch:
+Checking patch django/db/models/sql/compiler.py...
+Applied patch django/db/models/sql/compiler.py cleanly.
+
+2026-09-20 03:28:33,843 - INFO - Git diff before:
+diff --git a/django/db/models/sql/compiler.py b/django/db/models/sql/compiler.py
+index abbb1e37cb..902c57c865 100644
+--- a/django/db/models/sql/compiler.py
++++ b/django/db/models/sql/compiler.py
+@@ -727,24 +727,28 @@ class SQLCompiler:
+         # If we get to this point and the field is a relation to another model,
+         # append the default ordering for that model unless it is the pk
+         # shortcut or the attribute name of the field that is specified.
+-        if field.is_relation and opts.ordering and getattr(field, 'attname', None) != name and name != 'pk':
+-            # Firstly, avoid infinite loops.
+-            already_seen = already_seen or set()
+-            join_tuple = tuple(getattr(self.query.alias_map[j], 'join_cols', None) for j in joins)
+-            if join_tuple in already_seen:
+-                raise FieldError('Infinite loop caused by ordering.')
+-            already_seen.add(join_tuple)
+-
+-            results = []
+-            for item in opts.ordering:
+-                if hasattr(item, 'resolve_expression') and not isinstance(item, OrderBy):
+-                    item = item.desc() if descending else item.asc()
+-                if isinstance(item, OrderBy):
+-                    results.append((item, False))
+-                    continue
+-                results.extend(self.find_ordering_name(item, opts, alias,
+-                                                       order, already_seen))
+-            return results
++        if field.is_relation and opts.ordering:
++            # Check if we're ordering by the field's attname (e.g., 'root_id' for 'root' FK)
++            # or if the full name is 'pk'.
++            last_piece = pieces[-1] if pieces else None
++            if getattr(field, 'attname', None) != name and name != 'pk' and last_piece != field.attname:
++                # Firstly, avoid infinite loops.
++                already_seen = already_seen or set()
++                join_tuple = tuple(getattr(self.query.alias_map[j], 'join_cols', None) for j in joins)
++                if join_tuple in already_seen:
++                    raise FieldError('Infinite loop caused by ordering.')
++                already_seen.add(join_tuple)
++
++                results = []
++                for item in opts.ordering:
++                    if hasattr(item, 'resolve_expression') and not isinstance(item, OrderBy):
++                        item = item.desc() if descending else item.asc()
++                    if isinstance(item, OrderBy):
++                        results.append((item, False))
++                        continue
++                    results.extend(self.find_ordering_name(item, opts, alias,
++                                                           order, already_seen))
++                return results
+         targets, alias, _ = self.query.trim_joins(targets, joins, path)
+         return [(OrderBy(transform_function(t, alias), descending=descending), False) for t in targets]
+2026-09-20 03:28:33,843 - INFO - Eval script for django__django-13033 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/django__django-13033/eval.sh; copying to container...
+2026-09-20 03:28:44,593 - INFO - Test runtime: 10.61 seconds
+2026-09-20 03:28:44,593 - INFO - Test output for django__django-13033 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/django__django-13033/test_output.txt
+2026-09-20 03:28:44,679 - INFO - Git diff after:
+diff --git a/django/db/models/sql/compiler.py b/django/db/models/sql/compiler.py
+index abbb1e37cb..902c57c865 100644
+--- a/django/db/models/sql/compiler.py
++++ b/django/db/models/sql/compiler.py
+@@ -727,24 +727,28 @@ class SQLCompiler:
+         # If we get to this point and the field is a relation to another model,
+         # append the default ordering for that model unless it is the pk
+         # shortcut or the attribute name of the field that is specified.
+-        if field.is_relation and opts.ordering and getattr(field, 'attname', None) != name and name != 'pk':
+-            # Firstly, avoid infinite loops.
+-            already_seen = already_seen or set()
+-            join_tuple = tuple(getattr(self.query.alias_map[j], 'join_cols', None) for j in joins)
+-            if join_tuple in already_seen:
+-                raise FieldError('Infinite loop caused by ordering.')
+-            already_seen.add(join_tuple)
+-
+-            results = []
+-            for item in opts.ordering:
+-                if hasattr(item, 'resolve_expression') and not isinstance(item, OrderBy):
+-                    item = item.desc() if descending else item.asc()
+-                if isinstance(item, OrderBy):
+-                    results.append((item, False))
+-                    continue
+-                results.extend(self.find_ordering_name(item, opts, alias,
+-                                                       order, already_seen))
+-            return results
++        if field.is_relation and opts.ordering:
++            # Check if we're ordering by the field's attname (e.g., 'root_id' for 'root' FK)
++            # or if the full name is 'pk'.
++            last_piece = pieces[-1] if pieces else None
++            if getattr(field, 'attname', None) != name and name != 'pk' and last_piece != field.attname:
++                # Firstly, avoid infinite loops.
++                already_seen = already_seen or set()
++                join_tuple = tuple(getattr(self.query.alias_map[j], 'join_cols', None) for j in joins)
++                if join_tuple in already_seen:
++                    raise FieldError('Infinite loop caused by ordering.')
++                already_seen.add(join_tuple)
++
++                results = []
++                for item in opts.ordering:
++                    if hasattr(item, 'resolve_expression') and not isinstance(item, OrderBy):
++                        item = item.desc() if descending else item.asc()
++                    if isinstance(item, OrderBy):
++                        results.append((item, False))
++                        continue
++                    results.extend(self.find_ordering_name(item, opts, alias,
++                                                           order, already_seen))
++                return results
+         targets, alias, _ = self.query.trim_joins(targets, joins, path)
+         return [(OrderBy(transform_function(t, alias), descending=descending), False) for t in targets]
+2026-09-20 03:28:44,679 - INFO - Grading answer for django__django-13033...
+2026-09-20 03:28:44,680 - INFO - report: {'django__django-13033': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_order_by_self_referential_fk (ordering.tests.OrderingTests)'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_default_ordering (ordering.tests.OrderingTests)', 'F expressions can be used in Meta.ordering.', 'test_default_ordering_override (ordering.tests.OrderingTests)', 'test_extra_ordering (ordering.tests.OrderingTests)', 'test_extra_ordering_quoting (ordering.tests.OrderingTests)', 'test_extra_ordering_with_table_name (ordering.tests.OrderingTests)', 'test_no_reordering_after_slicing (ordering.tests.OrderingTests)', 'test_order_by_constant_value (ordering.tests.OrderingTests)', 'test_order_by_constant_value_without_output_field (ordering.tests.OrderingTests)', 'test_order_by_f_expression (ordering.tests.OrderingTests)', 'test_order_by_f_expression_duplicates (ordering.tests.OrderingTests)', 'test_order_by_fk_attname (ordering.tests.OrderingTests)', 'test_order_by_nulls_first (ordering.tests.OrderingTests)', 'test_order_by_nulls_first_and_last (ordering.tests.OrderingTests)', 'test_order_by_nulls_last (ordering.tests.OrderingTests)', 'test_order_by_override (ordering.tests.OrderingTests)', 'test_order_by_pk (ordering.tests.OrderingTests)', 'test_order_by_ptr_field_with_default_ordering_by_expression (ordering.tests.OrderingTests)', 'test_orders_nulls_first_on_filtered_subquery (ordering.tests.OrderingTests)', 'test_random_ordering (ordering.tests.OrderingTests)', 'test_related_ordering_duplicate_table_reference (ordering.tests.OrderingTests)', 'test_reverse_meta_ordering_pure (ordering.tests.OrderingTests)', 'test_reverse_ordering_pure (ordering.tests.OrderingTests)', 'test_reversed_ordering (ordering.tests.OrderingTests)', 'test_stop_slicing (ordering.tests.OrderingTests)', 'test_stop_start_slicing (ordering.tests.OrderingTests)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-13033: resolved: True
+2026-09-20 03:28:44,680 - INFO - Attempting to stop container sweb.eval.django__django-13033.qwen36-swebench-n100-20260919...
+2026-09-20 03:28:59,882 - INFO - Attempting to remove container sweb.eval.django__django-13033.qwen36-swebench-n100-20260919...
+2026-09-20 03:29:00,037 - INFO - Container sweb.eval.django__django-13033.qwen36-swebench-n100-20260919 removed.

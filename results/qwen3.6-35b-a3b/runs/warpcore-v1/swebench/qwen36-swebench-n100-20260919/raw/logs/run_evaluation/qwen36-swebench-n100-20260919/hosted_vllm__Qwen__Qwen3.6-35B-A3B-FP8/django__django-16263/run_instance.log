@@ -1,0 +1,223 @@
+2026-09-20 03:33:13,303 - INFO - Creating container for django__django-16263...
+2026-09-20 03:33:13,532 - INFO - Container for django__django-16263 created: 5239db9f5a8563b8326cf93ee726699d5bcba13dca1bf8f1c9d9b7cec43a4502
+2026-09-20 03:33:13,878 - INFO - Container for django__django-16263 started: 5239db9f5a8563b8326cf93ee726699d5bcba13dca1bf8f1c9d9b7cec43a4502
+2026-09-20 03:33:13,879 - INFO - Intermediate patch for django__django-16263 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/django__django-16263/patch.diff, now applying to container...
+2026-09-20 03:33:14,269 - INFO - >>>>> Applied Patch:
+/tmp/patch.diff:26: trailing whitespace.
+        
+/tmp/patch.diff:28: trailing whitespace.
+        
+/tmp/patch.diff:34: trailing whitespace.
+        
+/tmp/patch.diff:53: trailing whitespace.
+        
+/tmp/patch.diff:63: trailing whitespace.
+        
+Checking patch django/db/models/sql/query.py...
+Checking patch django/db/models/sql/query.py.backup...
+Checking patch django/db/models/sql/query.py.original...
+Applied patch django/db/models/sql/query.py cleanly.
+Applied patch django/db/models/sql/query.py.backup cleanly.
+Applied patch django/db/models/sql/query.py.original cleanly.
+warning: squelched 1 whitespace error
+warning: 6 lines add whitespace errors.
+
+2026-09-20 03:33:16,562 - INFO - Git diff before:
+diff --git a/django/db/models/sql/query.py b/django/db/models/sql/query.py
+index 9735ce10c8..be25de75c2 100644
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -551,8 +551,90 @@ class Query(BaseExpression):
+         """
+         obj = self.clone()
+         obj.add_annotation(Count("*"), alias="__count", is_summary=True)
++        # Strip unused annotations from the count query to improve performance.
++        used_annotations = self._get_used_annotations_for_count()
++        # Set the annotation mask to only include used annotations and __count.
++        # If there are no used annotations, set an empty mask to exclude all annotations.
++        obj.set_annotation_mask(used_annotations | {"__count"} if used_annotations else {"__count"})
+         return obj.get_aggregation(using, ["__count"])["__count"]
+ 
++    def _get_used_annotations_for_count(self):
++        """
++        Get the set of annotation names that are actually used in filters,
++        ordering, or other annotations. Used to strip unused annotations from
++        count queries for better performance.
++        """
++        # If the query has distinct, we can't strip annotations because they're
++        # part of the SELECT DISTINCT clause and are needed for correct results.
++        if self.distinct:
++            return set(self.annotations.keys())
++        
++        used = set()
++        
++        # Check if annotations are in values_select (used in SELECT clause)
++        if self.values_select:
++            for name in self.values_select:
++                if name in self.annotations:
++                    used.add(name)
++        
++        # Check filters (where clause)
++        if self.where:
++            for child in self.where.children:
++                # Check if any annotation object is referenced in the where clause
++                for alias, annotation in self.annotations.items():
++                    if annotation in self._get_all_subexpressions(child):
++                        used.add(alias)
++                    # Also check if an F() annotation is used in the where clause
++                    # by checking if any Col in the where clause matches the F() field
++                    from django.db.models import F
++                    if isinstance(annotation, F):
++                        for subexpr in self._get_all_subexpressions(child):
++                            if isinstance(subexpr, Col) and subexpr.name == annotation.name:
++                                used.add(alias)
++                                break
++                # Also check for Ref() objects
++                refs = self._find_annotation_refs(child)
++                used.update(refs)
++        
++        # Check ordering
++        for order in self.order_by:
++            if isinstance(order, str):
++                # String reference like 'annotation_name'
++                if order.lstrip("-") in self.annotations:
++                    used.add(order.lstrip("-"))
++            elif hasattr(order, "get_source_expressions"):
++                refs = self._find_annotation_refs(order)
++                used.update(refs)
++        
++        # Check if any annotation references another annotation
++        for alias, annotation in self.annotations.items():
++            refs = self._find_annotation_refs(annotation)
++            for ref in refs:
++                if ref in self.annotations:
++                    used.add(ref)
++        
++        return used
++
++    def _find_annotation_refs(self, expr, refs=None):
++        """Find all annotation references in an expression."""
++        if refs is None:
++            refs = set()
++        from django.db.models.expressions import Ref
++        if isinstance(expr, Ref):
++            refs.add(expr.refs)
++        for child in expr.get_source_expressions():
++            if child:
++                self._find_annotation_refs(child, refs)
++        return refs
++
++    def _get_all_subexpressions(self, expr):
++        """Recursively get all subexpressions."""
++        result = [expr]
++        for child in expr.get_source_expressions():
++            if child:
++                result.extend(self._get_all_subexpressions(child))
++        return result
++
+     def has_filters(self):
+         return self.where
+2026-09-20 03:33:16,600 - INFO - Eval script for django__django-16263 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/django__django-16263/eval.sh; copying to container...
+2026-09-20 03:33:26,609 - INFO - Test runtime: 9.90 seconds
+2026-09-20 03:33:26,610 - INFO - Test output for django__django-16263 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/django__django-16263/test_output.txt
+2026-09-20 03:33:26,741 - INFO - Git diff after:
+diff --git a/django/db/models/sql/query.py b/django/db/models/sql/query.py
+index 9735ce10c8..be25de75c2 100644
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -551,8 +551,90 @@ class Query(BaseExpression):
+         """
+         obj = self.clone()
+         obj.add_annotation(Count("*"), alias="__count", is_summary=True)
++        # Strip unused annotations from the count query to improve performance.
++        used_annotations = self._get_used_annotations_for_count()
++        # Set the annotation mask to only include used annotations and __count.
++        # If there are no used annotations, set an empty mask to exclude all annotations.
++        obj.set_annotation_mask(used_annotations | {"__count"} if used_annotations else {"__count"})
+         return obj.get_aggregation(using, ["__count"])["__count"]
+ 
++    def _get_used_annotations_for_count(self):
++        """
++        Get the set of annotation names that are actually used in filters,
++        ordering, or other annotations. Used to strip unused annotations from
++        count queries for better performance.
++        """
++        # If the query has distinct, we can't strip annotations because they're
++        # part of the SELECT DISTINCT clause and are needed for correct results.
++        if self.distinct:
++            return set(self.annotations.keys())
++        
++        used = set()
++        
++        # Check if annotations are in values_select (used in SELECT clause)
++        if self.values_select:
++            for name in self.values_select:
++                if name in self.annotations:
++                    used.add(name)
++        
++        # Check filters (where clause)
++        if self.where:
++            for child in self.where.children:
++                # Check if any annotation object is referenced in the where clause
++                for alias, annotation in self.annotations.items():
++                    if annotation in self._get_all_subexpressions(child):
++                        used.add(alias)
++                    # Also check if an F() annotation is used in the where clause
++                    # by checking if any Col in the where clause matches the F() field
++                    from django.db.models import F
++                    if isinstance(annotation, F):
++                        for subexpr in self._get_all_subexpressions(child):
++                            if isinstance(subexpr, Col) and subexpr.name == annotation.name:
++                                used.add(alias)
++                                break
++                # Also check for Ref() objects
++                refs = self._find_annotation_refs(child)
++                used.update(refs)
++        
++        # Check ordering
++        for order in self.order_by:
++            if isinstance(order, str):
++                # String reference like 'annotation_name'
++                if order.lstrip("-") in self.annotations:
++                    used.add(order.lstrip("-"))
++            elif hasattr(order, "get_source_expressions"):
++                refs = self._find_annotation_refs(order)
++                used.update(refs)
++        
++        # Check if any annotation references another annotation
++        for alias, annotation in self.annotations.items():
++            refs = self._find_annotation_refs(annotation)
++            for ref in refs:
++                if ref in self.annotations:
++                    used.add(ref)
++        
++        return used
++
++    def _find_annotation_refs(self, expr, refs=None):
++        """Find all annotation references in an expression."""
++        if refs is None:
++            refs = set()
++        from django.db.models.expressions import Ref
++        if isinstance(expr, Ref):
++            refs.add(expr.refs)
++        for child in expr.get_source_expressions():
++            if child:
++                self._find_annotation_refs(child, refs)
++        return refs
++
++    def _get_all_subexpressions(self, expr):
++        """Recursively get all subexpressions."""
++        result = [expr]
++        for child in expr.get_source_expressions():
++            if child:
++                result.extend(self._get_all_subexpressions(child))
++        return result
++
+     def has_filters(self):
+         return self.where
+2026-09-20 03:33:26,741 - INFO - Grading answer for django__django-16263...
+2026-09-20 03:33:26,743 - INFO - report: {'django__django-16263': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_unreferenced_aggregate_annotation_pruned (aggregation.tests.AggregateAnnotationPruningTests)'], 'failure': ['test_non_aggregate_annotation_pruned (aggregation.tests.AggregateAnnotationPruningTests)', 'test_unused_aliased_aggregate_pruned (aggregation.tests.AggregateAnnotationPruningTests)']}, 'PASS_TO_PASS': {'success': ['test_referenced_aggregate_annotation_kept (aggregation.tests.AggregateAnnotationPruningTests)', 'test_add_implementation (aggregation.tests.AggregateTestCase)', 'test_aggregate_alias (aggregation.tests.AggregateTestCase)', 'test_aggregate_annotation (aggregation.tests.AggregateTestCase)', 'test_aggregate_in_order_by (aggregation.tests.AggregateTestCase)', 'test_aggregate_join_transform (aggregation.tests.AggregateTestCase)', 'test_aggregate_multi_join (aggregation.tests.AggregateTestCase)', 'test_aggregate_over_aggregate (aggregation.tests.AggregateTestCase)', 'test_aggregate_over_complex_annotation (aggregation.tests.AggregateTestCase)', 'test_aggregate_transform (aggregation.tests.AggregateTestCase)', 'test_aggregation_default_after_annotation (aggregation.tests.AggregateTestCase)', 'test_aggregation_default_compound_expression (aggregation.tests.AggregateTestCase)', 'test_aggregation_default_expression (aggregation.tests.AggregateTestCase)', 'test_aggregation_default_group_by (aggregation.tests.AggregateTestCase)', 'test_aggregation_default_integer (aggregation.tests.AggregateTestCase)', 'test_aggregation_default_not_in_aggregate (aggregation.tests.AggregateTestCase)', 'test_aggregation_default_passed_another_aggregate (aggregation.tests.AggregateTestCase)', 'test_aggregation_default_unset (aggregation.tests.AggregateTestCase)', 'test_aggregation_default_unsupported_by_count (aggregation.tests.AggregateTestCase)', 'test_aggregation_default_using_date_from_database (aggregation.tests.AggregateTestCase)', 'test_aggregation_default_using_date_from_python (aggregation.tests.AggregateTestCase)', 'test_aggregation_default_using_datetime_from_database (aggregation.tests.AggregateTestCase)', 'test_aggregation_default_using_datetime_from_python (aggregation.tests.AggregateTestCase)', 'test_aggregation_default_using_decimal_from_database (aggregation.tests.AggregateTestCase)', 'test_aggregation_default_using_decimal_from_python (aggregation.tests.AggregateTestCase)', 'test_aggregation_default_using_duration_from_database (aggregation.tests.AggregateTestCase)', 'test_aggregation_default_using_duration_from_python (aggregation.tests.AggregateTestCase)', 'test_aggregation_default_using_time_from_database (aggregation.tests.AggregateTestCase)', 'test_aggregation_default_using_time_from_python (aggregation.tests.AggregateTestCase)', 'test_aggregation_default_zero (aggregation.tests.AggregateTestCase)', 'test_aggregation_exists_annotation (aggregation.tests.AggregateTestCase)', 'test_aggregation_exists_multivalued_outeref (aggregation.tests.AggregateTestCase)', 'test_aggregation_expressions (aggregation.tests.AggregateTestCase)', 'test_aggregation_filter_exists (aggregation.tests.AggregateTestCase)', 'test_aggregation_nested_subquery_outerref (aggregation.tests.AggregateTestCase)', 'test_aggregation_order_by_not_selected_annotation_values (aggregation.tests.AggregateTestCase)', 'Random() is not included in the GROUP BY when used for ordering.', 'Subquery annotations are excluded from the GROUP BY if they are', 'test_aggregation_subquery_annotation_exists (aggregation.tests.AggregateTestCase)', 'Subquery annotations must be included in the GROUP BY if they use', 'test_aggregation_subquery_annotation_related_field (aggregation.tests.AggregateTestCase)', 'Subquery annotations and external aliases are excluded from the GROUP', 'test_aggregation_subquery_annotation_values_collision (aggregation.tests.AggregateTestCase)', 'test_alias_sql_injection (aggregation.tests.AggregateTestCase)', 'test_annotate_basic (aggregation.tests.AggregateTestCase)', 'test_annotate_defer (aggregation.tests.AggregateTestCase)', 'test_annotate_defer_select_related (aggregation.tests.AggregateTestCase)', 'test_annotate_m2m (aggregation.tests.AggregateTestCase)', 'test_annotate_ordering (aggregation.tests.AggregateTestCase)', 'test_annotate_over_annotate (aggregation.tests.AggregateTestCase)', 'test_annotate_values (aggregation.tests.AggregateTestCase)', 'test_annotate_values_aggregate (aggregation.tests.AggregateTestCase)', 'test_annotate_values_list (aggregation.tests.AggregateTestCase)', 'test_annotated_aggregate_over_annotated_aggregate (aggregation.tests.AggregateTestCase)', 'test_annotation (aggregation.tests.AggregateTestCase)', 'test_annotation_expressions (aggregation.tests.AggregateTestCase)', 'test_arguments_must_be_expressions (aggregation.tests.AggregateTestCase)', 'test_avg_decimal_field (aggregation.tests.AggregateTestCase)', 'test_avg_duration_field (aggregation.tests.AggregateTestCase)', 'test_backwards_m2m_annotate (aggregation.tests.AggregateTestCase)', 'test_coalesced_empty_result_set (aggregation.tests.AggregateTestCase)', 'test_combine_different_types (aggregation.tests.AggregateTestCase)', 'test_complex_aggregations_require_kwarg (aggregation.tests.AggregateTestCase)', 'test_complex_values_aggregation (aggregation.tests.AggregateTestCase)', 'test_count (aggregation.tests.AggregateTestCase)', 'test_count_distinct_expression (aggregation.tests.AggregateTestCase)', 'test_count_star (aggregation.tests.AggregateTestCase)', '.dates() returns a distinct set of dates when applied to a', 'test_decimal_max_digits_has_no_effect (aggregation.tests.AggregateTestCase)', 'test_distinct_on_aggregate (aggregation.tests.AggregateTestCase)', 'test_empty_aggregate (aggregation.tests.AggregateTestCase)', 'test_empty_result_optimization (aggregation.tests.AggregateTestCase)', 'test_even_more_aggregate (aggregation.tests.AggregateTestCase)', 'test_exists_extra_where_with_aggregate (aggregation.tests.AggregateTestCase)', 'test_exists_none_with_aggregate (aggregation.tests.AggregateTestCase)', 'test_expression_on_aggregation (aggregation.tests.AggregateTestCase)', 'test_filter_aggregate (aggregation.tests.AggregateTestCase)', 'Filtering against an aggregate requires the usage of the HAVING clause.', 'test_filtering (aggregation.tests.AggregateTestCase)', 'test_fkey_aggregate (aggregation.tests.AggregateTestCase)', 'Exists annotations are included in the GROUP BY if they are', 'Subquery annotations are included in the GROUP BY if they are', 'An annotation included in values() before an aggregate should be', 'test_more_aggregation (aggregation.tests.AggregateTestCase)', 'test_multi_arg_aggregate (aggregation.tests.AggregateTestCase)', 'test_multiple_aggregates (aggregation.tests.AggregateTestCase)', 'An annotation not included in values() before an aggregate should be', 'test_nonaggregate_aggregation_throws (aggregation.tests.AggregateTestCase)', 'test_nonfield_annotation (aggregation.tests.AggregateTestCase)', 'test_order_of_precedence (aggregation.tests.AggregateTestCase)', 'test_related_aggregate (aggregation.tests.AggregateTestCase)', 'test_reverse_fkey_annotate (aggregation.tests.AggregateTestCase)', 'test_single_aggregate (aggregation.tests.AggregateTestCase)', 'Sum on a distinct() QuerySet should aggregate only the distinct items.', 'test_sum_duration_field (aggregation.tests.AggregateTestCase)', 'Subqueries do not needlessly contain ORDER BY, SELECT FOR UPDATE or', 'Aggregation over sliced queryset works correctly.', "Doing exclude() on a foreign model after annotate() doesn't crash.", 'test_values_aggregation (aggregation.tests.AggregateTestCase)', 'test_values_annotation_with_expression (aggregation.tests.AggregateTestCase)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-16263: resolved: False
+2026-09-20 03:33:26,744 - INFO - Attempting to stop container sweb.eval.django__django-16263.qwen36-swebench-n100-20260919...
+2026-09-20 03:33:41,949 - INFO - Attempting to remove container sweb.eval.django__django-16263.qwen36-swebench-n100-20260919...
+2026-09-20 03:33:42,042 - INFO - Container sweb.eval.django__django-16263.qwen36-swebench-n100-20260919 removed.

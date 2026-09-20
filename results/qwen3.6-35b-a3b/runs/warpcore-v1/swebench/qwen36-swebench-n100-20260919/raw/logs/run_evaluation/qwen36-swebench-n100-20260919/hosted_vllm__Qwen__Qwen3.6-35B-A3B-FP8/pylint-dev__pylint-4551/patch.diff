@@ -1,0 +1,185 @@
+diff --git a/classes.dot b/classes.dot
+new file mode 100644
+index 00000000..8a489d6e
+--- /dev/null
++++ b/classes.dot
+@@ -0,0 +1,5 @@
++digraph "classes" {
++charset="utf-8"
++rankdir=BT
++"0" [label="{C|a : str\l|method(x: int)\l}", shape="record"];
++}
+diff --git a/pylint/pyreverse/diagrams.py b/pylint/pyreverse/diagrams.py
+index bf9f67af..71b39cca 100644
+--- a/pylint/pyreverse/diagrams.py
++++ b/pylint/pyreverse/diagrams.py
+@@ -84,19 +84,52 @@ class ClassDiagram(Figure, FilterMixIn):
+             for n, m in node.items()
+             if isinstance(m, astroid.FunctionDef) and decorated_with_property(m)
+         ]
+-        for node_name, associated_nodes in (
+-            list(node.instance_attrs_type.items())
+-            + list(node.locals_type.items())
+-            + properties
+-        ):
++        # Build a mapping of attribute names to their type annotations from AnnAssign
++        ann_types = self._get_ann_assign_types(node)
++        # Collect all unique attribute names from instance_attrs_type and locals_type
++        all_attr_names = set()
++        for attr_dict in (node.instance_attrs_type, node.locals_type):
++            all_attr_names.update(attr_dict.keys())
++        for prop_name, _ in properties:
++            all_attr_names.add(prop_name)
++        
++        for node_name in all_attr_names:
+             if not self.show_attr(node_name):
+                 continue
++            # Get the associated nodes for this attribute
++            associated_nodes = []
++            for attr_dict in (node.instance_attrs_type, node.locals_type):
++                if node_name in attr_dict:
++                    associated_nodes.extend(attr_dict[node_name])
++            # Also add properties
++            for prop_name, prop_node in properties:
++                if prop_name == node_name:
++                    associated_nodes.append(prop_node)
++            
+             names = self.class_names(associated_nodes)
+             if names:
+                 node_name = "{} : {}".format(node_name, ", ".join(names))
++            # Use type annotation from AnnAssign if available
++            if node_name.split(" : ")[0] in ann_types:
++                base_name = node_name.split(" : ")[0]
++                node_name = "{} : {}".format(base_name, ann_types[base_name])
+             attrs.append(node_name)
+         return sorted(attrs)
+ 
++    @staticmethod
++    def _get_ann_assign_types(node):
++        """Get type annotations for class attributes from AnnAssign nodes.
++        
++        Returns a dict mapping attribute names to their type annotation strings.
++        """
++        ann_types = {}
++        for item in node.body:
++            if isinstance(item, astroid.AnnAssign):
++                # Check if the target has a name attribute
++                if hasattr(item.target, 'name'):
++                    ann_types[item.target.name] = item.annotation.as_string()
++        return ann_types
++
+     def get_methods(self, node):
+         """return visible methods"""
+         methods = [
+diff --git a/pylint/pyreverse/writer.py b/pylint/pyreverse/writer.py
+index 0d80bb9c..4f817674 100644
+--- a/pylint/pyreverse/writer.py
++++ b/pylint/pyreverse/writer.py
+@@ -134,16 +134,31 @@ class DotWriter(DiagramWriter):
+         if not self.config.only_classnames:
+             label = r"{}|{}\l|".format(label, r"\l".join(obj.attrs))
+             for func in obj.methods:
+-                if func.args.args:
+-                    args = [arg.name for arg in func.args.args if arg.name != "self"]
+-                else:
+-                    args = []
++                args = self._get_method_args(func)
+                 label = r"{}{}({})\l".format(label, func.name, ", ".join(args))
+             label = "{%s}" % label
+         if is_exception(obj.node):
+             return dict(fontcolor="red", label=label, shape="record")
+         return dict(label=label, shape="record")
+ 
++    @staticmethod
++    def _get_method_args(func):
++        """Get method arguments with type annotations.
++        
++        Returns a list of strings like 'argname: type' or just 'argname' if no type.
++        """
++        args = []
++        if func.args.args:
++            for i, arg in enumerate(func.args.args):
++                if arg.name == "self":
++                    continue
++                arg_str = arg.name
++                # Get annotation for this argument
++                if i < len(func.args.annotations) and func.args.annotations[i]:
++                    arg_str = f"{arg_str}: {func.args.annotations[i].as_string()}"
++                args.append(arg_str)
++        return args
++
+     def close_graph(self):
+         """print the dot graph into <file_name>"""
+         self.printer.generate(self.file_name)
+@@ -208,10 +223,29 @@ class VCGWriter(DiagramWriter):
+                 label = fr"{label}\n\f08{attr}"
+             if attrs:
+                 label = fr"{label}\n\f{line}"
+-            for func in methods:
+-                label = fr"{label}\n\f10{func}()"
++            for func in obj.methods:
++                args = self._get_method_args(func)
++                label = fr"{label}\n\f10{func.name}({', '.join(args)})"
+         return dict(label=label, shape=shape)
+ 
++    @staticmethod
++    def _get_method_args(func):
++        """Get method arguments with type annotations.
++        
++        Returns a list of strings like 'argname: type' or just 'argname' if no type.
++        """
++        args = []
++        if func.args.args:
++            for i, arg in enumerate(func.args.args):
++                if arg.name == "self":
++                    continue
++                arg_str = arg.name
++                # Get annotation for this argument
++                if i < len(func.args.annotations) and func.args.annotations[i]:
++                    arg_str = f"{arg_str}: {func.args.annotations[i].as_string()}"
++                args.append(arg_str)
++        return args
++
+     def close_graph(self):
+         """close graph and file"""
+         self.printer.close_graph()
+diff --git a/test_reproduce/test_original.py b/test_reproduce/test_original.py
+new file mode 100644
+index 00000000..a90f4b2d
+--- /dev/null
++++ b/test_reproduce/test_original.py
+@@ -0,0 +1,3 @@
++class C(object):
++    def __init__(self, a: str = None):
++        self.a = a
+diff --git a/test_reproduce/test_types.py b/test_reproduce/test_types.py
+new file mode 100644
+index 00000000..a90f4b2d
+--- /dev/null
++++ b/test_reproduce/test_types.py
+@@ -0,0 +1,3 @@
++class C(object):
++    def __init__(self, a: str = None):
++        self.a = a
+diff --git a/test_reproduce/test_types2.py b/test_reproduce/test_types2.py
+new file mode 100644
+index 00000000..022bb840
+--- /dev/null
++++ b/test_reproduce/test_types2.py
+@@ -0,0 +1,4 @@
++class C(object):
++    a: str
++    def __init__(self, a: str = None):
++        self.a = a
+diff --git a/test_reproduce/test_types3.py b/test_reproduce/test_types3.py
+new file mode 100644
+index 00000000..cc6171be
+--- /dev/null
++++ b/test_reproduce/test_types3.py
+@@ -0,0 +1,6 @@
++class C(object):
++    a: str
++    def __init__(self, a: str = None):
++        self.a = a
++    def method(self, x: int) -> str:
++        return str(x)

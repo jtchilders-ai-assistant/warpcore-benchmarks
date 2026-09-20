@@ -1,0 +1,57 @@
+2026-09-20 03:27:55,494 - INFO - Creating container for django__django-12193...
+2026-09-20 03:27:55,594 - INFO - Container for django__django-12193 created: 898acda5844d42ba2ea28f60ce891cc1454d3003dff2668074210cd51c940f0e
+2026-09-20 03:27:55,853 - INFO - Container for django__django-12193 started: 898acda5844d42ba2ea28f60ce891cc1454d3003dff2668074210cd51c940f0e
+2026-09-20 03:27:55,854 - INFO - Intermediate patch for django__django-12193 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/django__django-12193/patch.diff, now applying to container...
+2026-09-20 03:27:56,129 - INFO - >>>>> Applied Patch:
+Checking patch django/contrib/postgres/forms/array.py...
+Applied patch django/contrib/postgres/forms/array.py cleanly.
+
+2026-09-20 03:27:59,166 - INFO - Git diff before:
+diff --git a/django/contrib/postgres/forms/array.py b/django/contrib/postgres/forms/array.py
+index 2e19cd574a..0581a58633 100644
+--- a/django/contrib/postgres/forms/array.py
++++ b/django/contrib/postgres/forms/array.py
+@@ -144,10 +144,13 @@ class SplitArrayWidget(forms.Widget):
+                 widget_value = value[i]
+             except IndexError:
+                 widget_value = None
++            # Create a copy of final_attrs for each subwidget to avoid
++            # modifications from CheckboxInput.get_context() affecting subsequent widgets.
++            subwidget_attrs = dict(final_attrs)
+             if id_:
+-                final_attrs = {**final_attrs, 'id': '%s_%s' % (id_, i)}
++                subwidget_attrs = {**subwidget_attrs, 'id': '%s_%s' % (id_, i)}
+             context['widget']['subwidgets'].append(
+-                self.widget.get_context(name + '_%s' % i, widget_value, final_attrs)['widget']
++                self.widget.get_context(name + '_%s' % i, widget_value, subwidget_attrs)['widget']
+             )
+         return context
+2026-09-20 03:27:59,167 - INFO - Eval script for django__django-12193 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/django__django-12193/eval.sh; copying to container...
+2026-09-20 03:28:11,358 - INFO - Test runtime: 12.08 seconds
+2026-09-20 03:28:11,359 - INFO - Test output for django__django-12193 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/django__django-12193/test_output.txt
+2026-09-20 03:28:11,454 - INFO - Git diff after:
+diff --git a/django/contrib/postgres/forms/array.py b/django/contrib/postgres/forms/array.py
+index 2e19cd574a..0581a58633 100644
+--- a/django/contrib/postgres/forms/array.py
++++ b/django/contrib/postgres/forms/array.py
+@@ -144,10 +144,13 @@ class SplitArrayWidget(forms.Widget):
+                 widget_value = value[i]
+             except IndexError:
+                 widget_value = None
++            # Create a copy of final_attrs for each subwidget to avoid
++            # modifications from CheckboxInput.get_context() affecting subsequent widgets.
++            subwidget_attrs = dict(final_attrs)
+             if id_:
+-                final_attrs = {**final_attrs, 'id': '%s_%s' % (id_, i)}
++                subwidget_attrs = {**subwidget_attrs, 'id': '%s_%s' % (id_, i)}
+             context['widget']['subwidgets'].append(
+-                self.widget.get_context(name + '_%s' % i, widget_value, final_attrs)['widget']
++                self.widget.get_context(name + '_%s' % i, widget_value, subwidget_attrs)['widget']
+             )
+         return context
+2026-09-20 03:28:11,454 - INFO - Grading answer for django__django-12193...
+2026-09-20 03:28:11,456 - INFO - report: {'django__django-12193': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_get_context_does_not_mutate_attrs (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)']}, 'PASS_TO_PASS': {'success': ['test_render_check_exception (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_check_test (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_empty (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_false (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_int (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_none (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_true (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_value (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_value_from_datadict (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_value_from_datadict_string_int (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_value_omitted_from_data (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-12193: resolved: False
+2026-09-20 03:28:11,457 - INFO - Attempting to stop container sweb.eval.django__django-12193.qwen36-swebench-n100-20260919...
+2026-09-20 03:28:26,614 - INFO - Attempting to remove container sweb.eval.django__django-12193.qwen36-swebench-n100-20260919...
+2026-09-20 03:28:26,719 - INFO - Container sweb.eval.django__django-12193.qwen36-swebench-n100-20260919 removed.

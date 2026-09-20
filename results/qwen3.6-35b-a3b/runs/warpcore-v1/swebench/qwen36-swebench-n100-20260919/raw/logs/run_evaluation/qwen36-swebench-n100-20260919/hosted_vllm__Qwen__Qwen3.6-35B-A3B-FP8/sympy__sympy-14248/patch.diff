@@ -1,0 +1,139 @@
+diff --git a/sympy/printing/latex.py b/sympy/printing/latex.py
+index 8253b2f68..d5b391ac4 100644
+--- a/sympy/printing/latex.py
++++ b/sympy/printing/latex.py
+@@ -1478,7 +1478,20 @@ def _print_Adjoint(self, expr):
+ 
+     def _print_MatAdd(self, expr):
+         terms = list(expr.args)
+-        tex = " + ".join(map(self._print, terms))
++        tex = ""
++        for i, term in enumerate(terms):
++            if i == 0:
++                pass
++            elif _coeff_isneg(term):
++                tex += " - "
++                term = -term
++            else:
++                tex += " + "
++            term_tex = self._print(term)
++            if self._needs_add_brackets(term):
++                term_tex = r"\left(%s\right)" % term_tex
++            tex += term_tex
++
+         return tex
+ 
+     def _print_MatMul(self, expr):
+@@ -1488,7 +1501,16 @@ def parens(x):
+             if isinstance(x, (Add, MatAdd, HadamardProduct)):
+                 return r"\left(%s\right)" % self._print(x)
+             return self._print(x)
+-        return ' '.join(map(parens, expr.args))
++        
++        # Check if the first argument is -1
++        if expr.args and expr.args[0] == -1:
++            # Extract the -1 and print the rest with a minus sign
++            sign = r"- "
++            args = expr.args[1:]
++        else:
++            sign = ""
++            args = expr.args
++        return sign + ' '.join(map(parens, args))
+ 
+     def _print_Mod(self, expr, exp=None):
+         if exp is not None:
+diff --git a/sympy/printing/pretty/pretty.py b/sympy/printing/pretty/pretty.py
+index db24f4c61..10b8b8621 100644
+--- a/sympy/printing/pretty/pretty.py
++++ b/sympy/printing/pretty/pretty.py
+@@ -819,7 +819,40 @@ def _print_BlockMatrix(self, B):
+         return self._print(B.blocks)
+ 
+     def _print_MatAdd(self, expr):
+-        return self._print_seq(expr.args, None, None, ' + ')
++        # Handle signs properly like _print_Add does
++        from sympy.matrices.expressions.matmul import MatMul
++        terms = list(expr.args)
++        pforms = []
++        
++        def pretty_negative(pform, index):
++            """Prepend a minus sign to a pretty form."""
++            if index == 0:
++                if pform.height() > 1:
++                    pform_neg = '- '
++                else:
++                    pform_neg = '-'
++            else:
++                pform_neg = ' - '
++            
++            if (pform.binding > prettyForm.NEG
++                or pform.binding == prettyForm.ADD):
++                p = stringPict(*pform.parens())
++            else:
++                p = pform
++            p = stringPict.next(pform_neg, p)
++            return prettyForm(binding=prettyForm.NEG, *p)
++        
++        for i, term in enumerate(terms):
++            # Check if the term is a MatMul with -1 as first argument
++            if isinstance(term, MatMul) and term.args and term.args[0] == -1:
++                # Print the rest without the -1 and mark as negative
++                rest = MatMul(*term.args[1:], evaluate=False)
++                pform = self._print(rest)
++                pforms.append(pretty_negative(pform, i))
++            else:
++                pforms.append(self._print(term))
++        
++        return prettyForm.__add__(*pforms)
+ 
+     def _print_MatMul(self, expr):
+         args = list(expr.args)
+diff --git a/sympy/printing/str.py b/sympy/printing/str.py
+index 0baefe0f7..8fc25edb2 100644
+--- a/sympy/printing/str.py
++++ b/sympy/printing/str.py
+@@ -304,16 +304,40 @@ def _print_Mul(self, expr):
+             return sign + '*'.join(a_str) + "/(%s)" % '*'.join(b_str)
+ 
+     def _print_MatMul(self, expr):
+-        return '*'.join([self.parenthesize(arg, precedence(expr))
+-            for arg in expr.args])
++        from sympy.core.mul import _keep_coeff
++        # Check if the first argument is -1
++        if expr.args and expr.args[0] == -1:
++            # Extract the -1 and print the rest with a minus sign
++            sign = "-"
++            args = expr.args[1:]
++        else:
++            sign = ""
++            args = expr.args
++        return sign + '*'.join([self.parenthesize(arg, precedence(expr))
++            for arg in args])
+ 
+     def _print_HadamardProduct(self, expr):
+         return '.*'.join([self.parenthesize(arg, precedence(expr))
+             for arg in expr.args])
+ 
+     def _print_MatAdd(self, expr):
+-        return ' + '.join([self.parenthesize(arg, precedence(expr))
+-            for arg in expr.args])
++        PREC = precedence(expr)
++        l = []
++        for arg in expr.args:
++            t = self._print(arg)
++            if t.startswith('-'):
++                sign = "-"
++                t = t[1:]
++            else:
++                sign = "+"
++            if precedence(arg) < PREC:
++                l.extend([sign, "(%s)" % t])
++            else:
++                l.extend([sign, t])
++        sign = l.pop(0)
++        if sign == '+':
++            sign = ""
++        return sign + ' '.join(l)
+ 
+     def _print_NaN(self, expr):
+         return 'nan'

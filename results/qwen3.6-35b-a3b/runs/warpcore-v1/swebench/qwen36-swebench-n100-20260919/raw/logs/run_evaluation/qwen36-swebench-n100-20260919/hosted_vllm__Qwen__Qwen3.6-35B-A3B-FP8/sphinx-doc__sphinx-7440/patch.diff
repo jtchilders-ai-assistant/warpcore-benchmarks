@@ -1,0 +1,64 @@
+diff --git a/sphinx/domains/std.py b/sphinx/domains/std.py
+index d820cfe5c..717165a40 100644
+--- a/sphinx/domains/std.py
++++ b/sphinx/domains/std.py
+@@ -305,7 +305,7 @@ def make_glossary_term(env: "BuildEnvironment", textnodes: Iterable[Node], index
+         term['ids'].append(node_id)
+ 
+     std = cast(StandardDomain, env.get_domain('std'))
+-    std.note_object('term', termtext.lower(), node_id, location=term)
++    std.note_object('term', termtext, node_id, location=term)
+ 
+     # add an index entry too
+     indexnode = addnodes.index()
+@@ -656,6 +656,19 @@ class StandardDomain(Domain):
+             docname = self.objects[objtype, name][0]
+             logger.warning(__('duplicate %s description of %s, other instance in %s'),
+                            objtype, name, docname, location=location)
++        elif objtype == 'term':
++            # For terms, check if any existing term has the same lowercase name
++            # but different case - this is allowed, so we don't warn
++            for (otype, oname), (odocname, _) in self.objects.items():
++                if otype == 'term' and oname.lower() == name.lower() and oname != name:
++                    # Terms with the same lowercase name but different case are allowed
++                    # Don't warn in this case
++                    pass
++                elif otype == 'term' and oname == name:
++                    # Exact duplicate - warn
++                    logger.warning(__('duplicate %s description of %s, other instance in %s'),
++                                   objtype, name, odocname, location=location)
++                    break
+         self.objects[objtype, name] = (self.env.docname, labelid)
+ 
+     def add_object(self, objtype: str, name: str, docname: str, labelid: str) -> None:
+@@ -931,8 +944,19 @@ class StandardDomain(Domain):
+             if (objtype, target) in self.objects:
+                 docname, labelid = self.objects[objtype, target]
+                 break
+-        else:
+-            docname, labelid = '', ''
++            elif objtype == 'term':
++                # For terms, search case-insensitively
++                for (otype, oname), (odocname, olabelid) in self.objects.items():
++                    if otype == 'term' and oname.lower() == target.lower():
++                        docname = odocname
++                        labelid = olabelid
++                        break
++                else:
++                    docname, labelid = '', ''
++                if docname:
++                    break
++            else:
++                docname, labelid = '', ''
+         if not docname:
+             return None
+         return make_refnode(builder, fromdocname, docname,
+@@ -952,7 +976,7 @@ class StandardDomain(Domain):
+         # all others
+         for objtype in self.object_types:
+             key = (objtype, target)
+-            if objtype == 'term':
++            if objtype == 'term' and key not in self.objects:
+                 key = (objtype, ltarget)
+             if key in self.objects:
+                 docname, labelid = self.objects[key]

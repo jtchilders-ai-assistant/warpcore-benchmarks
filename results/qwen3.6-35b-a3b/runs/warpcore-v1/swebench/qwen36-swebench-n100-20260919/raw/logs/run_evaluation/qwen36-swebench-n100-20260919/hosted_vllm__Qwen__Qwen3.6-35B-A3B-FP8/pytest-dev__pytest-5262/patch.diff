@@ -1,0 +1,21 @@
+diff --git a/src/_pytest/capture.py b/src/_pytest/capture.py
+index 25eab7fd..06394422 100644
+--- a/src/_pytest/capture.py
++++ b/src/_pytest/capture.py
+@@ -442,6 +442,16 @@ class EncodedFile(object):
+         data = "".join(linelist)
+         self.write(data)
+ 
++    @property
++    def mode(self):
++        """
++        Return the mode without the 'b' (binary) flag.
++
++        The underlying buffer is in binary mode, but this EncodedFile
++        wrapper is a text stream, so we should not advertise binary mode.
++        """
++        return getattr(self.buffer, "mode", "rb").replace("b", "")
++
+     @property
+     def name(self):
+         """Ensure that file.name is a string."""

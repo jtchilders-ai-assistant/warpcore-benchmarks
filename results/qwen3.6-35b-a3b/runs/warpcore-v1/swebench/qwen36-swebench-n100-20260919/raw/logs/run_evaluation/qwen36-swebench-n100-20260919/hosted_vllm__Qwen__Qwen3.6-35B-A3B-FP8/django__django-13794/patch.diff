@@ -1,0 +1,68 @@
+diff --git a/django/template/defaultfilters.py b/django/template/defaultfilters.py
+index 1c844580c6..59862d34c9 100644
+--- a/django/template/defaultfilters.py
++++ b/django/template/defaultfilters.py
+@@ -19,6 +19,7 @@ from django.utils.safestring import SafeData, mark_safe
+ from django.utils.text import (
+     Truncator, normalize_newlines, phone2numeric, slugify as _slugify, wrap,
+ )
++from django.utils.functional import Promise
+ from django.utils.timesince import timesince, timeuntil
+ from django.utils.translation import gettext, ngettext
+ 
+@@ -679,6 +680,10 @@ def add(value, arg):
+     except (ValueError, TypeError):
+         try:
+             return value + arg
++        except TypeError:
++            if isinstance(value, Promise) or isinstance(arg, Promise):
++                return str(value) + str(arg)
++            return ''
+         except Exception:
+             return ''
+ 
+diff --git a/test_fix2.py b/test_fix2.py
+new file mode 100644
+index 0000000000..84276d10d0
+--- /dev/null
++++ b/test_fix2.py
+@@ -0,0 +1,39 @@
++import sys
++sys.path.insert(0, '/testbed')
++
++import django
++from django.conf import settings
++settings.configure(USE_I18N=False)
++
++from django.utils.translation import gettext_lazy as _
++from datetime import date, timedelta
++
++# Test the fix
++def add_fixed(value, arg):
++    """Add the arg to the value."""
++    try:
++        return int(value) + int(arg)
++    except (ValueError, TypeError):
++        try:
++            return value + arg
++        except TypeError:
++            # Handle the case where we're trying to concatenate
++            # incompatible types like str and lazy string
++            return str(value) + str(arg)
++        except Exception:
++            return ''
++
++lazy_val = _("Hello")
++regular_str = " World"
++
++print("Testing fixed add function:")
++print(f"lazy + regular: '{add_fixed(lazy_val, regular_str)}'")
++print(f"regular + lazy: '{add_fixed(regular_str, lazy_val)}'")
++print(f"lazy + lazy: '{add_fixed(lazy_val, _(' Lazy'))}'")
++print(f"5 + 10: {add_fixed(5, 10)}")
++print(f"'Hello' + ' World': '{add_fixed('Hello', ' World')}'")
++print(f"'2000' + 'napis': '{add_fixed('2000', 'napis')}'")
++print(f"'not_an_int' + 16: '{add_fixed('not_an_int', 16)}'")
++print(f"[1,2] + [3,4]: {add_fixed([1,2], [3,4])}")
++print(f"(3,4) + (1,2): {add_fixed((3,4), (1,2))}")
++print(f"date + timedelta: {add_fixed(date(2000, 1, 1), timedelta(10))}")

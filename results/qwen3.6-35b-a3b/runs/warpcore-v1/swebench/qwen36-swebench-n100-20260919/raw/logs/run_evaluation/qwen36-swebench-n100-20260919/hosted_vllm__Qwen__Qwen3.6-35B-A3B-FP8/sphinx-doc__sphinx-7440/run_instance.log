@@ -1,0 +1,147 @@
+2026-09-20 03:37:21,184 - INFO - Creating container for sphinx-doc__sphinx-7440...
+2026-09-20 03:37:21,328 - INFO - Container for sphinx-doc__sphinx-7440 created: 7b006e2847c35497a7fe6dded31090abbc8e64d180e1b06d8e5fa65d0c27a30f
+2026-09-20 03:37:21,717 - INFO - Container for sphinx-doc__sphinx-7440 started: 7b006e2847c35497a7fe6dded31090abbc8e64d180e1b06d8e5fa65d0c27a30f
+2026-09-20 03:37:21,718 - INFO - Intermediate patch for sphinx-doc__sphinx-7440 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sphinx-doc__sphinx-7440/patch.diff, now applying to container...
+2026-09-20 03:37:22,105 - INFO - >>>>> Applied Patch:
+Checking patch sphinx/domains/std.py...
+Applied patch sphinx/domains/std.py cleanly.
+
+2026-09-20 03:37:22,965 - INFO - Git diff before:
+diff --git a/sphinx/domains/std.py b/sphinx/domains/std.py
+index d820cfe5c..717165a40 100644
+--- a/sphinx/domains/std.py
++++ b/sphinx/domains/std.py
+@@ -305,7 +305,7 @@ def make_glossary_term(env: "BuildEnvironment", textnodes: Iterable[Node], index
+         term['ids'].append(node_id)
+ 
+     std = cast(StandardDomain, env.get_domain('std'))
+-    std.note_object('term', termtext.lower(), node_id, location=term)
++    std.note_object('term', termtext, node_id, location=term)
+ 
+     # add an index entry too
+     indexnode = addnodes.index()
+@@ -656,6 +656,19 @@ class StandardDomain(Domain):
+             docname = self.objects[objtype, name][0]
+             logger.warning(__('duplicate %s description of %s, other instance in %s'),
+                            objtype, name, docname, location=location)
++        elif objtype == 'term':
++            # For terms, check if any existing term has the same lowercase name
++            # but different case - this is allowed, so we don't warn
++            for (otype, oname), (odocname, _) in self.objects.items():
++                if otype == 'term' and oname.lower() == name.lower() and oname != name:
++                    # Terms with the same lowercase name but different case are allowed
++                    # Don't warn in this case
++                    pass
++                elif otype == 'term' and oname == name:
++                    # Exact duplicate - warn
++                    logger.warning(__('duplicate %s description of %s, other instance in %s'),
++                                   objtype, name, odocname, location=location)
++                    break
+         self.objects[objtype, name] = (self.env.docname, labelid)
+ 
+     def add_object(self, objtype: str, name: str, docname: str, labelid: str) -> None:
+@@ -931,8 +944,19 @@ class StandardDomain(Domain):
+             if (objtype, target) in self.objects:
+                 docname, labelid = self.objects[objtype, target]
+                 break
+-        else:
+-            docname, labelid = '', ''
++            elif objtype == 'term':
++                # For terms, search case-insensitively
++                for (otype, oname), (odocname, olabelid) in self.objects.items():
++                    if otype == 'term' and oname.lower() == target.lower():
++                        docname = odocname
++                        labelid = olabelid
++                        break
++                else:
++                    docname, labelid = '', ''
++                if docname:
++                    break
++            else:
++                docname, labelid = '', ''
+         if not docname:
+             return None
+         return make_refnode(builder, fromdocname, docname,
+@@ -952,7 +976,7 @@ class StandardDomain(Domain):
+         # all others
+         for objtype in self.object_types:
+             key = (objtype, target)
+-            if objtype == 'term':
++            if objtype == 'term' and key not in self.objects:
+                 key = (objtype, ltarget)
+             if key in self.objects:
+                 docname, labelid = self.objects[key]
+2026-09-20 03:37:22,966 - INFO - Eval script for sphinx-doc__sphinx-7440 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sphinx-doc__sphinx-7440/eval.sh; copying to container...
+2026-09-20 03:37:33,691 - INFO - Test runtime: 10.58 seconds
+2026-09-20 03:37:33,692 - INFO - Test output for sphinx-doc__sphinx-7440 written to logs/run_evaluation/qwen36-swebench-n100-20260919/hosted_vllm__Qwen__Qwen3.6-35B-A3B-FP8/sphinx-doc__sphinx-7440/test_output.txt
+2026-09-20 03:37:33,807 - INFO - Git diff after:
+diff --git a/sphinx/domains/std.py b/sphinx/domains/std.py
+index d820cfe5c..717165a40 100644
+--- a/sphinx/domains/std.py
++++ b/sphinx/domains/std.py
+@@ -305,7 +305,7 @@ def make_glossary_term(env: "BuildEnvironment", textnodes: Iterable[Node], index
+         term['ids'].append(node_id)
+ 
+     std = cast(StandardDomain, env.get_domain('std'))
+-    std.note_object('term', termtext.lower(), node_id, location=term)
++    std.note_object('term', termtext, node_id, location=term)
+ 
+     # add an index entry too
+     indexnode = addnodes.index()
+@@ -656,6 +656,19 @@ class StandardDomain(Domain):
+             docname = self.objects[objtype, name][0]
+             logger.warning(__('duplicate %s description of %s, other instance in %s'),
+                            objtype, name, docname, location=location)
++        elif objtype == 'term':
++            # For terms, check if any existing term has the same lowercase name
++            # but different case - this is allowed, so we don't warn
++            for (otype, oname), (odocname, _) in self.objects.items():
++                if otype == 'term' and oname.lower() == name.lower() and oname != name:
++                    # Terms with the same lowercase name but different case are allowed
++                    # Don't warn in this case
++                    pass
++                elif otype == 'term' and oname == name:
++                    # Exact duplicate - warn
++                    logger.warning(__('duplicate %s description of %s, other instance in %s'),
++                                   objtype, name, odocname, location=location)
++                    break
+         self.objects[objtype, name] = (self.env.docname, labelid)
+ 
+     def add_object(self, objtype: str, name: str, docname: str, labelid: str) -> None:
+@@ -931,8 +944,19 @@ class StandardDomain(Domain):
+             if (objtype, target) in self.objects:
+                 docname, labelid = self.objects[objtype, target]
+                 break
+-        else:
+-            docname, labelid = '', ''
++            elif objtype == 'term':
++                # For terms, search case-insensitively
++                for (otype, oname), (odocname, olabelid) in self.objects.items():
++                    if otype == 'term' and oname.lower() == target.lower():
++                        docname = odocname
++                        labelid = olabelid
++                        break
++                else:
++                    docname, labelid = '', ''
++                if docname:
++                    break
++            else:
++                docname, labelid = '', ''
+         if not docname:
+             return None
+         return make_refnode(builder, fromdocname, docname,
+@@ -952,7 +976,7 @@ class StandardDomain(Domain):
+         # all others
+         for objtype in self.object_types:
+             key = (objtype, target)
+-            if objtype == 'term':
++            if objtype == 'term' and key not in self.objects:
+                 key = (objtype, ltarget)
+             if key in self.objects:
+                 docname, labelid = self.objects[key]
+2026-09-20 03:37:33,807 - INFO - Grading answer for sphinx-doc__sphinx-7440...
+2026-09-20 03:37:33,819 - INFO - report: {'sphinx-doc__sphinx-7440': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['tests/test_domain_std.py::test_glossary'], 'failure': []}, 'PASS_TO_PASS': {'success': ['tests/test_domain_std.py::test_process_doc_handle_figure_caption', 'tests/test_domain_std.py::test_process_doc_handle_table_title', 'tests/test_domain_std.py::test_get_full_qualified_name', 'tests/test_domain_std.py::test_glossary_warning', 'tests/test_domain_std.py::test_glossary_comment', 'tests/test_domain_std.py::test_glossary_comment2', 'tests/test_domain_std.py::test_glossary_sorted', 'tests/test_domain_std.py::test_glossary_alphanumeric', 'tests/test_domain_std.py::test_glossary_conflicted_labels', 'tests/test_domain_std.py::test_cmdoption', 'tests/test_domain_std.py::test_multiple_cmdoptions', 'tests/test_domain_std.py::test_disabled_docref'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sphinx-doc__sphinx-7440: resolved: True
+2026-09-20 03:37:33,820 - INFO - Attempting to stop container sweb.eval.sphinx-doc__sphinx-7440.qwen36-swebench-n100-20260919...
+2026-09-20 03:37:49,166 - INFO - Attempting to remove container sweb.eval.sphinx-doc__sphinx-7440.qwen36-swebench-n100-20260919...
+2026-09-20 03:37:49,401 - INFO - Container sweb.eval.sphinx-doc__sphinx-7440.qwen36-swebench-n100-20260919 removed.
