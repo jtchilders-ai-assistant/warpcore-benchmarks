@@ -411,11 +411,19 @@ def _build_entries(canonical_runs: list) -> list[dict]:
         scores = _load_item_scores(run_dir, benchmark=benchmark)
         n = manifest.get("item_inventory", {}).get("expected", 0)
 
-        if scores and n > 0:
-            score_values = list(scores.values())
-            mean_score = sum(score_values) / len(score_values) if score_values else None
-        else:
-            mean_score = None
+        if not isinstance(n, int) or isinstance(n, bool) or n <= 0:
+            raise ValueError(
+                f"{run_dir}: manifest item_inventory.expected must be a positive integer"
+            )
+        if scores is None:
+            raise ValueError(f"{run_dir}: score evidence is missing or malformed")
+        if len(scores) != n:
+            raise ValueError(
+                f"{run_dir}: score inventory has {len(scores)} items; expected {n}"
+            )
+
+        score_values = list(scores.values())
+        mean_score = sum(score_values) / n
 
         entry = {
             "model_slug": manifest.get("model", {}).get("slug", run_info["model_slug"]),

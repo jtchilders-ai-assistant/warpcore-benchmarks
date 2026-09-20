@@ -5,6 +5,8 @@ import json
 import pathlib
 import sys
 
+import pytest
+
 _TESTS_DIR = pathlib.Path(__file__).parent
 _VIZ_DIR = _TESTS_DIR.parent / "viz"
 if str(_VIZ_DIR) not in sys.path:
@@ -52,3 +54,40 @@ def test_swebench_matrix_entry_has_score_and_all_item_ids(tmp_path):
 
     assert entry["score"] == 0.4
     assert entry["item_ids"] == ["a", "b", "c", "d", "e"]
+
+
+def test_swebench_matrix_entry_rejects_incomplete_score_inventory(tmp_path):
+    raw = tmp_path / "raw"
+    raw.mkdir()
+    (raw / "grading_results.json").write_text(json.dumps({
+        "resolved_ids": ["a"],
+        "unresolved_ids": ["b"],
+        "empty_patch_ids": [],
+        "error_ids": [],
+        "incomplete_ids": [],
+    }))
+    runs = [{
+        "manifest": {
+            "benchmark": "swebench", "suite_id": "warpcore-v1", "run_id": "run-1",
+            "model": {"slug": "model-a"}, "item_inventory": {"expected": 3},
+        },
+        "status": {"lifecycle": "current", "execution_state": "validated"},
+        "run_info": {"run_dir": tmp_path, "model_slug": "model-a"},
+    }]
+
+    with pytest.raises(ValueError, match="score inventory has 2 items; expected 3"):
+        publish_campaign._build_entries(runs)
+
+
+def test_matrix_entry_rejects_missing_score_artifact(tmp_path):
+    runs = [{
+        "manifest": {
+            "benchmark": "swebench", "suite_id": "warpcore-v1", "run_id": "run-1",
+            "model": {"slug": "model-a"}, "item_inventory": {"expected": 3},
+        },
+        "status": {"lifecycle": "current", "execution_state": "validated"},
+        "run_info": {"run_dir": tmp_path, "model_slug": "model-a"},
+    }]
+
+    with pytest.raises(ValueError, match="score evidence is missing or malformed"):
+        publish_campaign._build_entries(runs)
