@@ -463,7 +463,8 @@
         "client_host",
         "required_evidence",
         "retry_policy",
-        "timeout_policy"
+        "timeout_policy",
+        "qualification"
       ],
       "additionalProperties": false,
       "properties": {
@@ -554,6 +555,43 @@
         },
         "timeout_policy": {
           "$ref": "#/$defs/timeout_policy"
+        },
+        "qualification": {
+          "type": "object",
+          "description": "Suite-owned SWE-bench launch qualification policy. Enforced by viz/swebench_qualification.py: the ID set is derived from the frozen instance set, never hand-picked, and a campaign may not launch without a fresh record bound to it.",
+          "required": [
+            "ids_file",
+            "ids_sha256",
+            "expected_count",
+            "selection_criterion",
+            "required_terminal_status",
+            "max_age_hours"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "ids_file": {
+              "type": "string"
+            },
+            "ids_sha256": {
+              "$ref": "#/$defs/sha256_hex64"
+            },
+            "expected_count": {
+              "type": "integer",
+              "const": 20
+            },
+            "selection_criterion": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required_terminal_status": {
+              "type": "string",
+              "const": "Submitted"
+            },
+            "max_age_hours": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
         }
       }
     },

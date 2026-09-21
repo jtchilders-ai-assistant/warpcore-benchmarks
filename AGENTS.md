@@ -41,6 +41,9 @@ be labeled canonical `warpcore-v1`. After they exist:
 
 - launch only through the contract runner; no ad hoc canonical campaigns;
 - require successful live preflight—exit 1 **or** 2 blocks launch;
+- for SWE-bench, additionally require a fresh, exactly-bound **launch qualification**
+  (design §4.4.1, `viz/swebench_qualification.py`, `make qualify-swebench`). Preflight and
+  qualification are different gates and neither substitutes for the other;
 - record immutable model and image revisions, effective serving arguments, suite/task/instance hashes,
   and the deterministic serving-profile identity;
 - keep long Mac-mini clients under `/usr/bin/screen` and Warpcore throughput sweeps under `tmux`, with

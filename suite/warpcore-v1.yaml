@@ -172,6 +172,31 @@ benchmarks:
     scaffold_file: "suite/swebench/scaffold.yaml"
     scaffold_sha256: "419244dc6060fc242ba4defb72c3098c351ed6b4325ac6742737a463ace6125f"
     expected_item_count: 100
+    # ── Launch qualification (suite-owned, enforced by viz/swebench_qualification.py) ──
+    # A canonical SWE-bench campaign may launch only when a fresh qualification
+    # record proves the production runner produced 20 clean submissions on the
+    # instance set below and the official grader terminally dispositioned all 20.
+    #
+    # The 20 IDs are DERIVED, not hand-picked: group the frozen seed-42 n=100 set
+    # by repository (text before the final '-'), order repositories
+    # lexicographically, keep frozen-set order within a repository, then take
+    # instances round-robin one per repository per round until 20 are selected.
+    # Round 1 therefore covers all 11 repositories in the frozen set. The file is
+    # emitted in frozen-set order so it reads as a subsequence of the n=100 set.
+    # viz/swebench_qualification.derive_qualification_instance_ids recomputes this
+    # and suite validation fails if the committed file disagrees — so no adapter,
+    # CLI flag, or operator preference can substitute convenient cases.
+    qualification:
+      ids_file: "suite/swebench/qualification-ids-v1.json"
+      ids_sha256: "1db9143f59e1900749bd750effe2fe2b98a81544d95f28abb95c0352f9c74aba"
+      expected_count: 20
+      selection_criterion: "round_robin_by_repository_over_frozen_seed42_n100"
+      required_terminal_status: "Submitted"
+      # Serving state (weights, parser, image) can change under a stable endpoint,
+      # so a qualification expires. 24 h is one operating day: long enough to
+      # qualify and launch in the same session, short enough that a re-served
+      # engine cannot inherit yesterday's authorization.
+      max_age_hours: 24
     canonical_headline: "resolved_div_all_100_assigned"
     # All 100 assigned instances remain in the denominator; disposition categories
     # explain misses but do not erase them.

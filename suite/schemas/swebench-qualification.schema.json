@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jtchilders-ai-assistant/warpcore-benchmarks/suite/schemas/swebench-qualification.schema.json",
+  "title": "Warpcore v1 SWE-bench Qualification Record",
+  "description": "Versioned evidence that a specific serving profile passed the repository-owned SWE-bench qualification on the suite-owned frozen qualification instance set. This artifact is NOT campaign execution state: it carries no execution_state, history, or lifecycle. A campaign may launch only when every digest below still matches the launch context and the recorded evidence still proves the policy. See viz/swebench_qualification.py for the authoritative validator.",
+  "type": "object",
+  "required": [
+    "qualification_schema_version",
+    "qualification_id",
+    "generated_utc",
+    "repo_sha",
+    "suite_id",
+    "suite_schema_version",
+    "suite_input_hashes",
+    "adapter_hash",
+    "serving_profile_digest",
+    "model",
+    "endpoint",
+    "scaffold_sha256",
+    "production_scaffold_hash",
+    "launch_path",
+    "qualification_instance_ids",
+    "qualification_ids_sha256",
+    "evidence",
+    "dispositions",
+    "grading"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "qualification_schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "qualification_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "generated_utc": {
+      "type": "string",
+      "description": "UTC instant the qualification was sealed, second precision, Z-suffixed.",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "repo_sha": {
+      "type": "string",
+      "description": "git HEAD of the repository whose suite, scaffold, and gate code produced this record.",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "suite_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "suite_schema_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "suite_input_hashes": {
+      "type": "object",
+      "description": "Repo-relative suite input paths to SHA-256. Must cover the suite YAML, the frozen instance set, the qualification ID set, and the scaffold.",
+      "minProperties": 1,
+      "additionalProperties": false,
+      "patternProperties": {
+        "^suite/[a-zA-Z0-9][a-zA-Z0-9_.-]*(/[a-zA-Z0-9][a-zA-Z0-9_.-]*)*$": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "adapter_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "serving_profile_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "model": {
+      "type": "object",
+      "required": ["slug", "id", "revision"],
+      "additionalProperties": false,
+      "properties": {
+        "slug": { "type": "string", "minLength": 1 },
+        "id": { "type": "string", "minLength": 1 },
+        "revision": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+      }
+    },
+    "endpoint": {
+      "type": "object",
+      "description": "Serving endpoint identity observed during qualification. served_model_id is the exact id returned by GET /v1/models.",
+      "required": ["base_url", "served_model_id"],
+      "additionalProperties": false,
+      "properties": {
+        "base_url": { "type": "string", "minLength": 1 },
+        "served_model_id": { "type": "string", "minLength": 1 }
+      }
+    },
+    "scaffold_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "production_scaffold_hash": {
+      "type": "string",
+      "description": "SHA-256 over the canonicalized config emitted by the production config builder with the API key redacted. Proves the qualification ran the production scaffold, not a hand-edited one.",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "launch_path": {
+      "type": "string",
+      "minLength": 1
+    },
+    "qualification_instance_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "qualification_ids_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "evidence": {
+      "type": "object",
+      "description": "Paths are relative to the directory holding this artifact (run_dir) and to run_dir (everything else). Absolute paths and traversal components are rejected by the validator.",
+      "required": [
+        "run_dir",
+        "preds_file",
+        "preds_sha256",
+        "exit_statuses_file",
+        "exit_statuses_sha256",
+        "grader_report_file",
+        "grader_report_sha256",
+        "trajectories_dir",
+        "grader"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "run_dir": { "type": "string", "minLength": 1 },
+        "preds_file": { "type": "string", "minLength": 1 },
+        "preds_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "exit_statuses_file": { "type": "string", "minLength": 1 },
+        "exit_statuses_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "grader_report_file": { "type": "string", "minLength": 1 },
+        "grader_report_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "trajectories_dir": { "type": "string", "minLength": 1 },
+        "grader": {
+          "type": "object",
+          "required": ["harness", "version"],
+          "additionalProperties": false,
+          "properties": {
+            "harness": { "type": "string", "minLength": 1 },
+            "version": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    },
+    "dispositions": {
+      "type": "object",
+      "description": "instance_id to terminal generation disposition, copied from the evidence. Advisory only: the validator re-derives it and refuses any disagreement.",
+      "additionalProperties": { "type": "string" }
+    },
+    "grading": {
+      "type": "object",
+      "required": ["resolved_ids", "unresolved_ids", "empty_patch_ids", "error_ids", "incomplete_ids"],
+      "additionalProperties": false,
+      "properties": {
+        "resolved_ids": { "type": "array", "items": { "type": "string" } },
+        "unresolved_ids": { "type": "array", "items": { "type": "string" } },
+        "empty_patch_ids": { "type": "array", "items": { "type": "string" } },
+        "error_ids": { "type": "array", "items": { "type": "string" } },
+        "incomplete_ids": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

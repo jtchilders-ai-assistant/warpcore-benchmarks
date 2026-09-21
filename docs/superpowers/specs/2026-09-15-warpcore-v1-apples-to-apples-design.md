@@ -120,6 +120,75 @@ The ceiling is a maximum, not a forced generation length. Residual `finish_reaso
 
 An infrastructure-adjusted “fair” rate may characterize one run but may not rank two models because the retained populations differ.
 
+#### 4.4.1 Launch qualification
+
+A canonical SWE-bench campaign may launch only when a **qualification record** proves that the
+exact serving profile about to be measured already completed the suite-owned qualification
+instance set cleanly. This is executable repository policy, implemented in
+`viz/swebench_qualification.py`, schema-versioned at
+`suite/schemas/swebench-qualification.schema.json`, and enforced by the contract runner and by
+`make ci`. It exists because external cron/shell logic promoted a gpt-oss smoke whose terminal
+status was `RepeatedFormatError`: the contract described the requirement, but nothing in the
+repository could refuse the promotion.
+
+The qualification record is a separate artifact class from campaign execution state. `status.json`
+records what a run *did*; a qualification states what a serving profile is *permitted to start*. It
+carries no `execution_state`, `history`, or `lifecycle`, and the schema rejects those keys.
+
+**Qualification instance set.** Twenty instances, owned by the suite at
+`suite/swebench/qualification-ids-v1.json` and pinned by `qualification.ids_sha256`. They are
+*derived*, not selected: group the frozen seed-42 n=100 set by repository (the substring before the
+final `-`), order repositories lexicographically, preserve frozen-set order within a repository,
+and take instances round-robin — one per repository per round — until twenty are selected, emitted
+in frozen-set order. Round 1 covers every repository present in the frozen set; round 2 stops
+partway, so nine repositories contribute two instances and two contribute one. Suite validation
+recomputes the derivation and fails on any disagreement, so an adapter, a CLI flag, or an operator
+preference cannot substitute convenience cases. Changing the set is a suite-version change.
+
+**Policy.** All of the following must hold, or launch is refused:
+
+1. produced by the production runner and production config builder — the recorded
+   `production_scaffold_hash` must equal what `build_production_scaffold_config` emits at launch,
+   and `launch_path` must name the production entry point;
+2. exactly the twenty suite-owned IDs, with zero foreign, duplicate, or missing IDs anywhere in the
+   evidence;
+3. every instance terminal `Submitted`;
+4. no `RepeatedFormatError`, `RuntimeError`, parser, transport, server, or other infrastructure
+   disposition, in exit statuses or in a retained trajectory;
+5. every `preds.json` `model_patch` nonempty and syntactically patch-like;
+6. every trajectory present, nonempty, and free of malformed tool-call arguments in the retained
+   response objects;
+7. every ID exactly once in the official SWE-bench terminal grading dispositions. Resolved or
+   unresolved both qualify — the gate proves the harness reached a verdict, not that the model was
+   right. An `error_ids`, `incomplete_ids`, or `empty_patch_ids` entry does not qualify;
+8. fresh within the suite-declared window, and bound by exact digest to the repository SHA, suite
+   ID and schema version, suite input hashes, adapter hash, serving-profile digest, model ID and
+   revision, frozen qualification IDs, production scaffold hash, and the endpoint model identity
+   observed at `/v1/models`.
+
+**Producing a record.** The qualification run is the production runner in a narrow mode
+(`--qualification-run`): same preflight, same production config builder, same generation, grading,
+and normalization paths, with the suite-owned twenty substituted for the frozen hundred. It is
+deliberately not gated on an existing record — requiring one would make the gate unreachable — and
+it writes no campaign state, because a qualification is not a campaign. It applies the same
+evidence policy at the end, so a qualification run that produced a `RepeatedFormatError` fails
+before any record can be sealed from it.
+
+**Fail-closed.** Missing, stale, malformed, or foreign-bound records block launch exactly as a
+forbidden disposition does; there is no inconclusive success. The gate runs before any campaign
+state is created, so a refused launch leaves no run directory, no `status.json`, and no manifest.
+A dry run reports the verdict and remains side-effect-free — it reports, it never authorizes.
+
+**Qualification is not preflight.** §8.2 preflight asks whether an endpoint is answering sensibly
+right now, in seconds, from one or two probes. Qualification asks whether this serving profile
+completed twenty real agentic tasks end to end and survived official grading. Both gates apply to a
+SWE-bench launch; neither substitutes for the other, and a green preflight does not rescue a stale
+qualification.
+
+**Remedies.** A refused launch is re-qualified, not routed around. Adding a bridge, a parser
+repair, a retry, an output sanitizer, or a prompt/scaffold change to make a qualification pass
+defeats the gate and, for prompts and scaffolds, is a suite-version change besides.
+
 ### 4.5 Throughput
 
 - Host: Warpcore, on-box client.
@@ -155,12 +224,14 @@ suite/
     gsm8k_clean_v1.yaml
   swebench/
     instances-seed42-n100.json
+    qualification-ids-v1.json
     scaffold.yaml
   schemas/
     suite.schema.json
     adapter.schema.json
     manifest.schema.json
     result-status.schema.json
+    swebench-qualification.schema.json
 
 adapters/
   <model-slug>.yaml
@@ -170,8 +241,13 @@ scripts/
   preflight_campaign.py
   run_quality.py
   run_swebench.py
+  swebench_qualification.py
   validate_campaign.py
   publish_campaign.py
+
+results/<model>/qualification/<suite-version>/swebench/
+  qualification.json
+  run/                 20-instance qualification evidence, beside the record it authorizes
 
 results/<model>/runs/<suite-version>/<benchmark>/<run-id>/
   manifest.json
@@ -279,6 +355,10 @@ All applicable gates must pass:
 9. clean output destination and sufficient disk space.
 
 Exit 1 means a diagnosed defect. Exit 2 means inconclusive or unreachable. Both block launch.
+
+Preflight is a liveness and feasibility check, not a capability qualification. For SWE-bench it is
+necessary but not sufficient: §4.4.1 adds a separate, evidence-backed launch qualification that
+preflight cannot satisfy and that a green preflight cannot refresh.
 
 ### 8.3 Running and completed
 

@@ -35,6 +35,7 @@ for _p in (str(_TESTS_DIR), str(_VIZ_DIR), str(_REPO)):
 
 import run_swebench  # noqa: E402
 import swebench_preflight  # noqa: E402
+from schema_helpers import install_test_qualification  # noqa: E402
 
 _REAL_SUITE = _REPO / "suite" / "warpcore-v1.yaml"
 _REAL_INSTANCES = _REPO / "suite" / "swebench" / "instances-seed42-n100.json"
@@ -120,6 +121,20 @@ def _build_run_dir(
         "item_inventory": {"expected": 100},
     }
     (run_dir / "manifest.json").write_text(json.dumps(manifest))
+
+    # A live launch is gated on a SWE-bench qualification record; install a valid
+    # one so these tests keep exercising the runner mechanics they were written
+    # for. The gate itself is adversarially tested in
+    # tests/test_swebench_qualification.py.
+    adapter_path = repo / "adapters" / f"{_ADAPTER_SLUG}.yaml"
+    if adapter_path.is_file():
+        install_test_qualification(
+            repo=repo,
+            adapter_path=adapter_path,
+            endpoint="http://localhost:8000/v1",
+            slug=slug,
+            suite_id=suite_id,
+        )
     return run_dir
 
 
@@ -1049,6 +1064,13 @@ class TestMainRunDirResume(unittest.TestCase):
                 "item_inventory": {"expected": 100},
             }))
 
+            # main() gates on the SWE-bench qualification before create_campaign,
+            # so a launch-authorizing record must exist for this test to reach it.
+            install_test_qualification(
+                repo=tmp, adapter_path=adapter_path,
+                endpoint="http://localhost:8000/v1",
+            )
+
             import create_campaign as cc_mod
             original_cc = cc_mod.create_campaign
 
@@ -1098,6 +1120,13 @@ class TestMainRunDirResume(unittest.TestCase):
         try:
             adapter_path = tmp / "adapters" / "test-canonical-model.yaml"
             _write_canonical_adapter(adapter_path)
+
+            # main() gates on the SWE-bench qualification before create_campaign,
+            # so a launch-authorizing record must exist for this test to reach it.
+            install_test_qualification(
+                repo=tmp, adapter_path=adapter_path,
+                endpoint="http://localhost:8000/v1",
+            )
 
             import create_campaign as cc_mod
             original_cc = cc_mod.create_campaign

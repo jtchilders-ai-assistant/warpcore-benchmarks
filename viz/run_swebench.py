@@ -7,6 +7,12 @@ benchmark under the warpcore-v1 measurement contract.
 CONTRACT (docs/superpowers/specs/2026-09-15-warpcore-v1-apples-to-apples-design.md):
 - Uses exactly the 100 frozen instance IDs in suite/swebench/instances-seed42-n100.json
   and verifies their SHA-256 hash from the suite at construction.
+- Refuses to launch a canonical campaign without a valid SWE-bench qualification
+  (design §4.4.1, viz/swebench_qualification.py). The gate runs before any campaign
+  state is created, in both main() and SwebenchRunner.run(); a dry run reports the
+  verdict and stays side-effect-free. --qualification-run executes the 20 suite-owned
+  qualification instances instead, producing the evidence a record is sealed from:
+  that mode is not gated and writes no campaign state.
 - Preflight gates (all must pass before generation):
     1. x86 Docker host check (SWE-bench test containers are x86).
     2. Image cache check via swebench_preflight.py wrapping.
@@ -99,7 +105,6 @@ make run-swebench SUITE=suite/warpcore-v1.yaml ADAPTER=adapters/qwen3.6-35b-a3b.
 from __future__ import annotations
 
 import argparse
-import copy
 import json
 import os
 import pathlib
@@ -123,6 +128,7 @@ for _p in (str(_VIZ_DIR), str(_REPO_DIR)):
 # ---------------------------------------------------------------------------
 
 import campaign_state  # noqa: E402
+import swebench_qualification  # noqa: E402
 from contract import (  # noqa: E402
     load_yaml,
     sha256_file,
@@ -762,6 +768,9 @@ class SwebenchRunner:
         dry_run: bool = False,
         allow_no_screen: bool = False,
         prompt_token_maxima: Optional[Dict[str, int]] = None,
+        qualification_path: Optional[pathlib.Path] = None,
+        repo_sha: Optional[str] = None,
+        qualification_run: bool = False,
         preflight_runner: Optional[Callable] = None,
         generation_runner: Optional[Callable] = None,
         grading_runner: Optional[Callable] = None,
@@ -776,6 +785,11 @@ class SwebenchRunner:
         self.dry_run = dry_run
         self.allow_no_screen = allow_no_screen
         self._prompt_token_maxima = prompt_token_maxima
+        self._qualification_path = (
+            pathlib.Path(qualification_path).resolve() if qualification_path else None
+        )
+        self._repo_sha = repo_sha
+        self.qualification_run = qualification_run
 
         # Resolve repo
         if repo is not None:
@@ -886,6 +900,53 @@ class SwebenchRunner:
                 "Instance IDs must be unique."
             )
 
+        # -- Qualification mode: narrow to the suite-owned qualification set --
+        # The frozen n=100 set above is still loaded and hash-verified first, so a
+        # corrupt suite fails here rather than producing a qualification against
+        # drifted inputs. Only then do we substitute the 20 suite-owned IDs, which
+        # must be a hash-verified subset of that frozen set.
+        if self.qualification_run:
+            qual_cfg = self._bench_cfg.get("qualification") or {}
+            qual_ids_file = qual_cfg.get("ids_file", "")
+            if not qual_ids_file:
+                raise ValueError(
+                    "suite/swebench benchmark missing 'qualification.ids_file'; "
+                    "a qualification run needs a suite-owned instance set."
+                )
+            self._qual_ids_path = (_REPO_DIR / qual_ids_file).resolve()
+            if not self._qual_ids_path.exists():
+                raise ValueError(
+                    f"Qualification instance set file not found: {self._qual_ids_path}"
+                )
+            declared_qual_hash = qual_cfg.get("ids_sha256", "")
+            if declared_qual_hash:
+                actual_qual_hash = sha256_file(self._qual_ids_path)
+                if actual_qual_hash != declared_qual_hash:
+                    raise ValueError(
+                        f"Qualification instance set hash mismatch: suite declares "
+                        f"{declared_qual_hash!r} but actual is {actual_qual_hash!r}."
+                    )
+            qual_ids = json.loads(self._qual_ids_path.read_text())
+            if not isinstance(qual_ids, list):
+                raise ValueError(
+                    "Qualification instance set file must contain a JSON list; "
+                    f"got {type(qual_ids).__name__}."
+                )
+            required = swebench_qualification.REQUIRED_QUALIFICATION_COUNT
+            if len(qual_ids) != required or len(set(qual_ids)) != required:
+                raise ValueError(
+                    f"Qualification instance set must hold exactly {required} unique IDs; "
+                    f"got {len(qual_ids)} ({len(set(qual_ids))} unique)."
+                )
+            foreign = [i for i in qual_ids if i not in seen]
+            if foreign:
+                raise ValueError(
+                    f"Qualification instance set contains {len(foreign)} ID(s) that are not "
+                    f"in the frozen instance set: {sorted(foreign)[:5]}."
+                )
+            self._instance_ids = qual_ids
+            self._instances_path = self._qual_ids_path
+
         # -- Load and verify scaffold --
         scaffold_file = self._bench_cfg.get("scaffold_file", "")
         if not scaffold_file:
@@ -937,25 +998,173 @@ class SwebenchRunner:
     ) -> dict:
         """Return the scaffold config with only the adapter model identity injected.
 
-        Injects:
-          - model.model_name: "hosted_vllm/<model_id>"
-          - model.model_kwargs.api_base: endpoint
-          - model.model_kwargs.api_key: api_key
-
-        All experiment controls (step_limit, cost_limit, environment.timeout,
-        pull_timeout, temperature, max_tokens, submit protocol) are preserved
-        exactly from the frozen scaffold.
+        Delegates to swebench_qualification.build_production_scaffold_config, the
+        single definition of the production config builder.  A qualification
+        records a digest of exactly this output, so a campaign cannot launch on a
+        config that differs from the one that qualified.
         """
-        config = copy.deepcopy(self._scaffold)
+        return swebench_qualification.build_production_scaffold_config(
+            scaffold=self._scaffold,
+            model_id=self._model_id,
+            endpoint=endpoint,
+            api_key=api_key,
+        )
 
-        # Inject model identity
-        config.setdefault("model", {})
-        config["model"]["model_name"] = f"hosted_vllm/{self._model_id}"
-        config["model"].setdefault("model_kwargs", {})
-        config["model"]["model_kwargs"]["api_base"] = endpoint
-        config["model"]["model_kwargs"]["api_key"] = api_key
+    # ------------------------------------------------------------------
+    # Qualification gate
+    # ------------------------------------------------------------------
 
-        return config
+    def qualification_artifact_path(self) -> pathlib.Path:
+        """Return the qualification record this run must be authorized by."""
+        if self._qualification_path is not None:
+            return self._qualification_path
+        return swebench_qualification.default_artifact_path(
+            self._repo, self._suite_id, self._model_slug
+        )
+
+    def check_qualification(self) -> "swebench_qualification.QualificationResult":
+        """Evaluate the authoritative launch gate.  Read-only; never writes.
+
+        Suite, scaffold, qualification-ID, and repo-SHA identity are resolved
+        against the repository that owns the contract code (_REPO_DIR), not the
+        results root: the qualification binds to the policy that produced it.
+        """
+        return swebench_qualification.verify_qualification_for_launch(
+            repo=_REPO_DIR,
+            suite_path=self.suite_path,
+            adapter_path=self.adapter_path,
+            endpoint=self.endpoint,
+            artifact_path=self.qualification_artifact_path(),
+            api_key=self.api_key,
+            repo_sha=self._repo_sha,
+        )
+
+    # ------------------------------------------------------------------
+    # Qualification execution mode
+    # ------------------------------------------------------------------
+
+    def run_qualification(self) -> int:
+        """Execute the 20-instance qualification run that produces a launch record.
+
+        This is the production runner in a narrow mode, not a second runner: same
+        preflight, same production config builder, same generation and grading
+        code paths, same artifact normalization.  Only the instance set differs,
+        and it is the suite-owned qualification set.
+
+        Two deliberate differences from :meth:`run`:
+
+        * It is **not** gated on an existing qualification.  A qualification run
+          is what produces the authorization; requiring one here would make the
+          gate unreachable.
+        * It writes **no campaign state**.  A qualification is not a campaign: no
+          create_campaign, no status.json, no manifest.json, no DONE sentinel.
+          The evidence it leaves is read by the qualification validator, and the
+          record sealed from it is what a campaign is later checked against.
+
+        It still refuses to produce evidence from a bad run: the same policy the
+        gate enforces is applied here, so a RepeatedFormatError qualification run
+        fails before any record can be sealed from it.
+
+        Returns 0 on success, or one of the module EXIT_* codes.
+        """
+        if not self.qualification_run:
+            print(
+                "[run-swebench] FATAL: run_qualification() requires "
+                "qualification_run=True; a campaign runner must not produce a "
+                "qualification.",
+                file=sys.stderr,
+            )
+            return EXIT_CONFIG
+
+        if not self.allow_no_screen and not _is_under_screen():
+            print(
+                "ERROR: SWE-bench qualification runs must be launched inside "
+                "/usr/bin/screen on the Mac mini. Start a screen session first:\n"
+                "  screen -S swebench-qualify\n"
+                "Or pass --allow-no-screen to bypass (tests/special ops only).",
+                file=sys.stderr,
+            )
+            return EXIT_INCONCLUSIVE
+
+        self.run_dir.mkdir(parents=True, exist_ok=True)
+        (self.run_dir / "command.txt").write_text(
+            f"qualification run: {len(self._instance_ids)} suite-owned instances from "
+            f"{self._instances_path.name}\n",
+            encoding="utf-8",
+        )
+
+        preflight_rc = self._run_preflight()
+        if preflight_rc != 0:
+            print(
+                f"[run-swebench] Qualification preflight failed (exit {preflight_rc}).",
+                file=sys.stderr,
+            )
+            return EXIT_DEFECT if preflight_rc == 1 else EXIT_INCONCLUSIVE
+
+        scaffold_config = self.build_scaffold_config(
+            endpoint=self.endpoint, api_key=self.api_key
+        )
+        generation_rc = self._run_generation(scaffold_config)
+        if generation_rc != 0:
+            print(
+                f"[run-swebench] Qualification generation failed (exit {generation_rc}).",
+                file=sys.stderr,
+            )
+            return EXIT_DEFECT
+
+        if self._generation_runner is None:
+            norm_errors = _normalize_generation_artifacts(
+                self.run_dir / "raw", expected_instance_ids=self._instance_ids
+            )
+            if norm_errors:
+                print(
+                    "ERROR: Qualification artifact normalization failed:\n"
+                    + "\n".join(f"  {e}" for e in norm_errors),
+                    file=sys.stderr,
+                )
+                return EXIT_DEFECT
+
+        gen_errors = _verify_generation_evidence(
+            self.run_dir, expected_instance_ids=self._instance_ids
+        )
+        if gen_errors:
+            print(
+                "ERROR: Qualification generation evidence is incomplete:\n"
+                + "\n".join(f"  {e}" for e in gen_errors),
+                file=sys.stderr,
+            )
+            return EXIT_DEFECT
+
+        grading_rc = self._run_grading(self.run_dir / "raw" / "preds.json")
+        if grading_rc != 0:
+            print(
+                f"[run-swebench] Qualification grading failed (exit {grading_rc}).",
+                file=sys.stderr,
+            )
+            return EXIT_DEFECT
+
+        # Apply the gate's own policy to the evidence now, so a bad qualification
+        # run reports its defect here rather than at `make qualify-swebench`.
+        policy_errors = swebench_qualification.check_raw_evidence_policy(
+            self.run_dir / "raw", self._instance_ids
+        )
+        if policy_errors:
+            print(
+                "ERROR: Qualification run completed but does not qualify:\n"
+                + "\n".join(f"  {e}" for e in policy_errors)
+                + "\nRe-qualify. Do not add a bridge, parser repair, retry, output "
+                "sanitizer, or scaffold change to make this pass.",
+                file=sys.stderr,
+            )
+            return EXIT_DEFECT
+
+        print(
+            f"[run-swebench] Qualification run complete: {len(self._instance_ids)} "
+            f"suite-owned instances, evidence under {self.run_dir}. "
+            "Seal it with `make qualify-swebench`.",
+            file=sys.stderr,
+        )
+        return EXIT_SUCCESS
 
     # ------------------------------------------------------------------
     # Core run logic
@@ -998,6 +1207,23 @@ class SwebenchRunner:
             print(yaml.dump(display_config, default_flow_style=False))
             print(f"[dry-run] Instance set: {len(self._instance_ids)} instances from "
                   f"{self._instances_path.name}")
+            if self.qualification_run:
+                print(
+                    "[dry-run] QUALIFICATION RUN: this mode produces a qualification "
+                    "record and is deliberately not gated on one. It writes no "
+                    "campaign state."
+                )
+                return EXIT_SUCCESS
+            # A dry run inspects; it never authorizes. Report the gate verdict
+            # plainly so an operator cannot read "dry-run OK" as "cleared to launch".
+            verdict = self.check_qualification()
+            print(f"[dry-run] {verdict.render()}")
+            print(f"[dry-run] Qualification record: {self.qualification_artifact_path()}")
+            if not verdict.ok:
+                print(
+                    "[dry-run] A live launch would be refused until this qualification "
+                    "is fresh, complete, and bound to this exact launch context."
+                )
             return EXIT_SUCCESS
 
         # --- Screen guard ---
@@ -1009,6 +1235,23 @@ class SwebenchRunner:
                 file=sys.stderr,
             )
             return EXIT_INCONCLUSIVE
+
+        # --- Authoritative qualification gate (before any write) ---
+        # This is the gate that external cron/shell logic did not have: a
+        # RepeatedFormatError smoke, a stale record, or a record sealed for a
+        # different SHA/suite/adapter/profile/model/scaffold stops the launch here,
+        # with no campaign state mutated.
+        qualification = self.check_qualification()
+        if not qualification.ok:
+            print(qualification.render(), file=sys.stderr)
+            print(
+                f"[run-swebench] FATAL: refusing to launch a canonical SWE-bench campaign "
+                f"without a valid qualification "
+                f"({self.qualification_artifact_path()}).",
+                file=sys.stderr,
+            )
+            return EXIT_DEFECT
+        print(f"[run-swebench] {qualification.render()}", file=sys.stderr)
 
         # --- Read and strict-validate status.json ---
         try:
@@ -1998,6 +2241,14 @@ def main(argv=None) -> int:
                     help="Measured prompt maxima for quality benchmarks: 'bench=N,...' "
                          "(e.g. gsm8k=500,ifeval=2000,gpqa_diamond=1000). Required for "
                          "adapter campaign-readiness validation.")
+    ap.add_argument("--qualification", type=pathlib.Path, default=None,
+                    help="Qualification record authorizing this launch. Defaults to "
+                         "<repo>/results/<slug>/qualification/<suite-id>/swebench/"
+                         "qualification.json.")
+    ap.add_argument("--qualification-run", action="store_true",
+                    help="Run the 20 suite-owned qualification instances instead of the "
+                         "frozen 100. Produces the evidence a qualification record is "
+                         "sealed from; writes no campaign state and is not itself gated.")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--allow-no-screen", action="store_true")
     ap.add_argument("--resume", action="store_true")
@@ -2017,6 +2268,78 @@ def main(argv=None) -> int:
 
     suite_path = pathlib.Path(args.suite).resolve()
     repo = pathlib.Path(args.repo).resolve() if args.repo else suite_path.parent.parent
+
+    # --- Qualification run: the mode that produces the record ---
+    # Not gated (it is what authorizes later launches) and deliberately outside
+    # create_campaign: a qualification is not a campaign.
+    if args.qualification_run:
+        import yaml as _yaml_q
+        with open(pathlib.Path(args.adapter).resolve()) as fh:
+            _adapter_q = _yaml_q.safe_load(fh)
+        with open(suite_path) as fh:
+            _suite_q = _yaml_q.safe_load(fh)
+        _slug_q = (_adapter_q.get("model") or {}).get("slug", "unknown")
+        _suite_id_q = _suite_q.get("suite_id", "warpcore-v1")
+        qual_run_dir = (
+            pathlib.Path(args.run_dir).resolve() if args.run_dir is not None
+            else swebench_qualification.default_artifact_path(
+                repo, _suite_id_q, _slug_q
+            ).parent / "run"
+        )
+        try:
+            runner = SwebenchRunner(
+                suite_path=args.suite,
+                adapter_path=args.adapter,
+                endpoint=args.endpoint,
+                run_dir=qual_run_dir,
+                repo=repo,
+                api_key=args.api_key,
+                workers=args.workers,
+                dry_run=args.dry_run,
+                allow_no_screen=args.allow_no_screen,
+                prompt_token_maxima=prompt_token_maxima,
+                qualification_run=True,
+            )
+        except ValueError as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return EXIT_CONFIG
+        return runner.run() if args.dry_run else runner.run_qualification()
+
+    # --- Qualification gate, before create_campaign touches the filesystem ---
+    # A live launch must fail closed with no campaign directory, no status.json,
+    # and no manifest when it is not authorized. A dry run skips this check here
+    # because the runner reports the same verdict without side effects.
+    if not args.dry_run:
+        try:
+            import yaml as _yaml_gate
+            _suite_gate = _yaml_gate.safe_load(suite_path.read_text())
+            _adapter_gate = _yaml_gate.safe_load(
+                pathlib.Path(args.adapter).resolve().read_text()
+            )
+            _suite_id_gate = _suite_gate.get("suite_id", "warpcore-v1")
+            _slug_gate = (_adapter_gate.get("model") or {}).get("slug", "unknown")
+        except Exception as exc:
+            print(f"ERROR: cannot read suite or adapter for qualification: {exc}", file=sys.stderr)
+            return EXIT_CONFIG
+        artifact_path = args.qualification or swebench_qualification.default_artifact_path(
+            repo, _suite_id_gate, _slug_gate
+        )
+        verdict = swebench_qualification.verify_qualification_for_launch(
+            repo=_REPO_DIR,
+            suite_path=suite_path,
+            adapter_path=pathlib.Path(args.adapter).resolve(),
+            endpoint=args.endpoint,
+            artifact_path=artifact_path,
+            api_key=args.api_key,
+        )
+        if not verdict.ok:
+            print(verdict.render(), file=sys.stderr)
+            print(
+                f"ERROR: refusing to create or launch a canonical SWE-bench campaign "
+                f"without a valid qualification ({artifact_path}).",
+                file=sys.stderr,
+            )
+            return EXIT_DEFECT
 
     # Resolve run directory
     if args.run_dir is not None:
@@ -2100,6 +2423,7 @@ def main(argv=None) -> int:
             dry_run=args.dry_run,
             allow_no_screen=args.allow_no_screen,
             prompt_token_maxima=prompt_token_maxima,
+            qualification_path=args.qualification,
         )
     except ValueError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)

@@ -138,3 +138,78 @@ VALID_STATUS: dict = {
         }
     ],
 }
+
+
+# ---------------------------------------------------------------------------
+# SWE-bench qualification fixture
+# ---------------------------------------------------------------------------
+
+#: Committed production-path qualification evidence: 20 suite-owned instances,
+#: all terminal Submitted, every patch a real diff, every trajectory carrying
+#: well-formed tool calls, and an official SWE-bench schema-v2 grader report.
+QUALIFICATION_FIXTURE_RUN = _TESTS_DIR / "fixtures" / "swebench_qualification" / "run"
+
+
+def install_test_qualification(
+    *,
+    repo,
+    adapter_path,
+    endpoint: str,
+    slug: str | None = None,
+    suite_id: str = "warpcore-v1",
+    suite_path=None,
+    mutate_statuses=None,
+    now=None,
+):
+    """Install a valid SWE-bench qualification under *repo* and return its path.
+
+    Runner tests need a launch-authorizing qualification the same way a real
+    campaign does; without one every live-run test would stop at the gate and
+    silently stop testing whatever it was written to test.  This copies the
+    committed production-path evidence beside the canonical artifact location and
+    seals a record bound to *repo*, *adapter_path*, and *endpoint*.
+
+    ``mutate_statuses`` receives the exit-status dict before the record is sealed,
+    so a negative test can plant, say, a RepeatedFormatError and keep the digests
+    honest.
+    """
+    import json as _json
+    import shutil as _shutil
+    import sys as _sys
+
+    _viz = str(REPO / "viz")
+    if _viz not in _sys.path:
+        _sys.path.insert(0, _viz)
+    import swebench_qualification as _sq  # noqa: E402
+    import yaml as _yaml  # noqa: E402
+
+    adapter_path = Path(adapter_path)
+    if slug is None:
+        slug = (_yaml.safe_load(adapter_path.read_text()).get("model") or {}).get("slug", "")
+    served_model_id = (_yaml.safe_load(adapter_path.read_text()).get("model") or {}).get("id", "")
+
+    artifact_path = _sq.default_artifact_path(repo, suite_id, slug)
+    artifact_path.parent.mkdir(parents=True, exist_ok=True)
+    evidence = artifact_path.parent / "run"
+    if evidence.exists():
+        _shutil.rmtree(evidence)
+    _shutil.copytree(QUALIFICATION_FIXTURE_RUN, evidence)
+
+    if mutate_statuses is not None:
+        statuses_path = evidence / "raw" / "exit_statuses.json"
+        statuses = _json.loads(statuses_path.read_text())
+        mutate_statuses(statuses)
+        statuses_path.write_text(_json.dumps(statuses, indent=2) + "\n")
+
+    artifact = _sq.build_qualification_artifact(
+        repo=REPO,
+        suite_path=suite_path or (REPO / "suite" / "warpcore-v1.yaml"),
+        adapter_path=adapter_path,
+        endpoint=endpoint,
+        served_model_id=served_model_id,
+        evidence_run_dir=evidence,
+        artifact_path=artifact_path,
+        now=now,
+    )
+    artifact_path.write_text(_json.dumps(artifact, indent=2) + "\n")
+    return artifact_path
