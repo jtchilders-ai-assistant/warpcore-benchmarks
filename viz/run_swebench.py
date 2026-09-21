@@ -129,6 +129,7 @@ for _p in (str(_VIZ_DIR), str(_REPO_DIR)):
 
 import campaign_state  # noqa: E402
 import swebench_qualification  # noqa: E402
+import swebench_circuit_breaker as circuit_breaker  # noqa: E402
 from contract import (  # noqa: E402
     load_yaml,
     sha256_file,
@@ -977,11 +978,33 @@ class SwebenchRunner:
         # Verify submit protocol is intact
         self._verify_submit_protocol()
 
+        # -- Load the suite-owned campaign circuit-breaker policy --
+        # Suite-owned and versioned: the adapter schema is closed (so an adapter
+        # cannot carry these keys) and the CLI exposes no option to tune them.
+        # Fail-closed at construction — a campaign must never launch under an
+        # unverifiable abort control.
+        try:
+            self._circuit_breaker_policy = circuit_breaker.load_policy(_REPO_DIR)
+        except circuit_breaker.PolicyError as exc:
+            raise ValueError(f"SWE-bench circuit-breaker policy is unusable: {exc}") from exc
+
+        # Circuit-breaker run state. These stay None/False for every run that is
+        # not aborted by the breaker, which is what keeps an operator interrupt
+        # and an unrelated SIGTERM distinguishable from a breaker termination.
+        self._circuit_breaker_decision = None
+        self._circuit_breaker_termination: Optional[dict] = None
+        self._operator_interrupted = False
+
         # Injected runners
         self._preflight_runner = preflight_runner
         self._generation_runner = generation_runner
         self._grading_runner = grading_runner
         self._done_writer = done_writer  # callable(done_path: Path) -> None; default: atomic rename
+
+    @property
+    def circuit_breaker_policy(self) -> circuit_breaker.CircuitBreakerPolicy:
+        """The suite-owned abort policy this run is bound to (read-only)."""
+        return self._circuit_breaker_policy
 
     # ------------------------------------------------------------------
     # Public API
@@ -1328,6 +1351,51 @@ class SwebenchRunner:
         )
         generation_rc = self._run_generation(scaffold_config)
 
+        # --- Campaign circuit breaker ---
+        # Checked before the generic nonzero-exit path so the recorded reason is
+        # the diagnosed systemic defect, not "generation failed". Partial evidence
+        # in raw/ is left exactly as the harness wrote it: no normalization, no
+        # grading, no DONE, no publication. The run is failed and invalid.
+        if self._circuit_breaker_decision is not None:
+            decision = self._circuit_breaker_decision
+            print(
+                "ERROR: SWE-bench campaign aborted by the suite circuit breaker.\n"
+                f"  rule:   {decision.rule}\n"
+                f"  reason: {decision.reason}\n"
+                f"  policy: {decision.policy.policy_id} v{decision.policy.policy_version} "
+                f"({decision.policy.policy_sha256[:16]}...)\n"
+                f"  evidence: {self.run_dir / 'circuit_breaker.json'}\n"
+                "Partial evidence preserved. Not graded, not completed, DONE not written.",
+                file=sys.stderr,
+            )
+            if not self._transition_failed(
+                note=f"circuit breaker tripped: {decision.rule}"
+            ):
+                print(
+                    "[run-swebench] FATAL: _transition_failed write failed after a circuit "
+                    "breaker abort. Run is in an indeterminate state.",
+                    file=sys.stderr,
+                )
+            return EXIT_DEFECT
+
+        # --- Operator interrupt ---
+        # Deliberately distinct from both a breaker abort and a generation defect:
+        # an interrupted campaign is inconclusive, not a diagnosed failure, and it
+        # leaves no circuit_breaker.json behind.
+        if self._operator_interrupted:
+            print(
+                "[run-swebench] Generation interrupted by the operator. "
+                "Run marked failed/invalid; no circuit-breaker diagnosis recorded.",
+                file=sys.stderr,
+            )
+            if not self._transition_failed(note="operator interrupted generation"):
+                print(
+                    "[run-swebench] FATAL: _transition_failed write failed after operator "
+                    "interrupt. Run is in an indeterminate state.",
+                    file=sys.stderr,
+                )
+            return EXIT_INCONCLUSIVE
+
         if generation_rc != 0:
             print(
                 f"[run-swebench] Generation failed (exit {generation_rc}).",
@@ -1601,23 +1669,77 @@ class SwebenchRunner:
             except OSError:
                 pass
 
+    def _build_generation_argv(
+        self, config_path: str, raw_dir: pathlib.Path
+    ) -> List[str]:
+        """Return the mini-swe-agent 2.x argv (argv only, never a shell string).
+
+        Instance selection: an anchored OR-regex over the frozen 100 IDs so that
+        --filter matches exactly the frozen set without relying on a local dataset
+        file. re.escape is defensive against any special character in an ID.
+        """
+        import re
+
+        anchored_ids = [f"^{re.escape(iid)}$" for iid in self._instance_ids]
+        filter_regex = "|".join(anchored_ids)
+        return [
+            sys.executable, "-m", "minisweagent.run.benchmarks.swebench",
+            "--subset", "princeton-nlp/SWE-bench_Verified",
+            "--split", "test",
+            "--filter", filter_regex,
+            "-c", config_path,
+            "-w", str(self.workers),
+            "-o", str(raw_dir),
+        ]
+
+    def _monitor_poll_interval_s(self) -> float:
+        """Seconds between live progress observations (suite-owned cadence)."""
+        return self._circuit_breaker_policy.poll_interval_s
+
+    def _monitor_sleep(self, seconds: float) -> None:
+        import time as _time
+        _time.sleep(seconds)
+
+    def _pace_monitor_cycle(self, proc, interval: float) -> None:
+        """Wait up to *interval* seconds, returning as soon as *proc* exits.
+
+        Sleeping the whole interval blind would add up to one poll interval of
+        dead time to every run, including short failing ones.
+        """
+        import time as _time
+
+        deadline = _time.monotonic() + interval
+        while proc.poll() is None:
+            remaining = deadline - _time.monotonic()
+            if remaining <= 0:
+                return
+            self._monitor_sleep(min(0.25, remaining))
+
     def _run_generation(self, scaffold_config: dict) -> int:
-        """Execute mini-swe-agent generation; return exit code.
+        """Execute mini-swe-agent generation under the campaign circuit breaker.
 
         When generation_runner is injected (tests), delegates to it.
-        Default live path calls mini-swe-agent 2.x as a subprocess (argv list, no shell)
-        using module minisweagent.run.benchmarks.swebench with the injected scaffold
-        config written to a temp YAML file. Captures subprocess output to raw/run.log
-        for evidence. Writes preds.json, exit_statuses.json, and trajectories/ to raw/.
 
-        Instance selection: builds an anchored OR-regex from the frozen 100 IDs so that
-        --filter matches exactly the frozen set without relying on a local dataset file.
+        Default live path starts mini-swe-agent 2.x as a subprocess (argv list, no
+        shell) in its OWN SESSION, so its process-group id equals its pid and can
+        never be the runner's group. While it runs, the real progress artifact
+        (raw/exit_statuses_<timestamp>.yaml) is polled rather than waiting only for
+        the subprocess to exit — a systemic parser/serving/infrastructure failure is
+        usually provable from the first completed instances, long before the harness
+        returns. Captures subprocess output to raw/run.log for evidence.
+
+        Three distinguishable outcomes:
+          - circuit breaker tripped: self._circuit_breaker_decision is set and only
+            the owned process group is signalled;
+          - operator interrupt (KeyboardInterrupt): self._operator_interrupted is
+            set, the owned subprocess is still cleaned up, no decision is recorded;
+          - anything else (including an unrelated SIGTERM reaching the child): the
+            subprocess return code is passed through untouched.
         """
         if self._generation_runner is not None:
             return int(self._generation_runner(scaffold_config, self.run_dir))
 
         # --- Live default: invoke mini-swe-agent 2.x as subprocess ---
-        import re
         import subprocess as _sp
         import tempfile as _tf
         import yaml
@@ -1633,24 +1755,9 @@ class SwebenchRunner:
             yaml.dump(scaffold_config, tf, default_flow_style=False)
             config_path = tf.name
 
-        # Build an anchored exact-ID OR-regex for --filter
-        # Each ID is anchor-escaped: ^ ID $ with | between them
-        # re.escape handles any special chars in IDs (e.g. __ is safe but be defensive)
-        anchored_ids = [f"^{re.escape(iid)}$" for iid in self._instance_ids]
-        filter_regex = "|".join(anchored_ids)
-
+        cmd = self._build_generation_argv(config_path, raw_dir)
+        proc = None
         try:
-            # mini-swe-agent 2.x invocation (argv only, no shell)
-            # Outputs land in raw/ as preds.json + exit_statuses.json + trajectories/
-            cmd = [
-                sys.executable, "-m", "minisweagent.run.benchmarks.swebench",
-                "--subset", "princeton-nlp/SWE-bench_Verified",
-                "--split", "test",
-                "--filter", filter_regex,
-                "-c", config_path,
-                "-w", str(self.workers),
-                "-o", str(raw_dir),
-            ]
             print(
                 f"[run-swebench] Generation: {' '.join(shlex.quote(a) for a in cmd[:4])} "
                 f"--filter <anchored-{len(self._instance_ids)}-id-regex> "
@@ -1659,13 +1766,28 @@ class SwebenchRunner:
                 file=sys.stderr,
             )
             with open(run_log, "w") as log_fh:
-                result = _sp.run(
+                # start_new_session gives the child its own session and process
+                # group. That is what makes "terminate exactly what we own"
+                # expressible, and it also stops a terminal signal from reaching
+                # the campaign through a shared group.
+                proc = _sp.Popen(
                     cmd,
                     stdout=log_fh,
                     stderr=_sp.STDOUT,
-                    check=False,
+                    start_new_session=True,
                 )
-            return result.returncode
+                return self._monitor_generation(proc, raw_dir)
+        except KeyboardInterrupt:
+            self._operator_interrupted = True
+            print(
+                "\n[run-swebench] Operator interrupt received during generation. "
+                "Terminating the owned generation subprocess; this is NOT a "
+                "circuit-breaker abort.",
+                file=sys.stderr,
+            )
+            if proc is not None:
+                self._terminate_owned_generation(proc)
+            return EXIT_INCONCLUSIVE
         except Exception as exc:
             print(
                 f"[run-swebench] Generation subprocess failed: {exc}",
@@ -1677,12 +1799,204 @@ class SwebenchRunner:
                     log_fh.write(f"\nGeneration subprocess error: {exc}\n")
             except OSError:
                 pass
+            if proc is not None and proc.poll() is None:
+                self._terminate_owned_generation(proc)
             return EXIT_DEFECT
         finally:
             try:
                 os.unlink(config_path)
             except OSError:
                 pass
+
+    def _monitor_generation(self, proc, raw_dir: pathlib.Path) -> int:
+        """Poll live progress evidence while *proc* runs; abort on a trip.
+
+        Returns the subprocess return code. On a trip the code is the signal-derived
+        value from the termination we performed; callers must consult
+        self._circuit_breaker_decision rather than inferring intent from the code.
+        """
+        monitor = circuit_breaker.BreakerMonitor(
+            raw_dir=raw_dir,
+            policy=self._circuit_breaker_policy,
+            sleep=self._monitor_sleep,
+        )
+        interval = self._monitor_poll_interval_s()
+
+        while proc.poll() is None:
+            self._pace_monitor_cycle(proc, interval)
+            if proc.poll() is not None:
+                break
+            try:
+                decision = monitor.observe()
+            except Exception as exc:  # never let a monitor bug kill a healthy run
+                print(
+                    f"[run-swebench] Circuit-breaker observation failed "
+                    f"(campaign continues): {exc}",
+                    file=sys.stderr,
+                )
+                continue
+            if decision is None:
+                continue
+
+            self._circuit_breaker_decision = decision
+            print(
+                "[run-swebench] CIRCUIT BREAKER TRIPPED "
+                f"[{decision.rule}]: {decision.reason}",
+                file=sys.stderr,
+            )
+            # Record the diagnostic before signalling anything, so the evidence
+            # survives even if termination itself goes wrong.
+            self._write_circuit_breaker_artifact(decision, termination=None)
+            self._circuit_breaker_termination = self._terminate_owned_generation(proc)
+            self._write_circuit_breaker_artifact(
+                decision, termination=self._circuit_breaker_termination
+            )
+            break
+
+        return proc.wait()
+
+    def _terminate_owned_generation(self, proc) -> dict:
+        """Terminate exactly the generation subprocess we own; return what we did.
+
+        Safety: the child was started with start_new_session=True, so its process
+        group id equals its pid. We signal that group only after confirming both
+        facts, and never a group that is 0 or our own — a stale or reused pid must
+        not let the breaker take down the runner, the screen session, or anything
+        else on the host. If the group cannot be confirmed we fall back to
+        signalling the single known child process.
+        """
+        import signal as _signal
+
+        record: dict = {
+            "terminated_by": "warpcore_circuit_breaker",
+            "scope": self._circuit_breaker_policy.termination_scope,
+            "pid": proc.pid,
+            "pgid": None,
+            "signal": self._circuit_breaker_policy.termination_signal,
+            "escalated_to_sigkill": False,
+            "target": "process_group",
+        }
+
+        if proc.poll() is not None:
+            record["target"] = "already_exited"
+            return record
+
+        pgid = None
+        try:
+            pgid = os.getpgid(proc.pid)
+        except (ProcessLookupError, PermissionError, OSError):
+            pgid = None
+
+        own_group = os.getpgrp()
+        group_is_ours_alone = (
+            pgid is not None and pgid == proc.pid and pgid > 0 and pgid != own_group
+        )
+        record["pgid"] = pgid
+
+        def _signal_target(sig) -> None:
+            if group_is_ours_alone:
+                os.killpg(pgid, sig)
+            else:
+                # Cannot prove the group contains only our generation subprocess;
+                # signal the one process we are certain we own.
+                os.kill(proc.pid, sig)
+
+        if not group_is_ours_alone:
+            record["target"] = "single_process"
+            print(
+                f"[run-swebench] Generation pgid ({pgid}) is not the subprocess's own "
+                "group; signalling only the direct child to avoid killing unowned "
+                "processes.",
+                file=sys.stderr,
+            )
+
+        try:
+            _signal_target(_signal.SIGTERM)
+        except (ProcessLookupError, PermissionError, OSError) as exc:
+            record["target"] = f"signal_failed: {exc}"
+            return record
+
+        try:
+            proc.wait(timeout=self._circuit_breaker_policy.grace_period_s)
+        except Exception:
+            record["escalated_to_sigkill"] = True
+            try:
+                _signal_target(_signal.SIGKILL)
+            except (ProcessLookupError, PermissionError, OSError):
+                pass
+            try:
+                proc.wait(timeout=self._circuit_breaker_policy.grace_period_s)
+            except Exception:
+                pass
+
+        return record
+
+    def _write_circuit_breaker_artifact(
+        self,
+        decision,
+        termination: Optional[dict],
+    ) -> None:
+        """Write run_dir/circuit_breaker.json atomically (temp + fsync + replace).
+
+        Never raises: the breaker must still terminate and fail the campaign even
+        if the diagnostic cannot be persisted, and a write failure is reported
+        loudly rather than swallowed.
+        """
+        import tempfile as _tf
+
+        artifact = {
+            "schema_version": 1,
+            "artifact": "swebench_circuit_breaker",
+            "tripped": True,
+            "tripped_utc": _utcnow(),
+            "suite_id": self._suite_id,
+            "benchmark": _SWEBENCH_BENCH,
+            "run_id": self._run_id,
+            "model": {"slug": self._model_slug, "id": self._model_id},
+            "policy": decision.policy.as_provenance(),
+            "rule": decision.rule,
+            "reason": decision.reason,
+            "observed": decision.observed(),
+            "termination": termination if termination is not None else {
+                "terminated_by": "warpcore_circuit_breaker",
+                "scope": self._circuit_breaker_policy.termination_scope,
+                "signal": self._circuit_breaker_policy.termination_signal,
+                "state": "pending",
+            },
+            "campaign_outcome": {
+                "execution_state": "failed",
+                "lifecycle": "invalid",
+                "graded": False,
+                "done_sentinel_written": False,
+                "partial_evidence_preserved": True,
+            },
+        }
+
+        dest = self.run_dir / "circuit_breaker.json"
+        payload = json.dumps(artifact, indent=2, ensure_ascii=False) + "\n"
+        try:
+            self.run_dir.mkdir(parents=True, exist_ok=True)
+            fd, tmp_path = _tf.mkstemp(
+                dir=str(self.run_dir), prefix=".tmp_circuit_breaker_", suffix=".json"
+            )
+            try:
+                with os.fdopen(fd, "w", encoding="utf-8") as fh:
+                    fh.write(payload)
+                    fh.flush()
+                    os.fsync(fh.fileno())
+                os.replace(tmp_path, str(dest))
+            except BaseException:
+                try:
+                    os.unlink(tmp_path)
+                except OSError:
+                    pass
+                raise
+        except OSError as exc:
+            print(
+                f"[run-swebench] WARNING: could not write {dest}: {exc}. "
+                "The campaign is still aborted and will be marked failed/invalid.",
+                file=sys.stderr,
+            )
 
     def _run_grading(self, preds_path: pathlib.Path) -> int:
         """Execute SWE-bench grading; return exit code.
@@ -2225,7 +2539,15 @@ def _parse_prompt_tokens(value: str) -> Dict[str, int]:
 # ---------------------------------------------------------------------------
 
 
-def main(argv=None) -> int:
+def _build_arg_parser() -> argparse.ArgumentParser:
+    """Build the CLI parser.
+
+    Deliberately exposes no option that could weaken, disable, or retune the
+    suite-owned campaign circuit breaker. Those thresholds live in
+    suite/swebench/circuit_breaker_policy.yaml and are versioned with the suite;
+    an operator changing them on a command line would make two campaigns
+    incomparable without leaving a trace in the suite.
+    """
     ap = argparse.ArgumentParser(
         description="Contract-aware SWE-bench runner for warpcore-v1."
     )
@@ -2254,8 +2576,11 @@ def main(argv=None) -> int:
     ap.add_argument("--resume", action="store_true")
     # model arg for command.txt record only (derived from adapter in runner)
     ap.add_argument("--model", default=None, help=argparse.SUPPRESS)
+    return ap
 
-    args = ap.parse_args(argv)
+
+def main(argv=None) -> int:
+    args = _build_arg_parser().parse_args(argv)
 
     # Parse prompt_token_maxima
     prompt_token_maxima: Optional[Dict[str, int]] = None

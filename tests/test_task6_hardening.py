@@ -921,12 +921,18 @@ class TestLiveSubprocessRunners(unittest.TestCase):
 
     def test_run_generation_attempts_subprocess_not_immediate_defect(self):
         """_run_generation without injected runner must attempt a subprocess call,
-        not immediately return EXIT_DEFECT with no subprocess attempt."""
+        not immediately return EXIT_DEFECT with no subprocess attempt.
+
+        Generation launches via subprocess.Popen (not subprocess.run) because the
+        campaign circuit breaker polls live progress evidence while the harness is
+        still running, and needs the child in its own process group to be able to
+        terminate exactly what it owns.
+        """
         import subprocess as _sp
         attempted = []
 
-        def fake_run(cmd, *args, **kwargs):
-            attempted.append(cmd)
+        def fake_popen(cmd, *args, **kwargs):
+            attempted.append((cmd, kwargs))
             raise FileNotFoundError("fake: command not found")
 
         runner = run_swebench.SwebenchRunner(
@@ -940,13 +946,17 @@ class TestLiveSubprocessRunners(unittest.TestCase):
             prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
         )
         config = runner.build_scaffold_config("http://localhost:8000/v1", "warpcore")
-        with patch.object(_sp, "run", side_effect=fake_run):
+        with patch.object(_sp, "Popen", side_effect=fake_popen):
             rc = runner._run_generation(config)
         self.assertTrue(
             len(attempted) > 0,
             "_run_generation without injected runner must attempt a subprocess, "
-            "not immediately return EXIT_DEFECT. Current implementation never "
-            "calls subprocess.run.",
+            "not immediately return EXIT_DEFECT.",
+        )
+        self.assertTrue(
+            attempted[0][1].get("start_new_session"),
+            "Generation must run in its own session so the circuit breaker can "
+            "terminate exactly the owned process group.",
         )
 
     def test_run_grading_attempts_subprocess_not_immediate_defect(self):

@@ -431,6 +431,25 @@ Served-only rates are diagnostic upper bounds and never capability scores.
 
 All 100 assigned instances remain in the headline denominator. Disposition categories explain why misses occurred; they do not erase misses.
 
+#### 10.2.1 Campaign circuit breaker
+
+A SWE-bench campaign costs ~100 instances of GPU-hours, and twice that budget has been spent proving something the first completed instances already proved: the 2026-09-17 Qwen campaign recorded `RuntimeError` on every instance while mini-swe-agent still exited 0, and the 2026-08-04 run lost 22/100 to a cold-cache container pull. The runner therefore watches the live progress artifact while generation is still running and aborts the campaign once partial evidence already demonstrates a systemic parser/transport/server/infrastructure failure.
+
+The policy is suite-owned and versioned at `suite/swebench/circuit_breaker_policy.yaml`, with its own `policy_version` and content hash. It is carried in a separate suite file rather than inline in `suite/warpcore-v1.yaml` because that file's bytes are hash-pinned by every committed campaign manifest; editing them would retroactively invalidate published campaigns. A serving adapter may not carry any of its keys (the adapter schema is closed) and the runner exposes no command-line option to tune any threshold.
+
+It aborts when either:
+
+- the first completed instance is a classified systemic failure; or
+- at least three instances have completed and strictly more than half are systemic.
+
+It is **not** a measurement variable. It changes no prompt, task, scoring rule, sampling setting, retry, or denominator: a campaign either runs to its normal end or is stopped, marked `failed`/`invalid`, and never graded or published. Model and config operational outcomes — step limit, cost limit, context window, a submitted-but-wrong patch — are the model's own result under §10.2 and never trip it.
+
+`RepeatedFormatError` is the sharp edge. `viz/swebench_fair.py` counts it as infrastructure when attributing a finished campaign's denominator, but that is a post-hoc judgement over a hundred instances. To kill a live campaign the breaker demands persisted trajectory evidence of actual parser or tool-argument corruption, because "the model formatted an action wrongly" and "the tool-call parser is broken" produce the same exit status.
+
+Evidence handling is conservative in the direction of letting the campaign run. mini-swe-agent rewrites its progress YAML as instances finish, so a snapshot counts only when two consecutive reads are byte-identical and parse into a sound mapping, and observations are reconciled monotonically so a truncated rewrite can never erase healthy completions and manufacture a majority. Any unreadable, unparseable, or ambiguous evidence yields no decision.
+
+On a trip the runner terminates only the generation subprocess's own process group — it is started in a new session so its group id equals its pid and can never be the runner's — preserves every partial artifact, and writes `circuit_breaker.json` recording the observed instance IDs and classifications, the policy id/version/hash, the rule, the reason, and the UTC time. An operator interrupt and an unrelated `SIGTERM` leave no such artifact and are recorded with their own distinct status notes, so a diagnosed systemic defect is never confused with someone pressing Ctrl-C.
+
 ### 10.3 Segmented campaigns
 
 If an effective setting changes mid-run, the campaign records a new segment with exact instance IDs, serving image/version/arguments, reason, and timing. A segmented run may be reported only when the effect is bounded or explicitly stated as unknown. Configurations are never silently blended.

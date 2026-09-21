@@ -1,0 +1,109 @@
+# warpcore-v1 SWE-bench campaign circuit breaker — suite-owned control.
+#
+# Schema: suite/schemas/swebench-circuit-breaker-policy.schema.json
+# Authoritative design:
+#   docs/superpowers/specs/2026-09-15-warpcore-v1-apples-to-apples-design.md §10.2
+#
+# WHY THIS FILE EXISTS
+# --------------------
+# The 2026-09-17 Qwen SWE-bench campaign ran to completion while every instance
+# recorded RuntimeError; the 2026-08-04 run lost 22/100 instances to a cold-cache
+# docker pull timeout. In both cases the systemic defect was already provable from
+# the first completed instances, and the remaining GPU-hours measured nothing.
+#
+# This is an ABORT control, not a measurement variable. It changes no prompt, no
+# task, no scoring rule, no sampling setting and no denominator: a campaign either
+# runs to its normal end, or it is stopped and marked failed/invalid. It can never
+# turn a partial campaign into a score.
+#
+# OWNERSHIP
+# ---------
+# Suite-owned and versioned. A serving adapter may not carry any of these keys
+# (adapters/*.yaml is a closed schema) and the runner exposes no command-line
+# option to tune any threshold below. Changing any value here is a contract change
+# and requires bumping policy_version in the same commit.
+#
+# WHY IT IS NOT INLINE IN suite/warpcore-v1.yaml
+# ----------------------------------------------
+# warpcore-v1.yaml is hash-pinned by every committed campaign manifest
+# (suite_input_hashes). Editing its bytes would retroactively invalidate the
+# published canonical Qwen campaign. This control is therefore carried in its own
+# suite file with its own version and content hash, exactly as the frozen instance
+# set and scaffold are carried in their own files.
+
+policy_id: "warpcore-v1-swebench-systemic-failure-breaker"
+policy_version: 1
+suite_id: "warpcore-v1"
+benchmark: "swebench"
+enabled: true
+
+# ── Trip rules ───────────────────────────────────────────────────────────────
+rules:
+  # The earliest observed batch of completed instances is entirely systemic, so
+  # the first completed instance was necessarily a systemic failure. When several
+  # instances land in the same snapshot their order is unknown; requiring the
+  # whole batch keeps the inference sound.
+  first_completion_systemic: true
+
+  systemic_majority:
+    min_completed: 3
+    # Strictly greater than. Exactly half never trips.
+    ratio_threshold: 0.5
+
+# ── Classification ───────────────────────────────────────────────────────────
+classification:
+  # Parser / transport / server / infrastructure failures. These match the
+  # authoritative classification already used by viz/swebench_fair.py
+  # (INFRA_STATUSES) plus RuntimeError, which viz/run_swebench.py already treats
+  # as an infrastructure disposition.
+  systemic_exit_statuses:
+    - "APIError"
+    - "ConnectionError"
+    - "InternalServerError"
+    - "RuntimeError"
+    - "TimeoutExpired"
+
+  # Counted as systemic ONLY when the named evidence test passes. A model that
+  # merely formats an action wrongly is not a parser defect.
+  conditional_systemic_exit_statuses:
+    RepeatedFormatError: "trajectory_parser_corruption"
+
+  # Model/config operational outcomes. Design §10.2: these remain in the full
+  # denominator and must never trip the breaker.
+  operational_exit_statuses:
+    - "ContextWindowExceeded"
+    - "ContextWindowExceededError"
+    - "CostLimitExceeded"
+    - "LimitsExceeded"
+    - "StepLimitExceeded"
+    - "Submitted"
+
+# ── Evidence test for conditional statuses ───────────────────────────────────
+# Proof must be persisted in the instance trajectory. Either an explicit parser
+# diagnostic, or a tool call whose captured arguments are not parseable JSON.
+trajectory_parser_corruption:
+  markers:
+    - "Error parsing tool call arguments"
+    - "Failed to parse tool call"
+    - "Invalid tool call arguments"
+    - "tool_call_parser"
+  malformed_tool_call_arguments_is_proof: true
+
+# ── Live monitoring ──────────────────────────────────────────────────────────
+# mini-swe-agent rewrites exit_statuses_<timestamp>.yaml periodically, so a read
+# can land mid-write. The reader requires byte-identical consecutive reads before
+# treating a snapshot as evidence and otherwise reports nothing.
+monitor:
+  poll_interval_s: 10
+  stable_read_attempts: 3
+  stable_read_settle_s: 0.25
+
+# ── Termination ──────────────────────────────────────────────────────────────
+# Only the generation subprocess's own process group is ever signalled. The
+# runner starts it in a new session so its pgid equals its pid and can never be
+# the runner's own group.
+termination:
+  scope: "owned_process_group"
+  signal: "SIGTERM"
+  grace_period_s: 30
+  escalate_signal: "SIGKILL"

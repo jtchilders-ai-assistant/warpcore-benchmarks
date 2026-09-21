@@ -436,6 +436,33 @@ bash results/<prior>/raw/swebench/run_smoke.sh   # 3-item smoke test
 /usr/bin/screen -dmS swe_<shortname> bash results/<model>/raw/swebench/run_gen_n100.sh
 ```
 
+**If the campaign stops early: check for a circuit-breaker abort.**
+
+`viz/run_swebench.py` watches the live `raw/exit_statuses_<timestamp>.yaml` while
+generation runs and aborts the campaign once the completed instances already prove a
+systemic parser/serving/infrastructure failure — a whole run is not worth spending to
+re-prove what the first instances showed. Policy:
+`suite/swebench/circuit_breaker_policy.yaml` (suite-owned and versioned; no CLI or
+adapter override exists).
+
+```bash
+cat <run_dir>/circuit_breaker.json   # exists ONLY on a breaker abort
+```
+
+| what you see | what happened |
+| --- | --- |
+| `circuit_breaker.json` present, exit 1, status note `circuit breaker tripped: <rule>` | Systemic defect diagnosed. Fix the serving stack or parser, then launch a **new** run. |
+| No such file, exit 1, note `generation failed` | Ordinary generation failure or an unrelated signal — read `raw/run.log`. |
+| No such file, exit 2, note `operator interrupted generation` | Someone stopped it. Nothing is diagnosed. |
+
+The artifact records the observed instance IDs and their classifications, the policy
+id/version/hash, the rule, the reason and the UTC time. A tripped campaign is left
+`failed`/`invalid`: partial evidence is preserved, and it is never graded, completed,
+or published. It does **not** trip on step/cost limits, context-window exhaustion,
+submitted-but-wrong patches, or a plain `RepeatedFormatError` without persisted
+trajectory evidence of parser corruption — those are the model's own outcomes and stay
+in the full denominator.
+
 ---
 
 ## Step 4 — Post-run validation
