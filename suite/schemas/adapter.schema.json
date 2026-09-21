@@ -95,6 +95,11 @@
           "type": ["string", "null"],
           "description": "vLLM tool-call parser name or null"
         },
+        "tool_strict_level": {
+          "type": ["string", "null"],
+          "enum": ["auto", "function", "parameter", null],
+          "description": "Optional server-side floor for tool-call structural constraints"
+        },
         "tokenizer": {
           "type": ["string", "null"],
           "description": "Tokenizer override or null to use model default"

@@ -40,6 +40,7 @@ if str(_VIZ_DIR) not in sys.path:
 
 from schema_helpers import SCHEMA_ADAPTER, validate_doc
 from contract import validate_adapter, validate_adapters_dir, validate_adapter_campaign_ready
+import create_campaign
 
 ADAPTERS_DIR = _REPO / "adapters"
 RESULTS_DIR = _REPO / "results"
@@ -224,6 +225,7 @@ class TestT3_NoncanonicalGating:
         )
         assert adapter["serving"]["engine_version"] == "0.29.1rc1.dev427+g0748d3bd5.d20260920"
         assert adapter["serving"]["tool_call_parser"] == "openai"
+        assert adapter["serving"]["tool_strict_level"] == "parameter"
         assert adapter["serving"]["moe_backend"] == "marlin"
 
     def test_gpt_oss_passes_campaign_ready_with_measured_prompt_evidence(self):
@@ -236,6 +238,16 @@ class TestT3_NoncanonicalGating:
             prompt_token_maxima={"gsm8k": 256, "ifeval": 373, "gpqa_diamond": 2808},
         )
         assert errors == []
+
+    def test_gpt_oss_strict_level_is_part_of_serving_identity_and_effective_args(self):
+        adapter = _load_yaml(ADAPTERS_DIR / "gpt-oss-120b.yaml")
+        serving = adapter["serving"]
+        strict_digest = create_campaign._serving_profile_digest(adapter)
+        without_strict = _load_yaml(ADAPTERS_DIR / "gpt-oss-120b.yaml")
+        without_strict["serving"].pop("tool_strict_level")
+
+        assert strict_digest != create_campaign._serving_profile_digest(without_strict)
+        assert "--tool-strict-level=parameter" in create_campaign._build_effective_args(serving)
 
     def test_qwen36_is_canonical_for_new_closure_campaigns(self):
         """Qwen's live profile is canonical without rewriting historical provenance."""

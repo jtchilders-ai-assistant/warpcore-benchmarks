@@ -38,6 +38,7 @@ serving:
   quantization: mxfp4
   reasoning_parser: openai_gptoss
   tool_call_parser: openai
+  tool_strict_level: parameter
   tokenizer: null
   moe_backend: marlin
   max_model_len: 131072
