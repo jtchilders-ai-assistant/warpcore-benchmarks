@@ -77,6 +77,22 @@ _PROMPT_TOKEN_MAXIMA = {"gsm8k": 500, "ifeval": 2000, "gpqa_diamond": 1000}
 
 
 # ---------------------------------------------------------------------------
+# Qualification verifier seam helper
+# ---------------------------------------------------------------------------
+# Tests that drive the circuit-breaker production path use repo=tmp (a temp
+# dir that contains no real qualification record).  They inject this callable
+# as qualification_verifier so run() skips the live gate.  Production
+# construction always leaves qualification_verifier=None, which means the
+# authoritative gate runs.
+
+import swebench_qualification as _sq  # noqa: E402
+
+_PASS_QUALIFICATION = lambda: _sq.QualificationResult(  # noqa: E731
+    ok=True, summary="injected-pass (test seam)"
+)
+
+
+# ---------------------------------------------------------------------------
 # Fixture helpers
 # ---------------------------------------------------------------------------
 
@@ -348,6 +364,135 @@ class TestPolicyCannotBeOverridden(unittest.TestCase):
                 "--dry-run",
                 "--circuit-breaker-min-completed", "999",
             ])
+
+
+# ---------------------------------------------------------------------------
+# 1b. Qualification verifier seam — narrow injectable gate for tests
+# ---------------------------------------------------------------------------
+#
+# Why: circuit-breaker production-path tests use repo=tmp (no real qualification
+# record) and need to drive generation/termination code without the live gate
+# blocking them.  The seam is a single injected callable: when present it
+# replaces check_qualification(); when absent the authoritative gate runs.
+#
+# Policy:
+#   - The seam must not be exposable via CLI.
+#   - The seam must not be readable from an adapter file.
+#   - Production construction (no argument) must remain fail-closed.
+
+
+class TestQualificationVerifierSeam(unittest.TestCase):
+    """The qualification_verifier seam is injectable but cannot be set from CLI."""
+
+    def setUp(self):
+        self.tmp = pathlib.Path(tempfile.mkdtemp())
+        self.adapter_path = self.tmp / "adapters" / "test-canonical-model.yaml"
+        _write_canonical_adapter(self.adapter_path)
+        self.run_dir = _build_run_dir(self.tmp)
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def _runner(self, **kw) -> run_swebench.SwebenchRunner:
+        return run_swebench.SwebenchRunner(
+            suite_path=_REAL_SUITE,
+            adapter_path=self.adapter_path,
+            endpoint="http://localhost:8000/v1",
+            run_dir=self.run_dir,
+            repo=self.tmp,
+            allow_no_screen=True,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
+            **kw,
+        )
+
+    def test_production_construction_without_verifier_is_fail_closed(self):
+        """Without an injected verifier, run() hits the real gate (no record -> EXIT_DEFECT)."""
+        runner = self._runner(
+            preflight_runner=lambda _model_id: 0,
+        )
+        rc = runner.run()
+        self.assertEqual(
+            rc, run_swebench.EXIT_DEFECT,
+            "Production path with no qualification record must return EXIT_DEFECT.",
+        )
+
+    def test_injected_verifier_passes_when_ok(self):
+        """An injected verifier returning ok=True lets run() proceed past the gate."""
+        import swebench_qualification as sq
+        ok_result = sq.QualificationResult(ok=True, summary="injected-pass")
+
+        runner = self._runner(
+            preflight_runner=lambda _model_id: 0,
+            qualification_verifier=lambda: ok_result,
+            # Also inject generation so we don't fail on missing minisweagent;
+            # we only care that the qualification gate was bypassed.
+            generation_runner=lambda config, run_dir, **_kw: 0,
+        )
+        # run() will proceed past the gate and into the preflight/generation path;
+        # it must NOT return EXIT_DEFECT caused by the missing qualification record.
+        # (It may still fail on evidence verification, which is separate from the gate.)
+        rc = runner.run()
+        # The gate printed "QUALIFICATION: OK" — if we got there we did not hit the
+        # early EXIT_DEFECT from the gate.  The status must have moved beyond 'planned'.
+        status = json.loads((self.run_dir / "status.json").read_text())
+        self.assertNotEqual(
+            status["execution_state"], "planned",
+            "run() must advance past 'planned' when the injected verifier says OK.",
+        )
+
+    def test_injected_verifier_blocked_when_not_ok(self):
+        """An injected verifier returning ok=False still blocks the launch."""
+        import swebench_qualification as sq
+        blocked = sq.QualificationResult(ok=False, summary="injected-fail",
+                                         errors=["test block"])
+
+        runner = self._runner(
+            preflight_runner=lambda _model_id: 0,
+            qualification_verifier=lambda: blocked,
+        )
+        rc = runner.run()
+        self.assertEqual(
+            rc, run_swebench.EXIT_DEFECT,
+            "An injected blocking verifier must still produce EXIT_DEFECT.",
+        )
+
+    def test_cli_exposes_no_qualification_verifier_option(self):
+        """The CLI must not expose a flag that injects a qualification verifier."""
+        parser = run_swebench._build_arg_parser()
+        options = [opt for action in parser._actions for opt in action.option_strings]
+        for opt in options:
+            lowered = opt.lower()
+            for banned in ("qualification-verifier", "skip-qualification", "bypass-qual",
+                           "qualification_verifier"):
+                self.assertNotIn(
+                    banned, lowered,
+                    f"CLI option {opt!r} would expose the qualification verifier seam.",
+                )
+
+    def test_seam_path_suppresses_ok_banner(self):
+        """When the seam provides the verdict, the duplicate OK banner is suppressed."""
+        import io
+        import swebench_qualification as sq
+        ok_result = sq.QualificationResult(ok=True, summary="injected-pass")
+
+        runner = self._runner(
+            preflight_runner=lambda _model_id: 0,
+            qualification_verifier=lambda: ok_result,
+            generation_runner=lambda config, run_dir, **_kw: 0,
+        )
+
+        import contextlib
+        buf = io.StringIO()
+        with contextlib.redirect_stderr(buf):
+            runner.run()
+
+        stderr_out = buf.getvalue()
+        # The seam path must NOT print "QUALIFICATION: OK — injected-pass"
+        self.assertNotIn(
+            "injected-pass",
+            stderr_out,
+            "Seam path must not re-print the OK banner (it was already printed by main()).",
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -811,6 +956,7 @@ class TestProductionGenerationPath(unittest.TestCase):
             prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
             preflight_runner=lambda _model_id: 0,
             grading_runner=self._record_grading,
+            qualification_verifier=_PASS_QUALIFICATION,
         )
         runner.fake_script = self.script
         runner.marker = self.marker
@@ -1059,6 +1205,7 @@ class TestPostExitObservationRace(unittest.TestCase):
             grading_runner=lambda preds_path, run_dir: (
                 self.grading_calls.append(preds_path) or 0
             ),
+            qualification_verifier=_PASS_QUALIFICATION,
         )
         runner.fake_script = self.script
         runner.marker = self.marker

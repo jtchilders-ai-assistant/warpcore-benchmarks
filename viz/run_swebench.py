@@ -755,6 +755,14 @@ class SwebenchRunner:
         Injected callable(config: dict, run_dir: Path, **kw) -> int.
     grading_runner : callable or None
         Injected callable(preds_path: Path, run_dir: Path, **kw) -> int.
+    qualification_verifier : callable or None
+        Narrow test-seam: callable() -> QualificationResult.  When supplied,
+        replaces the authoritative check_qualification() call inside run().
+        Must NOT be exposed via CLI or readable from an adapter — it is a
+        constructor-only parameter for tests that need to drive the
+        circuit-breaker production path without a real qualification record.
+        Production construction omits this argument; the fail-closed default
+        (None) means the authoritative gate always runs in production.
     """
 
     def __init__(
@@ -776,6 +784,7 @@ class SwebenchRunner:
         generation_runner: Optional[Callable] = None,
         grading_runner: Optional[Callable] = None,
         done_writer: Optional[Callable] = None,
+        qualification_verifier: Optional[Callable] = None,
     ) -> None:
         self.suite_path = pathlib.Path(suite_path).resolve()
         self.adapter_path = pathlib.Path(adapter_path).resolve()
@@ -1000,6 +1009,9 @@ class SwebenchRunner:
         self._generation_runner = generation_runner
         self._grading_runner = grading_runner
         self._done_writer = done_writer  # callable(done_path: Path) -> None; default: atomic rename
+        # Narrow test seam for the qualification gate — None means the authoritative
+        # gate (check_qualification()) runs.  Must never be set from CLI or adapter.
+        self._qualification_verifier = qualification_verifier
 
     @property
     def circuit_breaker_policy(self) -> circuit_breaker.CircuitBreakerPolicy:
@@ -1264,7 +1276,40 @@ class SwebenchRunner:
         # RepeatedFormatError smoke, a stale record, or a record sealed for a
         # different SHA/suite/adapter/profile/model/scaffold stops the launch here,
         # with no campaign state mutated.
-        qualification = self.check_qualification()
+        #
+        # TWO-STAGE DEFENSE-IN-DEPTH (intentional, not a bug):
+        # main() runs a pre-state gate before create_campaign() so that a failed
+        # qualification never touches the filesystem.  run() then re-runs the same
+        # gate here before any status transition.  The second check is not redundant:
+        # it catches any qualification that expired or was invalidated between the
+        # pre-state call and this point, and it ensures that callers who invoke
+        # run() directly (programmatic, tests) also get the gate.  Both stages must
+        # remain fail-closed independently; removing either one weakens the contract.
+        #
+        # TOCTOU note: do NOT pass the pre-state verdict across create_campaign()
+        # into this stage.  A verdict object has no TTL; reusing it here would
+        # silently accept a qualification that may have become stale or been revoked
+        # in the window between the two calls.  The cost of a second read is trivial.
+        #
+        # SEAM (test-only): _qualification_verifier is a constructor-only injection
+        # (callable() -> QualificationResult) that replaces the live gate call when
+        # set.  It is NEVER exposed via CLI or readable from an adapter.  Production
+        # construction always leaves it None, meaning the authoritative gate runs.
+        # Tests that need to drive the circuit-breaker production path without a real
+        # qualification record inject a pass-through here; see _PASS_QUALIFICATION
+        # in test_swebench_circuit_breaker.py.  The seam does not skip the gate — the
+        # injected callable still returns a QualificationResult and its .ok value is
+        # enforced identically to the live path.  A blocking injected result still
+        # returns EXIT_DEFECT.
+        if self._qualification_verifier is not None:
+            qualification = self._qualification_verifier()
+            # Seam path: the banner was already printed by the caller (main() or
+            # the test harness); suppress the duplicate OK banner to avoid noise.
+            # Failures still print and return EXIT_DEFECT below.
+            _print_ok_banner = False
+        else:
+            qualification = self.check_qualification()
+            _print_ok_banner = True
         if not qualification.ok:
             print(qualification.render(), file=sys.stderr)
             print(
@@ -1274,7 +1319,8 @@ class SwebenchRunner:
                 file=sys.stderr,
             )
             return EXIT_DEFECT
-        print(f"[run-swebench] {qualification.render()}", file=sys.stderr)
+        if _print_ok_banner:
+            print(f"[run-swebench] {qualification.render()}", file=sys.stderr)
 
         # --- Read and strict-validate status.json ---
         try:
