@@ -1814,6 +1814,21 @@ class SwebenchRunner:
         Returns the subprocess return code. On a trip the code is the signal-derived
         value from the termination we performed; callers must consult
         self._circuit_breaker_decision rather than inferring intent from the code.
+
+        Post-exit observation
+        --------------------
+        The while-loop exits as soon as proc.poll() is not None, which can happen
+        before (or between) monitor.observe() calls.  If the subprocess wrote
+        systemic evidence in the final moments before exiting the monitor would
+        never see it, and the run would be mislabelled as a generic generation
+        failure with no circuit_breaker.json.
+
+        To close the race we perform one final stable observation *after* the
+        process has exited.  The process-group termination path is never taken for
+        a post-exit decision (the process is already gone), so _terminate_owned_generation
+        records "already_exited" without signalling anything.  All other invariants
+        (artifact writes, lifecycle transition, no grading) are identical to the
+        live-trip path.
         """
         monitor = circuit_breaker.BreakerMonitor(
             raw_dir=raw_dir,
@@ -1852,6 +1867,37 @@ class SwebenchRunner:
                 decision, termination=self._circuit_breaker_termination
             )
             break
+
+        # --- Post-exit final observation ---
+        # The subprocess has now exited.  Evaluate any systemic evidence it left
+        # behind that the polling loop did not get to observe.  Skip if the breaker
+        # already fired during the loop.
+        if self._circuit_breaker_decision is None:
+            try:
+                decision = monitor.observe()
+            except Exception as exc:
+                print(
+                    f"[run-swebench] Post-exit circuit-breaker observation failed "
+                    f"(treating as no decision): {exc}",
+                    file=sys.stderr,
+                )
+                decision = None
+            if decision is not None:
+                self._circuit_breaker_decision = decision
+                print(
+                    "[run-swebench] CIRCUIT BREAKER TRIPPED (post-exit) "
+                    f"[{decision.rule}]: {decision.reason}",
+                    file=sys.stderr,
+                )
+                # The process is already gone — _terminate_owned_generation will
+                # detect proc.poll() is not None and record "already_exited" without
+                # sending any signal.  We still go through the same artifact-write
+                # path so circuit_breaker.json is always structurally identical.
+                self._write_circuit_breaker_artifact(decision, termination=None)
+                self._circuit_breaker_termination = self._terminate_owned_generation(proc)
+                self._write_circuit_breaker_artifact(
+                    decision, termination=self._circuit_breaker_termination
+                )
 
         return proc.wait()
 

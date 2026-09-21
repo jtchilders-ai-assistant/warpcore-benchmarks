@@ -998,5 +998,151 @@ class TestProductionGenerationPath(unittest.TestCase):
         )
 
 
+# ---------------------------------------------------------------------------
+# 6. Post-exit observation race — systemic evidence written before process exit
+# ---------------------------------------------------------------------------
+
+
+class _SlowPollRunner(_ProductionRunner):
+    """Like _ProductionRunner but with a very long poll interval.
+
+    The long interval means the subprocess will finish (and the while-loop will
+    exit via proc.poll() is not None) before the first monitor.observe() call
+    inside the loop — exactly the race the fix must handle.
+    """
+
+    def _monitor_poll_interval_s(self) -> float:
+        # 30 s >> fake subprocess runtime (~0 s) — guaranteed race exposure.
+        return 30.0
+
+    def _monitor_sleep(self, seconds: float) -> None:
+        # Let the real time.sleep run so _pace_monitor_cycle actually waits,
+        # but cap it so the test does not hang if the fix is wrong.
+        import time as _time
+        _time.sleep(min(seconds, 0.05))
+
+
+class TestPostExitObservationRace(unittest.TestCase):
+    """Regression: systemic evidence written by a subprocess that exits before
+    the first (or any) monitor poll cycle must still be evaluated and must
+    produce a circuit_breaker.json + failed/invalid campaign status.
+
+    Without the fix _monitor_generation exits the while-loop via
+    `proc.poll() is not None` and returns immediately, skipping the final
+    observation, so no circuit_breaker.json is ever written and the failure
+    is mislabeled as a generic generation failure.
+    """
+
+    def setUp(self):
+        self.tmp = pathlib.Path(tempfile.mkdtemp())
+        self.adapter_path = self.tmp / "adapters" / "test-canonical-model.yaml"
+        _write_canonical_adapter(self.adapter_path)
+        self.run_dir = _build_run_dir(self.tmp)
+        self.script = self.tmp / "fake_generation.py"
+        self.script.write_text(_FAKE_GENERATION)
+        self.marker = self.tmp / "marker.json"
+        self.grading_calls = []
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def _runner(self, **overrides) -> _SlowPollRunner:
+        runner = _SlowPollRunner(
+            suite_path=_REAL_SUITE,
+            adapter_path=self.adapter_path,
+            endpoint="http://localhost:8000/v1",
+            run_dir=self.run_dir,
+            repo=self.tmp,
+            allow_no_screen=True,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
+            preflight_runner=lambda _model_id: 0,
+            grading_runner=lambda preds_path, run_dir: (
+                self.grading_calls.append(preds_path) or 0
+            ),
+        )
+        runner.fake_script = self.script
+        runner.marker = self.marker
+        runner.fake_ids = [_FROZEN_IDS[0]]
+        runner.mode = "clean"  # subprocess writes evidence and exits immediately
+        for key, value in overrides.items():
+            setattr(runner, key, value)
+        return runner
+
+    def test_systemic_evidence_written_at_exit_is_detected(self):
+        """circuit_breaker.json must be written even when the subprocess exits
+        before the polling loop has a chance to observe the progress file."""
+        runner = self._runner(fake_status="RuntimeError")
+
+        rc = runner.run()
+
+        self.assertEqual(
+            rc, run_swebench.EXIT_DEFECT,
+            "Post-exit systemic evidence must produce EXIT_DEFECT, not EXIT_SUCCESS.",
+        )
+        self.assertTrue(
+            (self.run_dir / "circuit_breaker.json").is_file(),
+            "circuit_breaker.json must be written when systemic evidence is present "
+            "at subprocess exit, even if the process exited before the polling loop observed it.",
+        )
+
+    def test_post_exit_systemic_evidence_transitions_to_failed_invalid(self):
+        """Campaign must be failed/invalid, not left in 'running' or 'generation failed'."""
+        runner = self._runner(fake_status="RuntimeError")
+
+        runner.run()
+
+        status = json.loads((self.run_dir / "status.json").read_text())
+        self.assertEqual(status["execution_state"], "failed")
+        self.assertEqual(status["lifecycle"], "invalid")
+        self.assertIn(
+            "circuit breaker",
+            status["history"][-1].get("note", "").lower(),
+            "Status history must record the circuit-breaker trip, not a generic failure.",
+        )
+
+    def test_post_exit_circuit_breaker_artifact_is_valid(self):
+        """The post-exit circuit_breaker.json must be structurally identical to
+        the live-trip artifact (same schema, tripped=True, correct rule)."""
+        runner = self._runner(fake_status="RuntimeError")
+
+        runner.run()
+
+        artifact = json.loads((self.run_dir / "circuit_breaker.json").read_text())
+        self.assertTrue(artifact["tripped"])
+        self.assertEqual(artifact["benchmark"], "swebench")
+        self.assertEqual(artifact["suite_id"], "warpcore-v1")
+        self.assertTrue(artifact["reason"])
+        self.assertIn(
+            artifact["rule"],
+            ("first_completion_systemic", "systemic_majority"),
+        )
+        self.assertGreater(artifact["observed"]["completed_count"], 0)
+        self.assertGreater(artifact["observed"]["systemic_count"], 0)
+
+    def test_post_exit_healthy_generation_is_not_tripped(self):
+        """A subprocess that exits cleanly with only healthy (Submitted) outcomes
+        must NOT trip the breaker — the post-exit observation must respect the same
+        classification rules as the live-polling path."""
+        runner = self._runner(fake_status="Submitted")
+
+        runner.run()
+
+        self.assertFalse(
+            (self.run_dir / "circuit_breaker.json").exists(),
+            "Post-exit healthy evidence must not produce circuit_breaker.json.",
+        )
+
+    def test_post_exit_does_not_grade_a_tripped_campaign(self):
+        """A campaign aborted by the post-exit observation must never proceed to grading."""
+        runner = self._runner(fake_status="RuntimeError")
+
+        runner.run()
+
+        self.assertEqual(
+            self.grading_calls, [],
+            "Grading must not be called after a post-exit circuit-breaker trip.",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
