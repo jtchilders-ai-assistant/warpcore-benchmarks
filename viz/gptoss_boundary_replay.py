@@ -70,7 +70,7 @@ def classify_response(response: dict[str, Any]) -> dict[str, Any]:
         "response_sha256": canonical_digest(response),
         "finish_reason": choices[0].get("finish_reason"),
         "tool_call_count": len(classified),
-        "all_arguments_valid_json": bool(classified) and all(x["valid_json"] for x in classified),
+        "all_arguments_valid_json": all(x["valid_json"] for x in classified),
         "tool_calls": classified,
     }
 

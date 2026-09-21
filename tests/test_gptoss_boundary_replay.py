@@ -158,6 +158,11 @@ def test_extract_rejects_nonregular_archive_member(tmp_path: Path):
 def test_classifies_missing_and_malformed_tool_arguments_fail_closed():
     assert classify_response(_response('{"command":"pwd"}'))["all_arguments_valid_json"] is True
     assert classify_response(_response('{"command":"pwd"]}'))["all_arguments_valid_json"] is False
+    content_only = _response('{"command":"pwd"}')
+    content_only["choices"][0]["message"]["tool_calls"] = []
+    content_only_result = classify_response(content_only)
+    assert content_only_result["tool_call_count"] == 0
+    assert content_only_result["all_arguments_valid_json"] is True
     missing = _response('{"command":"pwd"}')
     del missing["choices"][0]["message"]["tool_calls"][0]["function"]["arguments"]
     result = classify_response(missing)
