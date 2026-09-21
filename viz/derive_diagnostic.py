@@ -43,7 +43,11 @@ G6  Every terminal ID is a member of the suite's frozen instance set.
 G7  manifest ``item_inventory.expected`` equals the frozen instance count, and
     ``instance_ids_hash`` equals the canonical digest of the sorted frozen set.
 G8  manifest ``adapter_hash`` and every ``suite_input_hashes`` entry match the
-    files on disk.
+    run-owned input snapshot (``suite_input_snapshots/<basename>``) when that
+    snapshot exists, or the current canonical repository file otherwise.  The
+    snapshot is the authoritative provenance of the bytes the run actually used;
+    a canonical file that evolved after the run was committed does not falsify
+    historical evidence that carries its own snapshot.
 G9  status records ``execution_state='failed'`` with a nonpublishable lifecycle.
 G10 No DONE sentinel, no grading artifact, no per-item score table — a score
     must not be derivable from this run.
@@ -72,6 +76,12 @@ _REPO_DEFAULT = _VIZ_DIR.parent
 SUMMARY_NAME = "diagnostic_summary.json"
 TERMINATION_NAME = "TERMINATION.json"
 ARCHIVE_REL = "raw/trajectories.tar.gz"
+#: Subdirectory within the run that holds exact snapshots of suite input files
+#: as they were at the moment the run was launched.  When a snapshot exists for
+#: a ``suite_input_hashes`` entry, G8 verifies the declared hash against the
+#: snapshot rather than the current canonical repository file, preserving
+#: provenance for historical evidence across canonical-file evolution.
+SNAPSHOTS_DIR = "suite_input_snapshots"
 SCHEMA_VERSION = 1
 
 #: Lifecycles a failed campaign may legally carry (design §8, §9).
@@ -104,6 +114,49 @@ class DiagnosticEvidenceError(Exception):
 
 def _sha256(blob: bytes) -> str:
     return hashlib.sha256(blob).hexdigest()
+
+
+def _validate_safe_rel(rel: str, label: str, errors: list) -> bool:
+    """Validate that *rel* is a lexically safe, relative path.
+
+    A safe relative path must not be absolute and must contain no ``..``
+    components that could escape the intended root.  Returns True when safe,
+    appends to *errors* and returns False otherwise.
+
+    This check is intentionally strict: any ``..`` in *any* component of the
+    path is rejected, even if the OS-resolved result would remain within the
+    root.  Lexical safety is required before any filesystem operation.
+    """
+    if pathlib.PurePosixPath(rel).is_absolute() or pathlib.PureWindowsPath(rel).is_absolute():
+        errors.append(
+            f"unsafe path in {label}: {rel!r} is absolute; "
+            "suite_input_hashes keys must be repo-relative paths."
+        )
+        return False
+    parts = pathlib.PurePosixPath(rel).parts
+    if ".." in parts or "." in parts:
+        errors.append(
+            f"unsafe path traversal in {label}: {rel!r} contains '..' or '.' components; "
+            "path traversal is not permitted."
+        )
+        return False
+    return True
+
+
+def _validate_contained(resolved: pathlib.Path, root: pathlib.Path, label: str, errors: list) -> bool:
+    """Confirm that *resolved* is strictly contained within *root*.
+
+    Returns True when contained, appends to *errors* and returns False otherwise.
+    """
+    try:
+        resolved.relative_to(root)
+        return True
+    except ValueError:
+        errors.append(
+            f"path containment violation in {label}: resolved path {resolved} "
+            f"is not contained within {root}."
+        )
+        return False
 
 
 def _read_json(path: pathlib.Path, label: str, errors: list) -> Optional[dict]:
@@ -589,31 +642,101 @@ def derive(run_dir, repo=None) -> dict:
                 f"{canonical_hash[:16]}..."
             )
 
-    # --- G8: declared input hashes must match the repository ----------------
+    # --- G8: declared input hashes must match the run-owned snapshot or repo file ----
     suite_input_hashes = manifest.get("suite_input_hashes") or {}
-    for rel, declared in sorted(suite_input_hashes.items()):
-        target = repo / rel
-        if not target.is_file():
-            errors.append(f"manifest suite_input_hashes names a missing file: {rel}.")
-            continue
-        actual = _sha256(target.read_bytes())
-        if actual != declared:
-            errors.append(
-                f"manifest suite_input_hashes hash mismatch for {rel}: manifest records "
-                f"{str(declared)[:16]}..., file is {actual[:16]}..."
-            )
-    adapter_path = repo / "adapters" / f"{model_slug}.yaml"
-    declared_adapter = manifest.get("adapter_hash", "")
-    if not adapter_path.is_file():
-        errors.append(f"adapter file not found at {adapter_path}; adapter_hash is unverifiable.")
-    else:
-        actual_adapter = _sha256(adapter_path.read_bytes())
-        if actual_adapter != declared_adapter:
-            errors.append(
-                f"manifest adapter_hash mismatch for adapters/{model_slug}.yaml: manifest "
-                f"records {str(declared_adapter)[:16]}..., file is {actual_adapter[:16]}..."
-            )
+    snapshots_dir = run_dir / SNAPSHOTS_DIR
+    snapshot_mode = snapshots_dir.is_dir()
 
+    for rel, declared in sorted(suite_input_hashes.items()):
+        # Validate lexical safety before any filesystem operation.
+        if not _validate_safe_rel(rel, "suite_input_hashes", errors):
+            continue
+        snapshot = snapshots_dir / rel
+        resolved_snapshot = snapshot.resolve()
+        resolved_snapshots_root = snapshots_dir.resolve()
+        if snapshot_mode:
+            # In snapshot mode ALL entries must have a snapshot; no silent fallback.
+            if not snapshot.is_file():
+                errors.append(
+                    f"{SNAPSHOTS_DIR}/{rel} snapshot missing: once suite_input_snapshots/ "
+                    "exists every suite_input_hashes entry must have a run-owned snapshot "
+                    "so that historical provenance is complete."
+                )
+                continue
+            # Verify resolved path is still contained within snapshots root.
+            if not _validate_contained(resolved_snapshot, resolved_snapshots_root,
+                                       f"suite_input_hashes key {rel!r}", errors):
+                continue
+            actual = _sha256(snapshot.read_bytes())
+            if actual != declared:
+                errors.append(
+                    f"{SNAPSHOTS_DIR}/{rel} hash mismatch: "
+                    f"manifest records {str(declared)[:16]}..., "
+                    f"snapshot is {actual[:16]}..."
+                )
+        else:
+            # No snapshot present — fall back to current canonical file.
+            target = repo / rel
+            if not target.is_file():
+                errors.append(f"manifest suite_input_hashes names a missing file: {rel}.")
+                continue
+            actual = _sha256(target.read_bytes())
+            if actual != declared:
+                errors.append(
+                    f"manifest suite_input_hashes hash mismatch for {rel}: manifest records "
+                    f"{str(declared)[:16]}..., file is {actual[:16]}..."
+                )
+
+    # --- G8 adapter: adapter snapshot required when snapshot mode is active ----------
+    adapter_snapshot_rel: Optional[str] = None
+    declared_adapter = manifest.get("adapter_hash", "")
+    # Always validate slug path safety before building any filesystem path.
+    slug_safe = True
+    if model_slug:
+        slug_parts = pathlib.PurePosixPath(model_slug).parts
+        if ".." in slug_parts or "." in slug_parts or pathlib.PurePosixPath(model_slug).is_absolute():
+            errors.append(
+                f"unsafe adapter path: model_slug {model_slug!r} contains '..'  or '.' "
+                "components or is absolute; adapter snapshot path traversal is not permitted."
+            )
+            slug_safe = False
+    if snapshot_mode and slug_safe:
+        adapter_snap_rel = f"adapters/{model_slug}.yaml"
+        adapter_snap = snapshots_dir / adapter_snap_rel
+        resolved_adapter_snap = adapter_snap.resolve()
+        resolved_snapshots_root = snapshots_dir.resolve()
+        if not _validate_contained(resolved_adapter_snap, resolved_snapshots_root,
+                                   f"adapter snapshot for slug {model_slug!r}", errors):
+            slug_safe = False
+        elif not adapter_snap.is_file():
+            errors.append(
+                f"{SNAPSHOTS_DIR}/adapters/{model_slug}.yaml adapter snapshot missing: "
+                "once suite_input_snapshots/ exists the adapter snapshot must also be "
+                "present to preserve full provenance for this historical run."
+            )
+        else:
+            actual_adapter_snap = _sha256(adapter_snap.read_bytes())
+            if actual_adapter_snap != declared_adapter:
+                errors.append(
+                    f"{SNAPSHOTS_DIR}/adapters/{model_slug}.yaml adapter snapshot hash "
+                    f"mismatch: manifest adapter_hash records {str(declared_adapter)[:16]}..., "
+                    f"snapshot is {actual_adapter_snap[:16]}..."
+                )
+            else:
+                # Snapshot verified: no need to re-check the canonical adapter file.
+                adapter_snapshot_rel = f"{SNAPSHOTS_DIR}/{adapter_snap_rel}"
+    if slug_safe and not snapshot_mode:
+        # Non-snapshot mode: verify against the current canonical adapter file.
+        adapter_path = repo / "adapters" / f"{model_slug}.yaml"
+        if not adapter_path.is_file():
+            errors.append(f"adapter file not found at {adapter_path}; adapter_hash is unverifiable.")
+        else:
+            actual_adapter = _sha256(adapter_path.read_bytes())
+            if actual_adapter != declared_adapter:
+                errors.append(
+                    f"manifest adapter_hash mismatch for adapters/{model_slug}.yaml: manifest "
+                    f"records {str(declared_adapter)[:16]}..., file is {actual_adapter[:16]}..."
+                )
     if errors:
         raise DiagnosticEvidenceError(_format(run_dir, errors))
 
@@ -702,6 +825,7 @@ def derive(run_dir, repo=None) -> dict:
             "reasoning_parser": _arg_value(effective_args, "reasoning-parser"),
         },
         "adapter_hash": declared_adapter,
+        "adapter_snapshot": adapter_snapshot_rel,
         "suite_input_hashes": dict(sorted(suite_input_hashes.items())),
         "artifacts": artifacts,
     }

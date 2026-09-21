@@ -60,6 +60,10 @@ EVIDENCE_FILES = [
     "raw/run.log",
     "raw/trajectories.tar.gz",
     "status.json",
+    "suite_input_snapshots/adapters/gpt-oss-120b.yaml",
+    "suite_input_snapshots/suite/swebench/instances-seed42-n100.json",
+    "suite_input_snapshots/suite/swebench/scaffold.yaml",
+    "suite_input_snapshots/suite/warpcore-v1.yaml",
 ]
 
 
@@ -450,6 +454,123 @@ class TestFailClosed:
         (run_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
         self._expect_failure(mini_repo, "suite_input_hashes hash mismatch")
 
+    # --- Regression: snapshot-aware G8 verification -------------------------
+
+    def _write_full_mini_snapshots(self, run_dir, mini_repo, tool):
+        """Write snapshots for all suite_input_hashes entries + the adapter.
+
+        In snapshot mode every suite_input_hashes key and the adapter must have
+        a run-owned snapshot.  Call this helper after updating the manifest with
+        any additional suite_input_hashes entries, before calling derive().
+        """
+        manifest = json.loads((run_dir / "manifest.json").read_text())
+        snapshots_dir = run_dir / tool.SNAPSHOTS_DIR
+
+        for rel in manifest.get("suite_input_hashes", {}):
+            src = mini_repo / rel
+            dst = snapshots_dir / rel
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            dst.write_bytes(src.read_bytes())
+
+        # Adapter snapshot.
+        model_slug = (manifest.get("model") or {}).get("slug", "")
+        adapter_src = mini_repo / "adapters" / f"{model_slug}.yaml"
+        adapter_dst = snapshots_dir / "adapters" / f"{model_slug}.yaml"
+        adapter_dst.parent.mkdir(parents=True, exist_ok=True)
+        adapter_dst.write_bytes(adapter_src.read_bytes())
+
+    def test_evolved_suite_input_verified_via_snapshot(self, mini_repo):
+        """G8 regression: a suite input that changed after the run must not
+        falsely invalidate historical evidence when a run-owned snapshot exists.
+
+        The snapshot mirrors the full repo-relative path under suite_input_snapshots/
+        so there is no basename collision risk.  Mutating the canonical repo file
+        must not cause derive() to fail if the snapshot still matches the declared hash.
+        """
+        run_dir = _mini_run_dir(mini_repo)
+        tool = _import_tool()
+        # Add a warpcore-v1.yaml entry to suite_input_hashes.
+        suite_yaml_path = mini_repo / "suite" / "warpcore-v1.yaml"
+        original_bytes = suite_yaml_path.read_bytes()
+        original_hash = hashlib.sha256(original_bytes).hexdigest()
+
+        manifest = json.loads((run_dir / "manifest.json").read_text())
+        manifest["suite_input_hashes"]["suite/warpcore-v1.yaml"] = original_hash
+        (run_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
+
+        # Write all required snapshots (every suite_input_hashes entry + adapter).
+        self._write_full_mini_snapshots(run_dir, mini_repo, tool)
+
+        # Now evolve the canonical file — simulates a qualification gate update.
+        suite_yaml_path.write_text(
+            suite_yaml_path.read_text() + "  # post-run qualification change\n"
+        )
+        assert hashlib.sha256(suite_yaml_path.read_bytes()).hexdigest() != original_hash
+
+        # derive() must succeed: snapshot matches declared hash.
+        summary = tool.derive(run_dir, repo=mini_repo)
+        assert summary["suite_input_hashes"]["suite/warpcore-v1.yaml"] == original_hash
+
+    def test_no_basename_collision_with_full_path_snapshots(self, mini_repo):
+        """G8: two suite inputs sharing a basename but different directories
+        must not collide in the snapshot store — full repo-relative paths are used.
+        """
+        run_dir = _mini_run_dir(mini_repo)
+        tool = _import_tool()
+
+        # Create two files that share a basename but live in different directories.
+        path_a = mini_repo / "suite" / "warpcore-v1.yaml"
+        alt_dir = mini_repo / "suite" / "swebench"
+        alt_dir.mkdir(parents=True, exist_ok=True)
+        path_b = alt_dir / "warpcore-v1.yaml"
+        path_b.write_text("# alternate warpcore-v1\n")
+
+        bytes_a = path_a.read_bytes()
+        bytes_b = path_b.read_bytes()
+        hash_a = hashlib.sha256(bytes_a).hexdigest()
+        hash_b = hashlib.sha256(bytes_b).hexdigest()
+        assert hash_a != hash_b, "test requires distinct content for the two files"
+
+        manifest = json.loads((run_dir / "manifest.json").read_text())
+        manifest["suite_input_hashes"]["suite/warpcore-v1.yaml"] = hash_a
+        manifest["suite_input_hashes"]["suite/swebench/warpcore-v1.yaml"] = hash_b
+        (run_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
+
+        # Write all snapshots (including instances-fake.json and adapter).
+        self._write_full_mini_snapshots(run_dir, mini_repo, tool)
+
+        # Both canonical files evolve — neither snapshot-backed hash should fail.
+        path_a.write_text(path_a.read_text() + "# evolved\n")
+        path_b.write_text(path_b.read_text() + "# evolved\n")
+
+        summary = tool.derive(run_dir, repo=mini_repo)
+        assert summary["suite_input_hashes"]["suite/warpcore-v1.yaml"] == hash_a
+        assert summary["suite_input_hashes"]["suite/swebench/warpcore-v1.yaml"] == hash_b
+
+    def test_tampered_snapshot_fails_closed(self, mini_repo):
+        """G8 fail-closed: a snapshot that does not match its declared hash
+        must cause derive() to raise DiagnosticEvidenceError.
+        """
+        run_dir = _mini_run_dir(mini_repo)
+        tool = _import_tool()
+        suite_yaml_path = mini_repo / "suite" / "warpcore-v1.yaml"
+        original_bytes = suite_yaml_path.read_bytes()
+        original_hash = hashlib.sha256(original_bytes).hexdigest()
+
+        manifest = json.loads((run_dir / "manifest.json").read_text())
+        manifest["suite_input_hashes"]["suite/warpcore-v1.yaml"] = original_hash
+        (run_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
+
+        # Write all required snapshots first, then tamper with one.
+        self._write_full_mini_snapshots(run_dir, mini_repo, tool)
+        # Overwrite the warpcore-v1.yaml snapshot with tampered bytes.
+        (run_dir / tool.SNAPSHOTS_DIR / "suite" / "warpcore-v1.yaml").write_bytes(
+            b"tampered content\n"
+        )
+
+        with pytest.raises(tool.DiagnosticEvidenceError, match=tool.SNAPSHOTS_DIR):
+            tool.derive(run_dir, repo=mini_repo)
+
     def test_grading_artifact_present_fails(self, mini_repo):
         run_dir = _mini_run_dir(mini_repo)
         (run_dir / "raw" / "grading_results.json").write_text(
@@ -518,6 +639,183 @@ class TestFailClosed:
         self._expect_failure(
             mini_repo, "does not match the 'Submitted' exit status bucket"
         )
+
+    # --- Adversarial security: path traversal in snapshot reads --------------
+
+    def test_path_traversal_in_suite_input_hash_key_fails(self, mini_repo):
+        """G8: a manifest suite_input_hashes key with '..' components must be
+        rejected before any filesystem read occurs — path traversal is a blocker.
+        """
+        run_dir = _mini_run_dir(mini_repo)
+        manifest = json.loads((run_dir / "manifest.json").read_text())
+        # Attempt to escape the repo via a traversal key.
+        manifest["suite_input_hashes"]["../../etc/passwd"] = "a" * 64
+        (run_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
+        self._expect_failure(mini_repo, r"unsafe.*path|path.*traversal|\.\.|\.\.")
+
+    def test_absolute_path_in_suite_input_hash_key_fails(self, mini_repo):
+        """G8: an absolute path key in suite_input_hashes must be rejected."""
+        run_dir = _mini_run_dir(mini_repo)
+        manifest = json.loads((run_dir / "manifest.json").read_text())
+        manifest["suite_input_hashes"]["/etc/passwd"] = "a" * 64
+        (run_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
+        self._expect_failure(mini_repo, r"unsafe.*path|path.*traversal|absolute")
+
+    # --- Adversarial coverage: partial snapshot mode must not silently skip ---
+
+    def test_partial_snapshots_missing_one_suite_input_fails(self, mini_repo):
+        """Once suite_input_snapshots/ exists, ALL suite_input_hashes entries
+        must have a snapshot — partial coverage is a blocker, not a fallback.
+        """
+        run_dir = _mini_run_dir(mini_repo)
+        tool = _import_tool()
+
+        # Establish a full snapshot set for the mini run's two inputs.
+        suite_yaml = mini_repo / "suite" / "warpcore-v1.yaml"
+        instances_json = mini_repo / "suite" / "swebench" / "instances-fake.json"
+
+        suite_bytes = suite_yaml.read_bytes()
+        instances_bytes = instances_json.read_bytes()
+
+        manifest = json.loads((run_dir / "manifest.json").read_text())
+        manifest["suite_input_hashes"]["suite/warpcore-v1.yaml"] = (
+            hashlib.sha256(suite_bytes).hexdigest()
+        )
+        # instances-fake.json is already in suite_input_hashes; update hash.
+        manifest["suite_input_hashes"]["suite/swebench/instances-fake.json"] = (
+            hashlib.sha256(instances_bytes).hexdigest()
+        )
+        (run_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
+
+        # Create snapshots dir with only one of the two entries — partial coverage.
+        snapshots_dir = run_dir / tool.SNAPSHOTS_DIR
+        (snapshots_dir / "suite").mkdir(parents=True, exist_ok=True)
+        (snapshots_dir / "suite" / "warpcore-v1.yaml").write_bytes(suite_bytes)
+        # Intentionally omit "suite/swebench/instances-fake.json" snapshot.
+
+        self._expect_failure(
+            mini_repo,
+            r"snapshot.*missing|missing.*snapshot|suite_input_snapshots.*instances-fake|partial",
+        )
+
+    def test_partial_snapshots_missing_adapter_snapshot_fails(self, mini_repo):
+        """Once suite_input_snapshots/ exists, the adapter snapshot must also
+        be present (under suite_input_snapshots/adapters/<slug>.yaml).
+        """
+        run_dir = _mini_run_dir(mini_repo)
+        tool = _import_tool()
+
+        adapter_path = mini_repo / "adapters" / "fake-model.yaml"
+        adapter_bytes = adapter_path.read_bytes()
+
+        # Create snapshots dir with suite input but NOT the adapter snapshot.
+        suite_yaml = mini_repo / "suite" / "warpcore-v1.yaml"
+        suite_bytes = suite_yaml.read_bytes()
+
+        manifest = json.loads((run_dir / "manifest.json").read_text())
+        manifest["suite_input_hashes"]["suite/warpcore-v1.yaml"] = (
+            hashlib.sha256(suite_bytes).hexdigest()
+        )
+        (run_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
+
+        snapshots_dir = run_dir / tool.SNAPSHOTS_DIR
+        (snapshots_dir / "suite").mkdir(parents=True, exist_ok=True)
+        (snapshots_dir / "suite" / "warpcore-v1.yaml").write_bytes(suite_bytes)
+        (snapshots_dir / "suite" / "swebench").mkdir(parents=True, exist_ok=True)
+        (snapshots_dir / "suite" / "swebench" / "instances-fake.json").write_bytes(
+            (mini_repo / "suite" / "swebench" / "instances-fake.json").read_bytes()
+        )
+        # Intentionally omit the adapter snapshot.
+
+        self._expect_failure(
+            mini_repo,
+            r"adapter.*snapshot.*missing|missing.*adapter.*snapshot|suite_input_snapshots.*adapter",
+        )
+
+    # --- Adversarial coverage: adapter snapshot hash verification ------------
+
+    def test_evolved_adapter_verified_via_snapshot(self, mini_repo):
+        """Adapter regression: if an adapter snapshot exists it must be used
+        for G8 verification even if the canonical adapter file evolved.
+        """
+        run_dir = _mini_run_dir(mini_repo)
+        tool = _import_tool()
+
+        adapter_path = mini_repo / "adapters" / "fake-model.yaml"
+        original_bytes = adapter_path.read_bytes()
+        original_hash = hashlib.sha256(original_bytes).hexdigest()
+
+        # Confirm the manifest already records this hash.
+        manifest = json.loads((run_dir / "manifest.json").read_text())
+        assert manifest["adapter_hash"] == original_hash
+
+        # Write all suite input snapshots + the adapter snapshot.
+        suite_bytes = (mini_repo / "suite" / "warpcore-v1.yaml").read_bytes()
+        instances_bytes = (mini_repo / "suite" / "swebench" / "instances-fake.json").read_bytes()
+
+        manifest["suite_input_hashes"]["suite/warpcore-v1.yaml"] = (
+            hashlib.sha256(suite_bytes).hexdigest()
+        )
+        (run_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
+
+        snapshots_dir = run_dir / tool.SNAPSHOTS_DIR
+        (snapshots_dir / "suite").mkdir(parents=True, exist_ok=True)
+        (snapshots_dir / "suite" / "warpcore-v1.yaml").write_bytes(suite_bytes)
+        (snapshots_dir / "suite" / "swebench").mkdir(parents=True, exist_ok=True)
+        (snapshots_dir / "suite" / "swebench" / "instances-fake.json").write_bytes(instances_bytes)
+        (snapshots_dir / "adapters").mkdir(parents=True, exist_ok=True)
+        (snapshots_dir / "adapters" / "fake-model.yaml").write_bytes(original_bytes)
+
+        # Now evolve the canonical adapter — simulates post-run adapter update.
+        adapter_path.write_text(adapter_path.read_text() + "# post-run change\n")
+        assert hashlib.sha256(adapter_path.read_bytes()).hexdigest() != original_hash
+
+        # derive() must succeed: adapter snapshot matches declared hash.
+        summary = tool.derive(run_dir, repo=mini_repo)
+        assert summary["adapter_hash"] == original_hash
+        assert "adapter_snapshot" in summary
+
+    def test_tampered_adapter_snapshot_fails_closed(self, mini_repo):
+        """G8 fail-closed: a tampered adapter snapshot must cause derive() to fail."""
+        run_dir = _mini_run_dir(mini_repo)
+        tool = _import_tool()
+
+        adapter_path = mini_repo / "adapters" / "fake-model.yaml"
+        original_bytes = adapter_path.read_bytes()
+        original_hash = hashlib.sha256(original_bytes).hexdigest()
+
+        suite_bytes = (mini_repo / "suite" / "warpcore-v1.yaml").read_bytes()
+        instances_bytes = (mini_repo / "suite" / "swebench" / "instances-fake.json").read_bytes()
+
+        manifest = json.loads((run_dir / "manifest.json").read_text())
+        manifest["suite_input_hashes"]["suite/warpcore-v1.yaml"] = (
+            hashlib.sha256(suite_bytes).hexdigest()
+        )
+        (run_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
+
+        snapshots_dir = run_dir / tool.SNAPSHOTS_DIR
+        (snapshots_dir / "suite").mkdir(parents=True, exist_ok=True)
+        (snapshots_dir / "suite" / "warpcore-v1.yaml").write_bytes(suite_bytes)
+        (snapshots_dir / "suite" / "swebench").mkdir(parents=True, exist_ok=True)
+        (snapshots_dir / "suite" / "swebench" / "instances-fake.json").write_bytes(instances_bytes)
+        (snapshots_dir / "adapters").mkdir(parents=True, exist_ok=True)
+        # Write a tampered adapter snapshot.
+        (snapshots_dir / "adapters" / "fake-model.yaml").write_bytes(b"tampered adapter\n")
+
+        with pytest.raises(tool.DiagnosticEvidenceError, match=tool.SNAPSHOTS_DIR):
+            tool.derive(run_dir, repo=mini_repo)
+
+    def test_adapter_snapshot_containment_escape_fails(self, mini_repo):
+        """Adapter snapshot path must be contained within suite_input_snapshots/ —
+        a model slug that resolves outside the snapshot root must be rejected.
+        """
+        run_dir = _mini_run_dir(mini_repo)
+        # Use a manifest with a model slug containing '..' path components.
+        # The tool must reject this before attempting any read.
+        manifest = json.loads((run_dir / "manifest.json").read_text())
+        manifest["model"]["slug"] = "../../evil"
+        (run_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
+        self._expect_failure(mini_repo, r"unsafe.*path|path.*traversal|slug|adapter.*path")
 
 
 class TestVerifyFailsClosedOnTamperedSummary:

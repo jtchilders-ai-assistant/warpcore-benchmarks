@@ -221,6 +221,7 @@
     "reasoning_parser": "openai_gptoss"
   },
   "adapter_hash": "13e6c8c7a036b369f5285d6ea2b0a6aefa227eb64d0f9146be4601cf32cb27b1",
+  "adapter_snapshot": "suite_input_snapshots/adapters/gpt-oss-120b.yaml",
   "suite_input_hashes": {
     "suite/swebench/instances-seed42-n100.json": "d46f257dc87482e432307a6e96d5ee2d14b372df0c43b413eba48a573c6d0a24",
     "suite/swebench/scaffold.yaml": "419244dc6060fc242ba4defb72c3098c351ed6b4325ac6742737a463ace6125f",
@@ -262,6 +263,22 @@
     "status.json": {
       "bytes": 642,
       "sha256": "d741443ba86c7565793edb9ad4c2c253a30b96bbb5afd3649ec49ea27b34a4c5"
+    },
+    "suite_input_snapshots/adapters/gpt-oss-120b.yaml": {
+      "bytes": 2104,
+      "sha256": "13e6c8c7a036b369f5285d6ea2b0a6aefa227eb64d0f9146be4601cf32cb27b1"
+    },
+    "suite_input_snapshots/suite/swebench/instances-seed42-n100.json": {
+      "bytes": 2708,
+      "sha256": "d46f257dc87482e432307a6e96d5ee2d14b372df0c43b413eba48a573c6d0a24"
+    },
+    "suite_input_snapshots/suite/swebench/scaffold.yaml": {
+      "bytes": 9162,
+      "sha256": "419244dc6060fc242ba4defb72c3098c351ed6b4325ac6742737a463ace6125f"
+    },
+    "suite_input_snapshots/suite/warpcore-v1.yaml": {
+      "bytes": 9592,
+      "sha256": "efce5e7e8399837190d2d246598f89d279384154246144b441f0ea9996aea3c1"
     }
   }
 }
