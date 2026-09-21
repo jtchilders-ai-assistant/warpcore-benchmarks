@@ -90,10 +90,13 @@ def build_replay_request(trajectory: dict[str, Any], malformed_index: int) -> di
     prefix = "hosted_vllm/"
     if not isinstance(model_name, str) or not model_name.startswith(prefix):
         raise BoundaryError("only hosted_vllm model names are replayable")
+    served_model = model_name[len(prefix) :]
+    if not served_model:
+        raise BoundaryError("hosted_vllm model name must have a nonempty served-model suffix")
     if not isinstance(messages, list) or malformed_index <= 0 or malformed_index >= len(messages):
         raise BoundaryError("malformed response index is outside the trajectory")
     request = {
-        "model": model_name[len(prefix) :],
+        "model": served_model,
         "messages": [_clean_message(message) for message in messages[:malformed_index]],
         "tools": [BASH_TOOL],
     }
@@ -107,10 +110,14 @@ def build_replay_request(trajectory: dict[str, Any], malformed_index: int) -> di
 def extract_replay_fixture(archive: Path, instance_id: str) -> dict[str, Any]:
     member_name = f"{instance_id}/{instance_id}.traj.json"
     with tarfile.open(archive, "r:gz") as bundle:
-        try:
-            member = bundle.getmember(member_name)
-        except KeyError as exc:
-            raise BoundaryError(f"trajectory not found: {member_name}") from exc
+        members = [member for member in bundle.getmembers() if member.name == member_name]
+        if len(members) != 1:
+            raise BoundaryError(
+                f"trajectory member must occur exactly once: {member_name} (found {len(members)})"
+            )
+        member = members[0]
+        if not member.isfile():
+            raise BoundaryError(f"trajectory is not a regular file: {member_name}")
         source = bundle.extractfile(member)
         if source is None:
             raise BoundaryError(f"trajectory is not a regular file: {member_name}")
@@ -162,6 +169,8 @@ def reassemble_sse(raw: bytes) -> dict[str, Any]:
         response_id = response_id or event.get("id")
         for choice in event.get("choices") or []:
             choice_index = choice.get("index", 0)
+            if not isinstance(choice_index, int) or not 0 <= choice_index < 32:
+                raise BoundaryError("streamed choice index must be an integer in [0, 31]")
             message = messages.setdefault(
                 choice_index, {"role": "assistant", "content": None, "tool_calls": []}
             )
@@ -170,15 +179,18 @@ def reassemble_sse(raw: bytes) -> dict[str, Any]:
                 message["role"] = delta["role"]
             if delta.get("content") is not None:
                 message["content"] = (message.get("content") or "") + delta["content"]
-            if delta.get("reasoning_content") is not None:
-                message["reasoning_content"] = (
-                    message.get("reasoning_content") or ""
-                ) + delta["reasoning_content"]
+            for reasoning_key in ("reasoning", "reasoning_content"):
+                if delta.get(reasoning_key) is not None:
+                    message[reasoning_key] = (
+                        message.get(reasoning_key) or ""
+                    ) + delta[reasoning_key]
             for fragment in delta.get("tool_calls") or []:
                 call_index = fragment.get("index")
                 if not isinstance(call_index, int) or call_index < 0:
                     raise BoundaryError("streamed tool call lacks a nonnegative integer index")
-                while len(message["tool_calls"]) <= call_index:
+                if call_index > len(message["tool_calls"]):
+                    raise BoundaryError("streamed tool-call indices must be contiguous")
+                if call_index == len(message["tool_calls"]):
                     message["tool_calls"].append(
                         {"id": None, "type": "function", "function": {"name": "", "arguments": ""}}
                     )
