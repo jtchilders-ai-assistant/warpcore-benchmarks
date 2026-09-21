@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "run_id": "gptoss-swebench-n100-20260921",
+  "mode": "operator_initiated",
+  "attested_by": "operator",
+  "attested_utc": "2026-09-21T14:37:44Z",
+  "reason": "The operator stopped the campaign after observing that the vLLM `openai` tool-call parser was corrupting tool-call JSON arguments on essentially every instance. 49 of the 51 instances that reached a terminal state exited RepeatedFormatError. Continuing would have spent roughly six more hours of Warpcore and Docker time reproducing the same serving defect on the remaining 49 frozen instances.",
+  "score_claimed": false,
+  "grading_performed": false,
+  "attestation_limits": "Termination mode is attested by the operator, not proven by the artifacts. The retained logs rule out an in-process crash but cannot by themselves distinguish an operator stop from an external kill. No exit status, completion timestamp, or grading result is inferred from this attestation.",
+  "corroborating_evidence": [
+    "raw/run.log contains zero traceback, exception, or error lines and ends with an ordinary multiprocessing resource_tracker shutdown warning.",
+    "raw/minisweagent.log contains no traceback and ends mid-flight, immediately after starting the container for django__django-16263 with no trajectory written for it.",
+    "status.json records a single running -> failed transition at 2026-09-21T14:37:44Z with the note 'generation failed'; no crash or retry history was appended.",
+    "raw/exit_statuses_1789996651.9608052.yaml records 49 RepeatedFormatError against 2 Submitted, so the systemic defect was observable before the stop.",
+    "49 of the 100 frozen instances have no trajectory, no preds.json entry, and no exit status: they were never attempted rather than attempted and lost."
+  ]
+}

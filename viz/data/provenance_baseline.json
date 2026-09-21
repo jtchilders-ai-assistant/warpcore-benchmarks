@@ -1,7 +1,6 @@
 {
   "_comment": "Known provenance gaps accepted at ratchet time. CI fails on any gap NOT listed here, so debt cannot grow. Delete entries as they are fixed; never add without review.",
   "accepted_gaps": [
-    "gpt-oss-120b: NO manifest.json anywhere under raw/",
     "gpt-oss-120b: swebench missing manifest.json",
     "gpt-oss-120b: swebench missing trajectories",
     "gpt-oss-120b: swebench published as BLOCKED/no-score (DIAGNOSIS.json) -- preds/report correctly absent",

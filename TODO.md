@@ -213,16 +213,43 @@ problem difficulty — that assumption is far safer here than for a genuine mode
         infrastructure hiccup into a silent zero.
 
 
-### 2b. gpt-oss-120b SWE-bench was blocked by a serving bug that no longer applies
+### 2b. gpt-oss-120b SWE-bench is still blocked by the same serving bug — reproduced 2026-09-21
 
-79/100 instances aborted with `RepeatedFormatError` caused by vLLM's `--tool-call-parser openai`
-corrupting tool-call JSON arguments mid-run — median **12 successful shell commands** before the
-abort, i.e. the model was actively solving. Every model since used `qwen3_xml` / `qwen3_coder` and
-got 0–1 harness errors.
+The original pre-contract run lost 79/100 instances to `RepeatedFormatError` caused by vLLM's
+`--tool-call-parser openai` corrupting tool-call JSON arguments mid-run — median **12 successful
+shell commands** before the abort, i.e. the model was actively solving. Every *other* model since
+used `qwen3_xml` / `qwen3_coder` and got 0–1 harness errors.
 
-- [ ] **2b-i. Re-run gpt-oss-120b SWE-bench n=100** on the current stack with a working tool-call
-      parser. It is the only model in the repo with no agentic-coding number, and its pi-30 30/30
-      says it is capable. Cost ~11 h.
+**This section previously claimed the bug "no longer applies". It does.** The
+`gptoss-swebench-n100-20260921` campaign re-ran the same instance set on the current stack
+(vLLM `0.29.1rc1.dev427+g0748d3bd5.d20260920`, MARLIN MXFP4, `--tool-call-parser openai`,
+`--reasoning-parser openai_gptoss`) and reproduced it. The operator stopped the campaign after
+**51/100** instances reached a terminal state: **49 `RepeatedFormatError`, 2 `Submitted`**. All 51
+retained trajectories carry the `Error parsing tool call arguments` signature — **279 occurrences
+across 1,103 API calls** — so even the two submissions were degraded. The remaining **49 instances
+were never attempted**.
+
+The evidence is committed as **immutable, nonpublishable** diagnostic material under
+[`results/gpt-oss-120b/runs/warpcore-v1/swebench/gptoss-swebench-n100-20260921`](results/gpt-oss-120b/runs/warpcore-v1/swebench/gptoss-swebench-n100-20260921):
+manifest, status history, command, both logs, `preds.json`, the exit-status YAML, and all 51
+trajectories as a 7.4 MB `raw/trajectories.tar.gz`. There is **no grading, no DONE sentinel, and no
+score**, and `viz/derive_diagnostic.py` fails closed rather than letting one be derived. Registry
+lifecycle is `invalid` (`results/registry.json`).
+
+**A passing tool-call probe does not qualify the parser.** `adapters/gpt-oss-120b.yaml` was
+qualified on a direct tool-call probe plus a 60/60 sustained strict-schema probe, and those probes
+did pass — but they did not surface a defect that needs long multi-turn agentic traffic to appear.
+Do not treat that adapter as campaign-ready for SWE-bench on the strength of its probe evidence.
+
+- [ ] **2b-i. Fix or replace the tool-call parser before re-running gpt-oss-120b SWE-bench n=100.**
+      A re-run on the `openai` parser is now known to burn ~11 h to reproduce a serving defect, so
+      the parser fix is the prerequisite, not the re-run. Candidates: a gpt-oss-specific tool-call
+      parser, a Harmony-native scaffold, or the bash-in-content scaffold with a multi-action text
+      parser (the variant that failed the earlier smoke test with `Expected exactly 1 action`).
+      gpt-oss remains the only model in the repo with no agentic-coding number.
+- [ ] **2b-ii. Add an agentic tool-call soak to the preflight gate.** The existing probes are
+      single-shot and short; the defect appears only over sustained multi-turn tool use. Until a
+      preflight can reproduce it in minutes, the next campaign will discover it in hours.
 
 ### 2c. GSM8K: two different tasks are in the same column
 
@@ -523,7 +550,7 @@ Lightning IFEval replay in §1c is complete.
 | Order | Item | Cost | Unblocks |
 | --: | --- | --- | --- |
 | 1 | §2a-i Qwen3.6 SWE-bench re-run | ~11 h | the most misleading number in the table |
-| 2 | §2b-i gpt-oss SWE-bench re-run | ~11 h | the only missing agentic score |
+| 2 | §2b-i gpt-oss tool-call parser fix (**not** a re-run — reproduced 2026-09-21) | unknown | the only missing agentic score |
 | 3 | §2c-i gpt-oss GSM8K clean-task re-run | ~3 h | GSM8K column comparability |
 | 4 | §4a Qwen3.5-122B full suite (GSM8K, IFEval, GPQA-D, SWE-bench) | ~20 h | the one model with no quality data |
 

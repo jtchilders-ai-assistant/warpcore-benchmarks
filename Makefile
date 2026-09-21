@@ -24,7 +24,12 @@ FIGS       := fig1_pareto fig2_swebench fig3_discrimination
 # Instance set for the SWE-bench pre-flight check (seed-42 n=100, shared by all models).
 SWEBENCH_INSTANCES ?= results/qwen3.6-35b-a3b/raw/swebench/preds_shuffle100.json
 
-.PHONY: all figs data clean check preflight manifest check-artifacts audit samples ci preflight-serving preflight-selftest quality-preflight quality-preflight-selftest contract run-quality run-swebench validate-campaign publish-campaign
+# Failed campaigns retained as nonpublishable diagnostic evidence. Each carries a
+# derived diagnostic_summary.json that `make diagnostic-verify` re-checks against
+# its own artifacts.
+DIAGNOSTIC_RUNS := results/gpt-oss-120b/runs/warpcore-v1/swebench/gptoss-swebench-n100-20260921
+
+.PHONY: all figs data clean check preflight manifest check-artifacts audit samples ci preflight-serving preflight-selftest quality-preflight quality-preflight-selftest contract run-quality run-swebench validate-campaign publish-campaign diagnostic-verify
 
 all: figs
 
@@ -109,12 +114,12 @@ preflight-selftest:
 	@$(PYTHON) $(VIZ)/preflight_serving.py --self-test
 
 # What CI runs. Kept as one target so `make ci` locally == the GitHub job.
-ci: check check-artifacts contract
+ci: check check-artifacts contract diagnostic-verify
 	@$(PYTHON) $(VIZ)/preflight_serving.py --self-test
 	@$(PYTHON) $(VIZ)/validate_samples.py --warn-only
 	@$(PYTHON) $(VIZ)/quality_preflight.py --self-test
-	@$(PYTHON) -m pytest tests/test_run_quality.py tests/test_task5_acceptance.py tests/test_run_swebench.py tests/test_task6_hardening.py tests/test_validate_campaign.py tests/test_validator_scan_timeout.py tests/test_publish_campaign.py tests/test_publish_swebench_score.py tests/test_task7_adversarial.py tests/test_task7_contracts.py tests/test_task7_authoritative_validator.py tests/test_task7_evidence_paths.py tests/test_task7_runner_integration.py tests/test_task7_submitted_and_scoring_provenance.py tests/test_task7_swe_digest.py tests/test_task7_swebench_contracts.py tests/test_lmeval_sidecar.py tests/test_result_registry.py tests/test_task9_readiness.py tests/test_runtime_error_fail_closed.py -q
-	@echo "OK: figures reproducible, no new provenance gaps, suite contract valid."
+	@$(PYTHON) -m pytest tests/test_run_quality.py tests/test_task5_acceptance.py tests/test_run_swebench.py tests/test_task6_hardening.py tests/test_validate_campaign.py tests/test_validator_scan_timeout.py tests/test_publish_campaign.py tests/test_publish_swebench_score.py tests/test_task7_adversarial.py tests/test_task7_contracts.py tests/test_task7_authoritative_validator.py tests/test_task7_evidence_paths.py tests/test_task7_runner_integration.py tests/test_task7_submitted_and_scoring_provenance.py tests/test_task7_swe_digest.py tests/test_task7_swebench_contracts.py tests/test_lmeval_sidecar.py tests/test_result_registry.py tests/test_task9_readiness.py tests/test_runtime_error_fail_closed.py tests/test_gptoss_failed_run_evidence.py -q
+	@echo "OK: figures reproducible, no new provenance gaps, suite contract valid, diagnostics match their evidence."
 
 # Suite and adapter contract validation (warpcore-v1 design §12 step 2).
 # Validates that suite canonical file hashes are fresh and the suite schema is
@@ -260,3 +265,13 @@ publish-campaign:
 	@$(PYTHON) $(VIZ)/publish_campaign.py \
 		$(if $(OUTPUT),--output $(OUTPUT),) \
 		$(if $(SUITE_ID),--suite-id $(SUITE_ID),)
+
+# Re-derive each retained failed-campaign diagnostic summary from its evidence and
+# fail if the committed summary has drifted. A failed campaign yields no score, so
+# nothing else audits it -- without this, its counts could rot unnoticed.
+#
+# Exit 0 = every summary matches its evidence, 1 = drift or inconsistent evidence.
+diagnostic-verify:
+	@for d in $(DIAGNOSTIC_RUNS); do \
+		$(PYTHON) $(VIZ)/derive_diagnostic.py --run-dir $$d --verify || exit 1; \
+	done

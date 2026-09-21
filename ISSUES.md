@@ -449,6 +449,59 @@ predicted a 64–76% result for a run that returned 37.88%. See
 
 ---
 
+## 18. vLLM's `openai` tool-call parser still corrupts gpt-oss tool-call JSON at campaign scale
+
+**Reproduced 2026-09-21**, on a stack that had already passed every tool-call probe. This is the
+same defect that blocked the original gpt-oss SWE-bench run, not a new one — what is new is that we
+now know a passing probe does not clear it.
+
+The `gptoss-swebench-n100-20260921` campaign ran the frozen seed-42 n=100 instance set against vLLM
+`0.29.1rc1.dev427+g0748d3bd5.d20260920` (MARLIN MXFP4, `--tool-call-parser openai`,
+`--reasoning-parser openai_gptoss`, image digest `sha256:c154ad0a…`). The operator stopped it after
+**51/100** instances reached a terminal state:
+
+| terminal status | instances |
+| --- | ---: |
+| `RepeatedFormatError` | 49 |
+| `Submitted` | 2 |
+| *never attempted* | 49 |
+
+**Signature.** The retained raw API response objects show the model emitting a tool call whose
+`arguments` string is not valid JSON, e.g.
+
+```
+Error parsing tool call arguments: Expecting ',' delimiter: line 1 column 1168 (char 1167).
+Missing 'command' argument in bash tool call.
+```
+
+The agent returns the parse error to the model, the model retries, and after enough consecutive
+failures mini-swe-agent aborts the instance with `RepeatedFormatError`. Measured over all 51
+retained trajectories: **279 occurrences across 1,103 API calls**, and **every one of the 51
+trajectories** carries the signature — including both `Submitted` instances. The two submissions are
+therefore degraded output, not evidence that the parser works.
+
+**Why the probes missed it.** `adapters/gpt-oss-120b.yaml` was qualified on a direct tool-call probe
+and a 60/60 sustained strict-schema tool-call probe, both of which genuinely passed. Those probes
+are single-turn and short. The corruption needs long multi-turn agentic traffic with large argument
+payloads — note the failures land around column 1000–1200 of the arguments string. **A green
+tool-call probe does not qualify a parser for an agentic campaign.**
+
+**Status.** No fix. Do not launch a canonical gpt-oss SWE-bench campaign on the `openai` tool-call
+parser; see TODO §2b. The bash-in-content scaffold is not a drop-in alternative either — gpt-oss
+emits several ```` ```bash ```` blocks per reply and the text parser requires exactly one
+(`Expected exactly 1 action, found N`).
+
+**Evidence.** All of it is committed, unrepaired, as lifecycle `invalid` under
+[`results/gpt-oss-120b/runs/warpcore-v1/swebench/gptoss-swebench-n100-20260921`](results/gpt-oss-120b/runs/warpcore-v1/swebench/gptoss-swebench-n100-20260921):
+manifest, status history, command, `run.log`, `minisweagent.log`, `preds.json`, the exit-status
+YAML, and all 51 trajectories with their full response objects as a 7.4 MB
+`raw/trajectories.tar.gz`. There is **no grading and no score** — 49 instances were never attempted,
+so no denominator exists. `diagnostic_summary.json` is derived from those artifacts by
+`viz/derive_diagnostic.py` and re-verified by `make diagnostic-verify`, which fails closed on any
+count, ID, or hash inconsistency rather than letting a number be invented.
+
+---
+
 ## Non-issues (ruled out — don't chase)
 - The GB10 `nvidia-smi` memory `N/A` is normal (unified memory), not a broken GPU.
 - The `fatal: not a git repository` line lm-eval prints at the end is harmless (it tries to record a
