@@ -1,0 +1,185 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://warpcore.local/schemas/swebench-circuit-breaker-policy.schema.json",
+  "title": "warpcore SWE-bench campaign circuit-breaker policy",
+  "description": "Suite-owned, versioned abort control for SWE-bench generation. Adapters and command lines may not override any value here.",
+  "type": "object",
+  "required": [
+    "policy_id",
+    "policy_version",
+    "suite_id",
+    "benchmark",
+    "enabled",
+    "rules",
+    "classification",
+    "trajectory_parser_corruption",
+    "monitor",
+    "termination"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "policy_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "policy_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "suite_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "benchmark": {
+      "const": "swebench"
+    },
+    "enabled": {
+      "type": "boolean"
+    },
+    "rules": {
+      "type": "object",
+      "required": [
+        "first_completion_systemic",
+        "systemic_majority"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "first_completion_systemic": {
+          "type": "boolean",
+          "description": "Trip when the earliest observed completion batch is entirely systemic."
+        },
+        "systemic_majority": {
+          "type": "object",
+          "required": [
+            "min_completed",
+            "ratio_threshold"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "min_completed": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "ratio_threshold": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1,
+              "description": "Systemic fraction must be STRICTLY greater than this value."
+            }
+          }
+        }
+      }
+    },
+    "classification": {
+      "type": "object",
+      "required": [
+        "systemic_exit_statuses",
+        "conditional_systemic_exit_statuses",
+        "operational_exit_statuses"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "systemic_exit_statuses": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "conditional_systemic_exit_statuses": {
+          "type": "object",
+          "description": "exit status -> the name of the evidence test that must pass before it counts as systemic.",
+          "additionalProperties": {
+            "const": "trajectory_parser_corruption"
+          }
+        },
+        "operational_exit_statuses": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Model/config outcomes that stay in the full denominator and never trip the breaker.",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "trajectory_parser_corruption": {
+      "type": "object",
+      "required": [
+        "markers",
+        "malformed_tool_call_arguments_is_proof"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "markers": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "malformed_tool_call_arguments_is_proof": {
+          "type": "boolean"
+        }
+      }
+    },
+    "monitor": {
+      "type": "object",
+      "required": [
+        "poll_interval_s",
+        "stable_read_attempts",
+        "stable_read_settle_s"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "poll_interval_s": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 300
+        },
+        "stable_read_attempts": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 10
+        },
+        "stable_read_settle_s": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 10
+        }
+      }
+    },
+    "termination": {
+      "type": "object",
+      "required": [
+        "scope",
+        "signal",
+        "grace_period_s",
+        "escalate_signal"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "scope": {
+          "const": "owned_process_group"
+        },
+        "signal": {
+          "const": "SIGTERM"
+        },
+        "grace_period_s": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 600
+        },
+        "escalate_signal": {
+          "const": "SIGKILL"
+        }
+      }
+    }
+  }
+}

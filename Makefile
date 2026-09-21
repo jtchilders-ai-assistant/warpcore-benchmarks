@@ -3,6 +3,9 @@
 #   make figs             regenerate every figure from committed raw artifacts
 #   make data             just re-derive the intermediate CSV/JSON
 #   make preflight        verify the SWE-bench container images are cached before a run
+#   make run-swebench-qualification  run the 20 suite-owned SWE-bench qualification instances
+#   make qualify-swebench seal a SWE-bench launch qualification from that run
+#   make verify-swebench-qualification  check a qualification against a launch context
 #   make manifest         scaffold a manifest.json  (MODEL=<m> BENCH=<b>)
 #   make check-artifacts  fail if a reported number is missing its artifact
 #   make samples          fail on silent scoring failures (empty responses)
@@ -24,7 +27,12 @@ FIGS       := fig1_pareto fig2_swebench fig3_discrimination
 # Instance set for the SWE-bench pre-flight check (seed-42 n=100, shared by all models).
 SWEBENCH_INSTANCES ?= results/qwen3.6-35b-a3b/raw/swebench/preds_shuffle100.json
 
-.PHONY: all figs data clean check preflight manifest check-artifacts audit samples ci preflight-serving preflight-selftest quality-preflight quality-preflight-selftest contract run-quality run-swebench validate-campaign publish-campaign
+# Failed campaigns retained as nonpublishable diagnostic evidence. Each carries a
+# derived diagnostic_summary.json that `make diagnostic-verify` re-checks against
+# its own artifacts.
+DIAGNOSTIC_RUNS := results/gpt-oss-120b/runs/warpcore-v1/swebench/gptoss-swebench-n100-20260921
+
+.PHONY: all figs data clean check preflight manifest check-artifacts audit samples ci preflight-serving preflight-selftest quality-preflight quality-preflight-selftest contract run-quality run-swebench validate-campaign publish-campaign qualify-swebench verify-swebench-qualification qualification-selftest run-swebench-qualification diagnostic-verify
 
 all: figs
 
@@ -109,12 +117,13 @@ preflight-selftest:
 	@$(PYTHON) $(VIZ)/preflight_serving.py --self-test
 
 # What CI runs. Kept as one target so `make ci` locally == the GitHub job.
-ci: check check-artifacts contract
+ci: check check-artifacts contract diagnostic-verify
 	@$(PYTHON) $(VIZ)/preflight_serving.py --self-test
 	@$(PYTHON) $(VIZ)/validate_samples.py --warn-only
 	@$(PYTHON) $(VIZ)/quality_preflight.py --self-test
-	@$(PYTHON) -m pytest tests/test_run_quality.py tests/test_task5_acceptance.py tests/test_run_swebench.py tests/test_task6_hardening.py tests/test_validate_campaign.py tests/test_validator_scan_timeout.py tests/test_publish_campaign.py tests/test_publish_swebench_score.py tests/test_task7_adversarial.py tests/test_task7_contracts.py tests/test_task7_authoritative_validator.py tests/test_task7_evidence_paths.py tests/test_task7_runner_integration.py tests/test_task7_submitted_and_scoring_provenance.py tests/test_task7_swe_digest.py tests/test_task7_swebench_contracts.py tests/test_lmeval_sidecar.py tests/test_result_registry.py tests/test_task9_readiness.py tests/test_runtime_error_fail_closed.py -q
-	@echo "OK: figures reproducible, no new provenance gaps, suite contract valid."
+	@$(PYTHON) $(VIZ)/swebench_qualification.py --self-test
+	@$(PYTHON) -m pytest tests/test_run_quality.py tests/test_task5_acceptance.py tests/test_run_swebench.py tests/test_task6_hardening.py tests/test_validate_campaign.py tests/test_validator_scan_timeout.py tests/test_publish_campaign.py tests/test_publish_swebench_score.py tests/test_task7_adversarial.py tests/test_task7_contracts.py tests/test_task7_authoritative_validator.py tests/test_task7_evidence_paths.py tests/test_task7_runner_integration.py tests/test_task7_submitted_and_scoring_provenance.py tests/test_task7_swe_digest.py tests/test_task7_swebench_contracts.py tests/test_swebench_qualification.py tests/test_lmeval_sidecar.py tests/test_result_registry.py tests/test_task9_readiness.py tests/test_runtime_error_fail_closed.py tests/test_swebench_circuit_breaker.py -q
+	@echo "OK: figures reproducible, no new provenance gaps, suite contract valid, diagnostics match their evidence."
 
 # Suite and adapter contract validation (warpcore-v1 design §12 step 2).
 # Validates that suite canonical file hashes are fresh and the suite schema is
@@ -250,6 +259,91 @@ validate-campaign:
 		--suite $(SUITE) \
 		--adapter $(ADAPTER) \
 		$(if $(FOR_PUBLICATION),--for-publication,)
+
+# Re-derive each retained failed-campaign diagnostic summary from its evidence and
+# compare it byte-for-byte with the committed summary. A mismatch is fatal.
+diagnostic-verify:
+	@for d in $(DIAGNOSTIC_RUNS); do \
+		$(PYTHON) $(VIZ)/derive_diagnostic.py --run-dir $$d --verify || exit 1; \
+	done
+
+# --- SWE-bench launch qualification (executable promotion gate) ----------------
+#
+# A canonical SWE-bench campaign may launch only when a fresh qualification record
+# proves the production runner produced 20 clean submissions on the suite-owned
+# qualification instance set and the official grader terminally dispositioned all
+# 20. This is NOT the quick endpoint preflight: `make preflight-serving` asks
+# "is this endpoint answering sensibly right now?" in ~30 s, while qualification
+# asks "did this exact serving profile complete 20 real agentic tasks end to end?"
+# A green preflight never substitutes for a qualification, and a stale
+# qualification is not rescued by a green preflight.
+#
+# Step 1 — run the 20 suite-owned qualification instances through the SAME
+# production runner and config builder. Writes evidence only: no campaign state,
+# and deliberately not itself gated (this is what produces the authorization).
+# Evidence lands beside the record it will authorize.
+#   screen -S swebench-qualify
+#   make run-swebench-qualification SUITE=suite/warpcore-v1.yaml \
+#       ADAPTER=adapters/gpt-oss-120b.yaml ENDPOINT=http://host:8000/v1 \
+#       PROMPT_TOKENS=gsm8k=500,ifeval=2000,gpqa_diamond=1000
+run-swebench-qualification:
+	@test -n "$(SUITE)"         || { echo "ERROR: SUITE is required (e.g. SUITE=suite/warpcore-v1.yaml)" >&2; exit 3; }
+	@test -n "$(ADAPTER)"       || { echo "ERROR: ADAPTER is required" >&2; exit 3; }
+	@test -n "$(ENDPOINT)"      || { echo "ERROR: ENDPOINT is required" >&2; exit 3; }
+	@test -n "$(PROMPT_TOKENS)" || { echo "ERROR: PROMPT_TOKENS is required" >&2; exit 3; }
+	@$(PYTHON) $(VIZ)/run_swebench.py \
+		--suite $(SUITE) \
+		--adapter $(ADAPTER) \
+		--endpoint $(ENDPOINT) \
+		--prompt-tokens $(PROMPT_TOKENS) \
+		--qualification-run \
+		$(if $(RUN_DIR),--run-dir $(RUN_DIR),) \
+		$(if $(API_KEY),--api-key $(API_KEY),) \
+		$(if $(WORKERS),--workers $(WORKERS),) \
+		$(if $(DRY_RUN),--dry-run,) \
+		$(if $(ALLOW_NO_SCREEN),--allow-no-screen,)
+
+# Step 2 — seal a record from that completed run. The evidence directory must sit
+# beside the artifact so the record is self-contained.
+# Refuses to write anything that would not pass verification.
+#   make qualify-swebench ADAPTER=adapters/gpt-oss-120b.yaml \
+#       ENDPOINT=http://host:8000/v1 SERVED_MODEL_ID=openai/gpt-oss-120b \
+#       EVIDENCE=results/gpt-oss-120b/qualification/warpcore-v1/swebench/run
+#
+# Exit 0 = qualified and written, 1 = not qualified (nothing written).
+qualify-swebench:
+	@test -n "$(ADAPTER)"          || { echo "ERROR: ADAPTER is required (e.g. ADAPTER=adapters/gpt-oss-120b.yaml)" >&2; exit 2; }
+	@test -n "$(ENDPOINT)"         || { echo "ERROR: ENDPOINT is required (e.g. ENDPOINT=http://host:8000/v1)" >&2; exit 2; }
+	@test -n "$(SERVED_MODEL_ID)"  || { echo "ERROR: SERVED_MODEL_ID is required (exact id from GET <endpoint>/models)" >&2; exit 2; }
+	@test -n "$(EVIDENCE)"         || { echo "ERROR: EVIDENCE is required (qualification run dir beside the artifact)" >&2; exit 2; }
+	@$(PYTHON) $(VIZ)/swebench_qualification.py emit \
+		--suite $(or $(SUITE),suite/warpcore-v1.yaml) \
+		--adapter $(ADAPTER) \
+		--endpoint $(ENDPOINT) \
+		--served-model-id $(SERVED_MODEL_ID) \
+		--evidence $(EVIDENCE) \
+		--artifact $(or $(ARTIFACT),$(dir $(EVIDENCE))qualification.json)
+
+# Verify an existing qualification record against a launch context. This is the
+# same authoritative check the runner performs; it does not duplicate it.
+#   make verify-swebench-qualification ADAPTER=adapters/gpt-oss-120b.yaml \
+#       ENDPOINT=http://host:8000/v1 \
+#       ARTIFACT=results/gpt-oss-120b/qualification/warpcore-v1/swebench/qualification.json
+#
+# Exit 0 = may launch, 1 = blocked.
+verify-swebench-qualification:
+	@test -n "$(ADAPTER)"  || { echo "ERROR: ADAPTER is required" >&2; exit 2; }
+	@test -n "$(ENDPOINT)" || { echo "ERROR: ENDPOINT is required" >&2; exit 2; }
+	@test -n "$(ARTIFACT)" || { echo "ERROR: ARTIFACT is required (path to qualification.json)" >&2; exit 2; }
+	@$(PYTHON) $(VIZ)/swebench_qualification.py verify \
+		--suite $(or $(SUITE),suite/warpcore-v1.yaml) \
+		--adapter $(ADAPTER) \
+		--endpoint $(ENDPOINT) \
+		--artifact $(ARTIFACT)
+
+# Fixture-driven self-test of the gate's policy primitives (no GPU, no network).
+qualification-selftest:
+	@$(PYTHON) $(VIZ)/swebench_qualification.py --self-test
 
 # Canonical publication gate (Task 7).
 # Read validated+current manifests and write canonical_matrix.json transactionally.

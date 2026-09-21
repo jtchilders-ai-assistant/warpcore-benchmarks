@@ -35,6 +35,7 @@ for _p in (str(_TESTS_DIR), str(_VIZ_DIR), str(_REPO)):
 
 import run_swebench  # noqa: E402
 import swebench_preflight  # noqa: E402
+from schema_helpers import install_test_qualification  # noqa: E402
 
 _REAL_SUITE = _REPO / "suite" / "warpcore-v1.yaml"
 _REAL_INSTANCES = _REPO / "suite" / "swebench" / "instances-seed42-n100.json"
@@ -120,6 +121,20 @@ def _build_run_dir(
         "item_inventory": {"expected": 100},
     }
     (run_dir / "manifest.json").write_text(json.dumps(manifest))
+
+    # A live launch is gated on a SWE-bench qualification record; install a valid
+    # one so these tests keep exercising the runner mechanics they were written
+    # for. The gate itself is adversarially tested in
+    # tests/test_swebench_qualification.py.
+    adapter_path = repo / "adapters" / f"{_ADAPTER_SLUG}.yaml"
+    if adapter_path.is_file():
+        install_test_qualification(
+            repo=repo,
+            adapter_path=adapter_path,
+            endpoint="http://localhost:8000/v1",
+            slug=slug,
+            suite_id=suite_id,
+        )
     return run_dir
 
 
@@ -906,12 +921,18 @@ class TestLiveSubprocessRunners(unittest.TestCase):
 
     def test_run_generation_attempts_subprocess_not_immediate_defect(self):
         """_run_generation without injected runner must attempt a subprocess call,
-        not immediately return EXIT_DEFECT with no subprocess attempt."""
+        not immediately return EXIT_DEFECT with no subprocess attempt.
+
+        Generation launches via subprocess.Popen (not subprocess.run) because the
+        campaign circuit breaker polls live progress evidence while the harness is
+        still running, and needs the child in its own process group to be able to
+        terminate exactly what it owns.
+        """
         import subprocess as _sp
         attempted = []
 
-        def fake_run(cmd, *args, **kwargs):
-            attempted.append(cmd)
+        def fake_popen(cmd, *args, **kwargs):
+            attempted.append((cmd, kwargs))
             raise FileNotFoundError("fake: command not found")
 
         runner = run_swebench.SwebenchRunner(
@@ -925,13 +946,17 @@ class TestLiveSubprocessRunners(unittest.TestCase):
             prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
         )
         config = runner.build_scaffold_config("http://localhost:8000/v1", "warpcore")
-        with patch.object(_sp, "run", side_effect=fake_run):
+        with patch.object(_sp, "Popen", side_effect=fake_popen):
             rc = runner._run_generation(config)
         self.assertTrue(
             len(attempted) > 0,
             "_run_generation without injected runner must attempt a subprocess, "
-            "not immediately return EXIT_DEFECT. Current implementation never "
-            "calls subprocess.run.",
+            "not immediately return EXIT_DEFECT.",
+        )
+        self.assertTrue(
+            attempted[0][1].get("start_new_session"),
+            "Generation must run in its own session so the circuit breaker can "
+            "terminate exactly the owned process group.",
         )
 
     def test_run_grading_attempts_subprocess_not_immediate_defect(self):
@@ -1049,6 +1074,13 @@ class TestMainRunDirResume(unittest.TestCase):
                 "item_inventory": {"expected": 100},
             }))
 
+            # main() gates on the SWE-bench qualification before create_campaign,
+            # so a launch-authorizing record must exist for this test to reach it.
+            install_test_qualification(
+                repo=tmp, adapter_path=adapter_path,
+                endpoint="http://localhost:8000/v1",
+            )
+
             import create_campaign as cc_mod
             original_cc = cc_mod.create_campaign
 
@@ -1098,6 +1130,13 @@ class TestMainRunDirResume(unittest.TestCase):
         try:
             adapter_path = tmp / "adapters" / "test-canonical-model.yaml"
             _write_canonical_adapter(adapter_path)
+
+            # main() gates on the SWE-bench qualification before create_campaign,
+            # so a launch-authorizing record must exist for this test to reach it.
+            install_test_qualification(
+                repo=tmp, adapter_path=adapter_path,
+                endpoint="http://localhost:8000/v1",
+            )
 
             import create_campaign as cc_mod
             original_cc = cc_mod.create_campaign

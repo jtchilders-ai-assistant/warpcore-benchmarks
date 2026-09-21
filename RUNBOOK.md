@@ -51,6 +51,82 @@ make ci   # must pass before committing
 Refer to `AGENTS.md`, `PROVENANCE.md §6`, and the `warpcore-v1` design document for the full
 acceptance criteria.  Do not commit a run that fails `make ci`.
 
+### SWE-bench launch qualification — required before step 3 for SWE-bench
+
+A canonical SWE-bench campaign will not start without a **qualification record**. This exists
+because external cron/shell logic once promoted a gpt-oss smoke whose terminal status was
+`RepeatedFormatError`: the repository described what a qualification meant but could not refuse
+a launch. It can now.
+
+**Quick endpoint preflight is not qualification. They answer different questions.**
+
+| | `make preflight-serving` / `make quality-preflight` | `make qualify-swebench` |
+| --- | --- | --- |
+| Question | Is this endpoint answering sensibly *right now*? | Did this exact serving profile complete 20 real agentic tasks end to end? |
+| Cost | ~30 s, one or two probe completions | a real 20-instance SWE-bench run plus official grading |
+| Evidence | a response object | preds, trajectories, exit statuses, official grader report |
+| Catches | dead endpoint, stranded `reasoning`, budget truncation | `RepeatedFormatError`, empty or non-diff patches, malformed tool calls, grading infrastructure failure |
+| Authorizes a launch | no | yes, for 24 h, for exactly this bound context |
+
+A green preflight never substitutes for a qualification, and a green preflight never rescues a
+stale one. Both gates apply; neither is the other's fallback.
+
+**The 20 instances are suite-owned and derived, never chosen.**
+`suite/swebench/qualification-ids-v1.json` is a pure function of the frozen seed-42 n=100 set:
+group by repository (the text before the final `-`), order repositories lexicographically, keep
+frozen-set order within a repository, and take instances round-robin — one per repository per
+round — until 20 are selected. Round 1 therefore covers all 11 repositories in the frozen set
+(round 2 stops partway, so `pallets__flask` and `sympy__sympy` contribute one each and the other
+nine contribute two). `make contract` recomputes this and fails if the committed file disagrees,
+so no adapter, CLI flag, or operator preference can substitute convenient cases.
+
+```bash
+# Q1. Run the 20 suite-owned qualification instances through the SAME production
+#     runner and config builder. Evidence lands in $QUAL/run by default, beside
+#     the record it will authorize. This mode writes no campaign state and is
+#     deliberately not itself gated — it is what produces the authorization.
+QUAL=results/<model>/qualification/warpcore-v1/swebench
+screen -S swebench-qualify
+make run-swebench-qualification SUITE=suite/warpcore-v1.yaml \
+  ADAPTER=adapters/<model>.yaml ENDPOINT=http://csi370295.alcf.anl.gov:8000/v1 \
+  PROMPT_TOKENS=...
+
+# Q2. Seal the record. Refuses to write anything that would not pass.
+make qualify-swebench ADAPTER=adapters/<model>.yaml \
+  ENDPOINT=http://csi370295.alcf.anl.gov:8000/v1 \
+  SERVED_MODEL_ID=<exact id from GET <endpoint>/models> \
+  EVIDENCE=$QUAL/run
+
+# Q3. Confirm the gate agrees before burning campaign hours.
+make verify-swebench-qualification ADAPTER=adapters/<model>.yaml \
+  ENDPOINT=http://csi370295.alcf.anl.gov:8000/v1 ARTIFACT=$QUAL/qualification.json
+
+# Q4. Launch the n=100 campaign. The runner re-runs the same gate itself.
+make run-swebench SUITE=suite/warpcore-v1.yaml ADAPTER=adapters/<model>.yaml \
+  ENDPOINT=http://csi370295.alcf.anl.gov:8000/v1 PROMPT_TOKENS=...
+```
+
+The record must pass all of the following, or the launch is refused:
+
+- produced by the production runner/config builder — the recorded
+  `production_scaffold_hash` must equal what the builder emits at launch;
+- exactly the 20 suite-owned IDs, zero foreign, duplicate, or missing;
+- every one terminal `Submitted`;
+- no `RepeatedFormatError`, `RuntimeError`, parser, transport, server, or
+  infrastructure disposition anywhere;
+- every `preds.json` `model_patch` nonempty and syntactically patch-like;
+- every trajectory present, nonempty, and free of malformed tool-call arguments;
+- every ID exactly once in the official SWE-bench terminal grading dispositions
+  (resolved **or** unresolved is fine; a grading infrastructure error is not);
+- sealed within the suite's freshness window (24 h) and bound to the exact repo
+  SHA, suite ID and input hashes, adapter hash, serving-profile digest, model
+  ID/revision, scaffold hash, and endpoint model identity in use at launch.
+
+`make run-swebench ... DRY_RUN=1` prints the verdict and stays side-effect-free; a dry run
+reports, it never authorizes. When a run is refused, re-qualify — do not add a bridge, a parser
+repair, a retry, an output sanitizer, or a prompt/scaffold change. Those hide the defect the gate
+exists to surface.
+
 ---
 
 ## Legacy evidence — historical reference and forensics
@@ -359,6 +435,33 @@ bash results/<prior>/raw/swebench/run_smoke.sh   # 3-item smoke test
 ```bash
 /usr/bin/screen -dmS swe_<shortname> bash results/<model>/raw/swebench/run_gen_n100.sh
 ```
+
+**If the campaign stops early: check for a circuit-breaker abort.**
+
+`viz/run_swebench.py` watches the live `raw/exit_statuses_<timestamp>.yaml` while
+generation runs and aborts the campaign once the completed instances already prove a
+systemic parser/serving/infrastructure failure — a whole run is not worth spending to
+re-prove what the first instances showed. Policy:
+`suite/swebench/circuit_breaker_policy.yaml` (suite-owned and versioned; no CLI or
+adapter override exists).
+
+```bash
+cat <run_dir>/circuit_breaker.json   # exists ONLY on a breaker abort
+```
+
+| what you see | what happened |
+| --- | --- |
+| `circuit_breaker.json` present, exit 1, status note `circuit breaker tripped: <rule>` | Systemic defect diagnosed. Fix the serving stack or parser, then launch a **new** run. |
+| No such file, exit 1, note `generation failed` | Ordinary generation failure or an unrelated signal — read `raw/run.log`. |
+| No such file, exit 2, note `operator interrupted generation` | Someone stopped it. Nothing is diagnosed. |
+
+The artifact records the observed instance IDs and their classifications, the policy
+id/version/hash, the rule, the reason and the UTC time. A tripped campaign is left
+`failed`/`invalid`: partial evidence is preserved, and it is never graded, completed,
+or published. It does **not** trip on step/cost limits, context-window exhaustion,
+submitted-but-wrong patches, or a plain `RepeatedFormatError` without persisted
+trajectory evidence of parser corruption — those are the model's own outcomes and stay
+in the full denominator.
 
 ---
 

@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "run_id": "gptoss-swebench-n100-20260921",
+  "suite_id": "warpcore-v1",
+  "execution_state": "failed",
+  "lifecycle": "invalid",
+  "history": [
+    {
+      "state": "planned",
+      "timestamp": "2026-09-21T13:17:25Z",
+      "note": "Campaign initialized by create_campaign"
+    },
+    {
+      "state": "preflight_passed",
+      "timestamp": "2026-09-21T13:17:28Z"
+    },
+    {
+      "state": "running",
+      "timestamp": "2026-09-21T13:17:28Z",
+      "note": "generation phase started"
+    },
+    {
+      "state": "failed",
+      "timestamp": "2026-09-21T14:37:44Z",
+      "note": "generation failed"
+    }
+  ]
+}

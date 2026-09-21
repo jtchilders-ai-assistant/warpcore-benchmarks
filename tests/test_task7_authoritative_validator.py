@@ -45,6 +45,7 @@ for _p in (str(_TESTS_DIR), str(_VIZ_DIR), str(_REPO_ROOT)):
 
 import validate_campaign  # noqa: E402
 import run_swebench       # noqa: E402
+from schema_helpers import install_test_qualification  # noqa: E402
 
 _REAL_SUITE = _REPO_ROOT / "suite" / "warpcore-v1.yaml"
 _REAL_INSTANCES = _REPO_ROOT / "suite" / "swebench" / "instances-seed42-n100.json"
@@ -903,6 +904,13 @@ class TestA5DoneSentinelTiming(unittest.TestCase):
         self.tmp = pathlib.Path(tempfile.mkdtemp())
         self.adapter_path = self.tmp / "adapters" / "test-swe-adv.yaml"
         _write_canonical_adapter(self.adapter_path)
+        # A live launch is gated on a SWE-bench qualification record; install a
+        # valid one so the DONE-ordering assertions are reached at all.
+        install_test_qualification(
+            repo=self.tmp,
+            adapter_path=self.adapter_path,
+            endpoint="http://fake:8000/v1",
+        )
 
     def tearDown(self):
         import shutil

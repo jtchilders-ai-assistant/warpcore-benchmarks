@@ -287,6 +287,17 @@ def _validate_swebench(repo: Path, bench: dict) -> list[str]:
     # scaffold_file / scaffold_sha256
     errors.extend(_validate_file_hash_pair(repo, bench, "swebench", "scaffold_file", "scaffold_sha256"))
 
+    # Suite-owned launch qualification set. Delegated to the authoritative gate
+    # module so the derivation rule has exactly one implementation; imported
+    # lazily because that module imports this one.
+    import sys as _sys
+    _viz_dir = str(Path(__file__).resolve().parent)
+    if _viz_dir not in _sys.path:
+        _sys.path.insert(0, _viz_dir)
+    from swebench_qualification import validate_suite_qualification_config
+
+    errors.extend(validate_suite_qualification_config(repo, bench))
+
     return errors
 
 

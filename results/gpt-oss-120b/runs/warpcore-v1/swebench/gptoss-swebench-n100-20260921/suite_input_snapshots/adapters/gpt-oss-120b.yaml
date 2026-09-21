@@ -1,0 +1,48 @@
+# adapters/gpt-oss-120b.yaml — canonical closure-run serving adapter
+#
+# This profile describes the live gpt-oss service inspected on Warpcore on
+# 2026-09-21. It does not retroactively supply provenance for historical runs.
+# Historical gpt-oss artifacts remain historical/noncanonical.
+#
+# Identity and readiness evidence:
+# - The live Hugging Face cache ref, the mounted snapshot path, and the model
+#   metadata resolve to the checkpoint commit below.
+# - The running container image was pulled by immutable registry manifest digest;
+#   Docker resolved it to local image ID
+#   sha256:fb47fdf2a242ea97c5b0ae0cebc18d44fc53ab0e7bf2055cb121c00b559ae3b4.
+# - The effective command and vLLM startup log establish the parser, capacity,
+#   memory, and KV-cache settings below.
+# - vLLM selected the MARLIN MXFP4 MoE backend and FlashInfer attention backend.
+# - A direct content probe returned GPTOSS_OK, a direct tool-call probe returned
+#   finish_reason=tool_calls with valid JSON arguments, and the sustained strict-
+#   schema tool-call probe completed 60/60 requests with the engine still alive.
+#
+# The previously tried vLLM 0.28.0 Marlin profile emitted invalid Harmony output
+# on this SM121 GPU and is not eligible for a campaign. The profile below uses the
+# later tested image, which passed the real serving probes. The `openai` tool parser
+# is therefore not inferred from its historical name: its behavior was re-measured
+# on this exact image and checkpoint.
+
+adapter_schema_version: 1
+campaign_status: canonical
+
+model:
+  slug: gpt-oss-120b
+  id: openai/gpt-oss-120b
+  revision: b5c939de8f754692c1647ca79fbf85e8c1e70f8a
+
+serving:
+  image: eugr/spark-vllm@sha256:c154ad0a2575d6c42f8e05cba16ef255ce4ff54d537ad37987ca5b4215cb58b8
+  engine: vllm
+  engine_version: 0.29.1rc1.dev427+g0748d3bd5.d20260920
+  quantization: mxfp4
+  reasoning_parser: openai_gptoss
+  tool_call_parser: openai
+  tokenizer: null
+  moe_backend: marlin
+  max_model_len: 131072
+  gpu_memory_utilization: 0.8
+  max_num_seqs: 128
+  environment:
+    HF_HUB_OFFLINE: "1"
+    TIKTOKEN_ENCODINGS_BASE: /opt/tiktoken_encodings

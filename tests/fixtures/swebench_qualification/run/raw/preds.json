@@ -1,0 +1,102 @@
+{
+  "django__django-11299": {
+    "instance_id": "django__django-11299",
+    "model_name_or_path": "openai/gpt-oss-120b",
+    "model_patch": "diff --git a/django/core.py b/django/core.py\n--- a/django/core.py\n+++ b/django/core.py\n@@ -1,4 +1,5 @@\n def handle(value):\n-    return value\n+    if value is None:\n+        return None\n+    return value\n"
+  },
+  "django__django-14672": {
+    "instance_id": "django__django-14672",
+    "model_name_or_path": "openai/gpt-oss-120b",
+    "model_patch": "diff --git a/django/core.py b/django/core.py\n--- a/django/core.py\n+++ b/django/core.py\n@@ -1,4 +1,5 @@\n def handle(value):\n-    return value\n+    if value is None:\n+        return None\n+    return value\n"
+  },
+  "pydata__xarray-6938": {
+    "instance_id": "pydata__xarray-6938",
+    "model_name_or_path": "openai/gpt-oss-120b",
+    "model_patch": "diff --git a/xarray/core.py b/xarray/core.py\n--- a/xarray/core.py\n+++ b/xarray/core.py\n@@ -1,4 +1,5 @@\n def handle(value):\n-    return value\n+    if value is None:\n+        return None\n+    return value\n"
+  },
+  "sphinx-doc__sphinx-10449": {
+    "instance_id": "sphinx-doc__sphinx-10449",
+    "model_name_or_path": "openai/gpt-oss-120b",
+    "model_patch": "diff --git a/sphinx/core.py b/sphinx/core.py\n--- a/sphinx/core.py\n+++ b/sphinx/core.py\n@@ -1,4 +1,5 @@\n def handle(value):\n-    return value\n+    if value is None:\n+        return None\n+    return value\n"
+  },
+  "pytest-dev__pytest-5262": {
+    "instance_id": "pytest-dev__pytest-5262",
+    "model_name_or_path": "openai/gpt-oss-120b",
+    "model_patch": "diff --git a/pytest/core.py b/pytest/core.py\n--- a/pytest/core.py\n+++ b/pytest/core.py\n@@ -1,4 +1,5 @@\n def handle(value):\n-    return value\n+    if value is None:\n+        return None\n+    return value\n"
+  },
+  "sphinx-doc__sphinx-9281": {
+    "instance_id": "sphinx-doc__sphinx-9281",
+    "model_name_or_path": "openai/gpt-oss-120b",
+    "model_patch": "diff --git a/sphinx/core.py b/sphinx/core.py\n--- a/sphinx/core.py\n+++ b/sphinx/core.py\n@@ -1,4 +1,5 @@\n def handle(value):\n-    return value\n+    if value is None:\n+        return None\n+    return value\n"
+  },
+  "scikit-learn__scikit-learn-14629": {
+    "instance_id": "scikit-learn__scikit-learn-14629",
+    "model_name_or_path": "openai/gpt-oss-120b",
+    "model_patch": "diff --git a/scikit_learn/core.py b/scikit_learn/core.py\n--- a/scikit_learn/core.py\n+++ b/scikit_learn/core.py\n@@ -1,4 +1,5 @@\n def handle(value):\n-    return value\n+    if value is None:\n+        return None\n+    return value\n"
+  },
+  "sympy__sympy-14248": {
+    "instance_id": "sympy__sympy-14248",
+    "model_name_or_path": "openai/gpt-oss-120b",
+    "model_patch": "diff --git a/sympy/core.py b/sympy/core.py\n--- a/sympy/core.py\n+++ b/sympy/core.py\n@@ -1,4 +1,5 @@\n def handle(value):\n-    return value\n+    if value is None:\n+        return None\n+    return value\n"
+  },
+  "pallets__flask-5014": {
+    "instance_id": "pallets__flask-5014",
+    "model_name_or_path": "openai/gpt-oss-120b",
+    "model_patch": "diff --git a/flask/core.py b/flask/core.py\n--- a/flask/core.py\n+++ b/flask/core.py\n@@ -1,4 +1,5 @@\n def handle(value):\n-    return value\n+    if value is None:\n+        return None\n+    return value\n"
+  },
+  "pylint-dev__pylint-4551": {
+    "instance_id": "pylint-dev__pylint-4551",
+    "model_name_or_path": "openai/gpt-oss-120b",
+    "model_patch": "diff --git a/pylint/core.py b/pylint/core.py\n--- a/pylint/core.py\n+++ b/pylint/core.py\n@@ -1,4 +1,5 @@\n def handle(value):\n-    return value\n+    if value is None:\n+        return None\n+    return value\n"
+  },
+  "astropy__astropy-14096": {
+    "instance_id": "astropy__astropy-14096",
+    "model_name_or_path": "openai/gpt-oss-120b",
+    "model_patch": "diff --git a/astropy/core.py b/astropy/core.py\n--- a/astropy/core.py\n+++ b/astropy/core.py\n@@ -1,4 +1,5 @@\n def handle(value):\n-    return value\n+    if value is None:\n+        return None\n+    return value\n"
+  },
+  "matplotlib__matplotlib-25332": {
+    "instance_id": "matplotlib__matplotlib-25332",
+    "model_name_or_path": "openai/gpt-oss-120b",
+    "model_patch": "diff --git a/matplotlib/core.py b/matplotlib/core.py\n--- a/matplotlib/core.py\n+++ b/matplotlib/core.py\n@@ -1,4 +1,5 @@\n def handle(value):\n-    return value\n+    if value is None:\n+        return None\n+    return value\n"
+  },
+  "astropy__astropy-8872": {
+    "instance_id": "astropy__astropy-8872",
+    "model_name_or_path": "openai/gpt-oss-120b",
+    "model_patch": "diff --git a/astropy/core.py b/astropy/core.py\n--- a/astropy/core.py\n+++ b/astropy/core.py\n@@ -1,4 +1,5 @@\n def handle(value):\n-    return value\n+    if value is None:\n+        return None\n+    return value\n"
+  },
+  "scikit-learn__scikit-learn-14710": {
+    "instance_id": "scikit-learn__scikit-learn-14710",
+    "model_name_or_path": "openai/gpt-oss-120b",
+    "model_patch": "diff --git a/scikit_learn/core.py b/scikit_learn/core.py\n--- a/scikit_learn/core.py\n+++ b/scikit_learn/core.py\n@@ -1,4 +1,5 @@\n def handle(value):\n-    return value\n+    if value is None:\n+        return None\n+    return value\n"
+  },
+  "pylint-dev__pylint-6903": {
+    "instance_id": "pylint-dev__pylint-6903",
+    "model_name_or_path": "openai/gpt-oss-120b",
+    "model_patch": "diff --git a/pylint/core.py b/pylint/core.py\n--- a/pylint/core.py\n+++ b/pylint/core.py\n@@ -1,4 +1,5 @@\n def handle(value):\n-    return value\n+    if value is None:\n+        return None\n+    return value\n"
+  },
+  "pydata__xarray-3993": {
+    "instance_id": "pydata__xarray-3993",
+    "model_name_or_path": "openai/gpt-oss-120b",
+    "model_patch": "diff --git a/xarray/core.py b/xarray/core.py\n--- a/xarray/core.py\n+++ b/xarray/core.py\n@@ -1,4 +1,5 @@\n def handle(value):\n-    return value\n+    if value is None:\n+        return None\n+    return value\n"
+  },
+  "psf__requests-6028": {
+    "instance_id": "psf__requests-6028",
+    "model_name_or_path": "openai/gpt-oss-120b",
+    "model_patch": "diff --git a/requests/core.py b/requests/core.py\n--- a/requests/core.py\n+++ b/requests/core.py\n@@ -1,4 +1,5 @@\n def handle(value):\n-    return value\n+    if value is None:\n+        return None\n+    return value\n"
+  },
+  "psf__requests-1766": {
+    "instance_id": "psf__requests-1766",
+    "model_name_or_path": "openai/gpt-oss-120b",
+    "model_patch": "diff --git a/requests/core.py b/requests/core.py\n--- a/requests/core.py\n+++ b/requests/core.py\n@@ -1,4 +1,5 @@\n def handle(value):\n-    return value\n+    if value is None:\n+        return None\n+    return value\n"
+  },
+  "pytest-dev__pytest-7205": {
+    "instance_id": "pytest-dev__pytest-7205",
+    "model_name_or_path": "openai/gpt-oss-120b",
+    "model_patch": "diff --git a/pytest/core.py b/pytest/core.py\n--- a/pytest/core.py\n+++ b/pytest/core.py\n@@ -1,4 +1,5 @@\n def handle(value):\n-    return value\n+    if value is None:\n+        return None\n+    return value\n"
+  },
+  "matplotlib__matplotlib-22871": {
+    "instance_id": "matplotlib__matplotlib-22871",
+    "model_name_or_path": "openai/gpt-oss-120b",
+    "model_patch": "diff --git a/matplotlib/core.py b/matplotlib/core.py\n--- a/matplotlib/core.py\n+++ b/matplotlib/core.py\n@@ -1,4 +1,5 @@\n def handle(value):\n-    return value\n+    if value is None:\n+        return None\n+    return value\n"
+  }
+}

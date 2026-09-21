@@ -140,6 +140,19 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"SUITE ERROR: {e}")
             all_errors.extend(errors)
 
+        # The SWE-bench campaign circuit breaker is a suite-owned, versioned
+        # control carried in its own file (suite/swebench/circuit_breaker_policy.yaml)
+        # so that adding it did not rewrite the hash-pinned suite YAML. It is
+        # validated here for the same reason every other suite input is: an
+        # unverifiable abort control must not reach a live campaign.
+        try:
+            import swebench_circuit_breaker
+
+            swebench_circuit_breaker.load_policy(repo)
+        except Exception as exc:
+            print(f"SUITE ERROR: {exc}")
+            all_errors.append(str(exc))
+
     # Validate all checked-in adapters whenever the canonical suite is checked.
     # Draft/noncanonical adapters are schema-valid, but malformed files, duplicate
     # slugs, and unsupported schema versions are contract defects.

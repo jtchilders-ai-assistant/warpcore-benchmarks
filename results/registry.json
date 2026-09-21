@@ -200,6 +200,29 @@
       "note": "Canonical warpcore-v1 SWE-bench Verified frozen seed-42 n=100 campaign. Full denominator: 57 resolved, 30 unresolved, 11 empty patches, and 2 official-grader timeout errors; generation had 89 Submitted, 10 LimitsExceeded, 1 RepeatedFormatError, and 0 RuntimeError. Exact 100-item evidence and publication validation passed.",
       "v1_validated": true,
       "run_dir": "results/qwen3.6-35b-a3b/runs/warpcore-v1/swebench/qwen36-swebench-n100-20260919"
+    },
+    {
+      "id": "gpt-oss-120b/swebench/warpcore-v1/gptoss-swebench-n100-20260921",
+      "status": "invalid",
+      "paths": [
+        "results/gpt-oss-120b/runs/warpcore-v1/swebench/gptoss-swebench-n100-20260921/TERMINATION.json",
+        "results/gpt-oss-120b/runs/warpcore-v1/swebench/gptoss-swebench-n100-20260921/command.txt",
+        "results/gpt-oss-120b/runs/warpcore-v1/swebench/gptoss-swebench-n100-20260921/diagnostic_summary.json",
+        "results/gpt-oss-120b/runs/warpcore-v1/swebench/gptoss-swebench-n100-20260921/manifest.json",
+        "results/gpt-oss-120b/runs/warpcore-v1/swebench/gptoss-swebench-n100-20260921/raw/exit_statuses_1789996651.9608052.yaml",
+        "results/gpt-oss-120b/runs/warpcore-v1/swebench/gptoss-swebench-n100-20260921/raw/minisweagent.log",
+        "results/gpt-oss-120b/runs/warpcore-v1/swebench/gptoss-swebench-n100-20260921/raw/preds.json",
+        "results/gpt-oss-120b/runs/warpcore-v1/swebench/gptoss-swebench-n100-20260921/raw/run.log",
+        "results/gpt-oss-120b/runs/warpcore-v1/swebench/gptoss-swebench-n100-20260921/raw/trajectories.tar.gz",
+        "results/gpt-oss-120b/runs/warpcore-v1/swebench/gptoss-swebench-n100-20260921/status.json",
+        "results/gpt-oss-120b/runs/warpcore-v1/swebench/gptoss-swebench-n100-20260921/suite_input_snapshots/adapters/gpt-oss-120b.yaml",
+        "results/gpt-oss-120b/runs/warpcore-v1/swebench/gptoss-swebench-n100-20260921/suite_input_snapshots/suite/swebench/instances-seed42-n100.json",
+        "results/gpt-oss-120b/runs/warpcore-v1/swebench/gptoss-swebench-n100-20260921/suite_input_snapshots/suite/swebench/scaffold.yaml",
+        "results/gpt-oss-120b/runs/warpcore-v1/swebench/gptoss-swebench-n100-20260921/suite_input_snapshots/suite/warpcore-v1.yaml"
+      ],
+      "note": "Failed warpcore-v1 SWE-bench campaign, retained as immutable diagnostic evidence. Classified invalid, not diagnostic: the committed status.json \u2014 itself raw evidence \u2014 records lifecycle 'invalid', and the design permits reclassification to 'diagnostic' only by an explicit decision that would here contradict an immutable artifact. The evidence is still USED diagnostically; 'invalid' names its lifecycle, not its usefulness. The operator stopped the campaign after the vLLM openai tool-call parser corrupted tool-call JSON arguments systemically: 51 of the 100 frozen instances reached a terminal state (49 RepeatedFormatError, 2 Submitted) and 49 were never attempted. There is no grading, no DONE sentinel, and no score, and none may be derived. The creation-time manifest is retained unrepaired with submitted=0, completed_utc=null, and all artifact flags false. Trajectories are retained compressed as raw/trajectories.tar.gz (51 members, 328,452,714 B uncompressed, 7,364,255 B on disk); diagnostic_summary.json is derived and re-verified by viz/derive_diagnostic.py, which fails closed on any count, ID, or hash inconsistency.",
+      "caveats": "Not quotable as a benchmark result. 49/100 frozen instances unobserved; no verdict exists for any instance.",
+      "run_dir": "results/gpt-oss-120b/runs/warpcore-v1/swebench/gptoss-swebench-n100-20260921"
     }
   ]
 }

@@ -46,6 +46,7 @@ for _p in (str(_TESTS_DIR), str(_VIZ_DIR), str(_REPO)):
 # The module under test — will not exist until implementation (RED phase)
 import run_swebench  # noqa: E402  (expected ImportError during RED)
 import campaign_state  # noqa: E402
+from schema_helpers import install_test_qualification  # noqa: E402
 
 
 # ---------------------------------------------------------------------------
@@ -139,6 +140,20 @@ def _build_run_dir(
         "item_inventory": {"expected": 100},
     }
     (run_dir / "manifest.json").write_text(json.dumps(manifest))
+
+    # A live launch is now gated on a SWE-bench qualification record. Install a
+    # valid one so these tests keep exercising the runner mechanics they were
+    # written for rather than all stopping at the gate; the gate itself is
+    # adversarially tested in tests/test_swebench_qualification.py.
+    adapter_path = repo / "adapters" / f"{_ADAPTER_SLUG}.yaml"
+    if adapter_path.is_file():
+        install_test_qualification(
+            repo=repo,
+            adapter_path=adapter_path,
+            endpoint="http://localhost:8000/v1",
+            slug=slug,
+            suite_id=suite_id,
+        )
     return run_dir
 
 

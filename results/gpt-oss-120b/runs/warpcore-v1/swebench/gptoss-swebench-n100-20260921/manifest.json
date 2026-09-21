@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "suite_id": "warpcore-v1",
+  "suite_schema_version": 1,
+  "run_id": "gptoss-swebench-n100-20260921",
+  "benchmark": "swebench",
+  "adapter_hash": "13e6c8c7a036b369f5285d6ea2b0a6aefa227eb64d0f9146be4601cf32cb27b1",
+  "suite_input_hashes": {
+    "suite/warpcore-v1.yaml": "efce5e7e8399837190d2d246598f89d279384154246144b441f0ea9996aea3c1",
+    "suite/swebench/instances-seed42-n100.json": "d46f257dc87482e432307a6e96d5ee2d14b372df0c43b413eba48a573c6d0a24",
+    "suite/swebench/scaffold.yaml": "419244dc6060fc242ba4defb72c3098c351ed6b4325ac6742737a463ace6125f"
+  },
+  "serving_profile_digest": "sha256:277f70a7a792979d68ae5341397609acccbac647da87c46525eb85ed982bfd68",
+  "model": {
+    "slug": "gpt-oss-120b",
+    "id": "openai/gpt-oss-120b",
+    "revision": "b5c939de8f754692c1647ca79fbf85e8c1e70f8a"
+  },
+  "serving": {
+    "image_digest": "sha256:c154ad0a2575d6c42f8e05cba16ef255ce4ff54d537ad37987ca5b4215cb58b8",
+    "engine": "vllm",
+    "engine_version": "0.29.1rc1.dev427+g0748d3bd5.d20260920",
+    "effective_args": [
+      "--quantization=mxfp4",
+      "--reasoning-parser=openai_gptoss",
+      "--tool-call-parser=openai",
+      "--moe-backend=marlin",
+      "--max-model-len=131072",
+      "--gpu-memory-utilization=0.8",
+      "--max-num-seqs=128",
+      "--engine=vllm",
+      "--engine-version=0.29.1rc1.dev427+g0748d3bd5.d20260920",
+      "--env=HF_HUB_OFFLINE=1",
+      "--env=TIKTOKEN_ENCODINGS_BASE=/opt/tiktoken_encodings"
+    ],
+    "environment": {
+      "HF_HUB_OFFLINE": "1",
+      "TIKTOKEN_ENCODINGS_BASE": "/opt/tiktoken_encodings"
+    },
+    "hardware_id": "dgx-spark-gb10"
+  },
+  "item_inventory": {
+    "expected": 100,
+    "submitted": 0,
+    "instance_ids_hash": "f81e294e48301b1523c194b70d8f399bef0bfd41728eb89e081548290c57734e"
+  },
+  "timing": {
+    "started_utc": "2026-09-21T13:17:25Z",
+    "completed_utc": null
+  },
+  "artifact_inventory": {
+    "samples_jsonl_gz": false,
+    "per_item_csv": false,
+    "run_log": false,
+    "command_txt": false,
+    "done_sentinel": false
+  }
+}

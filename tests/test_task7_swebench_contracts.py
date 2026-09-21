@@ -77,6 +77,7 @@ for _p in (str(_TESTS_DIR), str(_VIZ_DIR), str(_REPO)):
         sys.path.insert(0, _p)
 
 import run_swebench  # noqa: E402
+from schema_helpers import install_test_qualification  # noqa: E402
 import validate_campaign  # noqa: E402
 
 _REAL_SUITE = _REPO / "suite" / "warpcore-v1.yaml"
@@ -566,6 +567,13 @@ class TestSwebenchRunnerManifestUpdate(unittest.TestCase):
         self.tmp = pathlib.Path(tempfile.mkdtemp())
         self.adapter_path = self.tmp / "adapters" / "test-canonical-swe.yaml"
         _write_canonical_adapter(self.adapter_path)
+        # A live launch is gated on a SWE-bench qualification record; install a
+        # valid one so these manifest-ordering tests reach the code they test.
+        install_test_qualification(
+            repo=self.tmp,
+            adapter_path=self.adapter_path,
+            endpoint="http://fake:8000/v1",
+        )
 
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)

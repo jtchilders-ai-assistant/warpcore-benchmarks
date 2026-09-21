@@ -7,6 +7,12 @@ benchmark under the warpcore-v1 measurement contract.
 CONTRACT (docs/superpowers/specs/2026-09-15-warpcore-v1-apples-to-apples-design.md):
 - Uses exactly the 100 frozen instance IDs in suite/swebench/instances-seed42-n100.json
   and verifies their SHA-256 hash from the suite at construction.
+- Refuses to launch a canonical campaign without a valid SWE-bench qualification
+  (design §4.4.1, viz/swebench_qualification.py). The gate runs before any campaign
+  state is created, in both main() and SwebenchRunner.run(); a dry run reports the
+  verdict and stays side-effect-free. --qualification-run executes the 20 suite-owned
+  qualification instances instead, producing the evidence a record is sealed from:
+  that mode is not gated and writes no campaign state.
 - Preflight gates (all must pass before generation):
     1. x86 Docker host check (SWE-bench test containers are x86).
     2. Image cache check via swebench_preflight.py wrapping.
@@ -99,7 +105,6 @@ make run-swebench SUITE=suite/warpcore-v1.yaml ADAPTER=adapters/qwen3.6-35b-a3b.
 from __future__ import annotations
 
 import argparse
-import copy
 import json
 import os
 import pathlib
@@ -123,6 +128,8 @@ for _p in (str(_VIZ_DIR), str(_REPO_DIR)):
 # ---------------------------------------------------------------------------
 
 import campaign_state  # noqa: E402
+import swebench_qualification  # noqa: E402
+import swebench_circuit_breaker as circuit_breaker  # noqa: E402
 from contract import (  # noqa: E402
     load_yaml,
     sha256_file,
@@ -748,6 +755,14 @@ class SwebenchRunner:
         Injected callable(config: dict, run_dir: Path, **kw) -> int.
     grading_runner : callable or None
         Injected callable(preds_path: Path, run_dir: Path, **kw) -> int.
+    qualification_verifier : callable or None
+        Narrow test-seam: callable() -> QualificationResult.  When supplied,
+        replaces the authoritative check_qualification() call inside run().
+        Must NOT be exposed via CLI or readable from an adapter — it is a
+        constructor-only parameter for tests that need to drive the
+        circuit-breaker production path without a real qualification record.
+        Production construction omits this argument; the fail-closed default
+        (None) means the authoritative gate always runs in production.
     """
 
     def __init__(
@@ -762,11 +777,26 @@ class SwebenchRunner:
         dry_run: bool = False,
         allow_no_screen: bool = False,
         prompt_token_maxima: Optional[Dict[str, int]] = None,
+        qualification_path: Optional[pathlib.Path] = None,
+        repo_sha: Optional[str] = None,
+        qualification_run: bool = False,
         preflight_runner: Optional[Callable] = None,
         generation_runner: Optional[Callable] = None,
         grading_runner: Optional[Callable] = None,
         done_writer: Optional[Callable] = None,
+        qualification_verifier: Optional[Callable] = None,
     ) -> None:
+        # I-2: Reject the combination of dry_run=True with an injected
+        # qualification_verifier.  dry_run takes a completely different code path
+        # in run() and calls check_qualification() directly, silently ignoring the
+        # injected verifier.  The combination is either a caller error or an attempt
+        # to bypass the gate; reject it explicitly rather than routing inconsistently.
+        if dry_run and qualification_verifier is not None:
+            raise ValueError(
+                "qualification_verifier may not be combined with dry_run=True. "
+                "dry_run calls check_qualification() directly and ignores any "
+                "injected verifier.  Use dry_run=False to exercise the seam path."
+            )
         self.suite_path = pathlib.Path(suite_path).resolve()
         self.adapter_path = pathlib.Path(adapter_path).resolve()
         self.endpoint = endpoint
@@ -776,6 +806,11 @@ class SwebenchRunner:
         self.dry_run = dry_run
         self.allow_no_screen = allow_no_screen
         self._prompt_token_maxima = prompt_token_maxima
+        self._qualification_path = (
+            pathlib.Path(qualification_path).resolve() if qualification_path else None
+        )
+        self._repo_sha = repo_sha
+        self.qualification_run = qualification_run
 
         # Resolve repo
         if repo is not None:
@@ -886,6 +921,53 @@ class SwebenchRunner:
                 "Instance IDs must be unique."
             )
 
+        # -- Qualification mode: narrow to the suite-owned qualification set --
+        # The frozen n=100 set above is still loaded and hash-verified first, so a
+        # corrupt suite fails here rather than producing a qualification against
+        # drifted inputs. Only then do we substitute the 20 suite-owned IDs, which
+        # must be a hash-verified subset of that frozen set.
+        if self.qualification_run:
+            qual_cfg = self._bench_cfg.get("qualification") or {}
+            qual_ids_file = qual_cfg.get("ids_file", "")
+            if not qual_ids_file:
+                raise ValueError(
+                    "suite/swebench benchmark missing 'qualification.ids_file'; "
+                    "a qualification run needs a suite-owned instance set."
+                )
+            self._qual_ids_path = (_REPO_DIR / qual_ids_file).resolve()
+            if not self._qual_ids_path.exists():
+                raise ValueError(
+                    f"Qualification instance set file not found: {self._qual_ids_path}"
+                )
+            declared_qual_hash = qual_cfg.get("ids_sha256", "")
+            if declared_qual_hash:
+                actual_qual_hash = sha256_file(self._qual_ids_path)
+                if actual_qual_hash != declared_qual_hash:
+                    raise ValueError(
+                        f"Qualification instance set hash mismatch: suite declares "
+                        f"{declared_qual_hash!r} but actual is {actual_qual_hash!r}."
+                    )
+            qual_ids = json.loads(self._qual_ids_path.read_text())
+            if not isinstance(qual_ids, list):
+                raise ValueError(
+                    "Qualification instance set file must contain a JSON list; "
+                    f"got {type(qual_ids).__name__}."
+                )
+            required = swebench_qualification.REQUIRED_QUALIFICATION_COUNT
+            if len(qual_ids) != required or len(set(qual_ids)) != required:
+                raise ValueError(
+                    f"Qualification instance set must hold exactly {required} unique IDs; "
+                    f"got {len(qual_ids)} ({len(set(qual_ids))} unique)."
+                )
+            foreign = [i for i in qual_ids if i not in seen]
+            if foreign:
+                raise ValueError(
+                    f"Qualification instance set contains {len(foreign)} ID(s) that are not "
+                    f"in the frozen instance set: {sorted(foreign)[:5]}."
+                )
+            self._instance_ids = qual_ids
+            self._instances_path = self._qual_ids_path
+
         # -- Load and verify scaffold --
         scaffold_file = self._bench_cfg.get("scaffold_file", "")
         if not scaffold_file:
@@ -916,11 +998,51 @@ class SwebenchRunner:
         # Verify submit protocol is intact
         self._verify_submit_protocol()
 
+        # -- Load the suite-owned campaign circuit-breaker policy --
+        # Suite-owned and versioned: the adapter schema is closed (so an adapter
+        # cannot carry these keys) and the CLI exposes no option to tune them.
+        # Fail-closed at construction — a campaign must never launch under an
+        # unverifiable abort control.
+        try:
+            self._circuit_breaker_policy = circuit_breaker.load_policy(_REPO_DIR)
+        except circuit_breaker.PolicyError as exc:
+            raise ValueError(f"SWE-bench circuit-breaker policy is unusable: {exc}") from exc
+
+        # Circuit-breaker run state. These stay None/False for every run that is
+        # not aborted by the breaker, which is what keeps an operator interrupt
+        # and an unrelated SIGTERM distinguishable from a breaker termination.
+        self._circuit_breaker_decision = None
+        self._circuit_breaker_termination: Optional[dict] = None
+        self._operator_interrupted = False
+
         # Injected runners
         self._preflight_runner = preflight_runner
         self._generation_runner = generation_runner
         self._grading_runner = grading_runner
         self._done_writer = done_writer  # callable(done_path: Path) -> None; default: atomic rename
+        # Narrow test seam for the qualification gate — None means the authoritative
+        # gate (check_qualification()) runs.  Must never be set from CLI or adapter.
+        # I-1: stored via object.__setattr__ so that our __setattr__ override (which
+        # blocks reassignment of this attribute after construction) is not invoked
+        # during __init__ itself.
+        object.__setattr__(self, "_qualification_verifier", qualification_verifier)
+
+    def __setattr__(self, name: str, value: object) -> None:
+        # I-1: _qualification_verifier is constructor-only and must be immutable
+        # after __init__ returns.  Block any post-construction reassignment so
+        # that external code cannot silently overwrite the seam to bypass the
+        # production gate.
+        if name == "_qualification_verifier" and "_qualification_verifier" in self.__dict__:
+            raise AttributeError(
+                "_qualification_verifier is immutable after construction. "
+                "It may only be set once via the SwebenchRunner constructor."
+            )
+        super().__setattr__(name, value)
+
+    @property
+    def circuit_breaker_policy(self) -> circuit_breaker.CircuitBreakerPolicy:
+        """The suite-owned abort policy this run is bound to (read-only)."""
+        return self._circuit_breaker_policy
 
     # ------------------------------------------------------------------
     # Public API
@@ -937,25 +1059,173 @@ class SwebenchRunner:
     ) -> dict:
         """Return the scaffold config with only the adapter model identity injected.
 
-        Injects:
-          - model.model_name: "hosted_vllm/<model_id>"
-          - model.model_kwargs.api_base: endpoint
-          - model.model_kwargs.api_key: api_key
-
-        All experiment controls (step_limit, cost_limit, environment.timeout,
-        pull_timeout, temperature, max_tokens, submit protocol) are preserved
-        exactly from the frozen scaffold.
+        Delegates to swebench_qualification.build_production_scaffold_config, the
+        single definition of the production config builder.  A qualification
+        records a digest of exactly this output, so a campaign cannot launch on a
+        config that differs from the one that qualified.
         """
-        config = copy.deepcopy(self._scaffold)
+        return swebench_qualification.build_production_scaffold_config(
+            scaffold=self._scaffold,
+            model_id=self._model_id,
+            endpoint=endpoint,
+            api_key=api_key,
+        )
 
-        # Inject model identity
-        config.setdefault("model", {})
-        config["model"]["model_name"] = f"hosted_vllm/{self._model_id}"
-        config["model"].setdefault("model_kwargs", {})
-        config["model"]["model_kwargs"]["api_base"] = endpoint
-        config["model"]["model_kwargs"]["api_key"] = api_key
+    # ------------------------------------------------------------------
+    # Qualification gate
+    # ------------------------------------------------------------------
 
-        return config
+    def qualification_artifact_path(self) -> pathlib.Path:
+        """Return the qualification record this run must be authorized by."""
+        if self._qualification_path is not None:
+            return self._qualification_path
+        return swebench_qualification.default_artifact_path(
+            self._repo, self._suite_id, self._model_slug
+        )
+
+    def check_qualification(self) -> "swebench_qualification.QualificationResult":
+        """Evaluate the authoritative launch gate.  Read-only; never writes.
+
+        Suite, scaffold, qualification-ID, and repo-SHA identity are resolved
+        against the repository that owns the contract code (_REPO_DIR), not the
+        results root: the qualification binds to the policy that produced it.
+        """
+        return swebench_qualification.verify_qualification_for_launch(
+            repo=_REPO_DIR,
+            suite_path=self.suite_path,
+            adapter_path=self.adapter_path,
+            endpoint=self.endpoint,
+            artifact_path=self.qualification_artifact_path(),
+            api_key=self.api_key,
+            repo_sha=self._repo_sha,
+        )
+
+    # ------------------------------------------------------------------
+    # Qualification execution mode
+    # ------------------------------------------------------------------
+
+    def run_qualification(self) -> int:
+        """Execute the 20-instance qualification run that produces a launch record.
+
+        This is the production runner in a narrow mode, not a second runner: same
+        preflight, same production config builder, same generation and grading
+        code paths, same artifact normalization.  Only the instance set differs,
+        and it is the suite-owned qualification set.
+
+        Two deliberate differences from :meth:`run`:
+
+        * It is **not** gated on an existing qualification.  A qualification run
+          is what produces the authorization; requiring one here would make the
+          gate unreachable.
+        * It writes **no campaign state**.  A qualification is not a campaign: no
+          create_campaign, no status.json, no manifest.json, no DONE sentinel.
+          The evidence it leaves is read by the qualification validator, and the
+          record sealed from it is what a campaign is later checked against.
+
+        It still refuses to produce evidence from a bad run: the same policy the
+        gate enforces is applied here, so a RepeatedFormatError qualification run
+        fails before any record can be sealed from it.
+
+        Returns 0 on success, or one of the module EXIT_* codes.
+        """
+        if not self.qualification_run:
+            print(
+                "[run-swebench] FATAL: run_qualification() requires "
+                "qualification_run=True; a campaign runner must not produce a "
+                "qualification.",
+                file=sys.stderr,
+            )
+            return EXIT_CONFIG
+
+        if not self.allow_no_screen and not _is_under_screen():
+            print(
+                "ERROR: SWE-bench qualification runs must be launched inside "
+                "/usr/bin/screen on the Mac mini. Start a screen session first:\n"
+                "  screen -S swebench-qualify\n"
+                "Or pass --allow-no-screen to bypass (tests/special ops only).",
+                file=sys.stderr,
+            )
+            return EXIT_INCONCLUSIVE
+
+        self.run_dir.mkdir(parents=True, exist_ok=True)
+        (self.run_dir / "command.txt").write_text(
+            f"qualification run: {len(self._instance_ids)} suite-owned instances from "
+            f"{self._instances_path.name}\n",
+            encoding="utf-8",
+        )
+
+        preflight_rc = self._run_preflight()
+        if preflight_rc != 0:
+            print(
+                f"[run-swebench] Qualification preflight failed (exit {preflight_rc}).",
+                file=sys.stderr,
+            )
+            return EXIT_DEFECT if preflight_rc == 1 else EXIT_INCONCLUSIVE
+
+        scaffold_config = self.build_scaffold_config(
+            endpoint=self.endpoint, api_key=self.api_key
+        )
+        generation_rc = self._run_generation(scaffold_config)
+        if generation_rc != 0:
+            print(
+                f"[run-swebench] Qualification generation failed (exit {generation_rc}).",
+                file=sys.stderr,
+            )
+            return EXIT_DEFECT
+
+        if self._generation_runner is None:
+            norm_errors = _normalize_generation_artifacts(
+                self.run_dir / "raw", expected_instance_ids=self._instance_ids
+            )
+            if norm_errors:
+                print(
+                    "ERROR: Qualification artifact normalization failed:\n"
+                    + "\n".join(f"  {e}" for e in norm_errors),
+                    file=sys.stderr,
+                )
+                return EXIT_DEFECT
+
+        gen_errors = _verify_generation_evidence(
+            self.run_dir, expected_instance_ids=self._instance_ids
+        )
+        if gen_errors:
+            print(
+                "ERROR: Qualification generation evidence is incomplete:\n"
+                + "\n".join(f"  {e}" for e in gen_errors),
+                file=sys.stderr,
+            )
+            return EXIT_DEFECT
+
+        grading_rc = self._run_grading(self.run_dir / "raw" / "preds.json")
+        if grading_rc != 0:
+            print(
+                f"[run-swebench] Qualification grading failed (exit {grading_rc}).",
+                file=sys.stderr,
+            )
+            return EXIT_DEFECT
+
+        # Apply the gate's own policy to the evidence now, so a bad qualification
+        # run reports its defect here rather than at `make qualify-swebench`.
+        policy_errors = swebench_qualification.check_raw_evidence_policy(
+            self.run_dir / "raw", self._instance_ids
+        )
+        if policy_errors:
+            print(
+                "ERROR: Qualification run completed but does not qualify:\n"
+                + "\n".join(f"  {e}" for e in policy_errors)
+                + "\nRe-qualify. Do not add a bridge, parser repair, retry, output "
+                "sanitizer, or scaffold change to make this pass.",
+                file=sys.stderr,
+            )
+            return EXIT_DEFECT
+
+        print(
+            f"[run-swebench] Qualification run complete: {len(self._instance_ids)} "
+            f"suite-owned instances, evidence under {self.run_dir}. "
+            "Seal it with `make qualify-swebench`.",
+            file=sys.stderr,
+        )
+        return EXIT_SUCCESS
 
     # ------------------------------------------------------------------
     # Core run logic
@@ -998,6 +1268,23 @@ class SwebenchRunner:
             print(yaml.dump(display_config, default_flow_style=False))
             print(f"[dry-run] Instance set: {len(self._instance_ids)} instances from "
                   f"{self._instances_path.name}")
+            if self.qualification_run:
+                print(
+                    "[dry-run] QUALIFICATION RUN: this mode produces a qualification "
+                    "record and is deliberately not gated on one. It writes no "
+                    "campaign state."
+                )
+                return EXIT_SUCCESS
+            # A dry run inspects; it never authorizes. Report the gate verdict
+            # plainly so an operator cannot read "dry-run OK" as "cleared to launch".
+            verdict = self.check_qualification()
+            print(f"[dry-run] {verdict.render()}")
+            print(f"[dry-run] Qualification record: {self.qualification_artifact_path()}")
+            if not verdict.ok:
+                print(
+                    "[dry-run] A live launch would be refused until this qualification "
+                    "is fresh, complete, and bound to this exact launch context."
+                )
             return EXIT_SUCCESS
 
         # --- Screen guard ---
@@ -1009,6 +1296,57 @@ class SwebenchRunner:
                 file=sys.stderr,
             )
             return EXIT_INCONCLUSIVE
+
+        # --- Authoritative qualification gate (before any write) ---
+        # This is the gate that external cron/shell logic did not have: a
+        # RepeatedFormatError smoke, a stale record, or a record sealed for a
+        # different SHA/suite/adapter/profile/model/scaffold stops the launch here,
+        # with no campaign state mutated.
+        #
+        # TWO-STAGE DEFENSE-IN-DEPTH (intentional, not a bug):
+        # main() runs a pre-state gate before create_campaign() so that a failed
+        # qualification never touches the filesystem.  run() then re-runs the same
+        # gate here before any status transition.  The second check is not redundant:
+        # it catches any qualification that expired or was invalidated between the
+        # pre-state call and this point, and it ensures that callers who invoke
+        # run() directly (programmatic, tests) also get the gate.  Both stages must
+        # remain fail-closed independently; removing either one weakens the contract.
+        #
+        # TOCTOU note: do NOT pass the pre-state verdict across create_campaign()
+        # into this stage.  A verdict object has no TTL; reusing it here would
+        # silently accept a qualification that may have become stale or been revoked
+        # in the window between the two calls.  The cost of a second read is trivial.
+        #
+        # SEAM (test-only): _qualification_verifier is a constructor-only injection
+        # (callable() -> QualificationResult) that replaces the live gate call when
+        # set.  It is NEVER exposed via CLI or readable from an adapter.  Production
+        # construction always leaves it None, meaning the authoritative gate runs.
+        # Tests that need to drive the circuit-breaker production path without a real
+        # qualification record inject a pass-through here; see _PASS_QUALIFICATION
+        # in test_swebench_circuit_breaker.py.  The seam does not skip the gate — the
+        # injected callable still returns a QualificationResult and its .ok value is
+        # enforced identically to the live path.  A blocking injected result still
+        # returns EXIT_DEFECT.
+        if self._qualification_verifier is not None:
+            qualification = self._qualification_verifier()
+            # Seam path: the banner was already printed by the caller (main() or
+            # the test harness); suppress the duplicate OK banner to avoid noise.
+            # Failures still print and return EXIT_DEFECT below.
+            _print_ok_banner = False
+        else:
+            qualification = self.check_qualification()
+            _print_ok_banner = True
+        if not qualification.ok:
+            print(qualification.render(), file=sys.stderr)
+            print(
+                f"[run-swebench] FATAL: refusing to launch a canonical SWE-bench campaign "
+                f"without a valid qualification "
+                f"({self.qualification_artifact_path()}).",
+                file=sys.stderr,
+            )
+            return EXIT_DEFECT
+        if _print_ok_banner:
+            print(f"[run-swebench] {qualification.render()}", file=sys.stderr)
 
         # --- Read and strict-validate status.json ---
         try:
@@ -1084,6 +1422,51 @@ class SwebenchRunner:
             api_key=self.api_key,
         )
         generation_rc = self._run_generation(scaffold_config)
+
+        # --- Campaign circuit breaker ---
+        # Checked before the generic nonzero-exit path so the recorded reason is
+        # the diagnosed systemic defect, not "generation failed". Partial evidence
+        # in raw/ is left exactly as the harness wrote it: no normalization, no
+        # grading, no DONE, no publication. The run is failed and invalid.
+        if self._circuit_breaker_decision is not None:
+            decision = self._circuit_breaker_decision
+            print(
+                "ERROR: SWE-bench campaign aborted by the suite circuit breaker.\n"
+                f"  rule:   {decision.rule}\n"
+                f"  reason: {decision.reason}\n"
+                f"  policy: {decision.policy.policy_id} v{decision.policy.policy_version} "
+                f"({decision.policy.policy_sha256[:16]}...)\n"
+                f"  evidence: {self.run_dir / 'circuit_breaker.json'}\n"
+                "Partial evidence preserved. Not graded, not completed, DONE not written.",
+                file=sys.stderr,
+            )
+            if not self._transition_failed(
+                note=f"circuit breaker tripped: {decision.rule}"
+            ):
+                print(
+                    "[run-swebench] FATAL: _transition_failed write failed after a circuit "
+                    "breaker abort. Run is in an indeterminate state.",
+                    file=sys.stderr,
+                )
+            return EXIT_DEFECT
+
+        # --- Operator interrupt ---
+        # Deliberately distinct from both a breaker abort and a generation defect:
+        # an interrupted campaign is inconclusive, not a diagnosed failure, and it
+        # leaves no circuit_breaker.json behind.
+        if self._operator_interrupted:
+            print(
+                "[run-swebench] Generation interrupted by the operator. "
+                "Run marked failed/invalid; no circuit-breaker diagnosis recorded.",
+                file=sys.stderr,
+            )
+            if not self._transition_failed(note="operator interrupted generation"):
+                print(
+                    "[run-swebench] FATAL: _transition_failed write failed after operator "
+                    "interrupt. Run is in an indeterminate state.",
+                    file=sys.stderr,
+                )
+            return EXIT_INCONCLUSIVE
 
         if generation_rc != 0:
             print(
@@ -1358,23 +1741,77 @@ class SwebenchRunner:
             except OSError:
                 pass
 
+    def _build_generation_argv(
+        self, config_path: str, raw_dir: pathlib.Path
+    ) -> List[str]:
+        """Return the mini-swe-agent 2.x argv (argv only, never a shell string).
+
+        Instance selection: an anchored OR-regex over the frozen 100 IDs so that
+        --filter matches exactly the frozen set without relying on a local dataset
+        file. re.escape is defensive against any special character in an ID.
+        """
+        import re
+
+        anchored_ids = [f"^{re.escape(iid)}$" for iid in self._instance_ids]
+        filter_regex = "|".join(anchored_ids)
+        return [
+            sys.executable, "-m", "minisweagent.run.benchmarks.swebench",
+            "--subset", "princeton-nlp/SWE-bench_Verified",
+            "--split", "test",
+            "--filter", filter_regex,
+            "-c", config_path,
+            "-w", str(self.workers),
+            "-o", str(raw_dir),
+        ]
+
+    def _monitor_poll_interval_s(self) -> float:
+        """Seconds between live progress observations (suite-owned cadence)."""
+        return self._circuit_breaker_policy.poll_interval_s
+
+    def _monitor_sleep(self, seconds: float) -> None:
+        import time as _time
+        _time.sleep(seconds)
+
+    def _pace_monitor_cycle(self, proc, interval: float) -> None:
+        """Wait up to *interval* seconds, returning as soon as *proc* exits.
+
+        Sleeping the whole interval blind would add up to one poll interval of
+        dead time to every run, including short failing ones.
+        """
+        import time as _time
+
+        deadline = _time.monotonic() + interval
+        while proc.poll() is None:
+            remaining = deadline - _time.monotonic()
+            if remaining <= 0:
+                return
+            self._monitor_sleep(min(0.25, remaining))
+
     def _run_generation(self, scaffold_config: dict) -> int:
-        """Execute mini-swe-agent generation; return exit code.
+        """Execute mini-swe-agent generation under the campaign circuit breaker.
 
         When generation_runner is injected (tests), delegates to it.
-        Default live path calls mini-swe-agent 2.x as a subprocess (argv list, no shell)
-        using module minisweagent.run.benchmarks.swebench with the injected scaffold
-        config written to a temp YAML file. Captures subprocess output to raw/run.log
-        for evidence. Writes preds.json, exit_statuses.json, and trajectories/ to raw/.
 
-        Instance selection: builds an anchored OR-regex from the frozen 100 IDs so that
-        --filter matches exactly the frozen set without relying on a local dataset file.
+        Default live path starts mini-swe-agent 2.x as a subprocess (argv list, no
+        shell) in its OWN SESSION, so its process-group id equals its pid and can
+        never be the runner's group. While it runs, the real progress artifact
+        (raw/exit_statuses_<timestamp>.yaml) is polled rather than waiting only for
+        the subprocess to exit — a systemic parser/serving/infrastructure failure is
+        usually provable from the first completed instances, long before the harness
+        returns. Captures subprocess output to raw/run.log for evidence.
+
+        Three distinguishable outcomes:
+          - circuit breaker tripped: self._circuit_breaker_decision is set and only
+            the owned process group is signalled;
+          - operator interrupt (KeyboardInterrupt): self._operator_interrupted is
+            set, the owned subprocess is still cleaned up, no decision is recorded;
+          - anything else (including an unrelated SIGTERM reaching the child): the
+            subprocess return code is passed through untouched.
         """
         if self._generation_runner is not None:
             return int(self._generation_runner(scaffold_config, self.run_dir))
 
         # --- Live default: invoke mini-swe-agent 2.x as subprocess ---
-        import re
         import subprocess as _sp
         import tempfile as _tf
         import yaml
@@ -1390,24 +1827,9 @@ class SwebenchRunner:
             yaml.dump(scaffold_config, tf, default_flow_style=False)
             config_path = tf.name
 
-        # Build an anchored exact-ID OR-regex for --filter
-        # Each ID is anchor-escaped: ^ ID $ with | between them
-        # re.escape handles any special chars in IDs (e.g. __ is safe but be defensive)
-        anchored_ids = [f"^{re.escape(iid)}$" for iid in self._instance_ids]
-        filter_regex = "|".join(anchored_ids)
-
+        cmd = self._build_generation_argv(config_path, raw_dir)
+        proc = None
         try:
-            # mini-swe-agent 2.x invocation (argv only, no shell)
-            # Outputs land in raw/ as preds.json + exit_statuses.json + trajectories/
-            cmd = [
-                sys.executable, "-m", "minisweagent.run.benchmarks.swebench",
-                "--subset", "princeton-nlp/SWE-bench_Verified",
-                "--split", "test",
-                "--filter", filter_regex,
-                "-c", config_path,
-                "-w", str(self.workers),
-                "-o", str(raw_dir),
-            ]
             print(
                 f"[run-swebench] Generation: {' '.join(shlex.quote(a) for a in cmd[:4])} "
                 f"--filter <anchored-{len(self._instance_ids)}-id-regex> "
@@ -1416,13 +1838,28 @@ class SwebenchRunner:
                 file=sys.stderr,
             )
             with open(run_log, "w") as log_fh:
-                result = _sp.run(
+                # start_new_session gives the child its own session and process
+                # group. That is what makes "terminate exactly what we own"
+                # expressible, and it also stops a terminal signal from reaching
+                # the campaign through a shared group.
+                proc = _sp.Popen(
                     cmd,
                     stdout=log_fh,
                     stderr=_sp.STDOUT,
-                    check=False,
+                    start_new_session=True,
                 )
-            return result.returncode
+                return self._monitor_generation(proc, raw_dir)
+        except KeyboardInterrupt:
+            self._operator_interrupted = True
+            print(
+                "\n[run-swebench] Operator interrupt received during generation. "
+                "Terminating the owned generation subprocess; this is NOT a "
+                "circuit-breaker abort.",
+                file=sys.stderr,
+            )
+            if proc is not None:
+                self._terminate_owned_generation(proc)
+            return EXIT_INCONCLUSIVE
         except Exception as exc:
             print(
                 f"[run-swebench] Generation subprocess failed: {exc}",
@@ -1434,12 +1871,250 @@ class SwebenchRunner:
                     log_fh.write(f"\nGeneration subprocess error: {exc}\n")
             except OSError:
                 pass
+            if proc is not None and proc.poll() is None:
+                self._terminate_owned_generation(proc)
             return EXIT_DEFECT
         finally:
             try:
                 os.unlink(config_path)
             except OSError:
                 pass
+
+    def _monitor_generation(self, proc, raw_dir: pathlib.Path) -> int:
+        """Poll live progress evidence while *proc* runs; abort on a trip.
+
+        Returns the subprocess return code. On a trip the code is the signal-derived
+        value from the termination we performed; callers must consult
+        self._circuit_breaker_decision rather than inferring intent from the code.
+
+        Post-exit observation
+        --------------------
+        The while-loop exits as soon as proc.poll() is not None, which can happen
+        before (or between) monitor.observe() calls.  If the subprocess wrote
+        systemic evidence in the final moments before exiting the monitor would
+        never see it, and the run would be mislabelled as a generic generation
+        failure with no circuit_breaker.json.
+
+        To close the race we perform one final stable observation *after* the
+        process has exited.  The process-group termination path is never taken for
+        a post-exit decision (the process is already gone), so _terminate_owned_generation
+        records "already_exited" without signalling anything.  All other invariants
+        (artifact writes, lifecycle transition, no grading) are identical to the
+        live-trip path.
+        """
+        monitor = circuit_breaker.BreakerMonitor(
+            raw_dir=raw_dir,
+            policy=self._circuit_breaker_policy,
+            sleep=self._monitor_sleep,
+        )
+        interval = self._monitor_poll_interval_s()
+
+        while proc.poll() is None:
+            self._pace_monitor_cycle(proc, interval)
+            if proc.poll() is not None:
+                break
+            try:
+                decision = monitor.observe()
+            except Exception as exc:  # never let a monitor bug kill a healthy run
+                print(
+                    f"[run-swebench] Circuit-breaker observation failed "
+                    f"(campaign continues): {exc}",
+                    file=sys.stderr,
+                )
+                continue
+            if decision is None:
+                continue
+
+            self._circuit_breaker_decision = decision
+            print(
+                "[run-swebench] CIRCUIT BREAKER TRIPPED "
+                f"[{decision.rule}]: {decision.reason}",
+                file=sys.stderr,
+            )
+            # Record the diagnostic before signalling anything, so the evidence
+            # survives even if termination itself goes wrong.
+            self._write_circuit_breaker_artifact(decision, termination=None)
+            self._circuit_breaker_termination = self._terminate_owned_generation(proc)
+            self._write_circuit_breaker_artifact(
+                decision, termination=self._circuit_breaker_termination
+            )
+            break
+
+        # --- Post-exit final observation ---
+        # The subprocess has now exited.  Evaluate any systemic evidence it left
+        # behind that the polling loop did not get to observe.  Skip if the breaker
+        # already fired during the loop.
+        if self._circuit_breaker_decision is None:
+            try:
+                decision = monitor.observe()
+            except Exception as exc:
+                print(
+                    f"[run-swebench] Post-exit circuit-breaker observation failed "
+                    f"(treating as no decision): {exc}",
+                    file=sys.stderr,
+                )
+                decision = None
+            if decision is not None:
+                self._circuit_breaker_decision = decision
+                print(
+                    "[run-swebench] CIRCUIT BREAKER TRIPPED (post-exit) "
+                    f"[{decision.rule}]: {decision.reason}",
+                    file=sys.stderr,
+                )
+                # The process is already gone — _terminate_owned_generation will
+                # detect proc.poll() is not None and record "already_exited" without
+                # sending any signal.  We still go through the same artifact-write
+                # path so circuit_breaker.json is always structurally identical.
+                self._write_circuit_breaker_artifact(decision, termination=None)
+                self._circuit_breaker_termination = self._terminate_owned_generation(proc)
+                self._write_circuit_breaker_artifact(
+                    decision, termination=self._circuit_breaker_termination
+                )
+
+        return proc.wait()
+
+    def _terminate_owned_generation(self, proc) -> dict:
+        """Terminate exactly the generation subprocess we own; return what we did.
+
+        Safety: the child was started with start_new_session=True, so its process
+        group id equals its pid. We signal that group only after confirming both
+        facts, and never a group that is 0 or our own — a stale or reused pid must
+        not let the breaker take down the runner, the screen session, or anything
+        else on the host. If the group cannot be confirmed we fall back to
+        signalling the single known child process.
+        """
+        import signal as _signal
+
+        record: dict = {
+            "terminated_by": "warpcore_circuit_breaker",
+            "scope": self._circuit_breaker_policy.termination_scope,
+            "pid": proc.pid,
+            "pgid": None,
+            "signal": self._circuit_breaker_policy.termination_signal,
+            "escalated_to_sigkill": False,
+            "target": "process_group",
+        }
+
+        if proc.poll() is not None:
+            record["target"] = "already_exited"
+            return record
+
+        pgid = None
+        try:
+            pgid = os.getpgid(proc.pid)
+        except (ProcessLookupError, PermissionError, OSError):
+            pgid = None
+
+        own_group = os.getpgrp()
+        group_is_ours_alone = (
+            pgid is not None and pgid == proc.pid and pgid > 0 and pgid != own_group
+        )
+        record["pgid"] = pgid
+
+        def _signal_target(sig) -> None:
+            if group_is_ours_alone:
+                os.killpg(pgid, sig)
+            else:
+                # Cannot prove the group contains only our generation subprocess;
+                # signal the one process we are certain we own.
+                os.kill(proc.pid, sig)
+
+        if not group_is_ours_alone:
+            record["target"] = "single_process"
+            print(
+                f"[run-swebench] Generation pgid ({pgid}) is not the subprocess's own "
+                "group; signalling only the direct child to avoid killing unowned "
+                "processes.",
+                file=sys.stderr,
+            )
+
+        try:
+            _signal_target(_signal.SIGTERM)
+        except (ProcessLookupError, PermissionError, OSError) as exc:
+            record["target"] = f"signal_failed: {exc}"
+            return record
+
+        try:
+            proc.wait(timeout=self._circuit_breaker_policy.grace_period_s)
+        except Exception:
+            record["escalated_to_sigkill"] = True
+            try:
+                _signal_target(_signal.SIGKILL)
+            except (ProcessLookupError, PermissionError, OSError):
+                pass
+            try:
+                proc.wait(timeout=self._circuit_breaker_policy.grace_period_s)
+            except Exception:
+                pass
+
+        return record
+
+    def _write_circuit_breaker_artifact(
+        self,
+        decision,
+        termination: Optional[dict],
+    ) -> None:
+        """Write run_dir/circuit_breaker.json atomically (temp + fsync + replace).
+
+        Never raises: the breaker must still terminate and fail the campaign even
+        if the diagnostic cannot be persisted, and a write failure is reported
+        loudly rather than swallowed.
+        """
+        import tempfile as _tf
+
+        artifact = {
+            "schema_version": 1,
+            "artifact": "swebench_circuit_breaker",
+            "tripped": True,
+            "tripped_utc": _utcnow(),
+            "suite_id": self._suite_id,
+            "benchmark": _SWEBENCH_BENCH,
+            "run_id": self._run_id,
+            "model": {"slug": self._model_slug, "id": self._model_id},
+            "policy": decision.policy.as_provenance(),
+            "rule": decision.rule,
+            "reason": decision.reason,
+            "observed": decision.observed(),
+            "termination": termination if termination is not None else {
+                "terminated_by": "warpcore_circuit_breaker",
+                "scope": self._circuit_breaker_policy.termination_scope,
+                "signal": self._circuit_breaker_policy.termination_signal,
+                "state": "pending",
+            },
+            "campaign_outcome": {
+                "execution_state": "failed",
+                "lifecycle": "invalid",
+                "graded": False,
+                "done_sentinel_written": False,
+                "partial_evidence_preserved": True,
+            },
+        }
+
+        dest = self.run_dir / "circuit_breaker.json"
+        payload = json.dumps(artifact, indent=2, ensure_ascii=False) + "\n"
+        try:
+            self.run_dir.mkdir(parents=True, exist_ok=True)
+            fd, tmp_path = _tf.mkstemp(
+                dir=str(self.run_dir), prefix=".tmp_circuit_breaker_", suffix=".json"
+            )
+            try:
+                with os.fdopen(fd, "w", encoding="utf-8") as fh:
+                    fh.write(payload)
+                    fh.flush()
+                    os.fsync(fh.fileno())
+                os.replace(tmp_path, str(dest))
+            except BaseException:
+                try:
+                    os.unlink(tmp_path)
+                except OSError:
+                    pass
+                raise
+        except OSError as exc:
+            print(
+                f"[run-swebench] WARNING: could not write {dest}: {exc}. "
+                "The campaign is still aborted and will be marked failed/invalid.",
+                file=sys.stderr,
+            )
 
     def _run_grading(self, preds_path: pathlib.Path) -> int:
         """Execute SWE-bench grading; return exit code.
@@ -1982,7 +2657,15 @@ def _parse_prompt_tokens(value: str) -> Dict[str, int]:
 # ---------------------------------------------------------------------------
 
 
-def main(argv=None) -> int:
+def _build_arg_parser() -> argparse.ArgumentParser:
+    """Build the CLI parser.
+
+    Deliberately exposes no option that could weaken, disable, or retune the
+    suite-owned campaign circuit breaker. Those thresholds live in
+    suite/swebench/circuit_breaker_policy.yaml and are versioned with the suite;
+    an operator changing them on a command line would make two campaigns
+    incomparable without leaving a trace in the suite.
+    """
     ap = argparse.ArgumentParser(
         description="Contract-aware SWE-bench runner for warpcore-v1."
     )
@@ -1998,13 +2681,24 @@ def main(argv=None) -> int:
                     help="Measured prompt maxima for quality benchmarks: 'bench=N,...' "
                          "(e.g. gsm8k=500,ifeval=2000,gpqa_diamond=1000). Required for "
                          "adapter campaign-readiness validation.")
+    ap.add_argument("--qualification", type=pathlib.Path, default=None,
+                    help="Qualification record authorizing this launch. Defaults to "
+                         "<repo>/results/<slug>/qualification/<suite-id>/swebench/"
+                         "qualification.json.")
+    ap.add_argument("--qualification-run", action="store_true",
+                    help="Run the 20 suite-owned qualification instances instead of the "
+                         "frozen 100. Produces the evidence a qualification record is "
+                         "sealed from; writes no campaign state and is not itself gated.")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--allow-no-screen", action="store_true")
     ap.add_argument("--resume", action="store_true")
     # model arg for command.txt record only (derived from adapter in runner)
     ap.add_argument("--model", default=None, help=argparse.SUPPRESS)
+    return ap
 
-    args = ap.parse_args(argv)
+
+def main(argv=None) -> int:
+    args = _build_arg_parser().parse_args(argv)
 
     # Parse prompt_token_maxima
     prompt_token_maxima: Optional[Dict[str, int]] = None
@@ -2017,6 +2711,78 @@ def main(argv=None) -> int:
 
     suite_path = pathlib.Path(args.suite).resolve()
     repo = pathlib.Path(args.repo).resolve() if args.repo else suite_path.parent.parent
+
+    # --- Qualification run: the mode that produces the record ---
+    # Not gated (it is what authorizes later launches) and deliberately outside
+    # create_campaign: a qualification is not a campaign.
+    if args.qualification_run:
+        import yaml as _yaml_q
+        with open(pathlib.Path(args.adapter).resolve()) as fh:
+            _adapter_q = _yaml_q.safe_load(fh)
+        with open(suite_path) as fh:
+            _suite_q = _yaml_q.safe_load(fh)
+        _slug_q = (_adapter_q.get("model") or {}).get("slug", "unknown")
+        _suite_id_q = _suite_q.get("suite_id", "warpcore-v1")
+        qual_run_dir = (
+            pathlib.Path(args.run_dir).resolve() if args.run_dir is not None
+            else swebench_qualification.default_artifact_path(
+                repo, _suite_id_q, _slug_q
+            ).parent / "run"
+        )
+        try:
+            runner = SwebenchRunner(
+                suite_path=args.suite,
+                adapter_path=args.adapter,
+                endpoint=args.endpoint,
+                run_dir=qual_run_dir,
+                repo=repo,
+                api_key=args.api_key,
+                workers=args.workers,
+                dry_run=args.dry_run,
+                allow_no_screen=args.allow_no_screen,
+                prompt_token_maxima=prompt_token_maxima,
+                qualification_run=True,
+            )
+        except ValueError as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return EXIT_CONFIG
+        return runner.run() if args.dry_run else runner.run_qualification()
+
+    # --- Qualification gate, before create_campaign touches the filesystem ---
+    # A live launch must fail closed with no campaign directory, no status.json,
+    # and no manifest when it is not authorized. A dry run skips this check here
+    # because the runner reports the same verdict without side effects.
+    if not args.dry_run:
+        try:
+            import yaml as _yaml_gate
+            _suite_gate = _yaml_gate.safe_load(suite_path.read_text())
+            _adapter_gate = _yaml_gate.safe_load(
+                pathlib.Path(args.adapter).resolve().read_text()
+            )
+            _suite_id_gate = _suite_gate.get("suite_id", "warpcore-v1")
+            _slug_gate = (_adapter_gate.get("model") or {}).get("slug", "unknown")
+        except Exception as exc:
+            print(f"ERROR: cannot read suite or adapter for qualification: {exc}", file=sys.stderr)
+            return EXIT_CONFIG
+        artifact_path = args.qualification or swebench_qualification.default_artifact_path(
+            repo, _suite_id_gate, _slug_gate
+        )
+        verdict = swebench_qualification.verify_qualification_for_launch(
+            repo=_REPO_DIR,
+            suite_path=suite_path,
+            adapter_path=pathlib.Path(args.adapter).resolve(),
+            endpoint=args.endpoint,
+            artifact_path=artifact_path,
+            api_key=args.api_key,
+        )
+        if not verdict.ok:
+            print(verdict.render(), file=sys.stderr)
+            print(
+                f"ERROR: refusing to create or launch a canonical SWE-bench campaign "
+                f"without a valid qualification ({artifact_path}).",
+                file=sys.stderr,
+            )
+            return EXIT_DEFECT
 
     # Resolve run directory
     if args.run_dir is not None:
@@ -2100,6 +2866,7 @@ def main(argv=None) -> int:
             dry_run=args.dry_run,
             allow_no_screen=args.allow_no_screen,
             prompt_token_maxima=prompt_token_maxima,
+            qualification_path=args.qualification,
         )
     except ValueError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)

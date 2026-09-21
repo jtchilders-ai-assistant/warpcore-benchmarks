@@ -296,7 +296,20 @@ rather than trusting this table to stay current. `-` = missing, `↺` = recovere
 | qwen3.5-122b-a10b | **–** | *no SWE-bench run* | | | | | | **–** |
 
 gpt-oss is published as **blocked / no score** (a vLLM tool-call bug, see `raw/DIAGNOSIS.json`), so
-its absent preds and report are correct behaviour, not a gap.
+its absent preds and report are correct behaviour, not a gap. The table row above describes the
+pre-contract `raw/swebench/` tree only. gpt-oss additionally has a **failed warpcore-v1 campaign**,
+`runs/warpcore-v1/swebench/gptoss-swebench-n100-20260921`, which reproduced the same tool-call bug
+on the current stack (ISSUES #18). That run retains manifest, status history, command, both logs,
+preds, exit statuses, and all 51 trajectories as `raw/trajectories.tar.gz` — but it is **not a
+score**: 49 of 100 frozen instances were never attempted and nothing was graded. It is registered
+`invalid` and is reachable only through the registry and `make diagnostic-verify`.
+
+**A failed campaign is still required to retain evidence.** The retention rules in §2 apply
+regardless of outcome; what changes is that the run carries a derived `diagnostic_summary.json`
+instead of a score, and that its creation-time manifest is kept **unrepaired**. An aborted run's
+manifest still says `submitted: 0`, `completed_utc: null`, and all artifact flags false, because
+that is what the runner actually wrote. Correcting those fields after the fact would turn raw
+evidence into a reconstruction; derive the reconciled counts into a separate summary instead.
 
 **Laguna is currently the only model meeting this standard in full.** The rest predate it. Three
 findings from the 2026-08-26 audit:
