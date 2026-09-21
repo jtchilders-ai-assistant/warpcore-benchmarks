@@ -1,80 +1,48 @@
-# adapters/gpt-oss-120b.yaml — Serving adapter for openai/gpt-oss-120b
+# adapters/gpt-oss-120b.yaml — canonical closure-run serving adapter
 #
-# CAMPAIGN STATUS: NONCANONICAL
-# ===========================================================================
-# This adapter documents the historical serving configuration used for the
-# gpt-oss-120b measurements in results/gpt-oss-120b/ (2026-07-27 – 2026-07-28).
-# It CANNOT launch a canonical warpcore-v1 campaign because two required
-# immutable identifiers were never recorded:
+# This profile describes the live gpt-oss service inspected on Warpcore on
+# 2026-09-21. It does not retroactively supply provenance for historical runs.
+# Historical gpt-oss artifacts remain historical/noncanonical.
 #
-#   1. model.revision:  The HuggingFace commit SHA was not pinned at run time.
-#      Current HEAD of openai/gpt-oss-120b is b5c939de8f754692c1647ca79fbf85e8c1e70f8a
-#      (verified 2026-09-15), but this cannot be claimed as the historical revision
-#      because it may differ from the checkpoint served on 2026-07-27.
-#      Warpcore SSH is currently unreachable, preventing live model-ID inspection.
+# Identity and readiness evidence:
+# - The live Hugging Face cache ref, the mounted snapshot path, and the model
+#   metadata resolve to the checkpoint commit below.
+# - The running container image was pulled by immutable registry manifest digest;
+#   Docker resolved it to local image ID
+#   sha256:fb47fdf2a242ea97c5b0ae0cebc18d44fc53ab0e7bf2055cb121c00b559ae3b4.
+# - The effective command and vLLM startup log establish the parser, capacity,
+#   memory, and KV-cache settings below.
+# - vLLM selected the MARLIN MXFP4 MoE backend and FlashInfer attention backend.
+# - A direct content probe returned GPTOSS_OK, a direct tool-call probe returned
+#   finish_reason=tool_calls with valid JSON arguments, and the sustained strict-
+#   schema tool-call probe completed 60/60 requests with the engine still alive.
 #
-#   2. serving.image:   The container was referenced as eugr/spark-vllm:latest — a
-#      mutable tag. No digest was retained. The current arm64 digest for that tag is
-#      sha256:9b3d0bdac20712b23df0b714a8e377e7612fcf38175ed647592b478568d9d5e4
-#      (verified 2026-09-15), but this may not be the image that ran on 2026-07-27.
-#
-# To enable canonical campaigns:
-#   - Pin model.revision to the verified HuggingFace commit SHA for the checkpoint
-#     that will be used in the new campaign (do not guess the historical value).
-#   - Pin serving.image to the verified image digest for the serving container
-#     that will be used in the new campaign.
-#   - Set campaign_status to "canonical" and remove this noncanonical_reason.
-#   - Delete this explanatory comment block.
-# ===========================================================================
-#
-# Note on tool-call parser: historical runs used --tool-call-parser openai, which
-# caused RepeatedFormatError (79/100 SWE-bench instances aborted). Any new canonical
-# campaign must use a working parser; openai is documented here only as a historical
-# record. See results/gpt-oss-120b/README.md §SWE-bench and ISSUES.md.
-#
-# Note on engine_version: the historical vLLM build was a pre-release
-# 0.23.1rc1.dev961+gbc6fbf472.d20260708. The new campaign may use a newer build
-# that fixes the tool-call parser bug (see TODO §2b-i). Update engine_version
-# to match the actual build used.
+# The previously tried vLLM 0.28.0 Marlin profile emitted invalid Harmony output
+# on this SM121 GPU and is not eligible for a campaign. The profile below uses the
+# later tested image, which passed the real serving probes. The `openai` tool parser
+# is therefore not inferred from its historical name: its behavior was re-measured
+# on this exact image and checkpoint.
 
 adapter_schema_version: 1
-campaign_status: noncanonical
-noncanonical_reason: >
-  model_revision_unrecorded: The HuggingFace commit SHA for the checkpoint served
-  on 2026-07-27 was never pinned or recorded. The current HEAD SHA
-  (b5c939de8f754692c1647ca79fbf85e8c1e70f8a, verified 2026-09-15) cannot be claimed
-  as the historical value. image_digest_unrecorded: The container was referenced as
-  eugr/spark-vllm:latest (mutable tag); no digest was retained from the historical run.
-  Both immutable identities and the unrecorded serving-capacity values must be verified
-  for the intended new campaign before enabling canonical status. Warpcore is currently
-  unreachable, preventing live inspection.
+campaign_status: canonical
 
 model:
   slug: gpt-oss-120b
   id: openai/gpt-oss-120b
-  # revision: UNRESOLVED — see noncanonical_reason above.
-  # Do not substitute the current HEAD SHA as a historical claim.
-  revision: unresolved
+  revision: b5c939de8f754692c1647ca79fbf85e8c1e70f8a
 
 serving:
-  # image: UNRESOLVED — see noncanonical_reason above.
-  # Historical mutable reference: eugr/spark-vllm:latest (no digest retained).
-  # Current arm64 digest (2026-09-15): sha256:9b3d0bdac20712b23df0b714a8e377e7612fcf38175ed647592b478568d9d5e4
-  # Do not use the current digest as a historical claim.
-  image: unresolved
+  image: eugr/spark-vllm@sha256:c154ad0a2575d6c42f8e05cba16ef255ce4ff54d537ad37987ca5b4215cb58b8
   engine: vllm
-  # Historical build: 0.23.1rc1.dev961+gbc6fbf472.d20260708
-  # New canonical campaigns should use a build that fixes the tool-call parser bug.
-  engine_version: 0.23.1rc1.dev961+gbc6fbf472.d20260708
+  engine_version: 0.29.1rc1.dev427+g0748d3bd5.d20260920
   quantization: mxfp4
-  # Historical reasoning parser: openai_gptoss (from vLLM's gpt-oss support).
   reasoning_parser: openai_gptoss
-  # Historical tool-call parser: openai — KNOWN BROKEN for multi-action output.
-  # See TODO §2b-i and results/gpt-oss-120b/README.md §SWE-bench for details.
   tool_call_parser: openai
   tokenizer: null
   moe_backend: marlin
-  max_model_len: unresolved
-  gpu_memory_utilization: unresolved
-  max_num_seqs: unresolved
-  environment: {}
+  max_model_len: 131072
+  gpu_memory_utilization: 0.8
+  max_num_seqs: 128
+  environment:
+    HF_HUB_OFFLINE: "1"
+    TIKTOKEN_ENCODINGS_BASE: /opt/tiktoken_encodings

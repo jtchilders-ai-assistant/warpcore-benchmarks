@@ -33,7 +33,13 @@ _THIS_DIR = Path(__file__).resolve().parent
 if str(_THIS_DIR) not in sys.path:
     sys.path.insert(0, str(_THIS_DIR))
 
-from contract import load_yaml, validate_suite, validate_adapter, validate_adapters_dir
+from contract import (
+    load_yaml,
+    validate_adapter,
+    validate_adapter_campaign_ready,
+    validate_adapters_dir,
+    validate_suite,
+)
 
 
 def _find_repo_root(suite_path: Path) -> Path:
@@ -106,6 +112,7 @@ def main(argv: list[str] | None = None) -> int:
 
     all_errors: list[str] = []
     repo: Path | None = None
+    suite_document: dict | None = None
 
     # ---- Suite validation ---------------------------------------------------
     if args.suite_path is not None:
@@ -146,17 +153,9 @@ def main(argv: list[str] | None = None) -> int:
             adapter_errors = validate_adapters_dir(
                 repo,
                 repo / "adapters",
-                # Suite-only validation checks the frozen contract and adapter
-                # schemas. Campaign-readiness is benchmark/tokenizer-specific and
-                # is enabled only when measured prompt maxima are supplied.
-                suite=suite_document if prompt_token_maxima is not None else None,
-                prompt_token_maxima_by_slug=(
-                    {
-                        (load_yaml(Path(args.adapter)).get("model") or {}).get("slug", ""): prompt_token_maxima
-                    }
-                    if args.adapter and prompt_token_maxima is not None
-                    else None
-                ),
+                # Directory validation covers schemas and duplicate slugs. Campaign
+                # readiness is adapter-specific because prompt maxima are measured
+                # for the selected adapter's tokenizer and is checked below.
             )
         except (OSError, IOError, yaml.YAMLError) as exc:
             print(f"ERROR: cannot read adapter inputs — {exc}", file=sys.stderr)
@@ -183,6 +182,17 @@ def main(argv: list[str] | None = None) -> int:
 
         try:
             errors = validate_adapter(repo, adapter_path)
+            if not errors and prompt_token_maxima is not None:
+                adapter_document = load_yaml(adapter_path)
+                slug = (adapter_document.get("model") or {}).get("slug", adapter_path.stem)
+                errors.extend(
+                    validate_adapter_campaign_ready(
+                        adapter_document,
+                        slug,
+                        suite=suite_document if args.suite_path is not None else None,
+                        prompt_token_maxima=prompt_token_maxima,
+                    )
+                )
         except Exception as exc:
             print(f"ERROR: cannot validate adapter — {exc}", file=sys.stderr)
             return 2

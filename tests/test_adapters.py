@@ -211,17 +211,31 @@ class TestT3_NoncanonicalGating:
     A noncanonical adapter remains schema-valid; it just cannot launch a canonical campaign.
     """
 
-    def test_gpt_oss_is_noncanonical(self):
-        """gpt-oss adapter must be noncanonical: no image digest or revision were recorded."""
+    def test_gpt_oss_is_canonical_for_new_closure_campaigns(self):
+        """The verified live gpt-oss profile is canonical for prospective campaigns."""
         adapter_path = ADAPTERS_DIR / "gpt-oss-120b.yaml"
         if not adapter_path.exists():
             pytest.skip("adapter file not yet created")
         adapter = _load_yaml(adapter_path)
-        assert adapter.get("campaign_status") == "noncanonical", (
-            f"gpt-oss-120b.yaml must have campaign_status=noncanonical because "
-            f"historical image digest and model revision are unrecorded. "
-            f"Got: {adapter.get('campaign_status')!r}"
+        assert adapter.get("campaign_status") == "canonical"
+        assert adapter["model"]["revision"] == "b5c939de8f754692c1647ca79fbf85e8c1e70f8a"
+        assert adapter["serving"]["image"] == (
+            "eugr/spark-vllm@sha256:c154ad0a2575d6c42f8e05cba16ef255ce4ff54d537ad37987ca5b4215cb58b8"
         )
+        assert adapter["serving"]["engine_version"] == "0.29.1rc1.dev427+g0748d3bd5.d20260920"
+        assert adapter["serving"]["tool_call_parser"] == "openai"
+        assert adapter["serving"]["moe_backend"] == "marlin"
+
+    def test_gpt_oss_passes_campaign_ready_with_measured_prompt_evidence(self):
+        """The verified live gpt-oss adapter passes readiness with frozen-suite maxima."""
+        adapter = _load_yaml(ADAPTERS_DIR / "gpt-oss-120b.yaml")
+        errors = validate_adapter_campaign_ready(
+            adapter,
+            "gpt-oss-120b",
+            suite=_load_suite(),
+            prompt_token_maxima={"gsm8k": 256, "ifeval": 373, "gpqa_diamond": 2808},
+        )
+        assert errors == []
 
     def test_qwen36_is_canonical_for_new_closure_campaigns(self):
         """Qwen's live profile is canonical without rewriting historical provenance."""
@@ -233,17 +247,14 @@ class TestT3_NoncanonicalGating:
         assert adapter["model"]["revision"] != "unresolved"
         assert adapter["serving"]["image"] != "unresolved"
 
-    def test_gpt_oss_fails_campaign_ready(self):
-        """validate_adapter_campaign_ready() must return errors for gpt-oss (noncanonical)."""
+    def test_gpt_oss_passes_campaign_ready(self):
+        """validate_adapter_campaign_ready() accepts the verified live gpt-oss profile."""
         adapter_path = ADAPTERS_DIR / "gpt-oss-120b.yaml"
         if not adapter_path.exists():
             pytest.skip("adapter file not yet created")
         adapter = _load_yaml(adapter_path)
         errors = validate_adapter_campaign_ready(adapter, "gpt-oss-120b")
-        assert errors, (
-            "validate_adapter_campaign_ready() returned [] for a noncanonical adapter — "
-            "it must fail loudly when provenance is unresolved."
-        )
+        assert errors == []
 
     def test_qwen36_passes_campaign_ready_with_measured_prompt_evidence(self):
         """The live Qwen adapter passes readiness with measured frozen-suite maxima."""
