@@ -12,3 +12,4 @@ scratch/samples_*.jsonl
 # Agent scratch (plans, cached state). Working notes, not evidence -- the
 # durable conventions live in AGENTS.md and the backlog lives in TODO.md.
 .hermes/
+.worktrees/
