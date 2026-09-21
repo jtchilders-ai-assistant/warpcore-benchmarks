@@ -786,6 +786,17 @@ class SwebenchRunner:
         done_writer: Optional[Callable] = None,
         qualification_verifier: Optional[Callable] = None,
     ) -> None:
+        # I-2: Reject the combination of dry_run=True with an injected
+        # qualification_verifier.  dry_run takes a completely different code path
+        # in run() and calls check_qualification() directly, silently ignoring the
+        # injected verifier.  The combination is either a caller error or an attempt
+        # to bypass the gate; reject it explicitly rather than routing inconsistently.
+        if dry_run and qualification_verifier is not None:
+            raise ValueError(
+                "qualification_verifier may not be combined with dry_run=True. "
+                "dry_run calls check_qualification() directly and ignores any "
+                "injected verifier.  Use dry_run=False to exercise the seam path."
+            )
         self.suite_path = pathlib.Path(suite_path).resolve()
         self.adapter_path = pathlib.Path(adapter_path).resolve()
         self.endpoint = endpoint
@@ -1011,7 +1022,22 @@ class SwebenchRunner:
         self._done_writer = done_writer  # callable(done_path: Path) -> None; default: atomic rename
         # Narrow test seam for the qualification gate — None means the authoritative
         # gate (check_qualification()) runs.  Must never be set from CLI or adapter.
-        self._qualification_verifier = qualification_verifier
+        # I-1: stored via object.__setattr__ so that our __setattr__ override (which
+        # blocks reassignment of this attribute after construction) is not invoked
+        # during __init__ itself.
+        object.__setattr__(self, "_qualification_verifier", qualification_verifier)
+
+    def __setattr__(self, name: str, value: object) -> None:
+        # I-1: _qualification_verifier is constructor-only and must be immutable
+        # after __init__ returns.  Block any post-construction reassignment so
+        # that external code cannot silently overwrite the seam to bypass the
+        # production gate.
+        if name == "_qualification_verifier" and "_qualification_verifier" in self.__dict__:
+            raise AttributeError(
+                "_qualification_verifier is immutable after construction. "
+                "It may only be set once via the SwebenchRunner constructor."
+            )
+        super().__setattr__(name, value)
 
     @property
     def circuit_breaker_policy(self) -> circuit_breaker.CircuitBreakerPolicy:

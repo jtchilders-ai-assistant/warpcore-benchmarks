@@ -417,23 +417,31 @@ class TestQualificationVerifierSeam(unittest.TestCase):
         )
 
     def test_injected_verifier_passes_when_ok(self):
-        """An injected verifier returning ok=True lets run() proceed past the gate."""
+        """An injected verifier returning ok=True lets run() proceed past the gate.
+
+        I-3: Assert the exact return code (EXIT_DEFECT from evidence verification,
+        not from the qualification gate) and remove stale comment about the banner.
+        """
         import swebench_qualification as sq
         ok_result = sq.QualificationResult(ok=True, summary="injected-pass")
 
         runner = self._runner(
             preflight_runner=lambda _model_id: 0,
             qualification_verifier=lambda: ok_result,
-            # Also inject generation so we don't fail on missing minisweagent;
-            # we only care that the qualification gate was bypassed.
+            # Inject generation returning 0; the run advances past the gate into
+            # evidence verification which fails (no raw/ artifacts written), so
+            # the expected rc is EXIT_DEFECT from evidence-not-found — NOT from the
+            # qualification gate.
             generation_runner=lambda config, run_dir, **_kw: 0,
         )
-        # run() will proceed past the gate and into the preflight/generation path;
-        # it must NOT return EXIT_DEFECT caused by the missing qualification record.
-        # (It may still fail on evidence verification, which is separate from the gate.)
         rc = runner.run()
-        # The gate printed "QUALIFICATION: OK" — if we got there we did not hit the
-        # early EXIT_DEFECT from the gate.  The status must have moved beyond 'planned'.
+        # The gate is bypassed: status advances past 'planned', but evidence
+        # verification then fails (injected generation writes nothing) → EXIT_DEFECT.
+        self.assertEqual(
+            rc, run_swebench.EXIT_DEFECT,
+            "run() must return EXIT_DEFECT from evidence verification, not from the "
+            "qualification gate — the injected verifier must have been accepted.",
+        )
         status = json.loads((self.run_dir / "status.json").read_text())
         self.assertNotEqual(
             status["execution_state"], "planned",
@@ -457,17 +465,41 @@ class TestQualificationVerifierSeam(unittest.TestCase):
         )
 
     def test_cli_exposes_no_qualification_verifier_option(self):
-        """The CLI must not expose a flag that injects a qualification verifier."""
+        """The CLI must not expose a flag that injects a qualification verifier.
+
+        I-4: Guard against exact known option strings only — not incomplete
+        banned substrings — to avoid false positives and ensure new dangerous
+        options are caught by their exact name.
+        """
+        _KNOWN_CLI_OPTIONS = {
+            "-h", "--help",
+            "--suite", "--adapter", "--endpoint", "--run-id", "--run-dir",
+            "--repo", "--api-key", "--workers", "--prompt-tokens",
+            "--qualification", "--qualification-run",
+            "--dry-run", "--allow-no-screen", "--resume", "--model",
+        }
         parser = run_swebench._build_arg_parser()
-        options = [opt for action in parser._actions for opt in action.option_strings]
-        for opt in options:
-            lowered = opt.lower()
-            for banned in ("qualification-verifier", "skip-qualification", "bypass-qual",
-                           "qualification_verifier"):
-                self.assertNotIn(
-                    banned, lowered,
-                    f"CLI option {opt!r} would expose the qualification verifier seam.",
-                )
+        actual_options = {
+            opt
+            for action in parser._actions
+            for opt in action.option_strings
+        }
+        # No unknown (potentially dangerous) options should appear.
+        unknown = actual_options - _KNOWN_CLI_OPTIONS
+        self.assertSetEqual(
+            unknown, set(),
+            f"CLI has unexpected option(s) not in the approved whitelist: {unknown!r}. "
+            "If a new option is intentional, add it to _KNOWN_CLI_OPTIONS in this test.",
+        )
+        # Verify the seam-specific names are not present (belt-and-suspenders).
+        _SEAM_OPTION_NAMES = {
+            "--qualification-verifier", "--skip-qualification",
+            "--bypass-qual", "--qualification_verifier",
+        }
+        self.assertSetEqual(
+            actual_options & _SEAM_OPTION_NAMES, set(),
+            "CLI must not expose a qualification-verifier seam option.",
+        )
 
     def test_seam_path_suppresses_ok_banner(self):
         """When the seam provides the verdict, the duplicate OK banner is suppressed."""
@@ -493,6 +525,39 @@ class TestQualificationVerifierSeam(unittest.TestCase):
             stderr_out,
             "Seam path must not re-print the OK banner (it was already printed by main()).",
         )
+
+    def test_qualification_verifier_is_immutable_after_construction(self):
+        """I-1: _qualification_verifier must be immutable after __init__ returns.
+
+        The docstring declares it constructor-only; this test enforces that
+        external code cannot silently overwrite it to bypass the production gate.
+        """
+        import swebench_qualification as sq
+        original = lambda: sq.QualificationResult(ok=True, summary="original")
+        runner = self._runner(
+            qualification_verifier=original,
+        )
+        attacker_verifier = lambda: sq.QualificationResult(ok=True, summary="attacker")
+        with self.assertRaises(AttributeError,
+                               msg="Assigning _qualification_verifier after construction must raise AttributeError."):
+            runner._qualification_verifier = attacker_verifier
+
+    def test_dry_run_with_injected_verifier_is_rejected(self):
+        """I-2: Passing qualification_verifier with dry_run=True must be refused.
+
+        dry_run silently ignores the injected verifier (calls check_qualification()
+        directly instead).  The combination is either a mistake or an attempt to
+        bypass the gate; either way it must be caught at construction time, not
+        silently routed inconsistently.
+        """
+        import swebench_qualification as sq
+        verifier = lambda: sq.QualificationResult(ok=True, summary="injected")
+        with self.assertRaises((ValueError, TypeError),
+                               msg="SwebenchRunner must reject qualification_verifier + dry_run=True."):
+            self._runner(
+                dry_run=True,
+                qualification_verifier=verifier,
+            )
 
 
 # ---------------------------------------------------------------------------
