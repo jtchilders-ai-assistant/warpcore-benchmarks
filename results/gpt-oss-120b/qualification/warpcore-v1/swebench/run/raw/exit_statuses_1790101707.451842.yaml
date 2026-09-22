@@ -1,0 +1,24 @@
+instances_by_exit_status:
+    LimitsExceeded:
+    - pytest-dev__pytest-7205
+    RepeatedFormatError:
+    - django__django-14672
+    - astropy__astropy-8872
+    - django__django-11299
+    - matplotlib__matplotlib-22871
+    - astropy__astropy-14096
+    - pydata__xarray-6938
+    - pylint-dev__pylint-6903
+    - pylint-dev__pylint-4551
+    - pytest-dev__pytest-5262
+    - pydata__xarray-3993
+    - scikit-learn__scikit-learn-14629
+    - scikit-learn__scikit-learn-14710
+    - sphinx-doc__sphinx-10449
+    - sympy__sympy-14248
+    Submitted:
+    - matplotlib__matplotlib-25332
+    - pallets__flask-5014
+    - psf__requests-6028
+    - psf__requests-1766
+    - sphinx-doc__sphinx-9281

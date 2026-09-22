@@ -1,0 +1,22 @@
+{
+  "pytest-dev__pytest-7205": "LimitsExceeded",
+  "django__django-14672": "RepeatedFormatError",
+  "astropy__astropy-8872": "RepeatedFormatError",
+  "django__django-11299": "RepeatedFormatError",
+  "matplotlib__matplotlib-22871": "RepeatedFormatError",
+  "astropy__astropy-14096": "RepeatedFormatError",
+  "pydata__xarray-6938": "RepeatedFormatError",
+  "pylint-dev__pylint-6903": "RepeatedFormatError",
+  "pylint-dev__pylint-4551": "RepeatedFormatError",
+  "pytest-dev__pytest-5262": "RepeatedFormatError",
+  "pydata__xarray-3993": "RepeatedFormatError",
+  "scikit-learn__scikit-learn-14629": "RepeatedFormatError",
+  "scikit-learn__scikit-learn-14710": "RepeatedFormatError",
+  "sphinx-doc__sphinx-10449": "RepeatedFormatError",
+  "sympy__sympy-14248": "RepeatedFormatError",
+  "matplotlib__matplotlib-25332": "Submitted",
+  "pallets__flask-5014": "Submitted",
+  "psf__requests-6028": "Submitted",
+  "psf__requests-1766": "Submitted",
+  "sphinx-doc__sphinx-9281": "Submitted"
+}
