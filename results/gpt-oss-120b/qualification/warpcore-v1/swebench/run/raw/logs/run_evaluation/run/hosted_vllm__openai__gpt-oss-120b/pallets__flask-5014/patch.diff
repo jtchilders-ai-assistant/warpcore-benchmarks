@@ -1,0 +1,17 @@
+diff --git a/src/flask/blueprints.py b/src/flask/blueprints.py
+index eb50585d..2c952675 100644
+--- a/src/flask/blueprints.py
++++ b/src/flask/blueprints.py
+@@ -190,6 +190,12 @@ class Blueprint(Scaffold):
+             root_path=root_path,
+         )
+ 
++        # Ensure the blueprint name is valid. An empty name would lead to
++        # malformed endpoint strings (e.g. ".index") and break URL generation.
++        # Historically Flask only rejected names containing a dot, but allowed
++        # empty strings, which caused issues (see issue #4944).
++        if not name:
++            raise ValueError("'name' may not be empty.")
+         if "." in name:
+             raise ValueError("'name' may not contain a dot '.' character.")
+ 

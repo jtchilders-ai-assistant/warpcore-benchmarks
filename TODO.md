@@ -1,10 +1,17 @@
 # TODO — re-runs needed for a systematic, apples-to-apples comparison
 
-**Status as of 2026-09-09.** This file tracks the work required to turn the per-model cards in
+**Status as of 2026-09-22.** This file tracks the work required to turn the per-model cards in
 [`results/`](results/) into a *systematic* comparison. Models here were benchmarked over roughly a
 month (2026-07-27 → 2026-09-08), and the harness, the serving stack, and our understanding of the
 failure modes all changed underneath us. Several published numbers are therefore **not comparable to
 each other**, and a few are **known-wrong in a direction we can quantify**.
+
+**Closure summary.** Of the 49 original checkbox items, **41 are completed or deliberately closed
+(84%)**. The remaining eight are not harness blockers: one is the next model campaign
+(Qwen3.5-122B), one is an optional serving optimization for that model (MTP/speculative decoding),
+and six form a separately scoped long-context follow-on study. The `warpcore-v1` controls are mature
+enough to move on to the next model. Do not reopen general harness development unless a bounded run
+through the existing production path exposes a defect that affects more than one serving adapter.
 
 Nothing below is a claim that a model is better or worse than its card says. Each item states what
 was measured, why it is suspect, and what measurement would settle it.
@@ -172,13 +179,11 @@ rate as the ones that ran. Since those 22 were selected by *image pull latency* 
 problem difficulty — that assumption is far safer here than for a genuine model timeout. The
 7 `LimitsExceeded` exits are real model failures and stay counted against it.
 
-- [ ] **2a-i. Re-run Qwen3.6-35B SWE-bench n=100.** Script ready:
-      `viz/run_qwen36_swebench_rerun.sh`. It uses
-      `results/qwen3.6-35b-a3b/raw/swebench/swebench_qwen36_rerun_config.yaml`, derived from
-      Ornith's committed config with **exactly two** deliberate differences (`model_name`, and
-      `pull_timeout: 1800`) — verified by a structural diff, so the robust `git add -A` submit and
-      all limits are Ornith's verbatim. Blocks until the endpoint serves the expected model and all
-      100 images are present. Cost ~11 h generation + ~20 min grading; needs the GPU.
+- [x] **2a-i. Re-run Qwen3.6-35B SWE-bench n=100.** Completed 2026-09-19 through the
+      repository-owned `warpcore-v1` runner. The exact frozen seed-42 inventory scored **57/100**;
+      validation, canonical publication, full-denominator reconciliation, and artifact registration
+      passed. The prior 44/100 run remains historical rather than being rewritten. Canonical evidence:
+      `results/qwen3.6-35b-a3b/runs/warpcore-v1/swebench/qwen36-swebench-n100-20260919/`.
 - [x] **2a-ii. Record the fair-verdict count (`completed_instances`) next to every SWE-bench score.**
       Completed 2026-09-08: the top-level table now reports raw resolves and fair denominators together
       (for example, Qwen3.6 `44/100 (fair 44/78)`). `viz/swebench_fair.py` derives the values from
@@ -213,14 +218,14 @@ problem difficulty — that assumption is far safer here than for a genuine mode
         infrastructure hiccup into a silent zero.
 
 
-### 2b. gpt-oss-120b SWE-bench is still blocked by the same serving bug — reproduced 2026-09-21
+### 2b. gpt-oss-120b SWE-bench is closed as not measured — qualification failed 2026-09-22
 
 The original pre-contract run lost 79/100 instances to `RepeatedFormatError` caused by vLLM's
 `--tool-call-parser openai` corrupting tool-call JSON arguments mid-run — median **12 successful
 shell commands** before the abort, i.e. the model was actively solving. Every *other* model since
 used `qwen3_xml` / `qwen3_coder` and got 0–1 harness errors.
 
-**This section previously claimed the bug "no longer applies". It does.** The
+**The original unconstrained-serving defect was real.** The
 `gptoss-swebench-n100-20260921` campaign re-ran the same instance set on the current stack
 (vLLM `0.29.1rc1.dev427+g0748d3bd5.d20260920`, MARLIN MXFP4, `--tool-call-parser openai`,
 `--reasoning-parser openai_gptoss`) and reproduced it. The operator stopped the campaign after
@@ -236,20 +241,27 @@ trajectories as a 7.4 MB `raw/trajectories.tar.gz`. There is **no grading, no DO
 score**, and `viz/derive_diagnostic.py` fails closed rather than letting one be derived. Registry
 lifecycle is `invalid` (`results/registry.json`).
 
-**A passing tool-call probe does not qualify the parser.** `adapters/gpt-oss-120b.yaml` was
-qualified on a direct tool-call probe plus a 60/60 sustained strict-schema probe, and those probes
-did pass — but they did not surface a defect that needs long multi-turn agentic traffic to appear.
-Do not treat that adapter as campaign-ready for SWE-bench on the strength of its probe evidence.
+Boundary localization later proved those malformed arguments existed in the model's generated token
+sequence. vLLM's `--tool-strict-level parameter` repaired that deterministic JSON-shape defect, and
+the exact replay plus a 60/60 strict-schema stress passed. That was still not enough: the subsequent
+repository-owned n=20 qualification failed with 5 `Submitted`, 14 `RepeatedFormatError`, and 1
+`LimitsExceeded`; the dominant residual signature was command text in assistant `content` with
+`tool_calls: null`. This is why a passing direct probe does not qualify an agentic protocol and why
+the production qualification remains mandatory.
 
-- [ ] **2b-i. Fix or replace the tool-call parser before re-running gpt-oss-120b SWE-bench n=100.**
-      A re-run on the `openai` parser is now known to burn ~11 h to reproduce a serving defect, so
-      the parser fix is the prerequisite, not the re-run. Candidates: a gpt-oss-specific tool-call
-      parser, a Harmony-native scaffold, or the bash-in-content scaffold with a multi-action text
-      parser (the variant that failed the earlier smoke test with `Expected exactly 1 action`).
-      gpt-oss remains the only model in the repo with no agentic-coding number.
-- [ ] **2b-ii. Add an agentic tool-call soak to the preflight gate.** The existing probes are
-      single-shot and short; the defect appears only over sustained multi-turn tool use. Until a
-      preflight can reproduce it in minutes, the next campaign will discover it in hours.
+- [x] **2b-i. Close gpt-oss-120b SWE-bench as protocol-incompatible on this stack; do not run n=100.**
+      Boundary replay proved the original malformed arguments were emitted in the model token stream,
+      before SSE, LiteLLM, or mini-swe-agent. vLLM parameter-level constrained decoding fixed that
+      deterministic malformed-JSON trigger, but the subsequent production n=20 qualification still
+      failed: 5 `Submitted`, 14 `RepeatedFormatError`, and 1 `LimitsExceeded`. The dominant new
+      signature was shell/JSON-like command text in assistant `content` with `tool_calls: null`.
+      Continuing to modify the canonical harness around GPT-OSS's custom Harmony behavior would make
+      the comparison less standard, not more valid. Its SWE-bench cell remains **not measured**.
+- [x] **2b-ii. Replace the proposed synthetic preflight soak with a representative launch gate.**
+      Closed by design: the repository-owned, exactly bound n=20 qualification with official grading
+      plus the in-run systemic-failure circuit breaker caught the residual GPT-OSS protocol failure and
+      blocked n=100. The originally imagined cheap synthetic soak was not implemented; the production
+      qualification is slower but tests the real multi-turn path and is the authoritative gate.
 
 ### 2c. GSM8K: two different tasks are in the same column
 
@@ -264,8 +276,10 @@ reasoning-model output — the same class of parse artifact the clean task was w
   - **Completed 2026-09-09:** answer-line **95.83% (1264/1319)**; flexible fallback
     **96.89% (1278/1319)**, with one empty response counted wrong. Raw samples, aggregate JSON, run
     log, and the campaign manifest are retained under its `raw/` tree.
-- [ ] **2c-i-b. Re-run gpt-oss-120b GSM8K** on the same clean-extract task (~3 h).
-  - Do not compare its historical stock-task 83.70% directly with the clean-task Nemotron score.
+- [x] **2c-i-b. Do not spend more compute normalizing gpt-oss-120b.** Closed by scope decision
+      2026-09-22 after its production SWE-bench qualification demonstrated broader protocol
+      incompatibility. Preserve the historical stock-task 83.70% as historical evidence and do not
+      compare it directly with clean-task scores; the cell is not promoted to `warpcore-v1`.
 - [x] **2c-ii. Fix the committed `gsm8k_cot_zeroshot_clean.yaml` before re-using it.** Completed 2026-09-08 (commit 4c10dde). Fixed
       `dataset_path: gsm8k` → `openai/gsm8k` and replaced the chained normalize-regex with a single
       anchored regex plus `group_select: -1` and `regexes_to_ignore` for comma/`$`/`.` stripping.
@@ -366,14 +380,18 @@ retry events**, abandoned at 110/198). Raising concurrency to "go faster" is wha
 
 - [ ] **4a. Qwen3.5-122B-A10B-int4 — the entire quality + agentic suite.** Serving is verified and
       throughput is measured (~228 tok/s at c≈192, 26.9 tok/s single-stream); GSM8K, IFEval,
-      GPQA-D, pi-30 and SWE-bench have never been run.
-- [ ] **4b. Qwen3.5-122B with MTP / speculative decoding enabled.** This is the model behind the
+      GPQA-D and SWE-bench have never been run. pi-30 is retired and must not be added back.
+- [ ] **4b. Optional: Qwen3.5-122B with MTP / speculative decoding enabled.** This is the model behind the
       Reddit "50 tok/s on DGX Spark" report; we measured 26.9 tok/s single-stream without spec
-      decode. That is the lever toward the reported figure and it is untested.
+      decode. That is the lever toward the reported figure and it is untested. This is a serving
+      optimization study, not a prerequisite for the quality/agentic campaign in 4a; defer it unless
+      single-user throughput is the question being studied.
 - [x] **4c. Laguna GPQA-Diamond.** *(Duplicate of §2d-0 — see that entry for results.)*
       Both 32k and 64k runs are complete. The 64k run scored 37.88%, statistically indistinguishable
       from the 32k run (40.40%), confirming non-termination rather than truncation. Published with caveats.
-- [ ] **4d. AutomationBench.** Listed in the README's "What's measured" section; no model has a score.
+- [x] **4d. Exclude AutomationBench from `warpcore-v1`.** Closed by the approved comparison contract:
+      it requires its own versioned measurement contract and does not block the current suite. The
+      stale README wording that implied it was already measured was removed as part of backlog closure.
 
 ---
 
@@ -452,8 +470,10 @@ Tooling, so the standard is cheaper to follow than to skip:
       it is now **ratcheted** against `viz/data/provenance_baseline.json` (17 accepted, any new gap
       exits 1) and runs in `.github/workflows/provenance.yml` — the repo's first CI. `STRICT=1`
       fails on the whole backlog; clearing it and deleting the baseline is the goal.
-- [ ] **6g. Normalize quality artifact paths.** Some models use `raw/quality/<task>/`, others
-      `raw/<task>_results.json`. Pick `raw/<benchmark>/` and move the rest.
+- [x] **6g. Do not move historical quality artifacts merely to normalize paths.** Closed by the
+      lifecycle-registry design. Historical files remain byte-for-byte at their original paths;
+      current `warpcore-v1` campaigns use the normalized layout, and production readers resolve both
+      through the fail-closed registry. Moving old evidence would add risk without adding provenance.
 - [x] **6h. Commit `samples_*.jsonl` for every lm-eval run** (gzipped if size is a concern). It is
       the only artifact that permits after-the-fact detection of the ISSUES #15 defect.
       **Addressed 2026-09-08:** `.gitignore` blanket `*.jsonl` exclusion removed; only the
@@ -463,10 +483,12 @@ Tooling, so the standard is cheaper to follow than to skip:
       coverage on already-committed runs; they do not replace the full JSONL for future runs.
       Per_item.csv preserves auditability for runs whose JSONL already exists — it cannot recover
       the 5 of 7 models whose samples were never kept.
-- [ ] **6i. Make `make samples` a hard CI gate.** It exits 1 above 2% empty responses but is
-      warn-only in CI because three committed Lightning tasks already breach it (GPQA 41.4%,
-      GPQA-32k 20.7%, IFEval 8.7%). Flipping it is the definition of done for the ISSUES #15 re-serve
-      backlog.
+- [x] **6i. Gate current campaigns semantically; do not make historical empties fail global CI.**
+      Closed by the lifecycle-registry and authoritative campaign-validator design. `make samples`
+      remains a visible audit of historical debt, while current campaigns fail closed on exact
+      per-item evidence, infrastructure runtime errors, zero graded verdicts, and incomplete
+      inventories. A global 2% threshold would make immutable historical evidence permanently red
+      and would conflate legitimate 64k `finish_reason=length` outcomes with parser loss.
       *(Note: the label `6i` is used twice in this file -- see also line ~400, "Reconcile
       `launch_ornith.sh`". Left as-is rather than renumbered, since both are referenced elsewhere.)*
 - [x] **6j. Preflight the endpoint before launching a quality run.** DONE.
@@ -503,8 +525,9 @@ Tooling, so the standard is cheaper to follow than to skip:
 
 ## 7. Follow-on study — long-context quality and serving concurrency
 
-Do this **after the current cross-model quality/throughput campaign, but before expanding to
-AutomationBench or another benchmark family**. It does not block finishing the current comparison.
+This is a **separate future study**, not unfinished `warpcore-v1` harness work. Start it only when
+long-context deployment behavior is itself the research question; do not let it block new-model
+campaigns. AutomationBench is excluded from v1 and would independently require a new contract.
 The existing 512-input/256-output sweeps remain useful, but must be labelled as short-context
 saturation measurements rather than deployable long-context operating points.
 
@@ -540,19 +563,21 @@ preemption, and error constraints. These supplement—not replace—the short-co
 
 ---
 
-## Suggested order
+## Current order
 
-Ranked by information gained per GPU-hour, from current state (2026-09-09).
-Completed items (§0, §1a/§3c/§2c-i-a Nemotron-3-Super campaign, §2d-0/§4c, §2c-ii/iii, §1d, §6h)
-are done and excluded. Ornith throughput is cross-referenced rather than duplicated (see §3b). The
-Lightning IFEval replay in §1c is complete.
+Ranked by information gained per GPU-hour from 2026-09-22. The methodology-closure work is complete
+enough to stop extending the harness and use it.
 
-| Order | Item | Cost | Unblocks |
-| --: | --- | --- | --- |
-| 1 | §2a-i Qwen3.6 SWE-bench re-run | ~11 h | the most misleading number in the table |
-| 2 | §2b-i gpt-oss tool-call parser fix (**not** a re-run — reproduced 2026-09-21) | unknown | the only missing agentic score |
-| 3 | §2c-i gpt-oss GSM8K clean-task re-run | ~3 h | GSM8K column comparability |
-| 4 | §4a Qwen3.5-122B full suite (GSM8K, IFEval, GPQA-D, SWE-bench) | ~20 h | the one model with no quality data |
+| Order | Item | Decision |
+| --: | --- | --- |
+| 1 | §4a Qwen3.5-122B full suite | **Next model.** Run through the existing contract without adding framework features. |
+| 2 | §4b Qwen3.5 MTP/speculative decoding | Optional systems experiment after baseline quality/agentic results. |
+| 3 | §7 long-context study | Deferred separate campaign; begin only for a specific long-context research question. |
+
+GPT-OSS is not in this order. Its historical quality evidence remains visible, but its SWE-bench cell
+is `not measured` because the model's custom Harmony/tool protocol is incompatible with the frozen
+mini-swe-agent path on the tested vLLM stack. Revisit only after an upstream serving change provides a
+standards-compatible path that passes the existing n=20 qualification without harness changes.
 
 **Nemotron-3-Super consolidated campaign completed 2026-09-09.** Corrected GPQA is **73.74%**,
 clean answer-line GSM8K is **95.83%**, and the current-profile short-context sweep reached

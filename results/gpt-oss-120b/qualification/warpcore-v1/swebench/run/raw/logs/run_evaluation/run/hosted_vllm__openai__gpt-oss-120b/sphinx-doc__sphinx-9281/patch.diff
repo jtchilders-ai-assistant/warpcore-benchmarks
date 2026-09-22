@@ -1,0 +1,24 @@
+diff --git a/sphinx/util/inspect.py b/sphinx/util/inspect.py
+index a415a7074..216c9b761 100644
+--- a/sphinx/util/inspect.py
++++ b/sphinx/util/inspect.py
+@@ -457,6 +457,19 @@ def object_description(object: Any) -> str:
+         else:
+             return "frozenset({%s})" % ", ".join(object_description(x)
+                                                  for x in sorted_values)
++    # Special handling for Enum members to avoid the verbose ``<Enum.Member: value>`` representation.
++    # When the object is an instance of :class:`enum.Enum` we
++    # return the qualified name ``EnumClass.Member`` which matches the source
++    # appearance and is more readable in autodoc signatures.
++    try:
++        import enum as _enum
++        if isinstance(object, _enum.Enum):
++            return f"{object.__class__.__name__}.{object.name}"
++    except Exception:
++        # If the enum module cannot be imported or any other error occurs, fall
++        # back to the generic representation handling below.
++        pass
++
+     try:
+         s = repr(object)
+     except Exception as exc:

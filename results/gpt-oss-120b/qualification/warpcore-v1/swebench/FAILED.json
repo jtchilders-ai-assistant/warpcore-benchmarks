@@ -1,0 +1,24 @@
+{
+  "classification": "failed_qualification",
+  "suite_id": "warpcore-v1",
+  "benchmark": "swebench",
+  "model_slug": "gpt-oss-120b",
+  "expected_instances": 20,
+  "runner_exit": 1,
+  "exit_status_counts": {
+    "Submitted": 5,
+    "RepeatedFormatError": 14,
+    "LimitsExceeded": 1
+  },
+  "official_grading": {
+    "resolved": 2,
+    "unresolved": 3,
+    "empty_patch": 15,
+    "grader_errors": 0,
+    "incomplete": 0
+  },
+  "qualification_sealed": false,
+  "n100_authorized": false,
+  "reason": "The production n=20 qualification failed. Most failed turns returned command text in assistant content with tool_calls null, so the frozen mini-swe-agent protocol could not execute the actions.",
+  "revisit_criterion": "An upstream serving change must provide a standards-compatible tool path that passes the unchanged repository-owned n=20 qualification."
+}
