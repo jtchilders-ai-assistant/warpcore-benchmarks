@@ -194,9 +194,10 @@ Is it a vendor-recommended specific version?
   → use that exact image, e.g. vllm/vllm-openai:v0.27.1 (Lightning)
 ```
 
-**NEVER use the `openai-gpt-oss-120b` recipe for tool-calling/agentic workloads.**
-It uses CUTLASS MXFP4 + FlashInfer which crashes under concurrent structured-output requests.
-For SWE-bench or pi-30, use the `eugr/spark-vllm:latest` container with `--moe-backend marlin`.
+**Do not launch new canonical agentic campaigns with the `openai-gpt-oss-120b` recipe.**
+Its custom Harmony/tool protocol did not pass the frozen production qualification on the tested
+vLLM stack. Preserve its retained runs as diagnostic evidence rather than treating a serving change
+as a canonical harness repair. pi-30 is retired and must not be run for new model comparisons.
 
 ---
 

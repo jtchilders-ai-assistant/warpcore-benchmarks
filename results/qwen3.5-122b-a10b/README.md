@@ -112,8 +112,8 @@ it, so single-stream could plausibly ~1.5–2× with speculative decoding.
 
 ## Quality
 
-**Not yet measured on Warpcore.** No lm-eval quality card (GSM8K / IFEval / GPQA-Diamond) or agentic
-(pi-30 / SWE-bench) numbers have been produced for this model yet — this card covers **serving
+**Not yet measured on Warpcore.** No lm-eval quality card (GSM8K / IFEval / GPQA-Diamond) or
+SWE-bench number has been produced for this model yet — this card covers **serving
 bring-up + a functional smoke test + a throughput sweep**. Run the lm-eval pipeline
 (`lm-eval-vllm-endpoint` skill) against the chat endpoint next to fill this in (note the reasoning
 parser caveat above — verify `<think>` handling before trusting MCQ extraction).
@@ -123,7 +123,7 @@ parser caveat above — verify `<think>` handling before trusting MCQ extraction
 - **MTP / speculative decoding.** The headline lever to reproduce the Reddit ~50 tok/s single-stream
   figure. Baseline here is deliberately MTP-off for a clean number.
 - **Quality suite** (GSM8K, IFEval, GPQA-Diamond) via lm-eval against the chat endpoint.
-- **Agentic** (pi-30, SWE-bench Verified 100-sample) — verify tool-calling (`qwen3_xml` parser) returns
+- **Agentic** (SWE-bench Verified 100-sample) — verify tool-calling (`qwen3_xml` parser) returns
   native `finish_reason: tool_calls` first, or every task scores 0.
 - **Fix the `<think>` reasoning-parser split** (chat-template / parser mismatch) so `reasoning_content`
   is populated correctly — required for clean MCQ answer extraction in lm-eval.

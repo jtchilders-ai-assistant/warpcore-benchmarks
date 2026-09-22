@@ -489,9 +489,7 @@ Tooling, so the standard is cheaper to follow than to skip:
       per-item evidence, infrastructure runtime errors, zero graded verdicts, and incomplete
       inventories. A global 2% threshold would make immutable historical evidence permanently red
       and would conflate legitimate 64k `finish_reason=length` outcomes with parser loss.
-      *(Note: the label `6i` is used twice in this file -- see also line ~400, "Reconcile
-      `launch_ornith.sh`". Left as-is rather than renumbered, since both are referenced elsewhere.)*
-- [x] **6j. Preflight the endpoint before launching a quality run.** DONE.
+- [x] **6k. Preflight the endpoint before launching a quality run.** DONE.
       `viz/preflight_serving.py` sends 3 short probes and refuses to launch when answers are being
       dropped. `make preflight-serving` (live) / `make preflight-selftest` (fixtures, in CI).
 
