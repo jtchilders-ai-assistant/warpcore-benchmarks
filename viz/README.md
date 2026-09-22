@@ -36,7 +36,7 @@ doesn't tell you the point, the panel has failed.
 viz/
   common.py               palette, plot style, Wilson/McNemar/binomial-SE helpers
   parse_sweeps.py         results/*/raw/throughput_sweep/* -> data/throughput_all.csv
-  collect_matrix.py       quality + pi-30 + SWE-bench artifacts -> data/bench_matrix.json
+  collect_matrix.py       quality + historical pi-30 + SWE-bench artifacts -> data/bench_matrix.json
   fig1_pareto.py          serving envelope
   fig2_swebench.py        SWE-bench Verified, paired analysis
   fig3_discrimination.py  benchmark discrimination + rank transfer
@@ -61,8 +61,8 @@ viz/
 
 These are visible on the figures themselves, not buried here:
 
-- **Ornith GPQA (69.70%) is an underestimate** — 21.2% of items returned empty
-  content (ISSUES #15). It is a floor, not an estimate.
+- **Ornith GPQA is a 64k replay composite (80.81%)** — 15/198 items still ended
+  `finish_reason=length` and remain counted wrong. It is a budget-conditional result.
 - **Qwen3.6 GPQA is non-thinking mode**; Lightning's GPQA is a 64k-budget
   composite (32k run + 64k replay of truncated items, 151/198).
 - **Empty patches are not wrong answers.** They are runs that never finished, so

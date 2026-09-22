@@ -210,7 +210,7 @@ def main() -> None:
                  fontsize=12.5, y=1.04)
     fig.text(0.5, -0.06,
              "source: results/*/raw/quality/*/results_*.json, "
-             "raw/**/swebench*.json  \u00b7  Ornith GPQA is an underestimate (ISSUES #15)  \u00b7  "
+             "raw/**/swebench*.json  ·  Ornith GPQA = 64k replay composite  ·  "
              "Qwen3.6 GPQA = non-thinking mode  \u00b7  Lightning GPQA = 64k budget",
              ha="center", fontsize=6.8, color="#555")
     save(fig, "fig3_discrimination")
