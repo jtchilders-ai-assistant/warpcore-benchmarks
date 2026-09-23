@@ -1,0 +1,21 @@
+adapter_schema_version: 1
+campaign_status: canonical
+
+model:
+  slug: ornith-1.5-35b-a3b
+  id: ornith-ai/Ornith-1.5-35B-A3B-FP8
+  revision: fab11c26e2325a42f4b32da0249c819a0bade1b1
+
+serving:
+  image: eugr/spark-vllm@sha256:c154ad0a2575d6c42f8e05cba16ef255ce4ff54d537ad37987ca5b4215cb58b8
+  engine: vllm
+  engine_version: 0.29.1rc1.dev427+g0748d3bd5.d20260920
+  quantization: fp8
+  reasoning_parser: qwen3
+  tool_call_parser: qwen3_xml
+  tokenizer: null
+  moe_backend: marlin
+  max_model_len: 262144
+  gpu_memory_utilization: 0.8
+  max_num_seqs: 128
+  environment: {}

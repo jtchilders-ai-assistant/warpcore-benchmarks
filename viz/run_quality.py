@@ -323,8 +323,7 @@ def _derive_per_item_data(
 
     for gz_path in sorted(all_gz):
         with _gzip_module.open(gz_path, "rt", encoding="utf-8") as fh:
-            content = fh.read()
-        lines = [l.strip() for l in content.splitlines() if l.strip()]
+            lines = [line.strip() for line in fh if line.strip()]
         if not lines:
             raise RuntimeError(
                 f"samples file {gz_path.name} contains no lines — "
@@ -893,8 +892,12 @@ class QualityRunner:
         # Sidecar path: under run_dir/raw/, passed via model_args (not env)
         # so it is visible in command.txt for auditability; contains no credentials.
         sidecar_path = str(self.run_dir / "raw" / "response_metadata.jsonl")
+        # lm-eval's LocalChatCompletion posts directly to base_url; the public
+        # runner interface accepts the OpenAI API root ending in /v1. Resolve the
+        # concrete chat-completions route here so requests do not POST to /v1.
+        chat_completions_url = self.endpoint.rstrip("/") + "/chat/completions"
         model_args = (
-            f"base_url={self.endpoint},"
+            f"base_url={chat_completions_url},"
             f"model={model_id},"
             f"num_concurrent={self.concurrency},"
             f"max_retries={max_retries},"

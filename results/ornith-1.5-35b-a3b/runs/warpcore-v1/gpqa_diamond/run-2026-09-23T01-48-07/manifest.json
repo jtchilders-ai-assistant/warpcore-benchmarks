@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "suite_id": "warpcore-v1",
+  "suite_schema_version": 1,
+  "run_id": "run-2026-09-23T01-48-07",
+  "benchmark": "gpqa_diamond",
+  "adapter_hash": "8062731e314c51d3a09890ca71d1f9ca007fe1427c00070fc8cbee7687491b52",
+  "suite_input_hashes": {
+    "suite/warpcore-v1.yaml": "cc4f314301e80bf97140d848a27ae8bb869a49c853c984949270070ecd4d7aaa",
+    "suite/tasks/gpqa_diamond_clean_v3.yaml": "833259292b956a4bc620352c95ae43c30bb9d2b4049aebd3f67c4a1ec3b4267f",
+    "suite/tasks/gpqa_utils.py": "7c755f2c3f8f4ac20de96fb68941c43424d2ded0552d5ab81e672e15c410655c"
+  },
+  "serving_profile_digest": "sha256:eeeecab1bb9f508a4ccabbbdbb3da0a68b894dea645fb6fd550c2a29a2caffc9",
+  "model": {
+    "slug": "ornith-1.5-35b-a3b",
+    "id": "ornith-ai/Ornith-1.5-35B-A3B-FP8",
+    "revision": "fab11c26e2325a42f4b32da0249c819a0bade1b1"
+  },
+  "serving": {
+    "image_digest": "sha256:c154ad0a2575d6c42f8e05cba16ef255ce4ff54d537ad37987ca5b4215cb58b8",
+    "engine": "vllm",
+    "engine_version": "0.29.1rc1.dev427+g0748d3bd5.d20260920",
+    "effective_args": [
+      "--quantization=fp8",
+      "--reasoning-parser=qwen3",
+      "--tool-call-parser=qwen3_xml",
+      "--moe-backend=marlin",
+      "--max-model-len=262144",
+      "--gpu-memory-utilization=0.8",
+      "--max-num-seqs=128",
+      "--engine=vllm",
+      "--engine-version=0.29.1rc1.dev427+g0748d3bd5.d20260920"
+    ],
+    "environment": {},
+    "hardware_id": "dgx-spark-gb10"
+  },
+  "item_inventory": {
+    "expected": 198,
+    "submitted": 0
+  },
+  "timing": {
+    "started_utc": "2026-09-23T01:48:07Z",
+    "completed_utc": null
+  },
+  "artifact_inventory": {
+    "samples_jsonl_gz": false,
+    "per_item_csv": false,
+    "run_log": false,
+    "command_txt": false,
+    "done_sentinel": false
+  }
+}
