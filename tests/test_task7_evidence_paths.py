@@ -1283,5 +1283,95 @@ class TestUnknownEvidenceNameRejection(unittest.TestCase):
             )
 
 
+class TestRecursiveQualityEvidenceDiscovery(unittest.TestCase):
+    """lm-eval stores quality artifacts below a model-named raw subdirectory."""
+
+    def test_suite_required_globs_accept_nested_lmeval_artifacts(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = pathlib.Path(tmp) / "run"
+            nested = run_dir / "raw" / "org__model"
+            nested.mkdir(parents=True)
+            (nested / "results_test.json").write_text("{}")
+            with gzip.open(nested / "samples_test.jsonl.gz", "wt") as fh:
+                fh.write(json.dumps({"doc_id": 0}) + "\n")
+
+            suite_data = {
+                "benchmarks": {
+                    "gsm8k": {
+                        "required_evidence": ["aggregate_result", "samples_jsonl_gz"]
+                    }
+                }
+            }
+            errors: list[str] = []
+            validate_campaign._check_suite_required_evidence(
+                run_dir, suite_data, "gsm8k", errors
+            )
+
+            self.assertEqual(errors, [])
+
+    def test_aggregate_reconciliation_accepts_nested_lmeval_result(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = pathlib.Path(tmp) / "run"
+            nested = run_dir / "raw" / "org__model"
+            nested.mkdir(parents=True)
+            (nested / "results_test.json").write_text(json.dumps({
+                "results": {"gsm8k": {"exact_match,answer-line": 1.0}}
+            }))
+            errors: list[str] = []
+            validate_campaign._check_aggregate_reconciliation(
+                run_dir,
+                [{"item_id": "0", "score": "1.0"}],
+                "gsm8k",
+                errors,
+                fail_on_missing=True,
+            )
+
+            self.assertEqual(errors, [])
+
+    def test_gsm8k_reconciliation_uses_canonical_answer_line_metric(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = pathlib.Path(tmp) / "run"
+            nested = run_dir / "raw" / "org__model"
+            nested.mkdir(parents=True)
+            (nested / "results_test.json").write_text(json.dumps({
+                "results": {
+                    "gsm8k": {
+                        "exact_match,answer-line": 0.0,
+                        "exact_match,flexible-fallback": 1.0,
+                    }
+                }
+            }))
+            errors: list[str] = []
+            validate_campaign._check_aggregate_reconciliation(
+                run_dir,
+                [{"item_id": "0", "score": "0.0"}],
+                "gsm8k",
+                errors,
+                fail_on_missing=True,
+            )
+
+            self.assertEqual(errors, [])
+
+    def test_publication_reconciliation_rejects_benchmark_without_canonical_metric(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = pathlib.Path(tmp) / "run"
+            raw_dir = run_dir / "raw"
+            raw_dir.mkdir(parents=True)
+            (raw_dir / "results_test.json").write_text(json.dumps({
+                "results": {"new_benchmark": {"score,none": 1.0}}
+            }))
+            errors: list[str] = []
+            validate_campaign._check_aggregate_reconciliation(
+                run_dir,
+                [{"item_id": "0", "score": "1.0"}],
+                "new_benchmark",
+                errors,
+                fail_on_missing=True,
+            )
+
+            self.assertTrue(errors)
+            self.assertIn("No canonical aggregate metric", errors[0])
+
+
 if __name__ == "__main__":
     unittest.main()

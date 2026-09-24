@@ -1,0 +1,585 @@
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/Users/jchilders/Library/Application 
+Support/mini-swe-agent/.env'
+minisweagent: INFO: Results will be saved to                                    
+/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/ornith-1.5-campaign/r
+esults/ornith-1.5-35b-a3b/qualification/warpcore-v1/swebench/run/raw            
+Logging to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/ornith-1.5-campaign/results/ornith-1.5-35b-a3b/qualification/warpcore-v1/swebench/run/raw/minisweagent.log'
+minisweagent: INFO: Loading dataset princeton-nlp/SWE-bench_Verified, split     
+test...                                                                         
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+minisweagent: INFO: Instance filter: 500 -> 20 instances                        
+minisweagent: INFO: Running on 20 instances...                                  
+minisweagent: INFO: Building agent config from specs:                           
+['/var/folders/f0/7qqjjvb16hj4y5dhlshf643m0000gn/T/swe_config_tvp1ha0i.yaml']   
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-95ea7f9f -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.astropy_1776_astropy-14096:latest sleep 2h  
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-6b69b4eb -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.astropy_1776_astropy-8872:latest sleep 2h   
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-980c0594 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-11299:latest sleep 2h    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-0de618f8 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-14672:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-95ea7f9f with ID 
+e987c203b0f4b4039932c6a02e54d5da363187a8ad6938ec72319bcd1a04ec84                
+minisweagent.environment: INFO: Started container minisweagent-6b69b4eb with ID 
+591ee0c738e83551ecf22d5a1c9302a86dacbfd2c3d4ef43e79dd1145a022ebe                
+minisweagent.environment: INFO: Started container minisweagent-980c0594 with ID 
+91f54970eec32994bf6875decee3835a0d01971459cb578cb9bbfd8375d4fd84                
+minisweagent.environment: INFO: Started container minisweagent-0de618f8 with ID 
+42db822563f8d878cd4e2b14791b32abbc68c355721ca4f27725f4b63090ff56                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/ornith-1.5-campaign/
+results/ornith-1.5-35b-a3b/qualification/warpcore-v1/swebench/run/raw/django__dj
+ango-14672/django__django-14672.traj.json'                                      
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-68b40ea4 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.matplotlib_1776_matplotlib-22871:latest     
+sleep 2h                                                                        
+minisweagent.environment: INFO: Started container minisweagent-68b40ea4 with ID 
+24d20a59b3e24025620f0e80cb84cc9c4988e7a2207f1fad4743efdb89e14cf5                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/ornith-1.5-campaign/
+results/ornith-1.5-35b-a3b/qualification/warpcore-v1/swebench/run/raw/django__dj
+ango-11299/django__django-11299.traj.json'                                      
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-71371144 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.matplotlib_1776_matplotlib-25332:latest     
+sleep 2h                                                                        
+minisweagent.environment: INFO: Started container minisweagent-71371144 with ID 
+e384b8602d0e3cf541ddf5eb71728a737c78b8a61932cfbcb921c3aa387bf950                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/ornith-1.5-campaign/
+results/ornith-1.5-35b-a3b/qualification/warpcore-v1/swebench/run/raw/astropy__a
+stropy-8872/astropy__astropy-8872.traj.json'                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-122ff42b -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.pallets_1776_flask-5014:latest sleep 2h     
+minisweagent.environment: INFO: Started container minisweagent-122ff42b with ID 
+5c07c7a231c0fc7af10d1766b7f7343eb5a5f4fd93718c26014096198e1bad05                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/ornith-1.5-campaign/
+results/ornith-1.5-35b-a3b/qualification/warpcore-v1/swebench/run/raw/matplotlib
+__matplotlib-22871/matplotlib__matplotlib-22871.traj.json'                      
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-bc6ce574 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.psf_1776_requests-1766:latest sleep 2h      
+minisweagent.environment: INFO: Started container minisweagent-bc6ce574 with ID 
+018f6424a5ad37b902a8198d00103039dc4eae20f5487c5b9426603d6b105a8a                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/ornith-1.5-campaign/
+results/ornith-1.5-35b-a3b/qualification/warpcore-v1/swebench/run/raw/pallets__f
+lask-5014/pallets__flask-5014.traj.json'                                        
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-3d47a028 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.psf_1776_requests-6028:latest sleep 2h      
+minisweagent.environment: INFO: Started container minisweagent-3d47a028 with ID 
+ef8d66a56d8614611ca4c70d353bab19194aceb69b180a6f80fbf7725f3ad5ab                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/ornith-1.5-campaign/
+results/ornith-1.5-35b-a3b/qualification/warpcore-v1/swebench/run/raw/psf__reque
+sts-1766/psf__requests-1766.traj.json'                                          
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-50925cec -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.pydata_1776_xarray-3993:latest sleep 2h     
+minisweagent.environment: INFO: Started container minisweagent-50925cec with ID 
+7edf068ffe59a895d6adf5b22a6886d5221709be50048e187e24481c1978782a                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/ornith-1.5-campaign/
+results/ornith-1.5-35b-a3b/qualification/warpcore-v1/swebench/run/raw/pydata__xa
+rray-3993/pydata__xarray-3993.traj.json'                                        
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-447c4491 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.pydata_1776_xarray-6938:latest sleep 2h     
+minisweagent.environment: INFO: Started container minisweagent-447c4491 with ID 
+e7d327e6f35b1939b9ea40ba767d79a0fae233c233fa20f929a4bf2414e49bad                
+Retrying <unknown> in 4 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+Retrying <unknown> in 4 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+Retrying <unknown> in 4 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+Retrying <unknown> in 4 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/ornith-1.5-campaign/
+results/ornith-1.5-35b-a3b/qualification/warpcore-v1/swebench/run/raw/astropy__a
+stropy-14096/astropy__astropy-14096.traj.json'                                  
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-869ea174 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.pylint-dev_1776_pylint-4551:latest sleep 2h 
+minisweagent.environment: INFO: Started container minisweagent-869ea174 with ID 
+826dfce387965283507a4891b738a9ec0bdb3160a5845f1d385e030232ade943                
+Retrying <unknown> in 4 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/ornith-1.5-campaign/
+results/ornith-1.5-35b-a3b/qualification/warpcore-v1/swebench/run/raw/psf__reque
+sts-6028/psf__requests-6028.traj.json'                                          
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-6f0de95e -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.pylint-dev_1776_pylint-6903:latest sleep 2h 
+minisweagent.environment: INFO: Started container minisweagent-6f0de95e with ID 
+b57f9823178049c858d0eedc9cb3b04971579b819afead332d7508e16733cffc                
+Retrying <unknown> in 4 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+Retrying <unknown> in 4 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+Retrying <unknown> in 4 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+Retrying <unknown> in 8 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+Retrying <unknown> in 4 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+Retrying <unknown> in 8 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+Retrying <unknown> in 4 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+Retrying <unknown> in 16 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+Retrying <unknown> in 4 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+Retrying <unknown> in 16 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+Retrying <unknown> in 4 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+Retrying <unknown> in 32 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+Retrying <unknown> in 32 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+Retrying <unknown> in 4 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+Retrying <unknown> in 4 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/ornith-1.5-campaign/
+results/ornith-1.5-35b-a3b/qualification/warpcore-v1/swebench/run/raw/pylint-dev
+__pylint-4551/pylint-dev__pylint-4551.traj.json'                                
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-e03eded7 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.pytest-dev_1776_pytest-5262:latest sleep 2h 
+minisweagent.environment: INFO: Started container minisweagent-e03eded7 with ID 
+73b369c618c0acf4a774514e24f007c6c58d2240bcfc71fd48f152d23fc22d18                
+Retrying <unknown> in 60 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/ornith-1.5-campaign/
+results/ornith-1.5-35b-a3b/qualification/warpcore-v1/swebench/run/raw/pytest-dev
+__pytest-5262/pytest-dev__pytest-5262.traj.json'                                
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-e744b746 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.pytest-dev_1776_pytest-7205:latest sleep 2h 
+minisweagent.environment: INFO: Started container minisweagent-e744b746 with ID 
+a55ec97d5b4ebfb3ce08f06f63e67da8d9cea1a4af735b2cc341f7376fb92408                
+Retrying <unknown> in 60 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/ornith-1.5-campaign/
+results/ornith-1.5-35b-a3b/qualification/warpcore-v1/swebench/run/raw/pylint-dev
+__pylint-6903/pylint-dev__pylint-6903.traj.json'                                
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-fe77f881 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-14629:latest 
+sleep 2h                                                                        
+minisweagent.environment: INFO: Started container minisweagent-fe77f881 with ID 
+036d3c94f1218a5f7044ba1241f91a55df0cad3c3a24a2bb8edff1b090031a4e                
+Retrying <unknown> in 60 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/ornith-1.5-campaign/
+results/ornith-1.5-35b-a3b/qualification/warpcore-v1/swebench/run/raw/scikit-lea
+rn__scikit-learn-14629/scikit-learn__scikit-learn-14629.traj.json'              
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-8eb71b61 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-14710:latest 
+sleep 2h                                                                        
+minisweagent.environment: INFO: Started container minisweagent-8eb71b61 with ID 
+e909ac0eaa96ef5bee36dcbf193bf52e8d47668a1dc58cb954ff73db884a595a                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/ornith-1.5-campaign/
+results/ornith-1.5-35b-a3b/qualification/warpcore-v1/swebench/run/raw/pytest-dev
+__pytest-7205/pytest-dev__pytest-7205.traj.json'                                
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-52597158 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-10449:latest sleep 2h
+minisweagent.environment: INFO: Started container minisweagent-52597158 with ID 
+ccdf8f67a4920c3929ca866756300e5378d9063bbea1a9d918809a37c8b0513b                
+Retrying <unknown> in 60 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/ornith-1.5-campaign/
+results/ornith-1.5-35b-a3b/qualification/warpcore-v1/swebench/run/raw/scikit-lea
+rn__scikit-learn-14710/scikit-learn__scikit-learn-14710.traj.json'              
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-cc99cb35 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-9281:latest sleep 2h 
+minisweagent.environment: INFO: Started container minisweagent-cc99cb35 with ID 
+734ca0bed782e68108432fe3850f65dc87b203ade0facde9e9d5a8f196f4bc30                
+Retrying <unknown> in 60 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+Retrying <unknown> in 4 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+Retrying <unknown> in 4 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+minisweagent: ERROR: Error processing instance matplotlib__matplotlib-25332:    
+litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout:         
+Connection timed out after 1800.0 seconds.                                      
+Traceback (most recent call last):                                              
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpx/_transpor
+ts/default.py", line 101, in map_httpcore_exceptions                            
+    yield                                                                       
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpx/_transpor
+ts/default.py", line 250, in handle_request                                     
+    resp = self._pool.handle_request(req)                                       
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                                       
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpcore/_sync/
+connection_pool.py", line 256, in handle_request                                
+    raise exc from None                                                         
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpcore/_sync/
+connection_pool.py", line 236, in handle_request                                
+    response = connection.handle_request(                                       
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^                                       
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpcore/_sync/
+connection.py", line 103, in handle_request                                     
+    return self._connection.handle_request(request)                             
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                             
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpcore/_sync/
+http11.py", line 136, in handle_request                                         
+    raise exc                                                                   
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpcore/_sync/
+http11.py", line 106, in handle_request                                         
+    ) = self._receive_response_headers(**kwargs)                                
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                                
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpcore/_sync/
+http11.py", line 177, in _receive_response_headers                              
+    event = self._receive_event(timeout=timeout)                                
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                                
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpcore/_sync/
+http11.py", line 217, in _receive_event                                         
+    data = self._network_stream.read(                                           
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^                                           
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpcore/_backe
+nds/sync.py", line 126, in read                                                 
+    with map_exceptions(exc_map):                                               
+  File                                                                          
+"/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/p
+ython3.11/contextlib.py", line 158, in __exit__                                 
+    self.gen.throw(typ, value, traceback)                                       
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpcore/_excep
+tions.py", line 14, in map_exceptions                                           
+    raise to_exc(exc) from exc                                                  
+httpcore.ReadTimeout: timed out                                                 
+                                                                                
+The above exception was the direct cause of the following exception:            
+                                                                                
+Traceback (most recent call last):                                              
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/llms/cu
+stom_httpx/http_handler.py", line 1185, in post                                 
+    response = self.client.send(req, stream=stream)                             
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                             
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpx/_client.p
+y", line 914, in send                                                           
+    response = self._send_handling_auth(                                        
+               ^^^^^^^^^^^^^^^^^^^^^^^^^                                        
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpx/_client.p
+y", line 942, in _send_handling_auth                                            
+    response = self._send_handling_redirects(                                   
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                                   
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpx/_client.p
+y", line 979, in _send_handling_redirects                                       
+    response = self._send_single_request(request)                               
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                               
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpx/_client.p
+y", line 1014, in _send_single_request                                          
+    response = transport.handle_request(request)                                
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                                
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpx/_transpor
+ts/default.py", line 249, in handle_request                                     
+    with map_httpcore_exceptions():                                             
+  File                                                                          
+"/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/p
+ython3.11/contextlib.py", line 158, in __exit__                                 
+    self.gen.throw(typ, value, traceback)                                       
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpx/_transpor
+ts/default.py", line 118, in map_httpcore_exceptions                            
+    raise mapped_exc(message) from exc                                          
+httpx.ReadTimeout: timed out                                                    
+                                                                                
+During handling of the above exception, another exception occurred:             
+                                                                                
+Traceback (most recent call last):                                              
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/llms/cu
+stom_httpx/llm_http_handler.py", line 317, in _make_common_sync_call            
+    response = sync_httpx_client.post(                                          
+               ^^^^^^^^^^^^^^^^^^^^^^^                                          
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/llms/cu
+stom_httpx/http_handler.py", line 1189, in post                                 
+    raise litellm.Timeout(                                                      
+litellm.exceptions.Timeout: litellm.Timeout: Connection timed out after 1800.0  
+seconds.                                                                        
+                                                                                
+During handling of the above exception, another exception occurred:             
+                                                                                
+Traceback (most recent call last):                                              
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/main.py
+", line 5534, in completion                                                     
+    response = _complete_hosted_vllm(_dispatch_ctx)                             
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                             
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/main.py
+", line 2317, in _complete_hosted_vllm                                          
+    response = base_llm_http_handler.completion(                                
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                                
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/llms/cu
+stom_httpx/llm_http_handler.py", line 612, in completion                        
+    response = self._make_common_sync_call(                                     
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^                                     
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/llms/cu
+stom_httpx/llm_http_handler.py", line 336, in _make_common_sync_call            
+    raise self._handle_error(e=e, provider_config=provider_config)              
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^              
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/llms/cu
+stom_httpx/llm_http_handler.py", line 5746, in _handle_error                    
+    raise provider_config.get_error_class(                                      
+litellm.llms.openai.common_utils.OpenAIError: litellm.Timeout: Connection timed 
+out after 1800.0 seconds.                                                       
+                                                                                
+During handling of the above exception, another exception occurred:             
+                                                                                
+Traceback (most recent call last):                                              
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/ru
+n/benchmarks/swebench.py", line 154, in process_instance                        
+    info = agent.run(task)                                                      
+           ^^^^^^^^^^^^^^^                                                      
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/ag
+ents/default.py", line 98, in run                                               
+    self.step()                                                                 
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/ru
+n/benchmarks/utils/common.py", line 17, in step                                 
+    return super().step()                                                       
+           ^^^^^^^^^^^^^^                                                       
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/ag
+ents/default.py", line 128, in step                                             
+    return self.execute_actions(self.query())                                   
+                                ^^^^^^^^^^^^                                    
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/ag
+ents/default.py", line 149, in query                                            
+    message = self.model.query(self.messages)                                   
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                                   
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/mo
+dels/litellm_model.py", line 82, in query                                       
+    for attempt in retry(logger=logger, abort_exceptions=self.abort_exceptions):
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/tenacity/__init
+__.py", line 438, in __iter__                                                   
+    do = self.iter(retry_state=retry_state)                                     
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                                     
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/tenacity/__init
+__.py", line 371, in iter                                                       
+    result = action(retry_state)                                                
+             ^^^^^^^^^^^^^^^^^^^                                                
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/tenacity/__init
+__.py", line 413, in exc_check                                                  
+    raise retry_exc.reraise()                                                   
+          ^^^^^^^^^^^^^^^^^^^                                                   
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/tenacity/__init
+__.py", line 184, in reraise                                                    
+    raise self.last_attempt.result()                                            
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^                                            
+  File                                                                          
+"/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/p
+ython3.11/concurrent/futures/_base.py", line 449, in result                     
+    return self.__get_result()                                                  
+           ^^^^^^^^^^^^^^^^^^^                                                  
+  File                                                                          
+"/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/p
+ython3.11/concurrent/futures/_base.py", line 401, in __get_result               
+    raise self._exception                                                       
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/mo
+dels/litellm_model.py", line 84, in query                                       
+    response = self._query(self._prepare_messages_for_api(messages), **kwargs)  
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/mo
+dels/litellm_model.py", line 66, in _query                                      
+    return litellm.completion(                                                  
+           ^^^^^^^^^^^^^^^^^^^                                                  
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/utils.p
+y", line 1578, in wrapper                                                       
+    raise e                                                                     
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/utils.p
+y", line 1426, in wrapper                                                       
+    result = original_function(*args, **kwargs)                                 
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                                 
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/main.py
+", line 5686, in completion                                                     
+    raise exception_type(                                                       
+          ^^^^^^^^^^^^^^^                                                       
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/litellm
+_core_utils/exception_mapping_utils.py", line 2510, in exception_type           
+    raise e  # it's already mapped                                              
+    ^^^^^^^                                                                     
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/litellm
+_core_utils/exception_mapping_utils.py", line 2276, in exception_type           
+    _map_openai_exception(                                                      
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/litellm
+_core_utils/exception_mapping_utils.py", line 418, in _map_openai_exception     
+    raise Timeout(                                                              
+litellm.exceptions.Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException
+- litellm.Timeout: Connection timed out after 1800.0 seconds.                   
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/ornith-1.5-campaign/
+results/ornith-1.5-35b-a3b/qualification/warpcore-v1/swebench/run/raw/matplotlib
+__matplotlib-25332/matplotlib__matplotlib-25332.traj.json'                      
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-d5a51e8e -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-14248:latest sleep 2h      
+minisweagent.environment: INFO: Started container minisweagent-d5a51e8e with ID 
+592c07313351d9098959d461fc7184e82cde8b40e9c09bb7a9d8c301e91f900f                
+Retrying <unknown> in 4 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+Retrying <unknown> in 4 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/ornith-1.5-campaign/
+results/ornith-1.5-35b-a3b/qualification/warpcore-v1/swebench/run/raw/pydata__xa
+rray-6938/pydata__xarray-6938.traj.json'                                        
+Retrying <unknown> in 4 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '

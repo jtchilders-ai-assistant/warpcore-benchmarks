@@ -1696,6 +1696,40 @@ class TestPerItemUnicodeLineSeparator(unittest.TestCase):
             shutil.rmtree(tmp, ignore_errors=True)
 
 
+class TestCanonicalFilterSelection(unittest.TestCase):
+    def test_gsm8k_per_item_uses_answer_line_not_best_filter_score(self):
+        tmp = pathlib.Path(tempfile.mkdtemp())
+        try:
+            run_dir = tmp / "run"
+            raw_dir = run_dir / "raw" / "org__model"
+            raw_dir.mkdir(parents=True)
+            records = [
+                {
+                    "doc_id": 7,
+                    "filter": "answer-line",
+                    "resps": [["work with an unanchored 42"]],
+                    "exact_match": 0.0,
+                },
+                {
+                    "doc_id": 7,
+                    "filter": "flexible-fallback",
+                    "resps": [["work with an unanchored 42"]],
+                    "exact_match": 1.0,
+                },
+            ]
+            with gzip.open(raw_dir / "samples_test.jsonl.gz", "wt") as fh:
+                for record in records:
+                    fh.write(json.dumps(record) + "\n")
+
+            result = run_quality._derive_per_item_data(
+                run_dir, canonical_filter="answer-line"
+            )
+
+            self.assertEqual(result["7"]["score"], "0.0")
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+
 class TestTaskNameReadFromYaml(unittest.TestCase):
     """F3: Task name for --tasks is read from the task YAML 'task:' field, not derived from filename."""
 

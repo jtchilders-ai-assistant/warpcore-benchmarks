@@ -2,13 +2,12 @@
   "schema_version": 1,
   "suite_id": "warpcore-v1",
   "suite_schema_version": 1,
-  "run_id": "run-2026-09-23T01-48-07",
-  "benchmark": "gpqa_diamond",
+  "run_id": "run-2026-09-24T18-26-28",
+  "benchmark": "gsm8k",
   "adapter_hash": "8062731e314c51d3a09890ca71d1f9ca007fe1427c00070fc8cbee7687491b52",
   "suite_input_hashes": {
     "suite/warpcore-v1.yaml": "cc4f314301e80bf97140d848a27ae8bb869a49c853c984949270070ecd4d7aaa",
-    "suite/tasks/gpqa_diamond_clean_v3.yaml": "833259292b956a4bc620352c95ae43c30bb9d2b4049aebd3f67c4a1ec3b4267f",
-    "suite/tasks/gpqa_utils.py": "7c755f2c3f8f4ac20de96fb68941c43424d2ded0552d5ab81e672e15c410655c"
+    "suite/tasks/gsm8k_clean_v1.yaml": "b5ef6745a85d9e30369f48bd68bc7bf193b7b2d98e03db67c141f0dc995de6b8"
   },
   "serving_profile_digest": "sha256:eeeecab1bb9f508a4ccabbbdbb3da0a68b894dea645fb6fd550c2a29a2caffc9",
   "model": {
@@ -35,18 +34,18 @@
     "hardware_id": "dgx-spark-gb10"
   },
   "item_inventory": {
-    "expected": 198,
-    "submitted": 0
+    "expected": 1319,
+    "submitted": 1319
   },
   "timing": {
-    "started_utc": "2026-09-23T01:48:07Z",
-    "completed_utc": null
+    "started_utc": "2026-09-24T18:26:28Z",
+    "completed_utc": "2026-09-24T19:22:30Z"
   },
   "artifact_inventory": {
     "samples_jsonl_gz": true,
-    "per_item_csv": false,
+    "per_item_csv": true,
     "run_log": true,
     "command_txt": true,
-    "done_sentinel": false
+    "done_sentinel": true
   }
 }

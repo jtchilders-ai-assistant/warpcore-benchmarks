@@ -605,7 +605,10 @@ def _check_suite_required_evidence(
 
         if "*" in file_hint:
             # Glob pattern
-            found = list(base_dir.glob(file_hint)) if base_dir.exists() else []
+            # lm-eval 0.4.12 writes quality artifacts beneath a model-named
+            # directory under raw/.  Required evidence therefore follows the
+            # same recursive discovery rule as the runner and sample validator.
+            found = list(base_dir.rglob(file_hint)) if base_dir.exists() else []
             if not found:
                 errors.append(
                     f"Suite required_evidence '{ev_name}' requires {file_hint!r} "
@@ -2016,7 +2019,7 @@ def _check_aggregate_reconciliation(
         return
 
     # Find aggregate result file
-    result_files = list(raw_dir.glob("results_*.json")) + list(raw_dir.glob("*results*.json"))
+    result_files = list(raw_dir.rglob("results_*.json")) + list(raw_dir.rglob("*results*.json"))
     if not result_files:
         if fail_on_missing:
             errors.append(
@@ -2039,13 +2042,27 @@ def _check_aggregate_reconciliation(
 
     per_item_mean = sum(valid_scores) / len(valid_scores)
 
-    # Extract aggregate score from result file
+    # Extract the suite-defined canonical aggregate score from the result file.
+    # These keys are benchmark-specific because lm-eval metric names do not
+    # encode the suite's publication choice uniformly.
+    metric_keys_by_benchmark = {
+        "gsm8k": ("exact_match,answer-line", "exact_match,flexible-fallback"),
+        "gpqa_diamond": ("exact_match,answer-line", "exact_match,flexible-fallback"),
+        "ifeval": ("prompt_level_strict_acc,none", "prompt_level_strict_acc"),
+    }
+    metric_keys = metric_keys_by_benchmark.get(benchmark)
+    if metric_keys is None:
+        if fail_on_missing:
+            errors.append(
+                f"No canonical aggregate metric is defined for benchmark {benchmark!r}; "
+                "publication reconciliation cannot be performed."
+            )
+        return
     results_block = agg_data.get("results", {})
     agg_score = None
     for task_data in results_block.values():
         if isinstance(task_data, dict):
-            for key in ("exact_match,flexible-fallback", "exact_match,flexible-extract",
-                        "prompt_level_strict_acc,none", "exact_match,answer-line"):
+            for key in metric_keys:
                 if key in task_data:
                     raw_val = task_data[key]
                     if raw_val is None:

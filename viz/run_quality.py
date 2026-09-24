@@ -278,6 +278,7 @@ def _fingerprint_from_sample(sample: dict) -> Optional[str]:
 def _derive_per_item_data(
     run_dir: pathlib.Path,
     sidecar_path: Optional[pathlib.Path] = None,
+    canonical_filter: Optional[str] = None,
 ) -> Dict[str, dict]:
     """Derive per-item evidence from retained samples_*.jsonl.gz files.
 
@@ -331,6 +332,9 @@ def _derive_per_item_data(
             )
         for line in lines:
             rec = json.loads(line)
+            if (canonical_filter is not None and rec.get("filter") is not None
+                    and rec.get("filter") != canonical_filter):
+                continue
             doc_id = rec.get("doc_id")
             key = str(doc_id)
             text = _response_text(rec)
@@ -1090,8 +1094,15 @@ class QualityRunner:
                 # Fail closed: if derivation fails, do NOT proceed to DONE.
                 # Uses sidecar metadata for finish_reason and disposition.
                 try:
-                    per_item_data = _derive_per_item_data(self.run_dir,
-                                                          sidecar_path=sidecar_path)
+                    canonical_filter = {
+                        "gsm8k": "answer-line",
+                        "gpqa_diamond": "answer-line",
+                    }.get(self.benchmark)
+                    per_item_data = _derive_per_item_data(
+                        self.run_dir,
+                        sidecar_path=sidecar_path,
+                        canonical_filter=canonical_filter,
+                    )
                 except Exception as exc:
                     print(
                         f"[run-quality] FATAL: Cannot derive per-item evidence: {exc}. "
