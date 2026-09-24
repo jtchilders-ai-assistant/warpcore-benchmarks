@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "run_id": "run-2026-09-23T01-48-07",
+  "suite_id": "warpcore-v1",
+  "execution_state": "failed",
+  "lifecycle": "invalid",
+  "history": [
+    {
+      "state": "planned",
+      "timestamp": "2026-09-23T01:48:07Z",
+      "note": "Campaign initialized by create_campaign"
+    },
+    {
+      "state": "preflight_passed",
+      "timestamp": "2026-09-23T01:48:16Z"
+    },
+    {
+      "state": "running",
+      "timestamp": "2026-09-23T01:48:16Z"
+    },
+    {
+      "state": "failed",
+      "timestamp": "2026-09-23T09:48:10Z",
+      "exit_code": 0,
+      "note": "per_item_derivation_failed"
+    }
+  ]
+}

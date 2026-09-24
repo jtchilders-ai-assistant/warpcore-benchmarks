@@ -1052,6 +1052,13 @@ class TestCommandUsesLocalChatCompletions(unittest.TestCase):
         self.assertIn("--apply_chat_template", cmd,
                       "--apply_chat_template is required for chat-completion models")
 
+    def test_command_resolves_chat_completions_route(self):
+        """The documented /v1 endpoint must resolve to the concrete chat route."""
+        runner = self._make_runner()
+        cmd = runner.build_command()
+        cmd_str = " ".join(cmd)
+        self.assertIn("base_url=http://fake:8000/v1/chat/completions", cmd_str)
+
     def test_command_includes_tokenized_requests_false(self):
         """build_command() must include tokenized_requests=False in model_args."""
         runner = self._make_runner()
@@ -1660,6 +1667,67 @@ class TestRunDirContainment(unittest.TestCase):
             shutil.rmtree(outside_tmp, ignore_errors=True)
         self.assertNotEqual(rc, 0,
                             "--run-dir outside repo must be rejected (nonzero exit)")
+
+
+class TestPerItemUnicodeLineSeparator(unittest.TestCase):
+    """JSONL records may contain valid U+2028 inside JSON strings."""
+
+    def test_derivation_does_not_split_valid_json_on_unicode_line_separator(self):
+        tmp = pathlib.Path(tempfile.mkdtemp())
+        try:
+            run_dir = tmp / "run"
+            raw_dir = run_dir / "raw"
+            raw_dir.mkdir(parents=True)
+            record = {
+                "doc_id": 7,
+                "resps": [["reasoning with a unicode separator: \u2028 still one response"]],
+                "exact_match": 1.0,
+            }
+            sample = raw_dir / "samples_test.jsonl.gz"
+            with gzip.open(sample, "wt", encoding="utf-8") as fh:
+                fh.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+            result = run_quality._derive_per_item_data(run_dir)
+
+            self.assertEqual(set(result), {"7"})
+            self.assertEqual(result["7"]["score"], "1.0")
+            self.assertEqual(result["7"]["empty_content"], 0)
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+
+class TestCanonicalFilterSelection(unittest.TestCase):
+    def test_gsm8k_per_item_uses_answer_line_not_best_filter_score(self):
+        tmp = pathlib.Path(tempfile.mkdtemp())
+        try:
+            run_dir = tmp / "run"
+            raw_dir = run_dir / "raw" / "org__model"
+            raw_dir.mkdir(parents=True)
+            records = [
+                {
+                    "doc_id": 7,
+                    "filter": "answer-line",
+                    "resps": [["work with an unanchored 42"]],
+                    "exact_match": 0.0,
+                },
+                {
+                    "doc_id": 7,
+                    "filter": "flexible-fallback",
+                    "resps": [["work with an unanchored 42"]],
+                    "exact_match": 1.0,
+                },
+            ]
+            with gzip.open(raw_dir / "samples_test.jsonl.gz", "wt") as fh:
+                for record in records:
+                    fh.write(json.dumps(record) + "\n")
+
+            result = run_quality._derive_per_item_data(
+                run_dir, canonical_filter="answer-line"
+            )
+
+            self.assertEqual(result["7"]["score"], "0.0")
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
 
 
 class TestTaskNameReadFromYaml(unittest.TestCase):

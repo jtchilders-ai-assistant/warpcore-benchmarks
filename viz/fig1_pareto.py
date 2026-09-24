@@ -86,7 +86,7 @@ def main() -> None:
     ax2.set_yticks([1, 2, 5, 10, 20, 50])
     ax2.get_yaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
 
-    fig.suptitle("Warpcore (DGX Spark / GB10) \u2014 vLLM serving envelope, 7 models",
+    fig.suptitle(f"Warpcore (DGX Spark / GB10) — vLLM serving envelope, {len(by)} models",
                  fontsize=12, y=1.005)
     fig.text(0.5, -0.055,
              "source: results/*/raw/throughput_sweep/ \u00b7 Laguna sweep_CONTAMINATED.log excluded "

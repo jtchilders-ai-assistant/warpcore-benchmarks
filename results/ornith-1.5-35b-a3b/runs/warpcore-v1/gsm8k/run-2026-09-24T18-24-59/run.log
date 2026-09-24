@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/ornith-1.5-campaign/viz/lmeval_sidecar/capture.py", line 54, in assert_lm_eval_version
+    import lm_eval as _lme
+ModuleNotFoundError: No module named 'lm_eval'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/ornith-1.5-campaign/viz/lmeval_sidecar_runner.py", line 39, in <module>
+    assert_lm_eval_version()
+  File "/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/ornith-1.5-campaign/viz/lmeval_sidecar/capture.py", line 57, in assert_lm_eval_version
+    raise RuntimeError(
+RuntimeError: lm_eval is not installed. Required version: 0.4.12

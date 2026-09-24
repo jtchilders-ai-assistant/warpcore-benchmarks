@@ -1,0 +1,87 @@
+{
+  "django__django-14672": {
+    "model_name_or_path": "hosted_vllm/ornith-ai/Ornith-1.5-35B-A3B-FP8",
+    "instance_id": "django__django-14672",
+    "model_patch": "diff --git a/django/db/models/fields/reverse_related.py b/django/db/models/fields/reverse_related.py\nindex ccc2223a5f..65950590e2 100644\n--- a/django/db/models/fields/reverse_related.py\n+++ b/django/db/models/fields/reverse_related.py\n@@ -310,7 +310,7 @@ class ManyToManyRel(ForeignObjectRel):\n     def identity(self):\n         return super().identity + (\n             self.through,\n-            self.through_fields,\n+            make_hashable(self.through_fields),\n             self.db_constraint,\n         )\n \n"
+  },
+  "django__django-11299": {
+    "model_name_or_path": "hosted_vllm/ornith-ai/Ornith-1.5-35B-A3B-FP8",
+    "instance_id": "django__django-11299",
+    "model_patch": "diff --git a/django/db/models/sql/query.py b/django/db/models/sql/query.py\nindex b99f03cd88..649aa0fd5f 100644\n--- a/django/db/models/sql/query.py\n+++ b/django/db/models/sql/query.py\n@@ -1338,7 +1338,8 @@ class Query(BaseExpression):\n             if isinstance(child, Node):\n                 child_clause, needed_inner = self._add_q(\n                     child, used_aliases, branch_negated,\n-                    current_negated, allow_joins, split_subq)\n+                    current_negated, allow_joins, split_subq,\n+                    simple_col=simple_col)\n                 joinpromoter.add_votes(needed_inner)\n             else:\n                 child_clause, needed_inner = self.build_filter(\n"
+  },
+  "astropy__astropy-8872": {
+    "model_name_or_path": "hosted_vllm/ornith-ai/Ornith-1.5-35B-A3B-FP8",
+    "instance_id": "astropy__astropy-8872",
+    "model_patch": "diff --git a/CHANGES.rst b/CHANGES.rst\nindex 0097160cf..58de8ba38 100644\n--- a/CHANGES.rst\n+++ b/CHANGES.rst\n@@ -77,6 +77,10 @@ astropy.uncertainty\n astropy.units\n ^^^^^^^^^^^^^\n \n+- ``Quantity`` objects created from a ``float16`` (or other smaller float)\n+  dtype are no longer automatically upgraded to ``float64``; the input dtype\n+  is now preserved. [#6389]\n+\n astropy.utils\n ^^^^^^^^^^^^^\n \ndiff --git a/astropy/units/quantity.py b/astropy/units/quantity.py\nindex ded609cbe..0a21facfa 100644\n--- a/astropy/units/quantity.py\n+++ b/astropy/units/quantity.py\n@@ -296,7 +296,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):\n                 if not copy:\n                     return value\n \n-                if not (np.can_cast(np.float32, value.dtype) or\n+                if not (value.dtype.kind in 'fc' or\n                         value.dtype.fields):\n                     dtype = float\n \n@@ -377,7 +377,7 @@ class Quantity(np.ndarray, metaclass=InheritDocstrings):\n                             \"Numpy numeric type.\")\n \n         # by default, cast any integer, boolean, etc., to float\n-        if dtype is None and (not (np.can_cast(np.float32, value.dtype)\n+        if dtype is None and (not (value.dtype.kind in 'fc'\n                                    or value.dtype.fields)\n                               or value.dtype.kind == 'O'):\n             value = value.astype(float)\n"
+  },
+  "matplotlib__matplotlib-22871": {
+    "model_name_or_path": "hosted_vllm/ornith-ai/Ornith-1.5-35B-A3B-FP8",
+    "instance_id": "matplotlib__matplotlib-22871",
+    "model_patch": "diff --git a/lib/matplotlib/dates.py b/lib/matplotlib/dates.py\nindex 4d8ddf3ee5..c43e566242 100644\n--- a/lib/matplotlib/dates.py\n+++ b/lib/matplotlib/dates.py\n@@ -796,8 +796,10 @@ class ConciseDateFormatter(ticker.Formatter):\n         # mostly 0: years,  1: months,  2: days,\n         # 3: hours, 4: minutes, 5: seconds, 6: microseconds\n         for level in range(5, -1, -1):\n-            if len(np.unique(tickdate[:, level])) > 1:\n-                if level < 2:\n+            unique = np.unique(tickdate[:, level])\n+            if len(unique) > 1:\n+                # if 1 is included in unique, the year is shown in ticks\n+                if level < 2 and np.any(unique == 1):\n                     show_offset = False\n                 break\n             elif level == 0:\n"
+  },
+  "pallets__flask-5014": {
+    "model_name_or_path": "hosted_vllm/ornith-ai/Ornith-1.5-35B-A3B-FP8",
+    "instance_id": "pallets__flask-5014",
+    "model_patch": "diff --git a/CHANGES.rst b/CHANGES.rst\nindex 498d5e51..eb97c2b5 100644\n--- a/CHANGES.rst\n+++ b/CHANGES.rst\n@@ -33,6 +33,7 @@ Unreleased\n -   Use modern packaging metadata with ``pyproject.toml`` instead of ``setup.cfg``.\n     :pr:`4947`\n -   Ensure subdomains are applied with nested blueprints. :issue:`4834`\n+-   Require a non-empty name for Blueprints. :issue:`4944`\n -   ``config.from_file`` can use ``text=False`` to indicate that the parser wants a\n     binary file instead. :issue:`4989`\n \ndiff --git a/src/flask/blueprints.py b/src/flask/blueprints.py\nindex eb50585d..1aa82562 100644\n--- a/src/flask/blueprints.py\n+++ b/src/flask/blueprints.py\n@@ -190,6 +190,9 @@ class Blueprint(Scaffold):\n             root_path=root_path,\n         )\n \n+        if not name:\n+            raise ValueError(\"'name' may not be empty.\")\n+\n         if \".\" in name:\n             raise ValueError(\"'name' may not contain a dot '.' character.\")\n \n"
+  },
+  "psf__requests-1766": {
+    "model_name_or_path": "hosted_vllm/ornith-ai/Ornith-1.5-35B-A3B-FP8",
+    "instance_id": "psf__requests-1766",
+    "model_patch": "diff --git a/requests/auth.py b/requests/auth.py\nindex a3de123..48416e5 100644\n--- a/requests/auth.py\n+++ b/requests/auth.py\n@@ -144,7 +144,7 @@ class HTTPDigestAuth(AuthBase):\n         if entdig:\n             base += ', digest=\"%s\"' % entdig\n         if qop:\n-            base += ', qop=auth, nc=%s, cnonce=\"%s\"' % (ncvalue, cnonce)\n+            base += ', qop=\"auth\", nc=%s, cnonce=\"%s\"' % (ncvalue, cnonce)\n \n         return 'Digest %s' % (base)\n \n"
+  },
+  "pydata__xarray-3993": {
+    "model_name_or_path": "hosted_vllm/ornith-ai/Ornith-1.5-35B-A3B-FP8",
+    "instance_id": "pydata__xarray-3993",
+    "model_patch": "diff --git a/doc/whats-new.rst b/doc/whats-new.rst\nindex 488d8baa..c7c1e820 100644\n--- a/doc/whats-new.rst\n+++ b/doc/whats-new.rst\n@@ -142,6 +142,10 @@ Deprecations\n   ``ds.rolling(...).mean(keep_attrs=False)`` instead of ``ds.rolling(..., keep_attrs=False).mean()``\n   Rolling operations now keep their attributes per default (:pull:`4510`).\n   By `Mathias Hauser <https://github.com/mathause>`_.\n+- The ``dim`` keyword argument to :py:meth:`DataArray.integrate` is deprecated.\n+  Use ``coord`` instead, to be consistent with :py:meth:`DataArray.differentiate`\n+  and :py:meth:`Dataset.integrate`.\n+  By `Tom Nicholas <https://github.com/TomNicholas>`_.\n \n New Features\n ~~~~~~~~~~~~\ndiff --git a/xarray/core/dataarray.py b/xarray/core/dataarray.py\nindex 2fef3edb..ebeae832 100644\n--- a/xarray/core/dataarray.py\n+++ b/xarray/core/dataarray.py\n@@ -3481,18 +3481,23 @@ class DataArray(AbstractArray, DataWithCoords):\n         return self._from_temp_dataset(ds)\n \n     def integrate(\n-        self, dim: Union[Hashable, Sequence[Hashable]], datetime_unit: str = None\n+        self,\n+        coord: Union[Hashable, Sequence[Hashable]] = None,\n+        dim: Union[Hashable, Sequence[Hashable]] = None,\n+        datetime_unit: str = None,\n     ) -> \"DataArray\":\n         \"\"\" integrate the array with the trapezoidal rule.\n \n         .. note::\n-            This feature is limited to simple cartesian geometry, i.e. dim\n+            This feature is limited to simple cartesian geometry, i.e. coord\n             must be one dimensional.\n \n         Parameters\n         ----------\n-        dim : hashable, or sequence of hashable\n+        coord : hashable, or sequence of hashable\n             Coordinate(s) used for the integration.\n+        dim : hashable, or sequence of hashable\n+            Deprecated\n         datetime_unit : {\"Y\", \"M\", \"W\", \"D\", \"h\", \"m\", \"s\", \"ms\", \"us\", \"ns\", \\\n                          \"ps\", \"fs\", \"as\"}, optional\n             Can be used to specify the unit if datetime coordinate is used.\n@@ -3528,7 +3533,17 @@ class DataArray(AbstractArray, DataWithCoords):\n         array([5.4, 6.6, 7.8])\n         Dimensions without coordinates: y\n         \"\"\"\n-        ds = self._to_temp_dataset().integrate(dim, datetime_unit)\n+        if dim is not None:\n+            warnings.warn(\n+                \"The `dim` keyword argument to `DataArray.integrate` is \"\n+                \"deprecated. Use `coord` instead.\",\n+                FutureWarning,\n+                stacklevel=2,\n+            )\n+            coord = dim\n+        if coord is None:\n+            raise TypeError(\"either `dim` or `coord` must be specified.\")\n+        ds = self._to_temp_dataset().integrate(coord, datetime_unit)\n         return self._from_temp_dataset(ds)\n \n     def unify_chunks(self) -> \"DataArray\":\n"
+  },
+  "astropy__astropy-14096": {
+    "model_name_or_path": "hosted_vllm/ornith-ai/Ornith-1.5-35B-A3B-FP8",
+    "instance_id": "astropy__astropy-14096",
+    "model_patch": ""
+  },
+  "psf__requests-6028": {
+    "model_name_or_path": "hosted_vllm/ornith-ai/Ornith-1.5-35B-A3B-FP8",
+    "instance_id": "psf__requests-6028",
+    "model_patch": ""
+  },
+  "pylint-dev__pylint-4551": {
+    "model_name_or_path": "hosted_vllm/ornith-ai/Ornith-1.5-35B-A3B-FP8",
+    "instance_id": "pylint-dev__pylint-4551",
+    "model_patch": ""
+  },
+  "pytest-dev__pytest-5262": {
+    "model_name_or_path": "hosted_vllm/ornith-ai/Ornith-1.5-35B-A3B-FP8",
+    "instance_id": "pytest-dev__pytest-5262",
+    "model_patch": "diff --git a/changelog/4740.bugfix.rst b/changelog/4740.bugfix.rst\nnew file mode 100644\nindex 00000000..a130ec31\n--- /dev/null\n+++ b/changelog/4740.bugfix.rst\n@@ -0,0 +1,3 @@\n+Fix ``EncodedFile.mode`` to not include the ``b`` (binary) flag, so that\n+code which inspects ``mode`` to decide whether to write ``bytes`` or ``str``\n+(e.g. youtube-dl) no longer raises a ``TypeError``.\ndiff --git a/src/_pytest/capture.py b/src/_pytest/capture.py\nindex 25eab7fd..56017113 100644\n--- a/src/_pytest/capture.py\n+++ b/src/_pytest/capture.py\n@@ -447,6 +447,10 @@ class EncodedFile(object):\n         \"\"\"Ensure that file.name is a string.\"\"\"\n         return repr(self.buffer)\n \n+    @property\n+    def mode(self):\n+        return self.buffer.mode.replace(\"b\", \"\")\n+\n     def __getattr__(self, name):\n         return getattr(object.__getattribute__(self, \"buffer\"), name)\n \n"
+  },
+  "pylint-dev__pylint-6903": {
+    "model_name_or_path": "hosted_vllm/ornith-ai/Ornith-1.5-35B-A3B-FP8",
+    "instance_id": "pylint-dev__pylint-6903",
+    "model_patch": ""
+  },
+  "scikit-learn__scikit-learn-14629": {
+    "model_name_or_path": "hosted_vllm/ornith-ai/Ornith-1.5-35B-A3B-FP8",
+    "instance_id": "scikit-learn__scikit-learn-14629",
+    "model_patch": "diff --git a/sklearn/multioutput.py b/sklearn/multioutput.py\nindex 463b72d40..79d530649 100644\n--- a/sklearn/multioutput.py\n+++ b/sklearn/multioutput.py\n@@ -320,11 +320,27 @@ class MultiOutputClassifier(MultiOutputEstimator, ClassifierMixin):\n     ----------\n     estimators_ : list of ``n_output`` estimators\n         Estimators used for predictions.\n+\n+    classes_ : list of arrays\n+        A list of arrays of length ``len(estimators_)`` containing the\n+        class labels for each estimator in the chain.\n     \"\"\"\n \n     def __init__(self, estimator, n_jobs=None):\n         super().__init__(estimator, n_jobs)\n \n+    @property\n+    def classes_(self):\n+        \"\"\"Class labels.\n+\n+        Returns\n+        -------\n+        classes_ : list of arrays\n+            A list of arrays of length ``len(estimators_)`` containing the\n+            class labels for each estimator in the chain.\n+        \"\"\"\n+        return [estimator.classes_ for estimator in self.estimators_]\n+\n     def predict_proba(self, X):\n         \"\"\"Probability estimates.\n         Returns prediction probabilities for each class of each output.\n"
+  },
+  "pytest-dev__pytest-7205": {
+    "model_name_or_path": "hosted_vllm/ornith-ai/Ornith-1.5-35B-A3B-FP8",
+    "instance_id": "pytest-dev__pytest-7205",
+    "model_patch": "diff --git a/changelog/7198.bugfix.rst b/changelog/7198.bugfix.rst\nnew file mode 100644\nindex 000000000..260124cdd\n--- /dev/null\n+++ b/changelog/7198.bugfix.rst\n@@ -0,0 +1 @@\n+Fix ``BytesWarning`` when using ``--setup-show`` with a bytes parameter.\ndiff --git a/src/_pytest/setuponly.py b/src/_pytest/setuponly.py\nindex c9cc589ff..b42897d78 100644\n--- a/src/_pytest/setuponly.py\n+++ b/src/_pytest/setuponly.py\n@@ -1,5 +1,7 @@\n import pytest\n \n+from _pytest._io.saferepr import saferepr\n+\n \n def pytest_addoption(parser):\n     group = parser.getgroup(\"debugconfig\")\n@@ -66,7 +68,7 @@ def _show_fixture_action(fixturedef, msg):\n             tw.write(\" (fixtures used: {})\".format(\", \".join(deps)))\n \n     if hasattr(fixturedef, \"cached_param\"):\n-        tw.write(\"[{}]\".format(fixturedef.cached_param))\n+        tw.write(\"[{}]\".format(saferepr(fixturedef.cached_param)))\n \n     tw.flush()\n \n"
+  },
+  "scikit-learn__scikit-learn-14710": {
+    "model_name_or_path": "hosted_vllm/ornith-ai/Ornith-1.5-35B-A3B-FP8",
+    "instance_id": "scikit-learn__scikit-learn-14710",
+    "model_patch": "diff --git a/sklearn/ensemble/_hist_gradient_boosting/gradient_boosting.py b/sklearn/ensemble/_hist_gradient_boosting/gradient_boosting.py\nindex ad6a5a8ca..3170e4000 100644\n--- a/sklearn/ensemble/_hist_gradient_boosting/gradient_boosting.py\n+++ b/sklearn/ensemble/_hist_gradient_boosting/gradient_boosting.py\n@@ -426,11 +426,15 @@ class BaseHistGradientBoosting(BaseEstimator, ABC):\n \n         Scores are computed on validation data or on training data.\n         \"\"\"\n+        if hasattr(self, 'classes_'):\n+            y_small_train = self.classes_[y_small_train.astype(int)]\n         self.train_score_.append(\n             self.scorer_(self, X_binned_small_train, y_small_train)\n         )\n \n         if self._use_validation_data:\n+            if hasattr(self, 'classes_'):\n+                y_val = self.classes_[y_val.astype(int)]\n             self.validation_score_.append(\n                 self.scorer_(self, X_binned_val, y_val)\n             )\n"
+  },
+  "matplotlib__matplotlib-25332": {
+    "model_name_or_path": "hosted_vllm/ornith-ai/Ornith-1.5-35B-A3B-FP8",
+    "instance_id": "matplotlib__matplotlib-25332",
+    "model_patch": ""
+  },
+  "pydata__xarray-6938": {
+    "model_name_or_path": "hosted_vllm/ornith-ai/Ornith-1.5-35B-A3B-FP8",
+    "instance_id": "pydata__xarray-6938",
+    "model_patch": ""
+  }
+}
