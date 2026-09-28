@@ -182,5 +182,5 @@ docker exec vllm_node vllm bench serve \
   --dataset-name random --random-input-len 512 --random-output-len 256 --ignore-eos \
   --num-prompts <3×C, cap 384> --max-concurrency <C> \
   --percentile-metrics ttft,tpot,itl,e2el --metric-percentiles 50,90,99
-# swept C = 1 2 4 8 16 32 48 64 96 128 192 256
+# swept C = 1 2 4 8 16 32 48 64 96 128
 ```

@@ -82,8 +82,6 @@ qwen3.5-122b-a10b,48,144,144.0,204.08,180.64,6932.88,7721.47,9908.57,239.34,resu
 qwen3.5-122b-a10b,64,192,192.0,247.04,198.96,8054.45,7959.02,13369.79,290.97,results/qwen3.5-122b-a10b/raw/throughput_sweep_20260924/sweep.log
 qwen3.5-122b-a10b,96,288,288.0,325.98,226.17,9778.57,9382.22,20367.04,387.02,results/qwen3.5-122b-a10b/raw/throughput_sweep_20260924/sweep.log
 qwen3.5-122b-a10b,128,384,384.0,419.14,234.54,17382.49,9657.29,128126.36,439.76,results/qwen3.5-122b-a10b/raw/throughput_sweep_20260924/sweep.log
-qwen3.5-122b-a10b,192,384,384.0,431.68,227.73,58250.29,24568.11,167018.25,525.62,results/qwen3.5-122b-a10b/raw/throughput_sweep/sweep.log
-qwen3.5-122b-a10b,256,384,384.0,440.35,223.24,107954.78,159714.59,183445.37,536.25,results/qwen3.5-122b-a10b/raw/throughput_sweep/sweep.log
 qwen3.6-35b-a3b,1,32,32.0,172.61,47.46,155.28,155.11,169.6,20.54,results/qwen3.6-35b-a3b/raw/throughput_sweep/sweep.log
 qwen3.6-35b-a3b,2,32,32.0,109.03,75.14,254.23,242.25,301.41,25.72,results/qwen3.6-35b-a3b/raw/throughput_sweep/sweep.log
 qwen3.6-35b-a3b,4,32,32.0,72.99,112.24,390.64,433.78,459.61,34.24,results/qwen3.6-35b-a3b/raw/throughput_sweep/sweep.log

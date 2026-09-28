@@ -21,3 +21,16 @@ def test_collect_includes_extended_sweep_directories() -> None:
     ornith = by_key[("ornith-35b", 384)]
     assert ornith["out_tok_s"] == 557.78
     assert "throughput_sweep_extended" in ornith["source"]
+
+
+def test_collect_does_not_mix_superseded_qwen_sweep_with_refresh() -> None:
+    """A dated refresh is one campaign segment, not a patch over an older sweep."""
+    rows = [
+        row for row in parse_sweeps.collect()
+        if row["model"] == "qwen3.5-122b-a10b"
+    ]
+
+    assert [row["concurrency"] for row in rows] == [1, 2, 4, 8, 16, 32, 48, 64, 96, 128]
+    assert {
+        Path(row["source"]).parent.name for row in rows
+    } == {"throughput_sweep_20260924"}
