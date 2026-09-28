@@ -1,6 +1,6 @@
 # Intel/Qwen3.5-122B-A10B-int4-AutoRound — Warpcore Benchmark Card
 
-**Date:** 2026-08-10
+**Date:** 2026-09-27
 **Model:** `Intel/Qwen3.5-122B-A10B-int4-AutoRound` — MoE, **122B total / ~10B active**,
 **hybrid Mamba + attention** arch (`Qwen3_5MoeForConditionalGeneration`). Intel AutoRound
 **INT4** (W4) quantization of `Qwen/Qwen3.5-122B-A10B`. This is the model behind the
@@ -110,23 +110,55 @@ single-user or low-concurrency chat it is comfortable; for high-fan-out serving 
 models dominate. **MTP (not enabled here) is the untapped lever** — the Reddit report's ~50 tok/s used
 it, so single-stream could plausibly ~1.5–2× with speculative decoding.
 
-## Quality
+## Canonical `warpcore-v1` results
 
-**Not yet measured on Warpcore.** No lm-eval quality card (GSM8K / IFEval / GPQA-Diamond) or
-SWE-bench number has been produced for this model yet — this card covers **serving
-bring-up + a functional smoke test + a throughput sweep**. Run the lm-eval pipeline
-(`lm-eval-vllm-endpoint` skill) against the chat endpoint next to fill this in (note the reasoning
-parser caveat above — verify `<think>` handling before trusting MCQ extraction).
+All quality runs used the contract runner against the chat-completions endpoint at temperature 0,
+concurrency 4, measured aggregate throughput 70.04 output tok/s, and a 9,000 s client timeout.
+The adapter pins model revision `3045d02bb737effc4581da91bddbad3be02934e4`, vLLM
+`0.29.1rc1.dev427+g0748d3bd5.d20260920`, and image digest
+`sha256:c154ad0a2575d6c42f8e05cba16ef255ce4ff54d537ad37987ca5b4215cb58b8`.
 
-## Not yet measured / next steps
+- **GSM8K:** **1,278/1,319 = 96.89%** answer-line exact match. Fourteen empty responses
+  exhausted the frozen 8,192-token output ceiling and remain counted wrong; one other response
+  ended `length` with nonempty content. Publication validation passed.
+- **IFEval:** **465/541 = 85.95% prompt-strict**; instruction-strict 87.89%, prompt-loose
+  88.17%, instruction-loose 89.33%. Thirty-eight responses exhausted the frozen 65,536-token
+  output ceiling before emitting final content and remain counted wrong. The first launch failed
+  before inference because loading the pinned task through a custom path broke its harness-relative
+  import; it remains invalid. The replacement run completed all 541 prompts and passed publication
+  validation.
+- **GPQA-Diamond:** **164/198 = 82.83%** answer-line exact match. Four responses exhausted
+  the frozen 65,536-token output ceiling without final content and remain counted wrong.
+  Publication validation passed.
+- **SWE-bench Verified:** **not measured canonically.** The mandatory suite-owned n=20
+  qualification produced 17 nonempty `Submitted` patches, two `LimitsExceeded` outcomes at the
+  250-step limit, and one `ContextWindowExceededError`. The latter requested 229,377 input plus
+  32,768 output tokens, totaling 262,145 against the 262,144-token context. Because the contract
+  requires 20/20 `Submitted`, no qualification record was sealed and canonical n=100 was not
+  launched.
 
-- **MTP / speculative decoding.** The headline lever to reproduce the Reddit ~50 tok/s single-stream
-  figure. Baseline here is deliberately MTP-off for a clean number.
-- **Quality suite** (GSM8K, IFEval, GPQA-Diamond) via lm-eval against the chat endpoint.
-- **Agentic** (SWE-bench Verified 100-sample) — verify tool-calling (`qwen3_xml` parser) returns
-  native `finish_reason: tool_calls` first, or every task scores 0.
-- **Fix the `<think>` reasoning-parser split** (chat-template / parser mismatch) so `reasoning_content`
-  is populated correctly — required for clean MCQ answer extraction in lm-eval.
+`Submitted` means a gradeable patch was produced; it does **not** mean the issue was solved. For
+diagnostic context only, official grading of the nonqualifying n=20 run found 14 resolved, 3
+unresolved, and 3 empty-patch instances. **14/20 is not the canonical suite score** and is not
+published as the SWE-bench cell. The complete gate decision is retained in
+[`qualification_decision.json`](qualification/warpcore-v1/swebench/qualification_decision.json).
+
+## Throughput refresh — 2026-09-24
+
+A fresh 512-input/256-output sweep on the campaign serving profile completed **1,280/1,280**
+requests across c=1,2,4,8,16,32,48,64,96,128. It measured **27.18 tok/s at c=1**,
+**70.04 tok/s at c=4**, and **234.54 tok/s at c=128**. The c=96→128 gain was still 3.70%,
+so c=128 is a measured near-knee floor, not a demonstrated plateau; P99 TTFT there was 128.1 s.
+The preserved log and script are under [`raw/throughput_sweep_20260924/`](raw/throughput_sweep_20260924/).
+The older 2026-08 sweep above remains historical context and is not substituted for the fresh
+campaign measurement.
+
+## Remaining optional work
+
+- **MTP / speculative decoding.** The baseline remains MTP-off; this is the lever relevant to the
+  Reddit ~50 tok/s single-stream claim.
+- A future SWE-bench n=100 campaign requires a new, fresh n=20 qualification that satisfies the
+  unchanged 20/20 submission gate. Reusing or sealing the failed qualification is prohibited.
 
 ## Reproduce
 

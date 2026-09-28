@@ -272,6 +272,9 @@ def publish(
     entries = _build_entries(canonical_runs)
 
     # --- Compute 'not measured' cells from canonical adapter universe ---
+    # Preserve defensible historical cells before deriving absence cells, so a
+    # carried-forward score cannot simultaneously appear as "not measured".
+    entries = _preserve_registered_existing_entries(repo, output_path, entries)
     canonical_adapters = _discover_canonical_adapters(repo)
     not_measured = _compute_not_measured(entries, canonical_adapters, suite_path)
 
@@ -290,6 +293,52 @@ def publish(
         not_measured=not_measured,
         output_path=output_path,
         rejected=rejected,
+    )
+
+
+def _preserve_registered_existing_entries(
+    repo: pathlib.Path,
+    output_path: pathlib.Path,
+    new_entries: list[dict],
+) -> list[dict]:
+    """Preserve defensible historical cells from an existing canonical matrix.
+
+    A preserved cell must resolve to an extant run directory that the registry
+    still classifies. This prevents suite evolution from silently deleting a
+    historical publication while refusing to carry forward orphaned cells.
+    """
+    if not output_path.is_file():
+        return new_entries
+    try:
+        existing = json.loads(output_path.read_text())
+        registry = json.loads((repo / "results" / "registry.json").read_text())
+    except (json.JSONDecodeError, OSError):
+        return new_entries
+
+    registered_dirs: set[str] = set()
+    for record in registry.get("entries", []):
+        run_dir = record.get("run_dir")
+        if isinstance(run_dir, str) and (repo / run_dir).is_dir():
+            registered_dirs.add(pathlib.PurePosixPath(run_dir).as_posix())
+
+    keys = {(e.get("model_slug"), e.get("benchmark")) for e in new_entries}
+    preserved: list[dict] = []
+    for entry in existing.get("entries", []):
+        key = (entry.get("model_slug"), entry.get("benchmark"))
+        run_id = entry.get("run_id")
+        model_slug = entry.get("model_slug")
+        if key in keys or not isinstance(run_id, str) or not isinstance(model_slug, str):
+            continue
+        run_dir = pathlib.PurePosixPath(
+            "results", model_slug, "runs", entry.get("suite_id", _DEFAULT_SUITE_ID),
+            entry.get("benchmark", ""), run_id,
+        ).as_posix()
+        if run_dir in registered_dirs:
+            preserved.append(entry)
+
+    return sorted(
+        [*new_entries, *preserved],
+        key=lambda e: (e.get("model_slug", ""), e.get("benchmark", ""), e.get("run_id", "")),
     )
 
 

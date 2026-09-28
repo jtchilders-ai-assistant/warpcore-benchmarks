@@ -169,7 +169,7 @@ quality-preflight-selftest:
 
 # Contract-aware quality runner (Task 5).
 # Required variables: SUITE, ADAPTER, BENCH, ENDPOINT, THROUGHPUT, CONCURRENCY, TIMEOUT, PROMPT_TOKENS
-# Optional: RUN_ID, RUN_DIR, DRY_RUN=1, ALLOW_NO_SCREEN=1, RESUME=1
+# Optional: RUN_ID, RUN_DIR, MAX_TOKENS_PROBE, DRY_RUN=1, ALLOW_NO_SCREEN=1, RESUME=1
 #
 # PROMPT_TOKENS — measured tokenized prompt maxima for each benchmark (required).
 #   Format: bench=N,bench2=N2  e.g. PROMPT_TOKENS=gsm8k=500,ifeval=2000
@@ -202,6 +202,7 @@ run-quality:
 		--concurrency $(CONCURRENCY) \
 		--timeout $(TIMEOUT) \
 		--prompt-tokens $(PROMPT_TOKENS) \
+		$(if $(MAX_TOKENS_PROBE),--max-tokens-probe $(MAX_TOKENS_PROBE),) \
 		$(if $(RUN_ID),--run-id $(RUN_ID),) \
 		$(if $(RUN_DIR),--run-dir $(RUN_DIR),) \
 		$(if $(DRY_RUN),--dry-run,) \

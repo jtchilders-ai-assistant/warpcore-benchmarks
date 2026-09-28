@@ -1,0 +1,22 @@
+diff --git a/src/flask/blueprints.py b/src/flask/blueprints.py
+index eb50585d..a63938b7 100644
+--- a/src/flask/blueprints.py
++++ b/src/flask/blueprints.py
+@@ -131,7 +131,7 @@ class Blueprint(Scaffold):
+     See :doc:`/blueprints` for more information.
+ 
+     :param name: The name of the blueprint. Will be prepended to each
+-        endpoint name.
++        endpoint name. Must not be empty.
+     :param import_name: The name of the blueprint package, usually
+         ``__name__``. This helps locate the ``root_path`` for the
+         blueprint.
+@@ -190,6 +190,8 @@ class Blueprint(Scaffold):
+             root_path=root_path,
+         )
+ 
++        if not name or not name.strip():
++            raise ValueError("Blueprint name must not be empty.")
+         if "." in name:
+             raise ValueError("'name' may not contain a dot '.' character.")
+ 

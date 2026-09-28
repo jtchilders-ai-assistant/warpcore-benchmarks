@@ -772,6 +772,7 @@ class QualityRunner:
         run_dir: pathlib.Path,
         repo: Optional[pathlib.Path] = None,
         prompt_token_maxima: Optional[Dict[str, int]] = None,
+        max_tokens_probe: int = 1024,
         dry_run: bool = False,
         allow_no_screen: bool = False,
         preflight_runner: Optional[Callable] = None,
@@ -788,6 +789,7 @@ class QualityRunner:
         self.dry_run = dry_run
         self.allow_no_screen = allow_no_screen
         self.prompt_token_maxima = prompt_token_maxima
+        self.max_tokens_probe = int(max_tokens_probe)
 
         # _repo: used ONLY for run directory layout (not for schema lookup)
         if repo is not None:
@@ -927,7 +929,12 @@ class QualityRunner:
             "--num_fewshot", "0",
         ]
 
-        if task_dir:
+        # IFEval is pinned by harness revision. Its YAML imports ``utils``
+        # relative to lm_eval/tasks/ifeval; loading the hash-identical snapshot
+        # from the shared suite/tasks directory breaks that relative import.
+        # Other quality tasks are repository-owned custom tasks and require the
+        # explicit include path.
+        if task_dir and self.benchmark != "ifeval":
             cmd.extend(["--include_path", task_dir])
 
         return cmd
@@ -1202,6 +1209,7 @@ class QualityRunner:
                 aggregate_tok_s=self.throughput,
                 concurrency=self.concurrency,
                 client_timeout_s=self.timeout,
+                max_tokens_probe=self.max_tokens_probe,
             )
             return int(gate.run())
         except Exception as exc:
@@ -1419,6 +1427,8 @@ def main(argv=None) -> int:
     ap.add_argument("--timeout", required=True, type=float)
     ap.add_argument("--prompt-tokens", type=str, default=None,
                     help="Measured prompt maxima: 'bench=N,...' (e.g. gsm8k=500,ifeval=2000).")
+    ap.add_argument("--max-tokens-probe", type=int, default=1024,
+                    help="Serving preflight canary budget; raise for deep reasoners.")
     ap.add_argument("--run-id", default=None)
     ap.add_argument("--run-dir", type=pathlib.Path, default=None)
     ap.add_argument("--repo", type=pathlib.Path, default=None)
@@ -1555,6 +1565,7 @@ def main(argv=None) -> int:
             run_dir=run_dir,
             repo=repo,
             prompt_token_maxima=prompt_token_maxima,
+            max_tokens_probe=args.max_tokens_probe,
             dry_run=args.dry_run,
             allow_no_screen=args.allow_no_screen,
         )

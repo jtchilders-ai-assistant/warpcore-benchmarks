@@ -223,6 +223,91 @@
       "note": "Failed warpcore-v1 SWE-bench campaign, retained as immutable diagnostic evidence. Classified invalid, not diagnostic: the committed status.json \u2014 itself raw evidence \u2014 records lifecycle 'invalid', and the design permits reclassification to 'diagnostic' only by an explicit decision that would here contradict an immutable artifact. The evidence is still USED diagnostically; 'invalid' names its lifecycle, not its usefulness. The operator stopped the campaign after the vLLM openai tool-call parser corrupted tool-call JSON arguments systemically: 51 of the 100 frozen instances reached a terminal state (49 RepeatedFormatError, 2 Submitted) and 49 were never attempted. There is no grading, no DONE sentinel, and no score, and none may be derived. The creation-time manifest is retained unrepaired with submitted=0, completed_utc=null, and all artifact flags false. Trajectories are retained compressed as raw/trajectories.tar.gz (51 members, 328,452,714 B uncompressed, 7,364,255 B on disk); diagnostic_summary.json is derived and re-verified by viz/derive_diagnostic.py, which fails closed on any count, ID, or hash inconsistency.",
       "caveats": "Not quotable as a benchmark result. 49/100 frozen instances unobserved; no verdict exists for any instance.",
       "run_dir": "results/gpt-oss-120b/runs/warpcore-v1/swebench/gptoss-swebench-n100-20260921"
+    },
+    {
+      "id": "qwen3.5-122b-a10b/gsm8k/warpcore-v1/qwen35-gsm8k-20260926",
+      "status": "current",
+      "paths": [
+        "results/qwen3.5-122b-a10b/runs/warpcore-v1/gsm8k/qwen35-gsm8k-20260926/raw/Intel__Qwen3.5-122B-A10B-int4-AutoRound/results_2026-09-27T01-23-48.517601.json"
+      ],
+      "note": "Canonical warpcore-v1 GSM8K run. Publication validation passed on all 1,319 items; 1,278 answer-line exact matches. Fourteen empty budget-limited responses remain in the denominator.",
+      "v1_validated": true,
+      "run_dir": "results/qwen3.5-122b-a10b/runs/warpcore-v1/gsm8k/qwen35-gsm8k-20260926"
+    },
+    {
+      "id": "qwen3.5-122b-a10b/ifeval/warpcore-v1/qwen35-ifeval-20260925b",
+      "status": "current",
+      "paths": [
+        "results/qwen3.5-122b-a10b/runs/warpcore-v1/ifeval/qwen35-ifeval-20260925b/raw/Intel__Qwen3.5-122B-A10B-int4-AutoRound/results_2026-09-25T21-44-31.327568.json"
+      ],
+      "note": "Canonical replacement warpcore-v1 IFEval run. Publication validation passed on all 541 prompts; prompt-level strict accuracy is 465/541 (85.9519%). Thirty-eight empty, output-budget-exhausted responses remain in the denominator. The first failed pre-inference attempt remains separate invalid evidence.",
+      "v1_validated": true,
+      "run_dir": "results/qwen3.5-122b-a10b/runs/warpcore-v1/ifeval/qwen35-ifeval-20260925b"
+    },
+    {
+      "id": "qwen3.5-122b-a10b/gpqa-diamond/warpcore-v1/qwen35-gpqa-20260924",
+      "status": "current",
+      "paths": [
+        "results/qwen3.5-122b-a10b/runs/warpcore-v1/gpqa_diamond/qwen35-gpqa-20260924/raw/Intel__Qwen3.5-122B-A10B-int4-AutoRound/results_2026-09-25T01-49-32.110476.json"
+      ],
+      "note": "Canonical warpcore-v1 GPQA-Diamond run. Publication validation passed on all 198 items; 164 answer-line exact matches. Four empty 65,536-token budget exhaustions remain in the denominator.",
+      "v1_validated": true,
+      "run_dir": "results/qwen3.5-122b-a10b/runs/warpcore-v1/gpqa_diamond/qwen35-gpqa-20260924"
+    },
+    {
+      "id": "qwen3.5-122b-a10b/swebench/warpcore-v1/qualification-run",
+      "status": "diagnostic",
+      "paths": [
+        "results/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run/raw/preds.json",
+        "results/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run/raw/exit_statuses_1790490462.035331.yaml"
+      ],
+      "note": "Earliest partial n=20 qualification attempt retained as diagnostic evidence: 1 Submitted and 1 ContextWindowExceededError; the remaining suite-owned instances were not observed. Not a score and not qualification evidence.",
+      "caveats": "Partial attempt; no official grading, no qualification seal, and no canonical launch authorization.",
+      "run_dir": "results/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run"
+    },
+    {
+      "id": "qwen3.5-122b-a10b/swebench/warpcore-v1/qualification-run-20260927b",
+      "status": "diagnostic",
+      "paths": [
+        "results/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run-20260927b/raw/preds.json",
+        "results/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run-20260927b/raw/exit_statuses_1790495145.880115.yaml"
+      ],
+      "note": "Partial n=20 qualification attempt retained as diagnostic evidence: 14 Submitted and 3 LimitsExceeded; three suite-owned instances were not observed. Not a score and not qualification evidence.",
+      "caveats": "Partial attempt; no official grading, no qualification seal, and no canonical launch authorization.",
+      "run_dir": "results/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run-20260927b"
+    },
+    {
+      "id": "qwen3.5-122b-a10b/swebench/warpcore-v1/qualification-run-20260927c",
+      "status": "invalid",
+      "paths": [
+        "results/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run-20260927c/raw/run.log"
+      ],
+      "note": "Invalid qualification launch retained for diagnosis. It failed before producing a trajectory because the selected Python environment could not import mini-swe-agent.",
+      "caveats": "Pre-generation launch failure; no model evidence, no score, and no qualification value.",
+      "run_dir": "results/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run-20260927c"
+    },
+    {
+      "id": "qwen3.5-122b-a10b/swebench/warpcore-v1/qualification-run-20260927d",
+      "status": "diagnostic",
+      "paths": [
+        "results/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run-20260927d/raw/preds.json",
+        "results/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run-20260927d/raw/exit_statuses_1790513107.235241.yaml"
+      ],
+      "note": "Partial n=20 qualification attempt retained as diagnostic evidence: 11 Submitted and 1 LimitsExceeded; eight suite-owned instances were not observed. Not a score and not qualification evidence.",
+      "caveats": "Partial attempt; no official grading, no qualification seal, and no canonical launch authorization.",
+      "run_dir": "results/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run-20260927d"
+    },
+    {
+      "id": "qwen3.5-122b-a10b/swebench/warpcore-v1/qualification-20260927e",
+      "status": "diagnostic",
+      "paths": [
+        "results/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/qualification_decision.json",
+        "results/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run-20260927e/raw/exit_statuses.json",
+        "results/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run-20260927e/raw/grading_results.json"
+      ],
+      "note": "Nonqualifying n=20 SWE-bench evidence: 17 Submitted, two LimitsExceeded, and one ContextWindowExceededError. Diagnostic official grading found 14 resolved and 3 unresolved among the 17 submitted patches, plus 3 empty-patch instances corresponding to the non-submissions. The mandatory 20/20 Submitted gate failed; no qualification record was sealed and canonical n=100 was not launched. This entry is not a canonical score.",
+      "caveats": "Qualification diagnostic only. Submitted is not Resolved; the 14/20 diagnostic grade is not the suite n=100 result.",
+      "run_dir": "results/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run-20260927e"
     }
   ]
 }

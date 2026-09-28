@@ -1,0 +1,87 @@
+{
+  "django__django-14672": {
+    "model_name_or_path": "hosted_vllm/Intel/Qwen3.5-122B-A10B-int4-AutoRound",
+    "instance_id": "django__django-14672",
+    "model_patch": "diff --git a/django/db/models/fields/reverse_related.py b/django/db/models/fields/reverse_related.py\nindex ccc2223a5f..65950590e2 100644\n--- a/django/db/models/fields/reverse_related.py\n+++ b/django/db/models/fields/reverse_related.py\n@@ -310,7 +310,7 @@ class ManyToManyRel(ForeignObjectRel):\n     def identity(self):\n         return super().identity + (\n             self.through,\n-            self.through_fields,\n+            make_hashable(self.through_fields),\n             self.db_constraint,\n         )\n \n"
+  },
+  "django__django-11299": {
+    "model_name_or_path": "hosted_vllm/Intel/Qwen3.5-122B-A10B-int4-AutoRound",
+    "instance_id": "django__django-11299",
+    "model_patch": "diff --git a/django/db/models/sql/query.py b/django/db/models/sql/query.py\nindex b99f03cd88..d69c24419b 100644\n--- a/django/db/models/sql/query.py\n+++ b/django/db/models/sql/query.py\n@@ -1338,7 +1338,7 @@ class Query(BaseExpression):\n             if isinstance(child, Node):\n                 child_clause, needed_inner = self._add_q(\n                     child, used_aliases, branch_negated,\n-                    current_negated, allow_joins, split_subq)\n+                    current_negated, allow_joins, split_subq, simple_col)\n                 joinpromoter.add_votes(needed_inner)\n             else:\n                 child_clause, needed_inner = self.build_filter(\n"
+  },
+  "matplotlib__matplotlib-25332": {
+    "model_name_or_path": "hosted_vllm/Intel/Qwen3.5-122B-A10B-int4-AutoRound",
+    "instance_id": "matplotlib__matplotlib-25332",
+    "model_patch": "diff --git a/lib/matplotlib/cbook.py b/lib/matplotlib/cbook.py\nindex c9699b2e21..f53eebf1f0 100644\n--- a/lib/matplotlib/cbook.py\n+++ b/lib/matplotlib/cbook.py\n@@ -846,6 +846,35 @@ class Grouper:\n         siblings = self._mapping.get(weakref.ref(a), [weakref.ref(a)])\n         return [x() for x in siblings]\n \n+    def __getstate__(self):\n+        # Convert weakref-based mapping to a regular dict for pickling\n+        # We need to store the actual objects, not weakrefs\n+        state = {}\n+        for key, value in self._mapping.items():\n+            obj = key()\n+            if obj is not None:\n+                state[obj] = [ref() for ref in value if ref() is not None]\n+        return state\n+\n+    def __setstate__(self, state):\n+        # Reconstruct the weakref-based mapping from the pickled state\n+        # We need to rebuild the disjoint-set structure properly\n+        self._mapping = {}\n+        # First, create all the weakref entries and store them\n+        weakrefs = {}\n+        for obj, group in state.items():\n+            ref = weakref.ref(obj)\n+            weakrefs[obj] = ref\n+            self._mapping[ref] = [weakref.ref(v) for v in group]\n+        # Then, for each group, make all items point to the same list\n+        for group in state.values():\n+            if len(group) > 1:\n+                # Get the list for the first item in the group\n+                target_list = self._mapping[weakrefs[group[0]]]\n+                # Make all other items in the group point to the same list\n+                for obj in group[1:]:\n+                    self._mapping[weakrefs[obj]] = target_list\n+\n \n class GrouperView:\n     \"\"\"Immutable view over a `.Grouper`.\"\"\"\n"
+  },
+  "pallets__flask-5014": {
+    "model_name_or_path": "hosted_vllm/Intel/Qwen3.5-122B-A10B-int4-AutoRound",
+    "instance_id": "pallets__flask-5014",
+    "model_patch": "diff --git a/src/flask/blueprints.py b/src/flask/blueprints.py\nindex eb50585d..960b7001 100644\n--- a/src/flask/blueprints.py\n+++ b/src/flask/blueprints.py\n@@ -190,6 +190,9 @@ class Blueprint(Scaffold):\n             root_path=root_path,\n         )\n \n+        if not name or not name.strip():\n+            raise ValueError(\"Blueprint name cannot be empty.\")\n+\n         if \".\" in name:\n             raise ValueError(\"'name' may not contain a dot '.' character.\")\n \n"
+  },
+  "psf__requests-1766": {
+    "model_name_or_path": "hosted_vllm/Intel/Qwen3.5-122B-A10B-int4-AutoRound",
+    "instance_id": "psf__requests-1766",
+    "model_patch": "diff --git a/requests/auth.py b/requests/auth.py\nindex a3de123..48416e5 100644\n--- a/requests/auth.py\n+++ b/requests/auth.py\n@@ -144,7 +144,7 @@ class HTTPDigestAuth(AuthBase):\n         if entdig:\n             base += ', digest=\"%s\"' % entdig\n         if qop:\n-            base += ', qop=auth, nc=%s, cnonce=\"%s\"' % (ncvalue, cnonce)\n+            base += ', qop=\"auth\", nc=%s, cnonce=\"%s\"' % (ncvalue, cnonce)\n \n         return 'Digest %s' % (base)\n \n"
+  },
+  "matplotlib__matplotlib-22871": {
+    "model_name_or_path": "hosted_vllm/Intel/Qwen3.5-122B-A10B-int4-AutoRound",
+    "instance_id": "matplotlib__matplotlib-22871",
+    "model_patch": "diff --git a/lib/matplotlib/dates.py b/lib/matplotlib/dates.py\nindex 4d8ddf3ee5..834de189c0 100644\n--- a/lib/matplotlib/dates.py\n+++ b/lib/matplotlib/dates.py\n@@ -797,7 +797,7 @@ class ConciseDateFormatter(ticker.Formatter):\n         # 3: hours, 4: minutes, 5: seconds, 6: microseconds\n         for level in range(5, -1, -1):\n             if len(np.unique(tickdate[:, level])) > 1:\n-                if level < 2:\n+                if level == 0:\n                     show_offset = False\n                 break\n             elif level == 0:\n"
+  },
+  "pydata__xarray-3993": {
+    "model_name_or_path": "hosted_vllm/Intel/Qwen3.5-122B-A10B-int4-AutoRound",
+    "instance_id": "pydata__xarray-3993",
+    "model_patch": "diff --git a/xarray/core/dataarray.py b/xarray/core/dataarray.py\nindex 2fef3edb..87c6dd9c 100644\n--- a/xarray/core/dataarray.py\n+++ b/xarray/core/dataarray.py\n@@ -3481,17 +3481,18 @@ class DataArray(AbstractArray, DataWithCoords):\n         return self._from_temp_dataset(ds)\n \n     def integrate(\n-        self, dim: Union[Hashable, Sequence[Hashable]], datetime_unit: str = None\n+        self, coord: Union[Hashable, Sequence[Hashable]] = None,\n+        datetime_unit: str = None, **kwargs\n     ) -> \"DataArray\":\n         \"\"\" integrate the array with the trapezoidal rule.\n \n         .. note::\n-            This feature is limited to simple cartesian geometry, i.e. dim\n+            This feature is limited to simple cartesian geometry, i.e. coord\n             must be one dimensional.\n \n         Parameters\n         ----------\n-        dim : hashable, or sequence of hashable\n+        coord : hashable, or sequence of hashable\n             Coordinate(s) used for the integration.\n         datetime_unit : {\"Y\", \"M\", \"W\", \"D\", \"h\", \"m\", \"s\", \"ms\", \"us\", \"ns\", \\\n                          \"ps\", \"fs\", \"as\"}, optional\n@@ -3528,7 +3529,20 @@ class DataArray(AbstractArray, DataWithCoords):\n         array([5.4, 6.6, 7.8])\n         Dimensions without coordinates: y\n         \"\"\"\n-        ds = self._to_temp_dataset().integrate(dim, datetime_unit)\n+        # Handle deprecated 'dim' keyword argument\n+        if \"dim\" in kwargs:\n+            import warnings\n+            warnings.warn(\n+                \"The 'dim' argument is deprecated and will be removed in a future version. \"\n+                \"Use 'coord' instead.\",\n+                FutureWarning,\n+                stacklevel=2,\n+            )\n+            coord = kwargs.pop(\"dim\")\n+        if kwargs:\n+            raise TypeError(f\"integrate() got unexpected keyword argument(s): {list(kwargs.keys())}\")\n+        \n+        ds = self._to_temp_dataset().integrate(coord, datetime_unit)\n         return self._from_temp_dataset(ds)\n \n     def unify_chunks(self) -> \"DataArray\":\n"
+  },
+  "pydata__xarray-6938": {
+    "model_name_or_path": "hosted_vllm/Intel/Qwen3.5-122B-A10B-int4-AutoRound",
+    "instance_id": "pydata__xarray-6938",
+    "model_patch": "diff --git a/xarray/core/variable.py b/xarray/core/variable.py\nindex 5827b90a..1941e1b8 100644\n--- a/xarray/core/variable.py\n+++ b/xarray/core/variable.py\n@@ -2881,7 +2881,9 @@ class IndexVariable(Variable):\n \n     def to_index_variable(self):\n         \"\"\"Return this variable as an xarray.IndexVariable\"\"\"\n-        return self\n+        return IndexVariable(\n+            self.dims, self._data, self._attrs, encoding=self._encoding, fastpath=True\n+        )\n \n     to_coord = utils.alias(to_index_variable, \"to_coord\")\n \n"
+  },
+  "psf__requests-6028": {
+    "model_name_or_path": "hosted_vllm/Intel/Qwen3.5-122B-A10B-int4-AutoRound",
+    "instance_id": "psf__requests-6028",
+    "model_patch": ""
+  },
+  "pylint-dev__pylint-6903": {
+    "model_name_or_path": "hosted_vllm/Intel/Qwen3.5-122B-A10B-int4-AutoRound",
+    "instance_id": "pylint-dev__pylint-6903",
+    "model_patch": "diff --git a/pylint/lint/run.py b/pylint/lint/run.py\nindex a7e5d557..90943f16 100644\n--- a/pylint/lint/run.py\n+++ b/pylint/lint/run.py\n@@ -52,12 +52,12 @@ def _query_cpu() -> int | None:\n         with open(\"/sys/fs/cgroup/cpu/cpu.cfs_period_us\", encoding=\"utf-8\") as file:\n             cpu_period = int(file.read().rstrip())\n         # Divide quota by period and you should get num of allotted CPU to the container, rounded down if fractional.\n-        avail_cpu = int(cpu_quota / cpu_period)\n+        avail_cpu = max(1, int(cpu_quota / cpu_period))\n     elif Path(\"/sys/fs/cgroup/cpu/cpu.shares\").is_file():\n         with open(\"/sys/fs/cgroup/cpu/cpu.shares\", encoding=\"utf-8\") as file:\n             cpu_shares = int(file.read().rstrip())\n         # For AWS, gives correct value * 1024.\n-        avail_cpu = int(cpu_shares / 1024)\n+        avail_cpu = max(1, int(cpu_shares / 1024))\n     return avail_cpu\n \n \n"
+  },
+  "pytest-dev__pytest-5262": {
+    "model_name_or_path": "hosted_vllm/Intel/Qwen3.5-122B-A10B-int4-AutoRound",
+    "instance_id": "pytest-dev__pytest-5262",
+    "model_patch": "diff --git a/src/_pytest/capture.py b/src/_pytest/capture.py\nindex 25eab7fd..9759b823 100644\n--- a/src/_pytest/capture.py\n+++ b/src/_pytest/capture.py\n@@ -447,6 +447,11 @@ class EncodedFile(object):\n         \"\"\"Ensure that file.name is a string.\"\"\"\n         return repr(self.buffer)\n \n+    @property\n+    def mode(self):\n+        \"\"\"Ensure that file.mode is a text mode (without 'b').\"\"\"\n+        return getattr(self.buffer, \"mode\", \"\").replace(\"b\", \"\")\n+\n     def __getattr__(self, name):\n         return getattr(object.__getattribute__(self, \"buffer\"), name)\n \n"
+  },
+  "pytest-dev__pytest-7205": {
+    "model_name_or_path": "hosted_vllm/Intel/Qwen3.5-122B-A10B-int4-AutoRound",
+    "instance_id": "pytest-dev__pytest-7205",
+    "model_patch": "diff --git a/src/_pytest/setuponly.py b/src/_pytest/setuponly.py\nindex c9cc589ff..9fc218a3e 100644\n--- a/src/_pytest/setuponly.py\n+++ b/src/_pytest/setuponly.py\n@@ -1,4 +1,5 @@\n import pytest\n+from _pytest._io.saferepr import saferepr\n \n \n def pytest_addoption(parser):\n@@ -66,7 +67,7 @@ def _show_fixture_action(fixturedef, msg):\n             tw.write(\" (fixtures used: {})\".format(\", \".join(deps)))\n \n     if hasattr(fixturedef, \"cached_param\"):\n-        tw.write(\"[{}]\".format(fixturedef.cached_param))\n+        tw.write(\"[{}]\".format(saferepr(fixturedef.cached_param)))\n \n     tw.flush()\n \n"
+  },
+  "scikit-learn__scikit-learn-14629": {
+    "model_name_or_path": "hosted_vllm/Intel/Qwen3.5-122B-A10B-int4-AutoRound",
+    "instance_id": "scikit-learn__scikit-learn-14629",
+    "model_patch": ""
+  },
+  "astropy__astropy-8872": {
+    "model_name_or_path": "hosted_vllm/Intel/Qwen3.5-122B-A10B-int4-AutoRound",
+    "instance_id": "astropy__astropy-8872",
+    "model_patch": ""
+  },
+  "scikit-learn__scikit-learn-14710": {
+    "model_name_or_path": "hosted_vllm/Intel/Qwen3.5-122B-A10B-int4-AutoRound",
+    "instance_id": "scikit-learn__scikit-learn-14710",
+    "model_patch": "diff --git a/sklearn/ensemble/_hist_gradient_boosting/gradient_boosting.py b/sklearn/ensemble/_hist_gradient_boosting/gradient_boosting.py\nindex ad6a5a8ca..3170e4000 100644\n--- a/sklearn/ensemble/_hist_gradient_boosting/gradient_boosting.py\n+++ b/sklearn/ensemble/_hist_gradient_boosting/gradient_boosting.py\n@@ -426,11 +426,15 @@ class BaseHistGradientBoosting(BaseEstimator, ABC):\n \n         Scores are computed on validation data or on training data.\n         \"\"\"\n+        if hasattr(self, 'classes_'):\n+            y_small_train = self.classes_[y_small_train.astype(int)]\n         self.train_score_.append(\n             self.scorer_(self, X_binned_small_train, y_small_train)\n         )\n \n         if self._use_validation_data:\n+            if hasattr(self, 'classes_'):\n+                y_val = self.classes_[y_val.astype(int)]\n             self.validation_score_.append(\n                 self.scorer_(self, X_binned_val, y_val)\n             )\n"
+  },
+  "sphinx-doc__sphinx-10449": {
+    "model_name_or_path": "hosted_vllm/Intel/Qwen3.5-122B-A10B-int4-AutoRound",
+    "instance_id": "sphinx-doc__sphinx-10449",
+    "model_patch": "diff --git a/sphinx/ext/autodoc/typehints.py b/sphinx/ext/autodoc/typehints.py\nindex 06768168e..52680b422 100644\n--- a/sphinx/ext/autodoc/typehints.py\n+++ b/sphinx/ext/autodoc/typehints.py\n@@ -29,7 +29,9 @@ def record_typehints(app: Sphinx, objtype: str, name: str, obj: Any,\n                 if param.annotation is not param.empty:\n                     annotation[param.name] = typing.stringify(param.annotation, mode)\n             if sig.return_annotation is not sig.empty:\n-                annotation['return'] = typing.stringify(sig.return_annotation, mode)\n+                # Skip return annotation for classes and exceptions\n+                if objtype not in ('class', 'exception'):\n+                    annotation['return'] = typing.stringify(sig.return_annotation, mode)\n     except (TypeError, ValueError):\n         pass\n \n"
+  },
+  "sphinx-doc__sphinx-9281": {
+    "model_name_or_path": "hosted_vllm/Intel/Qwen3.5-122B-A10B-int4-AutoRound",
+    "instance_id": "sphinx-doc__sphinx-9281",
+    "model_patch": "diff --git a/sphinx/util/inspect.py b/sphinx/util/inspect.py\nindex a415a7074..4f2990163 100644\n--- a/sphinx/util/inspect.py\n+++ b/sphinx/util/inspect.py\n@@ -457,6 +457,9 @@ def object_description(object: Any) -> str:\n         else:\n             return \"frozenset({%s})\" % \", \".join(object_description(x)\n                                                  for x in sorted_values)\n+    if isinstance(object, enum.Enum):\n+        # Enum values should be represented as \"EnumName.ValueName\"\n+        return f\"{object.__class__.__name__}.{object.name}\"\n     try:\n         s = repr(object)\n     except Exception as exc:\n"
+  }
+}

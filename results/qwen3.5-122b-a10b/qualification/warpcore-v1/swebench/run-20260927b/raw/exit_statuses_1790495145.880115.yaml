@@ -1,0 +1,20 @@
+instances_by_exit_status:
+    LimitsExceeded:
+    - psf__requests-6028
+    - scikit-learn__scikit-learn-14629
+    - astropy__astropy-8872
+    Submitted:
+    - django__django-14672
+    - django__django-11299
+    - matplotlib__matplotlib-25332
+    - pallets__flask-5014
+    - psf__requests-1766
+    - matplotlib__matplotlib-22871
+    - pydata__xarray-3993
+    - pydata__xarray-6938
+    - pylint-dev__pylint-6903
+    - pytest-dev__pytest-5262
+    - pytest-dev__pytest-7205
+    - scikit-learn__scikit-learn-14710
+    - sphinx-doc__sphinx-10449
+    - sphinx-doc__sphinx-9281

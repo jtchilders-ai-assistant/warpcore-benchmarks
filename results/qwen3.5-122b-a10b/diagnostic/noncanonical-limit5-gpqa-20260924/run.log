@@ -1,0 +1,32 @@
+2026-09-24:17:35:17 WARNING  [config.evaluate_config:287] --limit SHOULD ONLY BE USED FOR TESTING. REAL METRICS SHOULD NOT BE COMPUTED USING LIMIT.
+2026-09-24:17:35:17 INFO     [config.evaluate_config:307] Using default fewshot_as_multiturn=True.
+2026-09-24:17:35:35 WARNING  [tasks._index:70] Task 'ifeval' from /Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/suite/tasks/ifeval_v4.yaml overrides existing task from /Users/jchilders/workspaces/lmeval-venv/lib/python3.11/site-packages/lm_eval/tasks/ifeval/ifeval.yaml
+2026-09-24:17:35:35 INFO     [_cli.run:387] Including path: /Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/suite/tasks
+2026-09-24:17:35:35 INFO     [_cli.run:388] Selected Tasks: ['gpqa_diamond_cot_zeroshot_clean']
+2026-09-24:17:35:35 INFO     [evaluator:214] Setting random seed to 0 | Setting numpy seed to 1234 | Setting torch manual seed to 1234 | Setting fewshot manual seed to 1234
+2026-09-24:17:35:35 WARNING  [evaluator:226] generation_kwargs: {'max_gen_toks': 65536, 'temperature': 0, 'do_sample': False} specified through cli, these settings will update set parameters in yaml tasks. Ensure 'do_sample=True' for non-greedy decoding!
+2026-09-24:17:35:35 INFO     [evaluator:239] Initializing sidecar-chat-completions model, with arguments: {'base_url': 'http://csi370295.alcf.anl.gov:8000/v1/chat/completions', 'model': 'Intel/Qwen3.5-122B-A10B-int4-AutoRound', 'num_concurrent': 4, 'max_retries': 0, 'timeout': 9000, 'tokenized_requests': False, 'sidecar_path': '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/diagnostic/noncanonical-limit5-gpqa-20260924/response_metadata.jsonl'}
+2026-09-24:17:35:35 INFO     [models.api_models:179] Using max length 2048 - 1
+2026-09-24:17:35:35 INFO     [models.api_models:200] Using tokenizer None
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Using the latest cached version of the dataset since Idavidrein/gpqa couldn't be found on the Hugging Face Hub
+Found the latest cached dataset configuration 'gpqa_diamond' at /Users/jchilders/.cache/huggingface/datasets/Idavidrein___gpqa/gpqa_diamond/0.0.0/633f5ee89ab8ad4522a9f850766b73f62147ffdd (last modified on Tue Sep 22 20:48:30 2026).
+Map:   0%|          | 0/198 [00:00<?, ? examples/s]Map:  89%|████████▉ | 177/198 [00:00<00:00, 794.79 examples/s]Map: 100%|██████████| 198/198 [00:00<00:00, 629.33 examples/s]
+2026-09-24:17:35:36 INFO     [evaluator_utils:446] Selected tasks:
+2026-09-24:17:35:36 INFO     [evaluator_utils:480] Task: gpqa_diamond_cot_zeroshot_clean (/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/suite/tasks/gpqa_diamond_clean_v3.yaml)
+2026-09-24:17:35:36 INFO     [evaluator:314] gpqa_diamond_cot_zeroshot_clean: Using gen_kwargs: {'until': ['</s>'], 'do_sample': False, 'temperature': 0, 'max_gen_toks': 65536}
+2026-09-24:17:35:36 INFO     [evaluator:329] num_fewshot has been set to 0 for gpqa_diamond_cot_zeroshot_clean in its config. Manual configuration will be ignored.
+2026-09-24:17:35:36 INFO     [api.task:312] Building contexts for gpqa_diamond_cot_zeroshot_clean on rank 0...
+  0%|          | 0/5 [00:00<?, ?it/s]100%|██████████| 5/5 [00:00<00:00, 897.18it/s]
+2026-09-24:17:35:36 INFO     [evaluator:585] Running generate_until requests
+2026-09-24:17:35:36 INFO     [models.api_models:778] Tokenized requests are disabled. Context + generation length is not checked.
+Requesting API:   0%|          | 0/5 [00:00<?, ?it/s]Requesting API:  20%|██        | 1/5 [02:45<11:01, 165.46s/it]Requesting API:  40%|████      | 2/5 [05:39<08:31, 170.42s/it]Requesting API:  60%|██████    | 3/5 [06:36<03:57, 118.88s/it]Requesting API:  80%|████████  | 4/5 [06:38<01:12, 72.40s/it] Requesting API: 100%|██████████| 5/5 [08:08<00:00, 79.05s/it]Requesting API: 100%|██████████| 5/5 [08:08<00:00, 97.78s/it]
+PyTorch was not found. Models won't be available and only tokenizers, configuration and file/data utilities can be used.
+2026-09-24:17:43:46 INFO     [loggers.evaluation_tracker:247] Saving results aggregated
+2026-09-24:17:43:46 INFO     [loggers.evaluation_tracker:119] Saving per-task samples to /Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/diagnostic/noncanonical-limit5-gpqa-20260924/raw/Intel__Qwen3.5-122B-A10B-int4-AutoRound/*.jsonl
+sidecar-chat-completions ({'base_url': 'http://csi370295.alcf.anl.gov:8000/v1/chat/completions', 'model': 'Intel/Qwen3.5-122B-A10B-int4-AutoRound', 'num_concurrent': 4, 'max_retries': 0, 'timeout': 9000, 'tokenized_requests': False, 'sidecar_path': '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/diagnostic/noncanonical-limit5-gpqa-20260924/response_metadata.jsonl'}), gen_kwargs: ({'max_gen_toks': 65536, 'temperature': 0, 'do_sample': False}), limit: 5.0, num_fewshot: 0, batch_size: 1
+|             Tasks             |Version|     Filter      |n-shot|  Metric   |   |Value|   |Stderr|
+|-------------------------------|------:|-----------------|-----:|-----------|---|----:|---|-----:|
+|gpqa_diamond_cot_zeroshot_clean|      3|answer-line      |     0|exact_match|↑  |    1|±  |     0|
+|                               |       |flexible-fallback|     0|exact_match|↑  |    1|±  |     0|
+
