@@ -475,7 +475,7 @@ class TestQualificationVerifierSeam(unittest.TestCase):
             "-h", "--help",
             "--suite", "--adapter", "--endpoint", "--run-id", "--run-dir",
             "--repo", "--api-key", "--workers", "--prompt-tokens",
-            "--qualification", "--qualification-run",
+            "--qualification", "--qualification-run", "--noncanonical-trial",
             "--dry-run", "--allow-no-screen", "--resume", "--model",
         }
         parser = run_swebench._build_arg_parser()

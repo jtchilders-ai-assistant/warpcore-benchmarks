@@ -244,6 +244,7 @@ run-swebench:
 		$(if $(WORKERS),--workers $(WORKERS),) \
 		$(if $(DRY_RUN),--dry-run,) \
 		$(if $(ALLOW_NO_SCREEN),--allow-no-screen,) \
+		$(if $(NONCANONICAL_TRIAL),--noncanonical-trial,) \
 		$(if $(RESUME),--resume,)
 
 # Campaign validator (Task 7).

@@ -478,6 +478,7 @@ def create_campaign(
     item_count: Optional[int] = None,
     resume: bool = False,
     prompt_token_maxima: Optional[dict[str, int]] = None,
+    lifecycle: str = "current",
 ) -> pathlib.Path:
     """Create a new campaign run directory.
 
@@ -544,6 +545,11 @@ def create_campaign(
     # -- 1. Validate path components -----------------------------------------
     validate_safe_path_component(benchmark)
     validate_safe_path_component(run_id)
+    if lifecycle not in {"current", "diagnostic"}:
+        raise ValueError(
+            "Initial campaign lifecycle must be 'current' or 'diagnostic'; "
+            f"got {lifecycle!r}."
+        )
 
     # -- 2. Load and fully validate suite ------------------------------------
     suite = load_yaml(suite_path)
@@ -664,12 +670,16 @@ def create_campaign(
         "run_id": run_id,
         "suite_id": suite_id,
         "execution_state": "planned",
-        "lifecycle": "current",
+        "lifecycle": lifecycle,
         "history": [
             {
                 "state": "planned",
                 "timestamp": now_utc,
-                "note": "Campaign initialized by create_campaign",
+                "note": (
+                    "Campaign initialized by create_campaign"
+                    if lifecycle == "current"
+                    else "Explicit noncanonical diagnostic trial initialized by create_campaign"
+                ),
             }
         ],
     }
