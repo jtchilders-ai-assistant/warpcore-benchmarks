@@ -1,0 +1,244 @@
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/Users/jchilders/Library/Application 
+Support/mini-swe-agent/.env'
+minisweagent: INFO: Results will be saved to                                    
+/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/resul
+ts/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run-20260927b/raw       
+Logging to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run-20260927b/raw/minisweagent.log'
+minisweagent: INFO: Loading dataset princeton-nlp/SWE-bench_Verified, split     
+test...                                                                         
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+minisweagent: INFO: Instance filter: 500 -> 20 instances                        
+minisweagent: INFO: Running on 20 instances...                                  
+minisweagent: INFO: Building agent config from specs:                           
+['/var/folders/f0/7qqjjvb16hj4y5dhlshf643m0000gn/T/swe_config_y1j_pv5m.yaml']   
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-fdf00b32 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-14672:latest sleep 2h    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-68c4d4b2 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.astropy_1776_astropy-8872:latest sleep 2h   
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-27174786 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.astropy_1776_astropy-14096:latest sleep 2h  
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-e130900e -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-11299:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-fdf00b32 with ID 
+df64d132f6ab29504e000e29ff836c41fae69f6b4ca80466d7ca847a8c91547c                
+minisweagent.environment: INFO: Started container minisweagent-68c4d4b2 with ID 
+c30b89ecdf806c1a10d9138d050aee91f630531a42c697d38be873898bcb99f1                
+minisweagent.environment: INFO: Started container minisweagent-27174786 with ID 
+13ce0f5d579c77634707abe80961d2dc0f87cb3a307c1527e82b3e29f8bd473f                
+minisweagent.environment: INFO: Started container minisweagent-e130900e with ID 
+ba95776a482f309bdcd5211cecc1eb3f41ada42cdceb4a705c5f9a53458a0088                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/resu
+lts/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run-20260927b/raw/djang
+o__django-14672/django__django-14672.traj.json'                                 
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-783bfc1f -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.matplotlib_1776_matplotlib-22871:latest     
+sleep 2h                                                                        
+minisweagent.environment: INFO: Started container minisweagent-783bfc1f with ID 
+2dd845047c72b4d108bcb79f591937d4a848361839edbfc1ca79c9feb1d0b2ee                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/resu
+lts/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run-20260927b/raw/djang
+o__django-11299/django__django-11299.traj.json'                                 
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-cc29aece -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.matplotlib_1776_matplotlib-25332:latest     
+sleep 2h                                                                        
+minisweagent.environment: INFO: Started container minisweagent-cc29aece with ID 
+acaad14f3c7d01b88752f6a60ffb152b67d100e2a72ef9a3752f82eb14c9dd1e                
+Retrying <unknown> in 4 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+Retrying <unknown> in 4 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/resu
+lts/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run-20260927b/raw/matpl
+otlib__matplotlib-25332/matplotlib__matplotlib-25332.traj.json'                 
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-13cb106a -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.pallets_1776_flask-5014:latest sleep 2h     
+minisweagent.environment: INFO: Started container minisweagent-13cb106a with ID 
+48a57d364c8991d7d0634fa42a97175b8b140ad4535046b4685ab3a65d18d967                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/resu
+lts/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run-20260927b/raw/palle
+ts__flask-5014/pallets__flask-5014.traj.json'                                   
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-8f452854 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.psf_1776_requests-1766:latest sleep 2h      
+minisweagent.environment: INFO: Started container minisweagent-8f452854 with ID 
+88c83f339a05e7c2d1ae6d512dfdaf1edae4986760048bef6ff541c8d992d679                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/resu
+lts/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run-20260927b/raw/psf__
+requests-1766/psf__requests-1766.traj.json'                                     
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-36924f91 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.psf_1776_requests-6028:latest sleep 2h      
+minisweagent.environment: INFO: Started container minisweagent-36924f91 with ID 
+411e6017c79c673d3865badd62fea570fcb22817fd40c6602f16d46454c6288a                
+Retrying <unknown> in 4 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+Retrying <unknown> in 4 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/resu
+lts/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run-20260927b/raw/matpl
+otlib__matplotlib-22871/matplotlib__matplotlib-22871.traj.json'                 
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-53812db5 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.pydata_1776_xarray-3993:latest sleep 2h     
+minisweagent.environment: INFO: Started container minisweagent-53812db5 with ID 
+73a1c72dbf70b40e1590afece749a6c358b9cb0d08638b3efbc0c6bd3b70b764                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/resu
+lts/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run-20260927b/raw/pydat
+a__xarray-3993/pydata__xarray-3993.traj.json'                                   
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-f2effeda -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.pydata_1776_xarray-6938:latest sleep 2h     
+minisweagent.environment: INFO: Started container minisweagent-f2effeda with ID 
+7acd23d878238815fb71cffd6fecf2d375208bc76420bdbbb9ba93701b8ccea7                
+Retrying <unknown> in 4 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+Retrying <unknown> in 4 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+Retrying <unknown> in 8 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/resu
+lts/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run-20260927b/raw/pydat
+a__xarray-6938/pydata__xarray-6938.traj.json'                                   
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-50a81b82 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.pylint-dev_1776_pylint-4551:latest sleep 2h 
+minisweagent.environment: INFO: Started container minisweagent-50a81b82 with ID 
+6597877a83723aff94bbc58b1df1a5070ba1dbcf85b61fb03ba50a5564bcde4e                
+Retrying <unknown> in 16 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/resu
+lts/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run-20260927b/raw/psf__
+requests-6028/psf__requests-6028.traj.json'                                     
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-42d0237e -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.pylint-dev_1776_pylint-6903:latest sleep 2h 
+minisweagent.environment: INFO: Started container minisweagent-42d0237e with ID 
+ed7d1dcefddc06d6f3544a51a717d9161dffad724637a20356b500d7427bfd7e                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/resu
+lts/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run-20260927b/raw/pylin
+t-dev__pylint-6903/pylint-dev__pylint-6903.traj.json'                           
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-b581c3cd -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.pytest-dev_1776_pytest-5262:latest sleep 2h 
+minisweagent.environment: INFO: Started container minisweagent-b581c3cd with ID 
+5f23ae8e321b898afd6536d35a7b3335b06cba32066eaed2c9741a03af7940e3                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/resu
+lts/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run-20260927b/raw/pytes
+t-dev__pytest-5262/pytest-dev__pytest-5262.traj.json'                           
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-7c5b9f35 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.pytest-dev_1776_pytest-7205:latest sleep 2h 
+minisweagent.environment: INFO: Started container minisweagent-7c5b9f35 with ID 
+0e6fcbb593a0a63f865b390f82ac58ed32bc16b5a7ea59ffb5be5168e05c7f25                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/resu
+lts/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run-20260927b/raw/pytes
+t-dev__pytest-7205/pytest-dev__pytest-7205.traj.json'                           
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-baca2a25 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-14629:latest 
+sleep 2h                                                                        
+minisweagent.environment: INFO: Started container minisweagent-baca2a25 with ID 
+fd21e253e8e3cfe58a4760f9e399ab9e639e126af200cfa185b134489d985aa0                
+Retrying <unknown> in 32 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+Retrying <unknown> in 4 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+Retrying <unknown> in 4 seconds as it raised Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds..
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/resu
+lts/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run-20260927b/raw/sciki
+t-learn__scikit-learn-14629/scikit-learn__scikit-learn-14629.traj.json'         
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-cca9e2c6 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-14710:latest 
+sleep 2h                                                                        
+minisweagent.environment: INFO: Started container minisweagent-cca9e2c6 with ID 
+4887aea87875a3e34fbd6aaf76ca75258d4427d5e3e6fb58dba684a0da2bf3d0                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/resu
+lts/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run-20260927b/raw/astro
+py__astropy-8872/astropy__astropy-8872.traj.json'                               
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-a19de9c8 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-10449:latest sleep 2h
+minisweagent.environment: INFO: Started container minisweagent-a19de9c8 with ID 
+370b55e7486a5db775a4444e0562a628cdea3bd0a0ac6112b18ac876499c2f51                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/resu
+lts/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run-20260927b/raw/sciki
+t-learn__scikit-learn-14710/scikit-learn__scikit-learn-14710.traj.json'         
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-74bcc6f9 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-9281:latest sleep 2h 
+minisweagent.environment: INFO: Started container minisweagent-74bcc6f9 with ID 
+4e0a23d4f861c266a6047690b08b67a490840903250944d20d280507184c5d84                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/resu
+lts/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run-20260927b/raw/sphin
+x-doc__sphinx-10449/sphinx-doc__sphinx-10449.traj.json'                         
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-35d798be -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-14248:latest sleep 2h      
+minisweagent.environment: INFO: Started container minisweagent-35d798be with ID 
+79be70e52f981af22ccdf47396f2b604347b251ff2b18b6e4e45ea059771d342                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/resu
+lts/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run-20260927b/raw/sphin
+x-doc__sphinx-9281/sphinx-doc__sphinx-9281.traj.json'                           
+/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '

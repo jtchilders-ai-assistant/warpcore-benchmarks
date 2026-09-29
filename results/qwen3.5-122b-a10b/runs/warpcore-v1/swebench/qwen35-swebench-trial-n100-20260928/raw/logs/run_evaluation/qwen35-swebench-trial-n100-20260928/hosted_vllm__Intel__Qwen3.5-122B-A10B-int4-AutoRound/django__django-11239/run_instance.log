@@ -1,0 +1,67 @@
+2026-09-28 22:59:55,404 - INFO - Creating container for django__django-11239...
+2026-09-28 22:59:55,526 - INFO - Container for django__django-11239 created: 6a87f7389c79821de9637f6c213e9798b5a7241dc84cec0646ac49efc48aa1af
+2026-09-28 22:59:55,844 - INFO - Container for django__django-11239 started: 6a87f7389c79821de9637f6c213e9798b5a7241dc84cec0646ac49efc48aa1af
+2026-09-28 22:59:55,855 - INFO - Intermediate patch for django__django-11239 written to logs/run_evaluation/qwen35-swebench-trial-n100-20260928/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/django__django-11239/patch.diff, now applying to container...
+2026-09-28 22:59:56,462 - INFO - >>>>> Applied Patch:
+Checking patch django/db/backends/postgresql/client.py...
+Applied patch django/db/backends/postgresql/client.py cleanly.
+
+2026-09-28 23:00:00,973 - INFO - Git diff before:
+diff --git a/django/db/backends/postgresql/client.py b/django/db/backends/postgresql/client.py
+index cf4df76882..0c833de9ca 100644
+--- a/django/db/backends/postgresql/client.py
++++ b/django/db/backends/postgresql/client.py
+@@ -30,6 +30,19 @@ class DatabaseClient(BaseDatabaseClient):
+         subprocess_env = os.environ.copy()
+         if passwd:
+             subprocess_env['PGPASSWORD'] = str(passwd)
++        # SSL parameters
++        sslmode = conn_params.get('sslmode')
++        if sslmode:
++            subprocess_env['PGSSLMODE'] = sslmode
++        sslrootcert = conn_params.get('sslrootcert')
++        if sslrootcert:
++            subprocess_env['PGSSLROOTCERT'] = sslrootcert
++        sslcert = conn_params.get('sslcert')
++        if sslcert:
++            subprocess_env['PGSSLCERT'] = sslcert
++        sslkey = conn_params.get('sslkey')
++        if sslkey:
++            subprocess_env['PGSSLKEY'] = sslkey
+         try:
+             # Allow SIGINT to pass to psql to abort queries.
+             signal.signal(signal.SIGINT, signal.SIG_IGN)
+2026-09-28 23:00:00,974 - INFO - Eval script for django__django-11239 written to logs/run_evaluation/qwen35-swebench-trial-n100-20260928/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/django__django-11239/eval.sh; copying to container...
+2026-09-28 23:00:15,490 - INFO - Test runtime: 14.26 seconds
+2026-09-28 23:00:15,491 - INFO - Test output for django__django-11239 written to logs/run_evaluation/qwen35-swebench-trial-n100-20260928/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/django__django-11239/test_output.txt
+2026-09-28 23:00:15,599 - INFO - Git diff after:
+diff --git a/django/db/backends/postgresql/client.py b/django/db/backends/postgresql/client.py
+index cf4df76882..0c833de9ca 100644
+--- a/django/db/backends/postgresql/client.py
++++ b/django/db/backends/postgresql/client.py
+@@ -30,6 +30,19 @@ class DatabaseClient(BaseDatabaseClient):
+         subprocess_env = os.environ.copy()
+         if passwd:
+             subprocess_env['PGPASSWORD'] = str(passwd)
++        # SSL parameters
++        sslmode = conn_params.get('sslmode')
++        if sslmode:
++            subprocess_env['PGSSLMODE'] = sslmode
++        sslrootcert = conn_params.get('sslrootcert')
++        if sslrootcert:
++            subprocess_env['PGSSLROOTCERT'] = sslrootcert
++        sslcert = conn_params.get('sslcert')
++        if sslcert:
++            subprocess_env['PGSSLCERT'] = sslcert
++        sslkey = conn_params.get('sslkey')
++        if sslkey:
++            subprocess_env['PGSSLKEY'] = sslkey
+         try:
+             # Allow SIGINT to pass to psql to abort queries.
+             signal.signal(signal.SIGINT, signal.SIG_IGN)
+2026-09-28 23:00:15,599 - INFO - Grading answer for django__django-11239...
+2026-09-28 23:00:15,600 - INFO - report: {'django__django-11239': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_ssl_certificate (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_accent (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_basic (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_column (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_nopass (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'SIGINT is ignored in Python and passed to psql to abort quries.'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-11239: resolved: True
+2026-09-28 23:00:15,602 - INFO - Attempting to stop container sweb.eval.django__django-11239.qwen35-swebench-trial-n100-20260928...
+2026-09-28 23:00:30,988 - INFO - Attempting to remove container sweb.eval.django__django-11239.qwen35-swebench-trial-n100-20260928...
+2026-09-28 23:00:31,325 - INFO - Container sweb.eval.django__django-11239.qwen35-swebench-trial-n100-20260928 removed.

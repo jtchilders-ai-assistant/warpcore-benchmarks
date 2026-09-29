@@ -996,6 +996,36 @@ class TestB11TransactionalWrite(unittest.TestCase):
                 f"Temp files left after publish(): {tmp_files}"
             )
 
+    def test_existing_registered_matrix_entry_is_preserved_when_suite_evolves(self):
+        """A registry-backed historical cell must survive a current-suite republish."""
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = pathlib.Path(tmp) / "repo"
+            out_path = repo / "viz" / "data" / "canonical_matrix.json"
+            old_run = (
+                repo / "results" / "old-model" / "runs" / "warpcore-v1"
+                / "swebench" / "old-run"
+            )
+            old_run.mkdir(parents=True)
+            (repo / "results").mkdir(exist_ok=True)
+            (repo / "results" / "registry.json").write_text(json.dumps({
+                "entries": [{"id": "old", "run_dir": str(old_run.relative_to(repo))}]
+            }))
+            out_path.parent.mkdir(parents=True)
+            out_path.write_text(json.dumps({
+                "suite_id": "warpcore-v1",
+                "entries": [{
+                    "model_slug": "old-model", "benchmark": "swebench",
+                    "suite_id": "warpcore-v1", "run_id": "old-run", "score": 0.5,
+                }],
+                "not_measured": [],
+            }))
+            _make_valid_run(repo, model_slug="new-model")
+
+            result = publish_campaign.publish(repo, output_path=out_path)
+            keys = {(e["model_slug"], e["benchmark"]) for e in result.entries}
+            self.assertIn(("old-model", "swebench"), keys)
+            self.assertIn(("new-model", "gsm8k"), keys)
+
     def test_existing_matrix_preserved_on_all_invalid_candidates(self):
         """When every candidate is invalid, existing matrix must NOT be overwritten."""
         with tempfile.TemporaryDirectory() as tmp:

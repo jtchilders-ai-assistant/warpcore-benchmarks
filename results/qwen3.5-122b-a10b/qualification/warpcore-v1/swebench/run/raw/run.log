@@ -1,0 +1,222 @@
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/Users/jchilders/Library/Application 
+Support/mini-swe-agent/.env'
+minisweagent: INFO: Results will be saved to                                    
+/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/resul
+ts/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run/raw                 
+Logging to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run/raw/minisweagent.log'
+minisweagent: INFO: Loading dataset princeton-nlp/SWE-bench_Verified, split     
+test...                                                                         
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+minisweagent: INFO: Instance filter: 500 -> 20 instances                        
+minisweagent: INFO: Running on 20 instances...                                  
+minisweagent: INFO: Building agent config from specs:                           
+['/var/folders/f0/7qqjjvb16hj4y5dhlshf643m0000gn/T/swe_config_tfbvoknl.yaml']   
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-22f5da1d -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-11299:latest sleep 2h    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-8b2d3284 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.astropy_1776_astropy-14096:latest sleep 2h  
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-a15eabe7 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-14672:latest sleep 2h    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-d92943bb -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.astropy_1776_astropy-8872:latest sleep 2h   
+minisweagent.environment: INFO: Started container minisweagent-d92943bb with ID 
+94d0fa6e9662eb5ae8f897524182bab48be5e64d971a9088415223cdb136702a                
+minisweagent.environment: INFO: Started container minisweagent-a15eabe7 with ID 
+5087317b9082b2b86de023d9832c3223a0c477c318563a2782a8d02cf914f474                
+minisweagent.environment: INFO: Started container minisweagent-22f5da1d with ID 
+5f9dea73e77b256b1f9aaed1d212a0af8b1011f90ebfa45c50ecab0b9bb192f2                
+minisweagent.environment: INFO: Started container minisweagent-8b2d3284 with ID 
+5e682f29bcb6a7a0d719112e1480471466d136899e231f3c50c28fd4c692fbdd                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/resu
+lts/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run/raw/django__django-
+14672/django__django-14672.traj.json'                                           
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-e6ca41ed -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.matplotlib_1776_matplotlib-22871:latest     
+sleep 2h                                                                        
+minisweagent.environment: INFO: Started container minisweagent-e6ca41ed with ID 
+c06d0e32c6fee3b3756841bd693d68d9faa494c627fd068b4ac2c8c04471b78e                
+
+[1;31mGive Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new[0m
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+minisweagent: ERROR: Error processing instance django__django-11299:            
+litellm.ContextWindowExceededError: litellm.BadRequestError:                    
+ContextWindowExceededError: Hosted_vllmException - {"error":{"message":"This    
+model's maximum context length is 262144 tokens. However, you requested 32768   
+output tokens and your prompt contains at least 229377 input tokens, for a total
+of at least 262145 tokens. Please reduce the length of the input prompt or the  
+number of requested output tokens. (parameter=input_tokens,                     
+value=229377)","type":"BadRequestError","param":"input_tokens","code":400}}     
+Traceback (most recent call last):                                              
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/llms/cu
+stom_httpx/llm_http_handler.py", line 317, in _make_common_sync_call            
+    response = sync_httpx_client.post(                                          
+               ^^^^^^^^^^^^^^^^^^^^^^^                                          
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/llms/cu
+stom_httpx/http_handler.py", line 1195, in post                                 
+    _raise_masked_sync_error(e, stream)                                         
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/llms/cu
+stom_httpx/http_handler.py", line 434, in _raise_masked_sync_error              
+    raise MaskedHTTPStatusError(e, message=_text, text=_text) from None         
+litellm.llms.custom_httpx.http_handler.MaskedHTTPStatusError: Client error '400 
+Bad Request' for url 'http://csi370295.alcf.anl.gov:8000/v1/chat/completions'   
+For more information check:                                                     
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400                    
+                                                                                
+During handling of the above exception, another exception occurred:             
+                                                                                
+Traceback (most recent call last):                                              
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/main.py
+", line 5534, in completion                                                     
+    response = _complete_hosted_vllm(_dispatch_ctx)                             
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                             
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/main.py
+", line 2317, in _complete_hosted_vllm                                          
+    response = base_llm_http_handler.completion(                                
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                                
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/llms/cu
+stom_httpx/llm_http_handler.py", line 612, in completion                        
+    response = self._make_common_sync_call(                                     
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^                                     
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/llms/cu
+stom_httpx/llm_http_handler.py", line 334, in _make_common_sync_call            
+    raise self._handle_error(e=e, provider_config=provider_config)              
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^              
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/llms/cu
+stom_httpx/llm_http_handler.py", line 5746, in _handle_error                    
+    raise provider_config.get_error_class(                                      
+litellm.llms.openai.common_utils.OpenAIError: {"error":{"message":"This model's 
+maximum context length is 262144 tokens. However, you requested 32768 output    
+tokens and your prompt contains at least 229377 input tokens, for a total of at 
+least 262145 tokens. Please reduce the length of the input prompt or the number 
+of requested output tokens. (parameter=input_tokens,                            
+value=229377)","type":"BadRequestError","param":"input_tokens","code":400}}     
+                                                                                
+During handling of the above exception, another exception occurred:             
+                                                                                
+Traceback (most recent call last):                                              
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/ru
+n/benchmarks/swebench.py", line 154, in process_instance                        
+    info = agent.run(task)                                                      
+           ^^^^^^^^^^^^^^^                                                      
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/ag
+ents/default.py", line 98, in run                                               
+    self.step()                                                                 
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/ru
+n/benchmarks/utils/common.py", line 17, in step                                 
+    return super().step()                                                       
+           ^^^^^^^^^^^^^^                                                       
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/ag
+ents/default.py", line 128, in step                                             
+    return self.execute_actions(self.query())                                   
+                                ^^^^^^^^^^^^                                    
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/ag
+ents/default.py", line 149, in query                                            
+    message = self.model.query(self.messages)                                   
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                                   
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/mo
+dels/litellm_model.py", line 82, in query                                       
+    for attempt in retry(logger=logger, abort_exceptions=self.abort_exceptions):
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/tenacity/__init
+__.py", line 438, in __iter__                                                   
+    do = self.iter(retry_state=retry_state)                                     
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                                     
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/tenacity/__init
+__.py", line 371, in iter                                                       
+    result = action(retry_state)                                                
+             ^^^^^^^^^^^^^^^^^^^                                                
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/tenacity/__init
+__.py", line 393, in <lambda>                                                   
+    self._add_action_func(lambda rs: rs.outcome.result())                       
+                                     ^^^^^^^^^^^^^^^^^^^                        
+  File                                                                          
+"/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/p
+ython3.11/concurrent/futures/_base.py", line 449, in result                     
+    return self.__get_result()                                                  
+           ^^^^^^^^^^^^^^^^^^^                                                  
+  File                                                                          
+"/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/p
+ython3.11/concurrent/futures/_base.py", line 401, in __get_result               
+    raise self._exception                                                       
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/mo
+dels/litellm_model.py", line 84, in query                                       
+    response = self._query(self._prepare_messages_for_api(messages), **kwargs)  
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/mo
+dels/litellm_model.py", line 66, in _query                                      
+    return litellm.completion(                                                  
+           ^^^^^^^^^^^^^^^^^^^                                                  
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/utils.p
+y", line 1578, in wrapper                                                       
+    raise e                                                                     
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/utils.p
+y", line 1426, in wrapper                                                       
+    result = original_function(*args, **kwargs)                                 
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                                 
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/main.py
+", line 5686, in completion                                                     
+    raise exception_type(                                                       
+          ^^^^^^^^^^^^^^^                                                       
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/litellm
+_core_utils/exception_mapping_utils.py", line 2510, in exception_type           
+    raise e  # it's already mapped                                              
+    ^^^^^^^                                                                     
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/litellm
+_core_utils/exception_mapping_utils.py", line 2276, in exception_type           
+    _map_openai_exception(                                                      
+  File                                                                          
+"/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/litellm
+_core_utils/exception_mapping_utils.py", line 291, in _map_openai_exception     
+    raise ContextWindowExceededError(                                           
+litellm.exceptions.ContextWindowExceededError:                                  
+litellm.ContextWindowExceededError: litellm.BadRequestError:                    
+ContextWindowExceededError: Hosted_vllmException - {"error":{"message":"This    
+model's maximum context length is 262144 tokens. However, you requested 32768   
+output tokens and your prompt contains at least 229377 input tokens, for a total
+of at least 262145 tokens. Please reduce the length of the input prompt or the  
+number of requested output tokens. (parameter=input_tokens,                     
+value=229377)","type":"BadRequestError","param":"input_tokens","code":400}}     
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/resu
+lts/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run/raw/django__django-
+11299/django__django-11299.traj.json'                                           
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-08b25302 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.matplotlib_1776_matplotlib-25332:latest     
+sleep 2h                                                                        
+minisweagent.environment: INFO: Started container minisweagent-08b25302 with ID 
+95b900da706ebd9c004ddf019efee47eb332d3f089f368412b3da0cb712ee194                
+/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '

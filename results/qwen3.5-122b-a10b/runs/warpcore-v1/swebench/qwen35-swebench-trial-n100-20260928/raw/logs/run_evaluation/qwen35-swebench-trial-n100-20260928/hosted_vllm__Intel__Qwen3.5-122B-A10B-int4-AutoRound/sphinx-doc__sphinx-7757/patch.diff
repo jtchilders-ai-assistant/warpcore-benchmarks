@@ -1,0 +1,30 @@
+diff --git a/sphinx/util/inspect.py b/sphinx/util/inspect.py
+index 15f0d66e2..163b094df 100644
+--- a/sphinx/util/inspect.py
++++ b/sphinx/util/inspect.py
+@@ -521,10 +521,23 @@ def signature_from_str(signature: str) -> inspect.Signature:
+     params = []
+ 
+     if hasattr(args, "posonlyargs"):
+-        for arg in args.posonlyargs:  # type: ignore
++        # PEP-570: Positional-only parameters
++        # defaults are assigned from the end of the parameter list
++        # so we need to calculate how many defaults are for positional-only args
++        num_posonly_with_defaults = max(0, len(args.defaults) - len(args.args))
++        for i, arg in enumerate(args.posonlyargs):  # type: ignore
+             annotation = ast_unparse(arg.annotation) or Parameter.empty
++            # Calculate if this positional-only arg has a default
++            # Position from the end of all positional parameters (posonly + args)
++            pos_from_end = len(args.posonlyargs) - i
++            if pos_from_end <= num_posonly_with_defaults:
++                # This arg has a default
++                # The index in defaults is: num_posonly_with_defaults - pos_from_end
++                default = ast_unparse(args.defaults[num_posonly_with_defaults - pos_from_end])
++            else:
++                default = Parameter.empty
+             params.append(Parameter(arg.arg, Parameter.POSITIONAL_ONLY,
+-                                    annotation=annotation))
++                                    default=default, annotation=annotation))
+ 
+     for i, arg in enumerate(args.args):
+         if len(args.args) - i <= len(args.defaults):

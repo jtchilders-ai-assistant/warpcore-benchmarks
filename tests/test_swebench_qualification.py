@@ -1096,6 +1096,77 @@ class TestRunnerIntegration(unittest.TestCase):
             "campaign directory must not be created when qualification is missing",
         )
 
+    def test_explicit_noncanonical_trial_uses_frozen_hundred_without_qualification(self):
+        """A diagnostic n=100 trial is explicit, ungated, and never lifecycle=current."""
+        run_dir = (
+            self.tmp / "results" / self.slug / "runs" / "warpcore-v1" / "swebench"
+            / "trial-n100"
+        )
+        run_dir.mkdir(parents=True)
+        now = "2026-09-27T00:00:00Z"
+        (run_dir / "status.json").write_text(json.dumps({
+            "schema_version": 1,
+            "run_id": "trial-n100",
+            "suite_id": "warpcore-v1",
+            "execution_state": "planned",
+            "lifecycle": "diagnostic",
+            "history": [{"state": "planned", "timestamp": now,
+                         "note": "Explicit noncanonical n=100 trial"}],
+        }))
+
+        runner = run_swebench.SwebenchRunner(
+            suite_path=_REAL_SUITE,
+            adapter_path=self.adapter_path,
+            endpoint="http://localhost:8000/v1",
+            run_dir=run_dir,
+            repo=self.tmp,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
+            allow_no_screen=True,
+            preflight_runner=lambda _model_id: 0,
+            generation_runner=lambda _cfg, _run_dir: 1,
+            noncanonical_trial=True,
+        )
+        runner.check_qualification = lambda: self.fail(
+            "noncanonical trial must not invoke the canonical qualification verifier"
+        )
+
+        self.assertEqual(len(runner.get_instance_ids()), 100)
+        rc = runner.run()
+        self.assertEqual(rc, run_swebench.EXIT_DEFECT)
+        status = json.loads((run_dir / "status.json").read_text())
+        self.assertEqual(status["lifecycle"], "invalid")
+        self.assertIn("NONCANONICAL TRIAL", (run_dir / "command.txt").read_text())
+
+    def test_noncanonical_trial_refuses_current_lifecycle(self):
+        """Trial mode cannot accidentally operate on a publication-eligible run."""
+        run_dir = (
+            self.tmp / "results" / self.slug / "runs" / "warpcore-v1" / "swebench"
+            / "trial-current"
+        )
+        run_dir.mkdir(parents=True)
+        now = "2026-09-27T00:00:00Z"
+        (run_dir / "status.json").write_text(json.dumps({
+            "schema_version": 1,
+            "run_id": "trial-current",
+            "suite_id": "warpcore-v1",
+            "execution_state": "planned",
+            "lifecycle": "current",
+            "history": [{"state": "planned", "timestamp": now,
+                         "note": "must be rejected"}],
+        }))
+        runner = run_swebench.SwebenchRunner(
+            suite_path=_REAL_SUITE,
+            adapter_path=self.adapter_path,
+            endpoint="http://localhost:8000/v1",
+            run_dir=run_dir,
+            repo=self.tmp,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
+            allow_no_screen=True,
+            noncanonical_trial=True,
+        )
+        self.assertEqual(runner.run(), run_swebench.EXIT_CONFIG)
+        self.assertFalse((run_dir / "command.txt").exists())
+
 
 # ---------------------------------------------------------------------------
 # 10b. The qualification run itself — produced by the same production path

@@ -93,9 +93,24 @@ def collect() -> list[dict]:
     for mdir in sorted(glob.glob(str(REPO / "results" / "*"))):
         model = os.path.basename(mdir)
         tdirs = sorted(glob.glob(os.path.join(mdir, "raw", "throughput_sweep*")))
+        tdirs = [tdir for tdir in tdirs if os.path.isdir(tdir)]
+
+        # A dated throughput_sweep_YYYYMMDD directory is a full refresh of the
+        # base sweep, not a sparse extension. If one exists, use the newest dated
+        # refresh plus explicitly named extension directories. Otherwise retain
+        # the historical base + extension behavior.
+        dated = [
+            tdir for tdir in tdirs
+            if re.fullmatch(r"throughput_sweep_\d{8}", os.path.basename(tdir))
+        ]
+        extensions = [
+            tdir for tdir in tdirs
+            if os.path.basename(tdir).startswith("throughput_sweep_extended")
+        ]
+        if dated:
+            tdirs = [max(dated)] + extensions
+
         for tdir in tdirs:
-            if not os.path.isdir(tdir):
-                continue
             csvp = os.path.join(tdir, "throughput_sweep.csv")
             if os.path.exists(csvp):
                 all_rows += parse_csv(csvp, model)

@@ -1,0 +1,227 @@
+diff --git a/sympy/matrices/expressions/matmul.py b/sympy/matrices/expressions/matmul.py
+index 083c5eba4..509a9becd 100644
+--- a/sympy/matrices/expressions/matmul.py
++++ b/sympy/matrices/expressions/matmul.py
+@@ -86,6 +86,14 @@ def as_coeff_mmul(self):
+         coeff, matrices = self.as_coeff_matrices()
+         return coeff, MatMul(*matrices)
+ 
++    def as_coeff_Mul(self, rational=False):
++        """Efficiently extract the coefficient of a product. """
++        coeff, matrices = self.as_coeff_matrices()
++        if len(matrices) == 1:
++            return coeff, matrices[0]
++        else:
++            return coeff, MatMul(*matrices)
++
+     def _eval_transpose(self):
+         return MatMul(*[transpose(arg) for arg in self.args[::-1]]).doit()
+ 
+diff --git a/sympy/printing/latex.py b/sympy/printing/latex.py
+index 8253b2f68..21e5d8b6e 100644
+--- a/sympy/printing/latex.py
++++ b/sympy/printing/latex.py
+@@ -1478,17 +1478,58 @@ def _print_Adjoint(self, expr):
+ 
+     def _print_MatAdd(self, expr):
+         terms = list(expr.args)
+-        tex = " + ".join(map(self._print, terms))
+-        return tex
++        tex_parts = []
++        for i, term in enumerate(terms):
++            term_tex = self._print(term)
++            # Check if the term starts with a negative sign
++            if term_tex.startswith('-'):
++                if i == 0:
++                    # Remove leading space from the rest of the term
++                    rest = term_tex[1:].lstrip()
++                    tex_parts.append("-" + rest)
++                else:
++                    # Remove leading space from the rest of the term
++                    rest = term_tex[1:].lstrip()
++                    tex_parts.append(" - " + rest)
++            else:
++                if i == 0:
++                    tex_parts.append(term_tex)
++                else:
++                    tex_parts.append(" + " + term_tex)
++        return "".join(tex_parts)
+ 
+     def _print_MatMul(self, expr):
+         from sympy import Add, MatAdd, HadamardProduct
++        from sympy.core.mul import Mul
++        c, e = expr.as_coeff_Mul()
++        if c == 1:
++            sign = ""
++            args = expr.args
++        elif c == -1:
++            sign = "-"
++            if e.is_MatMul:
++                args = e.args
++            else:
++                args = Mul.make_args(e)
++        else:
++            sign = ""
++            try:
++                if c.is_negative:
++                    # Only add space for non-numeric coefficients
++                    if not c.is_Number:
++                        sign = "- "
++                    else:
++                        sign = "-"
++                    c = -c
++            except (TypeError, AttributeError):
++                pass
++            args = (c,) + (e.args if e.is_MatMul else Mul.make_args(e))
+ 
+         def parens(x):
+             if isinstance(x, (Add, MatAdd, HadamardProduct)):
+                 return r"\left(%s\right)" % self._print(x)
+             return self._print(x)
+-        return ' '.join(map(parens, expr.args))
++        return sign + ' '.join(map(parens, args))
+ 
+     def _print_Mod(self, expr, exp=None):
+         if exp is not None:
+diff --git a/sympy/printing/pretty/pretty.py b/sympy/printing/pretty/pretty.py
+index db24f4c61..50cdb50d3 100644
+--- a/sympy/printing/pretty/pretty.py
++++ b/sympy/printing/pretty/pretty.py
+@@ -819,19 +819,60 @@ def _print_BlockMatrix(self, B):
+         return self._print(B.blocks)
+ 
+     def _print_MatAdd(self, expr):
+-        return self._print_seq(expr.args, None, None, ' + ')
++        from sympy import Mul
++        pform = None
++        for i, term in enumerate(expr.args):
++            pterm = self._print(term)
++            # Check if the term starts with a negative sign
++            pterm_str = str(pterm)
++            if pterm_str.startswith('-'):
++                if pform is None:
++                    pform = prettyForm(*stringPict.next(prettyForm('-'), prettyForm(pterm_str[1:])))
++                else:
++                    pform = prettyForm(*stringPict.next(pform, ' - '))
++                    pform = prettyForm(*stringPict.next(pform, prettyForm(pterm_str[1:])))
++            else:
++                if pform is None:
++                    pform = pterm
++                else:
++                    pform = prettyForm(*stringPict.next(pform, ' + '))
++                    pform = prettyForm(*stringPict.next(pform, pterm))
++        return pform
+ 
+     def _print_MatMul(self, expr):
+-        args = list(expr.args)
+         from sympy import Add, MatAdd, HadamardProduct
++        from sympy.core.mul import Mul
++        c, e = expr.as_coeff_Mul()
++        if c == 1:
++            sign = None
++            args = list(expr.args)
++        elif c == -1:
++            sign = prettyForm('-')
++            if e.is_MatMul:
++                args = list(e.args)
++            else:
++                args = list(Mul.make_args(e))
++        else:
++            sign = None
++            try:
++                if c.is_negative:
++                    sign = prettyForm('-')
++                    c = -c
++            except (TypeError, AttributeError):
++                pass
++            args = [c] + list(e.args if e.is_MatMul else Mul.make_args(e))
++
+         for i, a in enumerate(args):
+             if (isinstance(a, (Add, MatAdd, HadamardProduct))
+-                    and len(expr.args) > 1):
++                    and len(args) > 1):
+                 args[i] = prettyForm(*self._print(a).parens())
+             else:
+                 args[i] = self._print(a)
+ 
+-        return prettyForm.__mul__(*args)
++        result = prettyForm.__mul__(*args)
++        if sign is not None:
++            result = prettyForm(*stringPict.next(sign, result))
++        return result
+ 
+     def _print_DotProduct(self, expr):
+         args = list(expr.args)
+diff --git a/sympy/printing/str.py b/sympy/printing/str.py
+index 0baefe0f7..07ba43a4b 100644
+--- a/sympy/printing/str.py
++++ b/sympy/printing/str.py
+@@ -304,16 +304,64 @@ def _print_Mul(self, expr):
+             return sign + '*'.join(a_str) + "/(%s)" % '*'.join(b_str)
+ 
+     def _print_MatMul(self, expr):
+-        return '*'.join([self.parenthesize(arg, precedence(expr))
+-            for arg in expr.args])
++        c, e = expr.as_coeff_Mul()
++        if c == 1:
++            sign = ""
++            args = expr.args
++        elif c == -1:
++            sign = "-"
++            if e.is_MatMul:
++                args = e.args
++            else:
++                args = Mul.make_args(e)
++        else:
++            sign = ""
++            # Handle positive and negative coefficients
++            try:
++                if c.is_negative:
++                    sign = "-"
++                    c = -c
++            except (TypeError, AttributeError):
++                pass
++            args = (c,) + (e.args if e.is_MatMul else Mul.make_args(e))
++        return sign + '*'.join([self.parenthesize(arg, precedence(expr))
++            for arg in args])
+ 
+     def _print_HadamardProduct(self, expr):
+         return '.*'.join([self.parenthesize(arg, precedence(expr))
+             for arg in expr.args])
+ 
+     def _print_MatAdd(self, expr):
+-        return ' + '.join([self.parenthesize(arg, precedence(expr))
+-            for arg in expr.args])
++        PREC = precedence(expr)
++        l = []
++        for term in expr.args:
++            c, _ = term.as_coeff_Mul()
++            t = self._print(term)
++            if c < 0:
++                sign = "-"
++                # Remove the coefficient from the string
++                if t.startswith('-'):
++                    t = t[1:]
++                elif t.startswith('('):
++                    # Find the closing parenthesis
++                    end = t.find(')')
++                    if end != -1:
++                        t = t[end+1:].lstrip('*')
++                elif '*' in t:
++                    # Remove the coefficient part
++                    parts = t.split('*', 1)
++                    if len(parts) > 1:
++                        t = parts[1]
++            else:
++                sign = "+"
++            if precedence(term) < PREC:
++                l.extend([sign, "(%s)" % t])
++            else:
++                l.extend([sign, t])
++        sign = l.pop(0)
++        if sign == '+':
++            sign = ""
++        return sign + ' '.join(l)
+ 
+     def _print_NaN(self, expr):
+         return 'nan'

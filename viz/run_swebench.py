@@ -780,6 +780,7 @@ class SwebenchRunner:
         qualification_path: Optional[pathlib.Path] = None,
         repo_sha: Optional[str] = None,
         qualification_run: bool = False,
+        noncanonical_trial: bool = False,
         preflight_runner: Optional[Callable] = None,
         generation_runner: Optional[Callable] = None,
         grading_runner: Optional[Callable] = None,
@@ -811,6 +812,11 @@ class SwebenchRunner:
         )
         self._repo_sha = repo_sha
         self.qualification_run = qualification_run
+        self.noncanonical_trial = bool(noncanonical_trial)
+        if self.qualification_run and self.noncanonical_trial:
+            raise ValueError(
+                "qualification_run and noncanonical_trial are mutually exclusive"
+            )
 
         # Resolve repo
         if repo is not None:
@@ -1275,6 +1281,13 @@ class SwebenchRunner:
                     "campaign state."
                 )
                 return EXIT_SUCCESS
+            if self.noncanonical_trial:
+                print(
+                    "[dry-run] NONCANONICAL TRIAL: frozen n=100, lifecycle=diagnostic, "
+                    "canonical qualification gate intentionally not consulted, and the "
+                    "result is not publication-eligible."
+                )
+                return EXIT_SUCCESS
             # A dry run inspects; it never authorizes. Report the gate verdict
             # plainly so an operator cannot read "dry-run OK" as "cleared to launch".
             verdict = self.check_qualification()
@@ -1296,6 +1309,24 @@ class SwebenchRunner:
                 file=sys.stderr,
             )
             return EXIT_INCONCLUSIVE
+
+        # --- Explicit noncanonical trial classification (before any write) ---
+        if self.noncanonical_trial:
+            try:
+                trial_status = self._read_status_strict()
+            except Exception as exc:
+                print(
+                    f"[run-swebench] FATAL: Cannot validate noncanonical trial status: {exc}",
+                    file=sys.stderr,
+                )
+                return EXIT_CONFIG
+            if trial_status.get("lifecycle") != "diagnostic":
+                print(
+                    "[run-swebench] FATAL: --noncanonical-trial requires "
+                    "status.lifecycle='diagnostic'; refusing publication-eligible state.",
+                    file=sys.stderr,
+                )
+                return EXIT_CONFIG
 
         # --- Authoritative qualification gate (before any write) ---
         # This is the gate that external cron/shell logic did not have: a
@@ -1327,7 +1358,15 @@ class SwebenchRunner:
         # injected callable still returns a QualificationResult and its .ok value is
         # enforced identically to the live path.  A blocking injected result still
         # returns EXIT_DEFECT.
-        if self._qualification_verifier is not None:
+        if self.noncanonical_trial:
+            qualification = None
+            _print_ok_banner = False
+            print(
+                "[run-swebench] NONCANONICAL TRIAL: running frozen n=100 without a "
+                "qualification seal; lifecycle=diagnostic and not publication-eligible.",
+                file=sys.stderr,
+            )
+        elif self._qualification_verifier is not None:
             qualification = self._qualification_verifier()
             # Seam path: the banner was already printed by the caller (main() or
             # the test harness); suppress the duplicate OK banner to avoid noise.
@@ -1336,7 +1375,7 @@ class SwebenchRunner:
         else:
             qualification = self.check_qualification()
             _print_ok_banner = True
-        if not qualification.ok:
+        if qualification is not None and not qualification.ok:
             print(qualification.render(), file=sys.stderr)
             print(
                 f"[run-swebench] FATAL: refusing to launch a canonical SWE-bench campaign "
@@ -1627,7 +1666,12 @@ class SwebenchRunner:
             "--model", self._model_id,
         ]
         cmd_line = " ".join(shlex.quote(a) for a in cmd_parts)
-        (self.run_dir / "command.txt").write_text(cmd_line + "\n", encoding="utf-8")
+        prefix = (
+            "NONCANONICAL TRIAL — frozen n=100; lifecycle=diagnostic; "
+            "canonical qualification not passed; not publication-eligible\n"
+            if self.noncanonical_trial else ""
+        )
+        (self.run_dir / "command.txt").write_text(prefix + cmd_line + "\n", encoding="utf-8")
 
     def _run_preflight(self) -> int:
         """Run the SWE-bench preflight gate; return exit code (0=pass, 1=defect, 2=inconclusive).
@@ -2689,6 +2733,12 @@ def _build_arg_parser() -> argparse.ArgumentParser:
                     help="Run the 20 suite-owned qualification instances instead of the "
                          "frozen 100. Produces the evidence a qualification record is "
                          "sealed from; writes no campaign state and is not itself gated.")
+    ap.add_argument(
+        "--noncanonical-trial",
+        action="store_true",
+        help="Run the frozen n=100 set as an explicitly diagnostic, nonpublishable "
+             "trial without a qualification seal. Does not weaken canonical launches.",
+    )
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--allow-no-screen", action="store_true")
     ap.add_argument("--resume", action="store_true")
@@ -2752,7 +2802,7 @@ def main(argv=None) -> int:
     # A live launch must fail closed with no campaign directory, no status.json,
     # and no manifest when it is not authorized. A dry run skips this check here
     # because the runner reports the same verdict without side effects.
-    if not args.dry_run:
+    if not args.dry_run and not args.noncanonical_trial:
         try:
             import yaml as _yaml_gate
             _suite_gate = _yaml_gate.safe_load(suite_path.read_text())
@@ -2809,6 +2859,7 @@ def main(argv=None) -> int:
                     run_id=run_id,
                     resume=True,
                     prompt_token_maxima=prompt_token_maxima,
+                    lifecycle="diagnostic" if args.noncanonical_trial else "current",
                 )
                 if pathlib.Path(normalized_run_dir).resolve() != explicit_run_dir:
                     print(
@@ -2849,6 +2900,7 @@ def main(argv=None) -> int:
                     run_id=run_id,
                     resume=args.resume,
                     prompt_token_maxima=prompt_token_maxima,
+                    lifecycle="diagnostic" if args.noncanonical_trial else "current",
                 )
             except Exception as exc:
                 print(f"ERROR: create_campaign failed: {exc}", file=sys.stderr)
@@ -2867,6 +2919,7 @@ def main(argv=None) -> int:
             allow_no_screen=args.allow_no_screen,
             prompt_token_maxima=prompt_token_maxima,
             qualification_path=args.qualification,
+            noncanonical_trial=args.noncanonical_trial,
         )
     except ValueError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)

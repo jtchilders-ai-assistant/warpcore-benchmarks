@@ -1,0 +1,43 @@
+2026-09-28 22:59:55,405 - INFO - Creating container for astropy__astropy-13453...
+2026-09-28 22:59:55,600 - INFO - Container for astropy__astropy-13453 created: 7dcaaa15f4d76a3776a65583caed0cabb4b991ceb037cf69d7ecb95edbca5f61
+2026-09-28 22:59:56,021 - INFO - Container for astropy__astropy-13453 started: 7dcaaa15f4d76a3776a65583caed0cabb4b991ceb037cf69d7ecb95edbca5f61
+2026-09-28 22:59:56,024 - INFO - Intermediate patch for astropy__astropy-13453 written to logs/run_evaluation/qwen35-swebench-trial-n100-20260928/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/astropy__astropy-13453/patch.diff, now applying to container...
+2026-09-28 22:59:56,733 - INFO - >>>>> Applied Patch:
+Checking patch astropy/io/ascii/html.py...
+Applied patch astropy/io/ascii/html.py cleanly.
+
+2026-09-28 22:59:59,171 - INFO - Git diff before:
+diff --git a/astropy/io/ascii/html.py b/astropy/io/ascii/html.py
+index 266cf229c..038932bce 100644
+--- a/astropy/io/ascii/html.py
++++ b/astropy/io/ascii/html.py
+@@ -354,6 +354,8 @@ class HTML(core.BaseReader):
+             self.data.fill_values = [self.data.fill_values]
+ 
+         self.data._set_fill_values(cols)
++        self.data.cols = cols
++        self.data._set_col_formats()
+ 
+         lines = []
+2026-09-28 22:59:59,172 - INFO - Eval script for astropy__astropy-13453 written to logs/run_evaluation/qwen35-swebench-trial-n100-20260928/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/astropy__astropy-13453/eval.sh; copying to container...
+2026-09-28 23:01:44,737 - INFO - Test runtime: 105.39 seconds
+2026-09-28 23:01:44,738 - INFO - Test output for astropy__astropy-13453 written to logs/run_evaluation/qwen35-swebench-trial-n100-20260928/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/astropy__astropy-13453/test_output.txt
+2026-09-28 23:01:44,886 - INFO - Git diff after:
+diff --git a/astropy/io/ascii/html.py b/astropy/io/ascii/html.py
+index 266cf229c..038932bce 100644
+--- a/astropy/io/ascii/html.py
++++ b/astropy/io/ascii/html.py
+@@ -354,6 +354,8 @@ class HTML(core.BaseReader):
+             self.data.fill_values = [self.data.fill_values]
+ 
+         self.data._set_fill_values(cols)
++        self.data.cols = cols
++        self.data._set_col_formats()
+ 
+         lines = []
+2026-09-28 23:01:44,887 - INFO - Grading answer for astropy__astropy-13453...
+2026-09-28 23:01:44,895 - INFO - report: {'astropy__astropy-13453': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['astropy/io/ascii/tests/test_html.py::test_write_table_formatted_columns'], 'failure': []}, 'PASS_TO_PASS': {'success': ['astropy/io/ascii/tests/test_html.py::test_listwriter', 'astropy/io/ascii/tests/test_html.py::test_htmlinputter_no_bs4', 'astropy/io/ascii/tests/test_html.py::test_multicolumn_write', 'astropy/io/ascii/tests/test_html.py::test_write_no_multicols', 'astropy/io/ascii/tests/test_html.py::test_write_table_html_fill_values', 'astropy/io/ascii/tests/test_html.py::test_write_table_html_fill_values_optional_columns', 'astropy/io/ascii/tests/test_html.py::test_write_table_html_fill_values_masked', 'astropy/io/ascii/tests/test_html.py::test_multicolumn_table_html_fill_values', 'astropy/io/ascii/tests/test_html.py::test_multi_column_write_table_html_fill_values_masked'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for astropy__astropy-13453: resolved: True
+2026-09-28 23:01:44,896 - INFO - Attempting to stop container sweb.eval.astropy__astropy-13453.qwen35-swebench-trial-n100-20260928...
+2026-09-28 23:02:00,153 - INFO - Attempting to remove container sweb.eval.astropy__astropy-13453.qwen35-swebench-trial-n100-20260928...
+2026-09-28 23:02:00,414 - INFO - Container sweb.eval.astropy__astropy-13453.qwen35-swebench-trial-n100-20260928 removed.

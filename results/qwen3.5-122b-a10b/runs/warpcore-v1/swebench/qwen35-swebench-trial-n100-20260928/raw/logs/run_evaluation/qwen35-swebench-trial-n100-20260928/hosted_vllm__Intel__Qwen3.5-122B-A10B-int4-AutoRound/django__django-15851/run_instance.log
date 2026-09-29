@@ -1,0 +1,49 @@
+2026-09-28 23:05:34,893 - INFO - Creating container for django__django-15851...
+2026-09-28 23:05:35,040 - INFO - Container for django__django-15851 created: 531da10bb987ccc1a3c2e23d29cabd88fcefd747e62d6dc1183187339694ada3
+2026-09-28 23:05:35,333 - INFO - Container for django__django-15851 started: 531da10bb987ccc1a3c2e23d29cabd88fcefd747e62d6dc1183187339694ada3
+2026-09-28 23:05:35,334 - INFO - Intermediate patch for django__django-15851 written to logs/run_evaluation/qwen35-swebench-trial-n100-20260928/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/django__django-15851/patch.diff, now applying to container...
+2026-09-28 23:05:35,674 - INFO - >>>>> Applied Patch:
+Checking patch django/db/backends/postgresql/client.py...
+Applied patch django/db/backends/postgresql/client.py cleanly.
+
+2026-09-28 23:05:39,484 - INFO - Git diff before:
+diff --git a/django/db/backends/postgresql/client.py b/django/db/backends/postgresql/client.py
+index 4c9bd63546..3b5ddafaca 100644
+--- a/django/db/backends/postgresql/client.py
++++ b/django/db/backends/postgresql/client.py
+@@ -32,9 +32,9 @@ class DatabaseClient(BaseDatabaseClient):
+             args += ["-h", host]
+         if port:
+             args += ["-p", str(port)]
++        args.extend(parameters)
+         if dbname:
+             args += [dbname]
+-        args.extend(parameters)
+ 
+         env = {}
+         if passwd:
+2026-09-28 23:05:39,484 - INFO - Eval script for django__django-15851 written to logs/run_evaluation/qwen35-swebench-trial-n100-20260928/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/django__django-15851/eval.sh; copying to container...
+2026-09-28 23:05:48,603 - INFO - Test runtime: 9.00 seconds
+2026-09-28 23:05:48,604 - INFO - Test output for django__django-15851 written to logs/run_evaluation/qwen35-swebench-trial-n100-20260928/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/django__django-15851/test_output.txt
+2026-09-28 23:05:48,721 - INFO - Git diff after:
+diff --git a/django/db/backends/postgresql/client.py b/django/db/backends/postgresql/client.py
+index 4c9bd63546..3b5ddafaca 100644
+--- a/django/db/backends/postgresql/client.py
++++ b/django/db/backends/postgresql/client.py
+@@ -32,9 +32,9 @@ class DatabaseClient(BaseDatabaseClient):
+             args += ["-h", host]
+         if port:
+             args += ["-p", str(port)]
++        args.extend(parameters)
+         if dbname:
+             args += [dbname]
+-        args.extend(parameters)
+ 
+         env = {}
+         if passwd:
+2026-09-28 23:05:48,721 - INFO - Grading answer for django__django-15851...
+2026-09-28 23:05:48,722 - INFO - report: {'django__django-15851': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_parameters (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_accent (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_basic (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_column (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_crash_password_does_not_leak (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_nopass (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_passfile (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_service (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_ssl_certificate (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-15851: resolved: True
+2026-09-28 23:05:48,722 - INFO - Attempting to stop container sweb.eval.django__django-15851.qwen35-swebench-trial-n100-20260928...
+2026-09-28 23:06:04,010 - INFO - Attempting to remove container sweb.eval.django__django-15851.qwen35-swebench-trial-n100-20260928...
+2026-09-28 23:06:04,222 - INFO - Container sweb.eval.django__django-15851.qwen35-swebench-trial-n100-20260928 removed.

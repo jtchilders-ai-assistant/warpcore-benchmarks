@@ -1,0 +1,684 @@
+2026-09-27 19:54:25,560 - minisweagent - INFO - Loading dataset princeton-nlp/SWE-bench_Verified, split test...
+2026-09-27 19:54:26,152 - minisweagent - INFO - Instance filter: 500 -> 100 instances
+2026-09-27 19:54:26,153 - minisweagent - INFO - Running on 100 instances...
+2026-09-27 19:54:26,154 - minisweagent - INFO - Building agent config from specs: ['/var/folders/f0/7qqjjvb16hj4y5dhlshf643m0000gn/T/swe_config_56doggje.yaml']
+2026-09-27 19:54:29,809 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-bf48fdaf -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.astropy_1776_astropy-13453:latest sleep 2h
+2026-09-27 19:54:29,810 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-437ab229 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.astropy_1776_astropy-14369:latest sleep 2h
+2026-09-27 19:54:29,810 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-bef23584 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.astropy_1776_astropy-13977:latest sleep 2h
+2026-09-27 19:54:29,811 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-3db58eb4 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.astropy_1776_astropy-14096:latest sleep 2h
+2026-09-27 19:54:30,450 - minisweagent.environment - INFO - Started container minisweagent-bf48fdaf with ID 991a3b8d15a32d4f454dfbe2bddd3b4b0e004f5a9bd216727b151159c6569edb
+2026-09-27 19:54:30,479 - minisweagent.environment - INFO - Started container minisweagent-bef23584 with ID 96b83c357f701a6d83f8789a1154a14036207c49c9ee6a40f5b95ea00d978622
+2026-09-27 19:54:30,532 - minisweagent.environment - INFO - Started container minisweagent-437ab229 with ID d713fae1da7fb44468d578dc7b66add155ae5dfde9d34c5f3e55de1e68a7c34c
+2026-09-27 19:54:30,541 - minisweagent.environment - INFO - Started container minisweagent-3db58eb4 with ID d8b2fd425b101b8e25349b45c717d31c95d29948f0c5da3f429ba40bb216bc1e
+2026-09-27 20:03:55,364 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/astropy__astropy-13453/astropy__astropy-13453.traj.json'
+2026-09-27 20:03:55,384 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-0648467d -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.astropy_1776_astropy-8872:latest sleep 2h
+2026-09-27 20:03:55,805 - minisweagent.environment - INFO - Started container minisweagent-0648467d with ID bd8e4b8ac60c4829751823ccd87ce4dce50f8df913979eb3bf1c7642b98ac78d
+2026-09-27 22:45:47,340 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/astropy__astropy-8872/astropy__astropy-8872.traj.json'
+2026-09-27 22:45:47,366 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-721736e4 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-10973:latest sleep 2h
+2026-09-27 22:45:47,834 - minisweagent.environment - INFO - Started container minisweagent-721736e4 with ID 0a7fbe87305ee3fd29ef49cfa5fb33e3c83e7816b91708da0bb2ebe4637625fe
+2026-09-27 22:53:37,787 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-10973/django__django-10973.traj.json'
+2026-09-27 22:53:37,811 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-1980add1 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-11163:latest sleep 2h
+2026-09-27 22:53:38,228 - minisweagent.environment - INFO - Started container minisweagent-1980add1 with ID 24ff2956cd8fa6eae3d443f500cea1cb5c75baad70008dc2881afaaebcb43b8f
+2026-09-27 23:11:03,859 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/astropy__astropy-13977/astropy__astropy-13977.traj.json'
+2026-09-27 23:11:03,885 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-cfbd358f -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-11239:latest sleep 2h
+2026-09-27 23:11:04,347 - minisweagent.environment - INFO - Started container minisweagent-cfbd358f with ID 2739f30bd38209b18ea75f27bcfb35283a57f8d6e5fc7bb02e5638318ad904ea
+2026-09-27 23:11:05,955 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-11163/django__django-11163.traj.json'
+2026-09-27 23:11:05,981 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-de7bc6e8 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-11299:latest sleep 2h
+2026-09-27 23:11:06,358 - minisweagent.environment - INFO - Started container minisweagent-de7bc6e8 with ID a2311b5fbaee0bb43bc0e51a59ef178742bf14dad5bbe1a26cbf1d49954883bf
+2026-09-27 23:17:36,014 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-11239/django__django-11239.traj.json'
+2026-09-27 23:17:36,038 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-fb4033aa -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-11477:latest sleep 2h
+2026-09-27 23:17:36,483 - minisweagent.environment - INFO - Started container minisweagent-fb4033aa with ID 43a30cb4bc9c12de3cb85ef4c679db5fde25b9ac6be7a3f26c0d187e60d5a255
+2026-09-27 23:22:56,518 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-11299/django__django-11299.traj.json'
+2026-09-27 23:22:56,543 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-4b171b5c -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-11551:latest sleep 2h
+2026-09-27 23:22:56,976 - minisweagent.environment - INFO - Started container minisweagent-4b171b5c with ID 6a5df5734638120801c6b3119f09d1f1911f686844d983a9ece32c8ddc6901ef
+2026-09-28 00:18:56,520 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-11551/django__django-11551.traj.json'
+2026-09-28 00:18:56,525 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-962b3b41 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-11749:latest sleep 2h
+2026-09-28 00:18:56,958 - minisweagent.environment - INFO - Started container minisweagent-962b3b41 with ID 5451c68ab80968585f3fa748153190941baa13e2800da89b86fadb2583b5ef9a
+2026-09-28 00:41:17,046 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-11749/django__django-11749.traj.json'
+2026-09-28 00:41:17,070 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-41361a73 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-11999:latest sleep 2h
+2026-09-28 00:41:17,455 - minisweagent.environment - INFO - Started container minisweagent-41361a73 with ID 6e96dbbcf93af6af31f6778ff89c175aa56143a65a9c313fc3cae8c6c235bebc
+2026-09-28 00:47:30,373 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/astropy__astropy-14096/astropy__astropy-14096.traj.json'
+2026-09-28 00:47:30,398 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-dee7bef8 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-12143:latest sleep 2h
+2026-09-28 00:47:30,781 - minisweagent.environment - INFO - Started container minisweagent-dee7bef8 with ID 482bfb25d88e02c0b322fc35c02c82740388129b93a4662dd0ef41dda757f55f
+2026-09-28 00:53:49,234 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-11999/django__django-11999.traj.json'
+2026-09-28 00:53:49,272 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-be680c0e -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-12193:latest sleep 2h
+2026-09-28 00:53:49,842 - minisweagent.environment - INFO - Started container minisweagent-be680c0e with ID fae3076cdbf9b34626bb49b8d3827a3f3362541c31c04bb7b4a02e389207cf03
+2026-09-28 00:54:20,518 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-12143/django__django-12143.traj.json'
+2026-09-28 00:54:20,543 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-18d21c8c -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-12273:latest sleep 2h
+2026-09-28 00:54:20,963 - minisweagent.environment - INFO - Started container minisweagent-18d21c8c with ID 010c44b17444001c91cc98a1de51afd422816660e27ddee7e17e87c6d37719e4
+2026-09-28 01:02:08,903 - minisweagent - ERROR - Error processing instance astropy__astropy-14369: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds.
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpx/_transports/default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpx/_transports/default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpcore/_sync/connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpcore/_sync/connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpcore/_sync/connection.py", line 103, in handle_request
+    return self._connection.handle_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpcore/_sync/http11.py", line 136, in handle_request
+    raise exc
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpcore/_sync/http11.py", line 106, in handle_request
+    ) = self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpcore/_sync/http11.py", line 177, in _receive_response_headers
+    event = self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpcore/_sync/http11.py", line 217, in _receive_event
+    data = self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpcore/_backends/sync.py", line 126, in read
+    with map_exceptions(exc_map):
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpcore/_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadTimeout: timed out
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/llms/custom_httpx/http_handler.py", line 1185, in post
+    response = self.client.send(req, stream=stream)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpx/_client.py", line 914, in send
+    response = self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpx/_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpx/_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpx/_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpx/_transports/default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpx/_transports/default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadTimeout: timed out
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/llms/custom_httpx/llm_http_handler.py", line 317, in _make_common_sync_call
+    response = sync_httpx_client.post(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/llms/custom_httpx/http_handler.py", line 1189, in post
+    raise litellm.Timeout(
+litellm.exceptions.Timeout: litellm.Timeout: Connection timed out after 1800.0 seconds.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/main.py", line 5534, in completion
+    response = _complete_hosted_vllm(_dispatch_ctx)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/main.py", line 2317, in _complete_hosted_vllm
+    response = base_llm_http_handler.completion(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/llms/custom_httpx/llm_http_handler.py", line 612, in completion
+    response = self._make_common_sync_call(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/llms/custom_httpx/llm_http_handler.py", line 336, in _make_common_sync_call
+    raise self._handle_error(e=e, provider_config=provider_config)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/llms/custom_httpx/llm_http_handler.py", line 5746, in _handle_error
+    raise provider_config.get_error_class(
+litellm.llms.openai.common_utils.OpenAIError: litellm.Timeout: Connection timed out after 1800.0 seconds.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 154, in process_instance
+    info = agent.run(task)
+           ^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/agents/default.py", line 98, in run
+    self.step()
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/utils/common.py", line 17, in step
+    return super().step()
+           ^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/agents/default.py", line 128, in step
+    return self.execute_actions(self.query())
+                                ^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/agents/default.py", line 149, in query
+    message = self.model.query(self.messages)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/models/litellm_model.py", line 82, in query
+    for attempt in retry(logger=logger, abort_exceptions=self.abort_exceptions):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/tenacity/__init__.py", line 438, in __iter__
+    do = self.iter(retry_state=retry_state)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/tenacity/__init__.py", line 371, in iter
+    result = action(retry_state)
+             ^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/tenacity/__init__.py", line 413, in exc_check
+    raise retry_exc.reraise()
+          ^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/tenacity/__init__.py", line 184, in reraise
+    raise self.last_attempt.result()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/models/litellm_model.py", line 84, in query
+    response = self._query(self._prepare_messages_for_api(messages), **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/models/litellm_model.py", line 66, in _query
+    return litellm.completion(
+           ^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/utils.py", line 1578, in wrapper
+    raise e
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/utils.py", line 1426, in wrapper
+    result = original_function(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/main.py", line 5686, in completion
+    raise exception_type(
+          ^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/litellm_core_utils/exception_mapping_utils.py", line 2510, in exception_type
+    raise e  # it's already mapped
+    ^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/litellm_core_utils/exception_mapping_utils.py", line 2276, in exception_type
+    _map_openai_exception(
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/litellm_core_utils/exception_mapping_utils.py", line 418, in _map_openai_exception
+    raise Timeout(
+litellm.exceptions.Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds.
+2026-09-28 01:02:08,960 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/astropy__astropy-14369/astropy__astropy-14369.traj.json'
+2026-09-28 01:02:08,965 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-a42fc724 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-12754:latest sleep 2h
+2026-09-28 01:02:09,559 - minisweagent.environment - INFO - Started container minisweagent-a42fc724 with ID f0c24938d6c2897e74578fcbce3839d98d82c8db6306d6e6fa6a38e9b79b8f20
+2026-09-28 01:13:17,283 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-12193/django__django-12193.traj.json'
+2026-09-28 01:13:17,309 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-9a5179c5 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-12774:latest sleep 2h
+2026-09-28 01:13:17,699 - minisweagent.environment - INFO - Started container minisweagent-9a5179c5 with ID faa61e651c769f1f79dc34a42fa70df55bbf587e85c7d4e6aac93cfedddbde96
+2026-09-28 01:23:58,641 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-12774/django__django-12774.traj.json'
+2026-09-28 01:23:58,666 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-69035e3e -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-13012:latest sleep 2h
+2026-09-28 01:23:59,063 - minisweagent.environment - INFO - Started container minisweagent-69035e3e with ID 7d6fe678bf91741441de5caca9fe88d83e1eebb3f38e68ade80aba6bd3ec541a
+2026-09-28 01:45:01,175 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-13012/django__django-13012.traj.json'
+2026-09-28 01:45:01,201 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-44b73427 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-13023:latest sleep 2h
+2026-09-28 01:45:01,570 - minisweagent.environment - INFO - Started container minisweagent-44b73427 with ID 1467cad75bb7ad9c9e3e5d29c0d9d790c37c29e7293b30afa7f838f6d4431e7c
+2026-09-28 01:58:51,556 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-13023/django__django-13023.traj.json'
+2026-09-28 01:58:51,581 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-64297f1d -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-13028:latest sleep 2h
+2026-09-28 01:58:51,977 - minisweagent.environment - INFO - Started container minisweagent-64297f1d with ID 0b2bb16a914baf4cd55c60d0f776c80de33cd1e7887386de7b85942f522d6a7a
+2026-09-28 02:14:11,946 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-13028/django__django-13028.traj.json'
+2026-09-28 02:14:11,969 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-31d2494d -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-13033:latest sleep 2h
+2026-09-28 02:14:12,426 - minisweagent.environment - INFO - Started container minisweagent-31d2494d with ID b1323a2cb98c33dfc57d7c7e58100de439bba66a9ca65a16ccf05132980dc658
+2026-09-28 02:20:47,535 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-11477/django__django-11477.traj.json'
+2026-09-28 02:20:47,561 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-71d3c97c -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-13089:latest sleep 2h
+2026-09-28 02:20:47,935 - minisweagent.environment - INFO - Started container minisweagent-71d3c97c with ID 684e1b9743c985f2d4ef6eae373b15ff68ce924e74379d77104e2843efdfc545
+2026-09-28 02:21:38,313 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-12273/django__django-12273.traj.json'
+2026-09-28 02:21:38,340 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-31bab4e7 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-13128:latest sleep 2h
+2026-09-28 02:21:38,743 - minisweagent.environment - INFO - Started container minisweagent-31bab4e7 with ID 2a61c2f73fe76956cb496627c8e694420ebdeeb0ad73edce4bb0e68d5e32d47c
+2026-09-28 02:27:17,443 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-13089/django__django-13089.traj.json'
+2026-09-28 02:27:17,467 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-7866231c -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-13568:latest sleep 2h
+2026-09-28 02:27:17,845 - minisweagent.environment - INFO - Started container minisweagent-7866231c with ID eb62c5ee83c83f2df3d0f95afbe7140eb65d61839f90e097a5c9c27bdb3aa6f3
+2026-09-28 02:35:47,985 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-12754/django__django-12754.traj.json'
+2026-09-28 02:35:48,013 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-35fa3415 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-13794:latest sleep 2h
+2026-09-28 02:35:48,408 - minisweagent.environment - INFO - Started container minisweagent-35fa3415 with ID e108ebc1b426f43848fd4a29f408596ff84b0d31f01bd6a58996e2443987cfa7
+2026-09-28 02:45:27,429 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-13568/django__django-13568.traj.json'
+2026-09-28 02:45:27,455 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-308489a3 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-13809:latest sleep 2h
+2026-09-28 02:45:27,876 - minisweagent.environment - INFO - Started container minisweagent-308489a3 with ID 33a91a380dcb65468b2d60a2a79c273c6cfe3141b51266b0fab174d8ace295c2
+2026-09-28 02:50:22,083 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-13794/django__django-13794.traj.json'
+2026-09-28 02:50:22,108 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-6cff8dd1 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-13820:latest sleep 2h
+2026-09-28 02:50:22,506 - minisweagent.environment - INFO - Started container minisweagent-6cff8dd1 with ID 154f1bc3a34d9fc5605eb866a2e69ef426fd1c1b31dec14244328caa91fe3976
+2026-09-28 02:57:18,617 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-13809/django__django-13809.traj.json'
+2026-09-28 02:57:18,643 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-5e940541 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-14017:latest sleep 2h
+2026-09-28 02:57:19,045 - minisweagent.environment - INFO - Started container minisweagent-5e940541 with ID 0d4d3f298465251143b84ae2d790f4b06b67507f8dd87335215528c074b2ee25
+2026-09-28 03:43:07,941 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-14017/django__django-14017.traj.json'
+2026-09-28 03:43:07,967 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-9431c7e1 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-14053:latest sleep 2h
+2026-09-28 03:43:08,400 - minisweagent.environment - INFO - Started container minisweagent-9431c7e1 with ID 365722b92da29b54dad638fa3d69cba8156e5723476214c97436642fb557ac91
+2026-09-28 03:59:17,392 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-14053/django__django-14053.traj.json'
+2026-09-28 03:59:17,416 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-481d568d -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-14351:latest sleep 2h
+2026-09-28 03:59:17,809 - minisweagent.environment - INFO - Started container minisweagent-481d568d with ID 0ff584ec74c18113d11484d6b0a9ad806a6a18857848cf75df7a45c161bc9001
+2026-09-28 05:07:21,073 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-13128/django__django-13128.traj.json'
+2026-09-28 05:07:21,101 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-7387dd24 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-14404:latest sleep 2h
+2026-09-28 05:07:21,509 - minisweagent.environment - INFO - Started container minisweagent-7387dd24 with ID 1e8611133b4402516bd5cc772039983c4d2ebc84add2e6174dae751de4e7f7ff
+2026-09-28 05:21:45,199 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-14404/django__django-14404.traj.json'
+2026-09-28 05:21:45,226 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-9d00a8b9 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-14434:latest sleep 2h
+2026-09-28 05:21:45,647 - minisweagent.environment - INFO - Started container minisweagent-9d00a8b9 with ID d550f2c5ebc8b9f0e39fefa5365d46ba1b5eb8a6312ecdfa7da11b9118851e38
+2026-09-28 05:38:43,571 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-14434/django__django-14434.traj.json'
+2026-09-28 05:38:43,597 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-df43e6bb -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-14493:latest sleep 2h
+2026-09-28 05:38:43,988 - minisweagent.environment - INFO - Started container minisweagent-df43e6bb with ID 6cdd26a7a5f1965b03eb22aee075255cc9464d7ea17468422806b04df4bc6dab
+2026-09-28 05:44:22,794 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-14493/django__django-14493.traj.json'
+2026-09-28 05:44:22,823 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-375cde49 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-14559:latest sleep 2h
+2026-09-28 05:44:23,263 - minisweagent.environment - INFO - Started container minisweagent-375cde49 with ID afe7bfa383cd983431da930b08803b180ae1ecf8861c3ae225b0e85e5238870a
+2026-09-28 05:55:28,291 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-14559/django__django-14559.traj.json'
+2026-09-28 05:55:28,317 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-a4137c2c -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-14608:latest sleep 2h
+2026-09-28 05:55:28,724 - minisweagent.environment - INFO - Started container minisweagent-a4137c2c with ID 23b803ef020853499fc96b1349073d117e64263396955c25c5c6a11bf744b021
+2026-09-28 06:09:33,210 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-13820/django__django-13820.traj.json'
+2026-09-28 06:09:33,235 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-664b3ee6 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-14631:latest sleep 2h
+2026-09-28 06:09:33,742 - minisweagent.environment - INFO - Started container minisweagent-664b3ee6 with ID 740e98e43080d2a4f23fef47775180a87aa2bd1c89293977570b4dfff4ad03e8
+2026-09-28 06:13:47,902 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-14608/django__django-14608.traj.json'
+2026-09-28 06:13:47,929 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-134f2f41 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-14672:latest sleep 2h
+2026-09-28 06:13:48,432 - minisweagent.environment - INFO - Started container minisweagent-134f2f41 with ID fd97f277eb5d1da32a31f57e10a7db00e659236bb2587d9c750219c03fd9c9b7
+2026-09-28 06:28:48,524 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-14672/django__django-14672.traj.json'
+2026-09-28 06:28:48,549 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-53ceba9b -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-14792:latest sleep 2h
+2026-09-28 06:28:48,962 - minisweagent.environment - INFO - Started container minisweagent-53ceba9b with ID 45e0000ad106143aaafad0ddcb02d866677c5ba4c63757edb8f7ecfa49277cac
+2026-09-28 06:45:34,819 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-14351/django__django-14351.traj.json'
+2026-09-28 06:45:34,847 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-81b0e09d -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-15037:latest sleep 2h
+2026-09-28 06:45:35,283 - minisweagent.environment - INFO - Started container minisweagent-81b0e09d with ID 22ff700563efdc4aef9113aa5e284f9c688b30efbd16921796586350f003e62c
+2026-09-28 06:53:24,120 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-14631/django__django-14631.traj.json'
+2026-09-28 06:53:24,148 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-335725af -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-15103:latest sleep 2h
+2026-09-28 06:53:24,565 - minisweagent.environment - INFO - Started container minisweagent-335725af with ID a87eb93031e409ac521347f824fce856e0cf59897214ce537f8686cee5ca6f06
+2026-09-28 07:00:26,098 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-15103/django__django-15103.traj.json'
+2026-09-28 07:00:26,125 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-dd1eb8d2 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-15128:latest sleep 2h
+2026-09-28 07:00:26,520 - minisweagent.environment - INFO - Started container minisweagent-dd1eb8d2 with ID ec662a9cd4b962d6c2d609141f548fd6cfe544e4944919c2121632cb5c259c68
+2026-09-28 07:06:57,161 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-15037/django__django-15037.traj.json'
+2026-09-28 07:06:57,190 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-75479702 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-15252:latest sleep 2h
+2026-09-28 07:06:57,603 - minisweagent.environment - INFO - Started container minisweagent-75479702 with ID 80822eff24e017efb41dcee564c5059838b8968876f1352f4857056f21ae7ab7
+2026-09-28 08:09:49,030 - minisweagent - ERROR - Error processing instance django__django-13033: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds.
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpx/_transports/default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpx/_transports/default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpcore/_sync/connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpcore/_sync/connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpcore/_sync/connection.py", line 103, in handle_request
+    return self._connection.handle_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpcore/_sync/http11.py", line 136, in handle_request
+    raise exc
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpcore/_sync/http11.py", line 106, in handle_request
+    ) = self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpcore/_sync/http11.py", line 177, in _receive_response_headers
+    event = self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpcore/_sync/http11.py", line 217, in _receive_event
+    data = self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpcore/_backends/sync.py", line 126, in read
+    with map_exceptions(exc_map):
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpcore/_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadTimeout: timed out
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/llms/custom_httpx/http_handler.py", line 1185, in post
+    response = self.client.send(req, stream=stream)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpx/_client.py", line 914, in send
+    response = self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpx/_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpx/_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpx/_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpx/_transports/default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/httpx/_transports/default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadTimeout: timed out
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/llms/custom_httpx/llm_http_handler.py", line 317, in _make_common_sync_call
+    response = sync_httpx_client.post(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/llms/custom_httpx/http_handler.py", line 1189, in post
+    raise litellm.Timeout(
+litellm.exceptions.Timeout: litellm.Timeout: Connection timed out after 1800.0 seconds.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/main.py", line 5534, in completion
+    response = _complete_hosted_vllm(_dispatch_ctx)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/main.py", line 2317, in _complete_hosted_vllm
+    response = base_llm_http_handler.completion(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/llms/custom_httpx/llm_http_handler.py", line 612, in completion
+    response = self._make_common_sync_call(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/llms/custom_httpx/llm_http_handler.py", line 336, in _make_common_sync_call
+    raise self._handle_error(e=e, provider_config=provider_config)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/llms/custom_httpx/llm_http_handler.py", line 5746, in _handle_error
+    raise provider_config.get_error_class(
+litellm.llms.openai.common_utils.OpenAIError: litellm.Timeout: Connection timed out after 1800.0 seconds.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 154, in process_instance
+    info = agent.run(task)
+           ^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/agents/default.py", line 98, in run
+    self.step()
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/utils/common.py", line 17, in step
+    return super().step()
+           ^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/agents/default.py", line 128, in step
+    return self.execute_actions(self.query())
+                                ^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/agents/default.py", line 149, in query
+    message = self.model.query(self.messages)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/models/litellm_model.py", line 82, in query
+    for attempt in retry(logger=logger, abort_exceptions=self.abort_exceptions):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/tenacity/__init__.py", line 438, in __iter__
+    do = self.iter(retry_state=retry_state)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/tenacity/__init__.py", line 371, in iter
+    result = action(retry_state)
+             ^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/tenacity/__init__.py", line 413, in exc_check
+    raise retry_exc.reraise()
+          ^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/tenacity/__init__.py", line 184, in reraise
+    raise self.last_attempt.result()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/models/litellm_model.py", line 84, in query
+    response = self._query(self._prepare_messages_for_api(messages), **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/models/litellm_model.py", line 66, in _query
+    return litellm.completion(
+           ^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/utils.py", line 1578, in wrapper
+    raise e
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/utils.py", line 1426, in wrapper
+    result = original_function(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/main.py", line 5686, in completion
+    raise exception_type(
+          ^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/litellm_core_utils/exception_mapping_utils.py", line 2510, in exception_type
+    raise e  # it's already mapped
+    ^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/litellm_core_utils/exception_mapping_utils.py", line 2276, in exception_type
+    _map_openai_exception(
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/litellm_core_utils/exception_mapping_utils.py", line 418, in _map_openai_exception
+    raise Timeout(
+litellm.exceptions.Timeout: litellm.Timeout: Timeout Error: Hosted_vllmException - litellm.Timeout: Connection timed out after 1800.0 seconds.
+2026-09-28 08:09:49,067 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-13033/django__django-13033.traj.json'
+2026-09-28 08:09:49,073 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-901d8798 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-15277:latest sleep 2h
+2026-09-28 08:09:49,478 - minisweagent.environment - INFO - Started container minisweagent-901d8798 with ID dfbae5c6d317870d4ca8347fd0db32e5c0b5c4af9da1b1f0c7d9adb48ab239f5
+2026-09-28 08:17:55,699 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-15277/django__django-15277.traj.json'
+2026-09-28 08:17:55,727 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-5b8919f4 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-15315:latest sleep 2h
+2026-09-28 08:17:56,128 - minisweagent.environment - INFO - Started container minisweagent-5b8919f4 with ID 0f1eb60166a2acba59c3f30f308a2c7403718da566c0b0eaf1490a590b23ce40
+2026-09-28 09:11:21,217 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-15315/django__django-15315.traj.json'
+2026-09-28 09:11:21,223 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-d4f343f1 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-15368:latest sleep 2h
+2026-09-28 09:11:21,606 - minisweagent.environment - INFO - Started container minisweagent-d4f343f1 with ID 64dcf817447ac38a35b05c3e4cc5da085de437fe3533cef9c1f0443a9ebf1312
+2026-09-28 09:25:53,924 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-15128/django__django-15128.traj.json'
+2026-09-28 09:25:53,952 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-155a5685 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-15569:latest sleep 2h
+2026-09-28 09:25:54,358 - minisweagent.environment - INFO - Started container minisweagent-155a5685 with ID 7c56ab6713652827828db3019d93c94cb65ba3036dff079cad1f2206af064d1b
+2026-09-28 09:33:01,325 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-15252/django__django-15252.traj.json'
+2026-09-28 09:33:01,353 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-5a4e4600 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-15851:latest sleep 2h
+2026-09-28 09:33:01,782 - minisweagent.environment - INFO - Started container minisweagent-5a4e4600 with ID f23a89c6fc31ccd67f8bfe682cf8207c2c883a383907a0089e1d8c954422960a
+2026-09-28 09:37:01,561 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-15569/django__django-15569.traj.json'
+2026-09-28 09:37:01,589 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-78cef95e -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-15916:latest sleep 2h
+2026-09-28 09:37:02,061 - minisweagent.environment - INFO - Started container minisweagent-78cef95e with ID 12502a597307d297cfd44a9b687ca15df2f0acb7560f157c6f5054cea7565eaf
+2026-09-28 09:40:26,840 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-15851/django__django-15851.traj.json'
+2026-09-28 09:40:26,867 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-88d72ee2 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-15930:latest sleep 2h
+2026-09-28 09:40:27,237 - minisweagent.environment - INFO - Started container minisweagent-88d72ee2 with ID 0eda21b87fb9ea19e825bfb848b45f642e43dc4948dedd52d6fb2e70c444b8ec
+2026-09-28 09:56:34,263 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-15916/django__django-15916.traj.json'
+2026-09-28 09:56:34,295 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-b17f606e -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-15957:latest sleep 2h
+2026-09-28 09:56:34,696 - minisweagent.environment - INFO - Started container minisweagent-b17f606e with ID f25b7e4f183f583ed9f41da3e992d1cffbca397f900321e5eb87ba5671b6a0aa
+2026-09-28 10:08:14,611 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-14792/django__django-14792.traj.json'
+2026-09-28 10:08:14,642 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-cb908bad -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-15987:latest sleep 2h
+2026-09-28 10:08:15,043 - minisweagent.environment - INFO - Started container minisweagent-cb908bad with ID 969d7cb9e502e38028d306ac0a56d882cc0fbf75fe765f8f18ad3ee3c5de89dd
+2026-09-28 10:17:50,694 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-15930/django__django-15930.traj.json'
+2026-09-28 10:17:50,728 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-2e29ba88 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-16082:latest sleep 2h
+2026-09-28 10:17:51,289 - minisweagent.environment - INFO - Started container minisweagent-2e29ba88 with ID 86e8c056684f5f660ced9ad9d7777f07ffde0214ef5d8648dfb130cab296c977
+2026-09-28 10:23:09,179 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-15987/django__django-15987.traj.json'
+2026-09-28 10:23:09,207 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-ee089d88 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-16116:latest sleep 2h
+2026-09-28 10:23:09,662 - minisweagent.environment - INFO - Started container minisweagent-ee089d88 with ID 037b9a606f8aa1cd51560e9823e7512d6908c260a29feda97f4a782525e069e4
+2026-09-28 10:28:49,313 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-16082/django__django-16082.traj.json'
+2026-09-28 10:28:49,341 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-04af8b08 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-16263:latest sleep 2h
+2026-09-28 10:28:49,711 - minisweagent.environment - INFO - Started container minisweagent-04af8b08 with ID b2b4dc4de247b95b3387da4bdd942333b98b07baa5a8699ae66ab6af5b4de5cb
+2026-09-28 12:42:40,480 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-16263/django__django-16263.traj.json'
+2026-09-28 12:42:40,510 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-c1cda7f9 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-16454:latest sleep 2h
+2026-09-28 12:42:40,976 - minisweagent.environment - INFO - Started container minisweagent-c1cda7f9 with ID f1924f221b8f31ff508b64feb9fa393967b049c3200b6b10be05a03ffaf0415d
+2026-09-28 12:57:56,221 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-15957/django__django-15957.traj.json'
+2026-09-28 12:57:56,250 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-4460c63b -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-16485:latest sleep 2h
+2026-09-28 12:57:56,691 - minisweagent.environment - INFO - Started container minisweagent-4460c63b with ID 7a03d3393c9c5aa2f1a9b32f911604c5c938daf0b211fff4c5534975130e855c
+2026-09-28 13:03:49,504 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-16454/django__django-16454.traj.json'
+2026-09-28 13:03:49,536 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-8863f65c -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-16901:latest sleep 2h
+2026-09-28 13:03:50,021 - minisweagent.environment - INFO - Started container minisweagent-8863f65c with ID 4e8fafb48268b1d81728445aaacee1a0039b8321e0fe144142794aa2187172b4
+2026-09-28 13:10:47,811 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-16485/django__django-16485.traj.json'
+2026-09-28 13:10:47,840 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-cb8dd396 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-16938:latest sleep 2h
+2026-09-28 13:10:48,247 - minisweagent.environment - INFO - Started container minisweagent-cb8dd396 with ID c88782222e8429b898700691dba38e9a4a9b736edd53f8be28d527ea6c723b67
+2026-09-28 13:21:58,282 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-16901/django__django-16901.traj.json'
+2026-09-28 13:21:58,310 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-222cb957 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-17084:latest sleep 2h
+2026-09-28 13:21:58,744 - minisweagent.environment - INFO - Started container minisweagent-222cb957 with ID de8923a4f566d157be43cb30ad7f181c2117e368e92986b4812baf84cb44da07
+2026-09-28 13:52:29,376 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-16938/django__django-16938.traj.json'
+2026-09-28 13:52:29,406 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-7b19b7f7 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.django_1776_django-7530:latest sleep 2h
+2026-09-28 13:52:29,800 - minisweagent.environment - INFO - Started container minisweagent-7b19b7f7 with ID 3b754bfffd986b86f272498d4928c6a859bd9f7d3f34c984ad24775571183cca
+2026-09-28 13:55:44,229 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-17084/django__django-17084.traj.json'
+2026-09-28 13:55:44,254 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-71d15318 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.matplotlib_1776_matplotlib-22871:latest sleep 2h
+2026-09-28 13:55:44,627 - minisweagent.environment - INFO - Started container minisweagent-71d15318 with ID c61be58d1850c30c2a96be52adfa0b2cff55d50845701cb4b1761771dc3832b3
+2026-09-28 14:12:34,687 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-7530/django__django-7530.traj.json'
+2026-09-28 14:12:34,713 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-6ee4209b -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.matplotlib_1776_matplotlib-25332:latest sleep 2h
+2026-09-28 14:12:35,126 - minisweagent.environment - INFO - Started container minisweagent-6ee4209b with ID 58e03d335dfaee6adea8ecf33a3dc1aa1977aa980e909e265e4e86b8c91a6dd6
+2026-09-28 14:17:12,898 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-15368/django__django-15368.traj.json'
+2026-09-28 14:17:12,923 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-062926af -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.pallets_1776_flask-5014:latest sleep 2h
+2026-09-28 14:17:13,330 - minisweagent.environment - INFO - Started container minisweagent-062926af with ID 5ad546aa0e920390d5d6840a9bbf081a2c02591e2a10837e5ce08d4e76260b32
+2026-09-28 14:21:00,992 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/pallets__flask-5014/pallets__flask-5014.traj.json'
+2026-09-28 14:21:01,019 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-7a4effb6 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.psf_1776_requests-1766:latest sleep 2h
+2026-09-28 14:21:01,442 - minisweagent.environment - INFO - Started container minisweagent-7a4effb6 with ID ac93afee6ecb5c2b55471b131bc67304d913247cd3a3cf47ebb5e4ce84ae220c
+2026-09-28 14:25:02,389 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/psf__requests-1766/psf__requests-1766.traj.json'
+2026-09-28 14:25:02,424 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-df3734a5 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.psf_1776_requests-6028:latest sleep 2h
+2026-09-28 14:25:02,833 - minisweagent.environment - INFO - Started container minisweagent-df3734a5 with ID 0c71769da642e77ba0544be2e5fdd90e613e9b3bb96b9274ff1817c2c6a51547
+2026-09-28 14:38:06,355 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/django__django-16116/django__django-16116.traj.json'
+2026-09-28 14:38:06,385 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-2d33b158 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.pydata_1776_xarray-3993:latest sleep 2h
+2026-09-28 14:38:06,838 - minisweagent.environment - INFO - Started container minisweagent-2d33b158 with ID 0111d7036d27068f78fed04b39ed3b5a84993712d3d401bf88cac41bcfb13267
+2026-09-28 14:47:51,531 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/pydata__xarray-3993/pydata__xarray-3993.traj.json'
+2026-09-28 14:47:51,564 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-03ea3fc1 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.pydata_1776_xarray-4075:latest sleep 2h
+2026-09-28 14:47:51,975 - minisweagent.environment - INFO - Started container minisweagent-03ea3fc1 with ID 0ec839aa6376298bd528a591dcae50c219ab833e121955c962cfff6b0d377df5
+2026-09-28 15:05:43,799 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/pydata__xarray-4075/pydata__xarray-4075.traj.json'
+2026-09-28 15:05:43,827 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-a342c2a3 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.pydata_1776_xarray-6938:latest sleep 2h
+2026-09-28 15:05:44,253 - minisweagent.environment - INFO - Started container minisweagent-a342c2a3 with ID 1793ebc1fa3925ba7732bff92381bb25d26242d7a542260cbcc89c40244c750c
+2026-09-28 15:25:56,104 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/psf__requests-6028/psf__requests-6028.traj.json'
+2026-09-28 15:25:56,198 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-3ecbe623 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.pylint-dev_1776_pylint-4551:latest sleep 2h
+2026-09-28 15:25:56,620 - minisweagent.environment - INFO - Started container minisweagent-3ecbe623 with ID 124d7751fb1195548682e45bff4c65d2e2da0543f5609c8754ec09ae10f7da58
+2026-09-28 15:26:15,698 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/pydata__xarray-6938/pydata__xarray-6938.traj.json'
+2026-09-28 15:26:15,725 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-2b462ec7 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.pylint-dev_1776_pylint-6903:latest sleep 2h
+2026-09-28 15:26:16,075 - minisweagent.environment - INFO - Started container minisweagent-2b462ec7 with ID dcdb77dbf4fae3ea5a201e8a029dcc5e901b9c42d378255a4a623f57cdc94624
+2026-09-28 15:33:19,395 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/pylint-dev__pylint-6903/pylint-dev__pylint-6903.traj.json'
+2026-09-28 15:33:19,424 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-80f3a236 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.pytest-dev_1776_pytest-5262:latest sleep 2h
+2026-09-28 15:33:19,798 - minisweagent.environment - INFO - Started container minisweagent-80f3a236 with ID 5f8f1da5dc23fc2897900768dfdf42f98f152c34391b71b1543209c56edbef5e
+2026-09-28 15:43:17,510 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/pytest-dev__pytest-5262/pytest-dev__pytest-5262.traj.json'
+2026-09-28 15:43:17,538 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-0aef76e5 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.pytest-dev_1776_pytest-5631:latest sleep 2h
+2026-09-28 15:43:17,934 - minisweagent.environment - INFO - Started container minisweagent-0aef76e5 with ID 6259d18c83b7869e003c8b4c5b13862b1d1d819e47e5bc5a8679bb3e3bba8a02
+2026-09-28 15:52:28,132 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/pylint-dev__pylint-4551/pylint-dev__pylint-4551.traj.json'
+2026-09-28 15:52:28,159 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-ada68b68 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.pytest-dev_1776_pytest-7205:latest sleep 2h
+2026-09-28 15:52:28,548 - minisweagent.environment - INFO - Started container minisweagent-ada68b68 with ID c0ee4875c8f72a4e14a0e610b2df8e8411ad54774b561f9aea5cb90e3fec1d21
+2026-09-28 15:52:32,613 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/pytest-dev__pytest-5631/pytest-dev__pytest-5631.traj.json'
+2026-09-28 15:52:32,640 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-baa6cf04 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.pytest-dev_1776_pytest-7521:latest sleep 2h
+2026-09-28 15:52:32,971 - minisweagent.environment - INFO - Started container minisweagent-baa6cf04 with ID 461ea57f54c9f095b512ab9ca4e86aa07ed00d4fa8a1eca395643263ca7a1667
+2026-09-28 15:56:41,224 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/pytest-dev__pytest-7205/pytest-dev__pytest-7205.traj.json'
+2026-09-28 15:56:41,251 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-2dcb145a -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-13135:latest sleep 2h
+2026-09-28 15:56:41,634 - minisweagent.environment - INFO - Started container minisweagent-2dcb145a with ID d5d9abe9c9312a9c192cf10165e43c25326f1c3f328156c388306483dcb73be1
+2026-09-28 16:04:16,733 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/scikit-learn__scikit-learn-13135/scikit-learn__scikit-learn-13135.traj.json'
+2026-09-28 16:04:16,760 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-6d8b3d47 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-14629:latest sleep 2h
+2026-09-28 16:04:17,169 - minisweagent.environment - INFO - Started container minisweagent-6d8b3d47 with ID 2468efbd49db7d41bd3374a0e7391ced1783b745d24531ac17a8192d9f00de50
+2026-09-28 16:05:37,820 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/pytest-dev__pytest-7521/pytest-dev__pytest-7521.traj.json'
+2026-09-28 16:05:37,845 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-86600fa7 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-14710:latest sleep 2h
+2026-09-28 16:05:38,211 - minisweagent.environment - INFO - Started container minisweagent-86600fa7 with ID 8a17010f776dd7b70452cc62a052780a6baf8d24496b2ca0df250b34b2abb17c
+2026-09-28 16:13:16,014 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/scikit-learn__scikit-learn-14710/scikit-learn__scikit-learn-14710.traj.json'
+2026-09-28 16:13:16,043 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-58ba8fb6 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-14894:latest sleep 2h
+2026-09-28 16:13:16,480 - minisweagent.environment - INFO - Started container minisweagent-58ba8fb6 with ID 0e2440cc4fa21c570a9a8de59aa4cd5085d6b455ca4abada65835eaa24fc012b
+2026-09-28 16:28:51,685 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/scikit-learn__scikit-learn-14629/scikit-learn__scikit-learn-14629.traj.json'
+2026-09-28 16:28:51,714 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-0383d3c1 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-25232:latest sleep 2h
+2026-09-28 16:28:52,114 - minisweagent.environment - INFO - Started container minisweagent-0383d3c1 with ID 787e63545fbcfa46ea5a7e5f2060fdba1b80d5685ced0bf10197cfb288ea9c9c
+2026-09-28 16:28:57,935 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/scikit-learn__scikit-learn-14894/scikit-learn__scikit-learn-14894.traj.json'
+2026-09-28 16:28:57,967 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-4892902c -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-10449:latest sleep 2h
+2026-09-28 16:28:58,377 - minisweagent.environment - INFO - Started container minisweagent-4892902c with ID be0f8e03e42e1b96437ad6fa78433d80c9fc35ed56c3152947f602cc1e262581
+2026-09-28 16:37:16,015 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/matplotlib__matplotlib-25332/matplotlib__matplotlib-25332.traj.json'
+2026-09-28 16:37:16,045 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-c71c38d4 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-7440:latest sleep 2h
+2026-09-28 16:37:16,455 - minisweagent.environment - INFO - Started container minisweagent-c71c38d4 with ID 4b873f5ecc7517fa3435b13a99402a24f04e2741c0fff965b91a27a877846818
+2026-09-28 16:46:51,596 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/scikit-learn__scikit-learn-25232/scikit-learn__scikit-learn-25232.traj.json'
+2026-09-28 16:46:51,623 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-8654760f -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-7757:latest sleep 2h
+2026-09-28 16:46:52,056 - minisweagent.environment - INFO - Started container minisweagent-8654760f with ID 8ea49eb6950de385f6507ad28b6a329c299373b2c16bbd5147be4dc0718e88da
+2026-09-28 17:00:11,588 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/sphinx-doc__sphinx-7440/sphinx-doc__sphinx-7440.traj.json'
+2026-09-28 17:00:11,619 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-393bda3a -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-7910:latest sleep 2h
+2026-09-28 17:00:12,054 - minisweagent.environment - INFO - Started container minisweagent-393bda3a with ID 4c79bc407c6ebdc2a455fb696a2348072a175697f451d59d4b27ede5c3ecb469
+2026-09-28 17:02:29,007 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/sphinx-doc__sphinx-10449/sphinx-doc__sphinx-10449.traj.json'
+2026-09-28 17:02:29,037 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-3a2e7c87 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-7985:latest sleep 2h
+2026-09-28 17:02:29,439 - minisweagent.environment - INFO - Started container minisweagent-3a2e7c87 with ID fb3e9f78ad88b511a86cc4e0ea3aea23b95c2efd1c3a60843b35878c53e81138
+2026-09-28 17:07:46,650 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/sphinx-doc__sphinx-7757/sphinx-doc__sphinx-7757.traj.json'
+2026-09-28 17:07:46,679 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-b1c8f335 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-8459:latest sleep 2h
+2026-09-28 17:07:47,126 - minisweagent.environment - INFO - Started container minisweagent-b1c8f335 with ID fac9e17f13369670fd6af5355adb26be2b044ee81fc989b7e903c445d3131833
+2026-09-28 17:14:23,562 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/sphinx-doc__sphinx-7910/sphinx-doc__sphinx-7910.traj.json'
+2026-09-28 17:14:23,593 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-a4c958e2 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-8593:latest sleep 2h
+2026-09-28 17:14:24,083 - minisweagent.environment - INFO - Started container minisweagent-a4c958e2 with ID e595d5111e8c5b85d7ea688f03730174b64466432d67c18543aecf274c21669a
+2026-09-28 17:21:19,877 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/sphinx-doc__sphinx-8459/sphinx-doc__sphinx-8459.traj.json'
+2026-09-28 17:21:19,905 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-8f2ce4c5 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-8595:latest sleep 2h
+2026-09-28 17:21:20,332 - minisweagent.environment - INFO - Started container minisweagent-8f2ce4c5 with ID bbb7f07335f7b89af908ddf751fe68941a1bd9a1256fa938a7177bf59ecf5d9f
+2026-09-28 17:38:25,371 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/sphinx-doc__sphinx-8593/sphinx-doc__sphinx-8593.traj.json'
+2026-09-28 17:38:25,401 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-daec8222 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-9281:latest sleep 2h
+2026-09-28 17:38:25,811 - minisweagent.environment - INFO - Started container minisweagent-daec8222 with ID 28d923394c750c7f66a3e4990efb5b92cecb72c7089f267b1c2b5c4b3c16e560
+2026-09-28 17:49:53,574 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/sphinx-doc__sphinx-9281/sphinx-doc__sphinx-9281.traj.json'
+2026-09-28 17:49:53,600 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-96ad7854 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-9591:latest sleep 2h
+2026-09-28 17:49:54,025 - minisweagent.environment - INFO - Started container minisweagent-96ad7854 with ID 0f2d08866550c7f5265345670c99d5ed249f3a7f1c39957c48d2cc381ebec8bf
+2026-09-28 18:06:13,042 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/sphinx-doc__sphinx-7985/sphinx-doc__sphinx-7985.traj.json'
+2026-09-28 18:06:13,074 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-27e13f8e -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-11618:latest sleep 2h
+2026-09-28 18:06:13,569 - minisweagent.environment - INFO - Started container minisweagent-27e13f8e with ID 42e30a1d63691e8fa1f34c362ea45a83730ba0706d0390214840768a97111cd0
+2026-09-28 18:15:34,865 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/sphinx-doc__sphinx-9591/sphinx-doc__sphinx-9591.traj.json'
+2026-09-28 18:15:34,895 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-36d1f208 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-12096:latest sleep 2h
+2026-09-28 18:15:35,292 - minisweagent.environment - INFO - Started container minisweagent-36d1f208 with ID 704b9ff77c4520f77d50ca0cf92842dde9e170874aa50ac972563b5583a577db
+2026-09-28 18:19:03,523 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/sphinx-doc__sphinx-8595/sphinx-doc__sphinx-8595.traj.json'
+2026-09-28 18:19:03,553 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-bc461179 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-13551:latest sleep 2h
+2026-09-28 18:19:03,960 - minisweagent.environment - INFO - Started container minisweagent-bc461179 with ID 436cc3a49d0c04b9a6cd8c6976a119068258d070045cc83614270317c422fcaa
+2026-09-28 18:21:19,228 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/sympy__sympy-11618/sympy__sympy-11618.traj.json'
+2026-09-28 18:21:19,258 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-b4026285 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-13852:latest sleep 2h
+2026-09-28 18:21:19,656 - minisweagent.environment - INFO - Started container minisweagent-b4026285 with ID fa4fd15d973cfa618c15ec9e485a5edcedb86b792e6a8035512ad7d0dfc9385a
+2026-09-28 18:29:21,114 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/sympy__sympy-12096/sympy__sympy-12096.traj.json'
+2026-09-28 18:29:21,146 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-9d506cbf -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-13974:latest sleep 2h
+2026-09-28 18:29:21,520 - minisweagent.environment - INFO - Started container minisweagent-9d506cbf with ID 73b832bdb3536ab0c159bded3768a6f5ab6432298e64fcfb30b3f0e7a41c0010
+2026-09-28 18:40:16,104 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/sympy__sympy-13852/sympy__sympy-13852.traj.json'
+2026-09-28 18:40:16,134 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-d1c4e0ee -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-14248:latest sleep 2h
+2026-09-28 18:40:16,545 - minisweagent.environment - INFO - Started container minisweagent-d1c4e0ee with ID 7b3a2d130255697fc5e990b5de1b596b88faea29c72b913bc719b84fede56741
+2026-09-28 19:17:21,717 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/sympy__sympy-13974/sympy__sympy-13974.traj.json'
+2026-09-28 19:17:21,746 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-ccac0326 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-15976:latest sleep 2h
+2026-09-28 19:17:22,158 - minisweagent.environment - INFO - Started container minisweagent-ccac0326 with ID 0f53194ca6bd59c9416a5093cbffd2730d8b8c5bb29da4127c5b5f62269c2748
+2026-09-28 19:56:40,304 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/sympy__sympy-14248/sympy__sympy-14248.traj.json'
+2026-09-28 19:56:40,336 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-f9e75807 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-17655:latest sleep 2h
+2026-09-28 19:56:40,736 - minisweagent.environment - INFO - Started container minisweagent-f9e75807 with ID e2fc4a9bbf3efa8b98e8281eed683f02580fd896761da1563d6d1b58e24f2cb7
+2026-09-28 19:59:21,033 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/sympy__sympy-15976/sympy__sympy-15976.traj.json'
+2026-09-28 19:59:21,064 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-e4a37f62 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-19040:latest sleep 2h
+2026-09-28 19:59:21,472 - minisweagent.environment - INFO - Started container minisweagent-e4a37f62 with ID b4070af7ccf6c03393f64fc6ca5db99010132e62e047c754834e1bdf77c8f7e2
+2026-09-28 20:39:57,747 - minisweagent - ERROR - Error processing instance matplotlib__matplotlib-22871: litellm.ContextWindowExceededError: litellm.BadRequestError: ContextWindowExceededError: Hosted_vllmException - {"error":{"message":"This model's maximum context length is 262144 tokens. However, you requested 32768 output tokens and your prompt contains at least 229377 input tokens, for a total of at least 262145 tokens. Please reduce the length of the input prompt or the number of requested output tokens. (parameter=input_tokens, value=229377)","type":"BadRequestError","param":"input_tokens","code":400}}
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/llms/custom_httpx/llm_http_handler.py", line 317, in _make_common_sync_call
+    response = sync_httpx_client.post(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/llms/custom_httpx/http_handler.py", line 1195, in post
+    _raise_masked_sync_error(e, stream)
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/llms/custom_httpx/http_handler.py", line 434, in _raise_masked_sync_error
+    raise MaskedHTTPStatusError(e, message=_text, text=_text) from None
+litellm.llms.custom_httpx.http_handler.MaskedHTTPStatusError: Client error '400 Bad Request' for url 'http://csi370295.alcf.anl.gov:8000/v1/chat/completions'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/main.py", line 5534, in completion
+    response = _complete_hosted_vllm(_dispatch_ctx)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/main.py", line 2317, in _complete_hosted_vllm
+    response = base_llm_http_handler.completion(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/llms/custom_httpx/llm_http_handler.py", line 612, in completion
+    response = self._make_common_sync_call(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/llms/custom_httpx/llm_http_handler.py", line 334, in _make_common_sync_call
+    raise self._handle_error(e=e, provider_config=provider_config)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/llms/custom_httpx/llm_http_handler.py", line 5746, in _handle_error
+    raise provider_config.get_error_class(
+litellm.llms.openai.common_utils.OpenAIError: {"error":{"message":"This model's maximum context length is 262144 tokens. However, you requested 32768 output tokens and your prompt contains at least 229377 input tokens, for a total of at least 262145 tokens. Please reduce the length of the input prompt or the number of requested output tokens. (parameter=input_tokens, value=229377)","type":"BadRequestError","param":"input_tokens","code":400}}
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/swebench.py", line 154, in process_instance
+    info = agent.run(task)
+           ^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/agents/default.py", line 98, in run
+    self.step()
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/run/benchmarks/utils/common.py", line 17, in step
+    return super().step()
+           ^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/agents/default.py", line 128, in step
+    return self.execute_actions(self.query())
+                                ^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/agents/default.py", line 149, in query
+    message = self.model.query(self.messages)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/models/litellm_model.py", line 82, in query
+    for attempt in retry(logger=logger, abort_exceptions=self.abort_exceptions):
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/tenacity/__init__.py", line 438, in __iter__
+    do = self.iter(retry_state=retry_state)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/tenacity/__init__.py", line 371, in iter
+    result = action(retry_state)
+             ^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/tenacity/__init__.py", line 393, in <lambda>
+    self._add_action_func(lambda rs: rs.outcome.result())
+                                     ^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/.local/share/uv/python/cpython-3.11.15-macos-x86_64-none/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/models/litellm_model.py", line 84, in query
+    response = self._query(self._prepare_messages_for_api(messages), **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/minisweagent/models/litellm_model.py", line 66, in _query
+    return litellm.completion(
+           ^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/utils.py", line 1578, in wrapper
+    raise e
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/utils.py", line 1426, in wrapper
+    result = original_function(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/main.py", line 5686, in completion
+    raise exception_type(
+          ^^^^^^^^^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/litellm_core_utils/exception_mapping_utils.py", line 2510, in exception_type
+    raise e  # it's already mapped
+    ^^^^^^^
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/litellm_core_utils/exception_mapping_utils.py", line 2276, in exception_type
+    _map_openai_exception(
+  File "/Users/jchilders/swebench-run/venv/lib/python3.11/site-packages/litellm/litellm_core_utils/exception_mapping_utils.py", line 291, in _map_openai_exception
+    raise ContextWindowExceededError(
+litellm.exceptions.ContextWindowExceededError: litellm.ContextWindowExceededError: litellm.BadRequestError: ContextWindowExceededError: Hosted_vllmException - {"error":{"message":"This model's maximum context length is 262144 tokens. However, you requested 32768 output tokens and your prompt contains at least 229377 input tokens, for a total of at least 262145 tokens. Please reduce the length of the input prompt or the number of requested output tokens. (parameter=input_tokens, value=229377)","type":"BadRequestError","param":"input_tokens","code":400}}
+2026-09-28 20:39:57,859 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/matplotlib__matplotlib-22871/matplotlib__matplotlib-22871.traj.json'
+2026-09-28 20:39:57,872 - minisweagent.environment - DEBUG - Starting container with command: docker run -d --name minisweagent-95c05380 -w /testbed --rm docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-20916:latest sleep 2h
+2026-09-28 20:39:58,354 - minisweagent.environment - INFO - Started container minisweagent-95c05380 with ID c767f0b3e548ea3d804620ffe409c2d7ad26887bc67262d6288f90f0ae5f40c6
+2026-09-28 21:01:37,384 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/sympy__sympy-19040/sympy__sympy-19040.traj.json'
+2026-09-28 21:15:44,134 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/sympy__sympy-13551/sympy__sympy-13551.traj.json'
+2026-09-28 22:15:06,930 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/sympy__sympy-17655/sympy__sympy-17655.traj.json'
+2026-09-28 22:59:23,581 - minisweagent - INFO - Saved trajectory to '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/sympy__sympy-20916/sympy__sympy-20916.traj.json'

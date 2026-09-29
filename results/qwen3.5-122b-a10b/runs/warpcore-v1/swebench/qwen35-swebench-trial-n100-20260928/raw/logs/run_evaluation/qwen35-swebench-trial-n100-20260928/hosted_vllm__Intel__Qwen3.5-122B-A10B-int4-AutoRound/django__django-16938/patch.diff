@@ -1,0 +1,38 @@
+diff --git a/django/core/serializers/python.py b/django/core/serializers/python.py
+index 36048601af..9873f44aab 100644
+--- a/django/core/serializers/python.py
++++ b/django/core/serializers/python.py
+@@ -79,7 +79,13 @@ class Serializer(base.Serializer):
+                     return self._value_from_field(value, value._meta.pk)
+ 
+                 def queryset_iterator(obj, field):
+-                    return getattr(obj, field.name).only("pk").iterator()
++                    m2m_qs = getattr(obj, field.name).all()
++                    # Avoid using .only() if select_related is already applied,
++                    # as this can cause FieldError when the related fields are
++                    # both deferred and traversed using select_related.
++                    if m2m_qs.query.select_related:
++                        return m2m_qs.iterator()
++                    return m2m_qs.only("pk").iterator()
+ 
+             m2m_iter = getattr(obj, "_prefetched_objects_cache", {}).get(
+                 field.name,
+diff --git a/django/core/serializers/xml_serializer.py b/django/core/serializers/xml_serializer.py
+index 1d3269c41a..8621743a3d 100644
+--- a/django/core/serializers/xml_serializer.py
++++ b/django/core/serializers/xml_serializer.py
+@@ -155,7 +155,13 @@ class Serializer(base.Serializer):
+                     self.xml.addQuickElement("object", attrs={"pk": str(value.pk)})
+ 
+                 def queryset_iterator(obj, field):
+-                    return getattr(obj, field.name).only("pk").iterator()
++                    m2m_qs = getattr(obj, field.name).all()
++                    # Avoid using .only() if select_related is already applied,
++                    # as this can cause FieldError when the related fields are
++                    # both deferred and traversed using select_related.
++                    if m2m_qs.query.select_related:
++                        return m2m_qs.iterator()
++                    return m2m_qs.only("pk").iterator()
+ 
+             m2m_iter = getattr(obj, "_prefetched_objects_cache", {}).get(
+                 field.name,

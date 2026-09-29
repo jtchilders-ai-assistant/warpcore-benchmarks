@@ -1,0 +1,47 @@
+2026-09-28 23:12:23,694 - INFO - Creating container for sympy__sympy-12096...
+2026-09-28 23:12:23,842 - INFO - Container for sympy__sympy-12096 created: 8b2cc797de439f418e2b8246cfe8eacf6455a64a247499dc7124932a087eab00
+2026-09-28 23:12:24,207 - INFO - Container for sympy__sympy-12096 started: 8b2cc797de439f418e2b8246cfe8eacf6455a64a247499dc7124932a087eab00
+2026-09-28 23:12:24,207 - INFO - Intermediate patch for sympy__sympy-12096 written to logs/run_evaluation/qwen35-swebench-trial-n100-20260928/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/sympy__sympy-12096/patch.diff, now applying to container...
+2026-09-28 23:12:24,650 - INFO - >>>>> Applied Patch:
+Checking patch sympy/core/function.py...
+Applied patch sympy/core/function.py cleanly.
+
+2026-09-28 23:12:25,627 - INFO - Git diff before:
+diff --git a/sympy/core/function.py b/sympy/core/function.py
+index 1b8005e1d..2b412fbdc 100644
+--- a/sympy/core/function.py
++++ b/sympy/core/function.py
+@@ -507,7 +507,9 @@ def _eval_evalf(self, prec):
+             func = getattr(mpmath, fname)
+         except (AttributeError, KeyError):
+             try:
+-                return Float(self._imp_(*self.args), prec)
++                # Evaluate args before passing to _imp_
++                evaluated_args = [arg.evalf(prec) for arg in self.args]
++                return Float(self._imp_(*evaluated_args), prec)
+             except (AttributeError, TypeError, ValueError):
+                 return
+2026-09-28 23:12:25,627 - INFO - Eval script for sympy__sympy-12096 written to logs/run_evaluation/qwen35-swebench-trial-n100-20260928/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/sympy__sympy-12096/eval.sh; copying to container...
+2026-09-28 23:12:34,311 - INFO - Test runtime: 8.55 seconds
+2026-09-28 23:12:34,312 - INFO - Test output for sympy__sympy-12096 written to logs/run_evaluation/qwen35-swebench-trial-n100-20260928/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/sympy__sympy-12096/test_output.txt
+2026-09-28 23:12:34,421 - INFO - Git diff after:
+diff --git a/sympy/core/function.py b/sympy/core/function.py
+index 1b8005e1d..2b412fbdc 100644
+--- a/sympy/core/function.py
++++ b/sympy/core/function.py
+@@ -507,7 +507,9 @@ def _eval_evalf(self, prec):
+             func = getattr(mpmath, fname)
+         except (AttributeError, KeyError):
+             try:
+-                return Float(self._imp_(*self.args), prec)
++                # Evaluate args before passing to _imp_
++                evaluated_args = [arg.evalf(prec) for arg in self.args]
++                return Float(self._imp_(*evaluated_args), prec)
+             except (AttributeError, TypeError, ValueError):
+                 return
+2026-09-28 23:12:34,421 - INFO - Grading answer for sympy__sympy-12096...
+2026-09-28 23:12:34,438 - INFO - report: {'sympy__sympy-12096': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_issue_12092'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_no_args', 'test_single_arg', 'test_list_args', 'test_str_args', 'test_own_namespace', 'test_own_module', 'test_bad_args', 'test_atoms', 'test_sympy_lambda', 'test_math_lambda', 'test_mpmath_lambda', 'test_number_precision', 'test_mpmath_precision', 'test_math_transl', 'test_mpmath_transl', 'test_exponentiation', 'test_sqrt', 'test_trig', 'test_vector_simple', 'test_vector_discontinuous', 'test_trig_symbolic', 'test_trig_float', 'test_docs', 'test_math', 'test_sin', 'test_matrix', 'test_issue9474', 'test_integral', 'test_sym_single_arg', 'test_sym_list_args', 'test_namespace_order', 'test_imps', 'test_imps_errors', 'test_imps_wrong_args', 'test_lambdify_imps', 'test_dummification', 'test_python_keywords', 'test_lambdify_docstring', 'test_special_printers', 'test_true_false', 'test_issue_2790', 'test_ITE', 'test_Min_Max'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-12096: resolved: True
+2026-09-28 23:12:34,438 - INFO - Attempting to stop container sweb.eval.sympy__sympy-12096.qwen35-swebench-trial-n100-20260928...
+2026-09-28 23:12:49,707 - INFO - Attempting to remove container sweb.eval.sympy__sympy-12096.qwen35-swebench-trial-n100-20260928...
+2026-09-28 23:12:49,918 - INFO - Container sweb.eval.sympy__sympy-12096.qwen35-swebench-trial-n100-20260928 removed.

@@ -1,0 +1,118 @@
+2026-09-28 23:10:42,537 - INFO - Creating container for sphinx-doc__sphinx-7985...
+2026-09-28 23:10:42,726 - INFO - Container for sphinx-doc__sphinx-7985 created: fd7788000ccb79fde2887f0745fa1eac198d8a51fd7826336fa6fa57ba8f27b6
+2026-09-28 23:10:43,127 - INFO - Container for sphinx-doc__sphinx-7985 started: fd7788000ccb79fde2887f0745fa1eac198d8a51fd7826336fa6fa57ba8f27b6
+2026-09-28 23:10:43,128 - INFO - Intermediate patch for sphinx-doc__sphinx-7985 written to logs/run_evaluation/qwen35-swebench-trial-n100-20260928/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/sphinx-doc__sphinx-7985/patch.diff, now applying to container...
+2026-09-28 23:10:43,607 - INFO - >>>>> Applied Patch:
+/tmp/patch.diff:17: trailing whitespace.
+                
+/tmp/patch.diff:21: trailing whitespace.
+                
+/tmp/patch.diff:29: trailing whitespace.
+                    
+/tmp/patch.diff:41: trailing whitespace.
+                
+Checking patch sphinx/builders/linkcheck.py...
+Applied patch sphinx/builders/linkcheck.py cleanly.
+warning: 4 lines add whitespace errors.
+
+2026-09-28 23:10:44,611 - INFO - Git diff before:
+diff --git a/sphinx/builders/linkcheck.py b/sphinx/builders/linkcheck.py
+index dd5317087..68b6ad122 100644
+--- a/sphinx/builders/linkcheck.py
++++ b/sphinx/builders/linkcheck.py
+@@ -213,7 +213,39 @@ class CheckExternalLinksBuilder(Builder):
+             if len(uri) == 0 or uri.startswith(('#', 'mailto:', 'ftp:')):
+                 return 'unchecked', '', 0
+             elif not uri.startswith(('http:', 'https:')):
+-                return 'local', '', 0
++                # Check if it's a local document reference
++                # Split off anchor if present
++                if '#' in uri:
++                    docname, anchor = uri.split('#', 1)
++                else:
++                    docname = uri
++                    anchor = None
++                
++                # Check if the document exists
++                if docname not in self.env.found_docs:
++                    return 'broken', 'document not found', 0
++                
++                # If there's an anchor, check if it exists in the document
++                if anchor and self.app.config.linkcheck_anchors:
++                    # Check if the anchor should be ignored
++                    for rex in self.anchors_ignore:
++                        if rex.match(anchor):
++                            anchor = None
++                            break
++                    
++                    if anchor:
++                        doctree = self.env.get_doctree(docname)
++                        if not doctree:
++                            return 'broken', 'document not found', 0
++                        anchor_found = False
++                        for node in doctree.traverse():
++                            if 'ids' in node and anchor in node['ids']:
++                                anchor_found = True
++                                break
++                        if not anchor_found:
++                            return 'broken', 'anchor not found', 0
++                
++                return 'working', '', 0
+             elif uri in self.good:
+                 return 'working', 'old', 0
+             elif uri in self.broken:
+2026-09-28 23:10:44,611 - INFO - Eval script for sphinx-doc__sphinx-7985 written to logs/run_evaluation/qwen35-swebench-trial-n100-20260928/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/sphinx-doc__sphinx-7985/eval.sh; copying to container...
+2026-09-28 23:10:54,813 - INFO - Test runtime: 10.08 seconds
+2026-09-28 23:10:54,814 - INFO - Test output for sphinx-doc__sphinx-7985 written to logs/run_evaluation/qwen35-swebench-trial-n100-20260928/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/sphinx-doc__sphinx-7985/test_output.txt
+2026-09-28 23:10:55,004 - INFO - Git diff after:
+diff --git a/sphinx/builders/linkcheck.py b/sphinx/builders/linkcheck.py
+index dd5317087..68b6ad122 100644
+--- a/sphinx/builders/linkcheck.py
++++ b/sphinx/builders/linkcheck.py
+@@ -213,7 +213,39 @@ class CheckExternalLinksBuilder(Builder):
+             if len(uri) == 0 or uri.startswith(('#', 'mailto:', 'ftp:')):
+                 return 'unchecked', '', 0
+             elif not uri.startswith(('http:', 'https:')):
+-                return 'local', '', 0
++                # Check if it's a local document reference
++                # Split off anchor if present
++                if '#' in uri:
++                    docname, anchor = uri.split('#', 1)
++                else:
++                    docname = uri
++                    anchor = None
++                
++                # Check if the document exists
++                if docname not in self.env.found_docs:
++                    return 'broken', 'document not found', 0
++                
++                # If there's an anchor, check if it exists in the document
++                if anchor and self.app.config.linkcheck_anchors:
++                    # Check if the anchor should be ignored
++                    for rex in self.anchors_ignore:
++                        if rex.match(anchor):
++                            anchor = None
++                            break
++                    
++                    if anchor:
++                        doctree = self.env.get_doctree(docname)
++                        if not doctree:
++                            return 'broken', 'document not found', 0
++                        anchor_found = False
++                        for node in doctree.traverse():
++                            if 'ids' in node and anchor in node['ids']:
++                                anchor_found = True
++                                break
++                        if not anchor_found:
++                            return 'broken', 'anchor not found', 0
++                
++                return 'working', '', 0
+             elif uri in self.good:
+                 return 'working', 'old', 0
+             elif uri in self.broken:
+2026-09-28 23:10:55,004 - INFO - Grading answer for sphinx-doc__sphinx-7985...
+2026-09-28 23:10:55,018 - INFO - report: {'sphinx-doc__sphinx-7985': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['tests/test_build_linkcheck.py::test_defaults', 'tests/test_build_linkcheck.py::test_anchors_ignored']}, 'PASS_TO_PASS': {'success': ['tests/test_build_linkcheck.py::test_defaults_json', 'tests/test_build_linkcheck.py::test_auth', 'tests/test_build_linkcheck.py::test_linkcheck_request_headers'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sphinx-doc__sphinx-7985: resolved: False
+2026-09-28 23:10:55,018 - INFO - Attempting to stop container sweb.eval.sphinx-doc__sphinx-7985.qwen35-swebench-trial-n100-20260928...
+2026-09-28 23:11:10,322 - INFO - Attempting to remove container sweb.eval.sphinx-doc__sphinx-7985.qwen35-swebench-trial-n100-20260928...
+2026-09-28 23:11:10,507 - INFO - Container sweb.eval.sphinx-doc__sphinx-7985.qwen35-swebench-trial-n100-20260928 removed.

@@ -98,24 +98,47 @@ def audit_model(model_dir: pathlib.Path) -> dict:
                     if m.get("benchmark") == "swebench":
                         row["swebench_run"] = True
                         run_dir = m_path.parent
-                        row.setdefault("swe_manifest", True)
-                        row.setdefault("swe_exit_statuses",
-                                       bool(list(run_dir.glob("exit_statuses*.yaml"))))
-                        row.setdefault("swe_preds",
-                                       bool(list(run_dir.rglob("*preds*.json"))))
-                        row.setdefault("swe_results",
-                                       bool(list(run_dir.rglob("*results*.json"))
-                                            or list(run_dir.rglob("*report*.json"))))
-                        row.setdefault("swe_trajectories",
-                                       bool(list(run_dir.rglob("*trajector*"))
-                                            or list(run_dir.rglob("*.tar.gz"))))
-                        row.setdefault("swe_config",
-                                       bool(list(run_dir.rglob("*.yaml"))))
-                        row.setdefault("swe_config_reconstructed",
-                                       bool(list(run_dir.rglob("*RECONSTRUCTED*"))))
-                        row.setdefault("swe_no_score",
-                                       (run_dir / "DIAGNOSIS.json").exists()
-                                       and not row.get("swe_preds", False))
+                        candidate = {
+                            "swe_manifest": True,
+                            "swe_exit_statuses": (
+                                bool(list(run_dir.rglob("exit_statuses*.json")))
+                                or bool(list(run_dir.rglob("exit_statuses*.yaml")))
+                            ),
+                            "swe_preds": bool(list(run_dir.rglob("*preds*.json"))),
+                            "swe_results": (
+                                bool(list(run_dir.rglob("*results*.json")))
+                                or bool(list(run_dir.rglob("*report*.json")))
+                            ),
+                            "swe_trajectories": (
+                                bool(list(run_dir.rglob("*trajector*")))
+                                or bool(list(run_dir.rglob("*.tar.gz")))
+                            ),
+                            "swe_config": bool(list(run_dir.rglob("*.yaml"))),
+                            "swe_config_reconstructed": bool(
+                                list(run_dir.rglob("*RECONSTRUCTED*"))
+                            ),
+                        }
+                        candidate["swe_no_score"] = (
+                            (run_dir / "DIAGNOSIS.json").exists()
+                            and not candidate["swe_preds"]
+                        )
+                        # Select one strongest retained evidence root. Never OR
+                        # fields across partial runs: that would manufacture a
+                        # complete-looking row that no individual run supports.
+                        score = sum(
+                            bool(candidate[key])
+                            for key in (
+                                "swe_manifest",
+                                "swe_exit_statuses",
+                                "swe_preds",
+                                "swe_results",
+                                "swe_trajectories",
+                                "swe_config",
+                            )
+                        )
+                        if score > row.get("_swe_evidence_score", -1):
+                            row.update(candidate)
+                            row["_swe_evidence_score"] = score
                 except (json.JSONDecodeError, OSError):
                     pass
 

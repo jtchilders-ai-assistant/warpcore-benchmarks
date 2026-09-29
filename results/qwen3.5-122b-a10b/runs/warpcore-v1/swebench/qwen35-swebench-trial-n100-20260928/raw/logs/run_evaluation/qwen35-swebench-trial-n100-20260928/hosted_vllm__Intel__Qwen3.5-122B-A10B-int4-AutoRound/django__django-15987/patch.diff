@@ -1,0 +1,28 @@
+diff --git a/django/core/management/commands/loaddata.py b/django/core/management/commands/loaddata.py
+index ac97f13161..e11c4bc62d 100644
+--- a/django/core/management/commands/loaddata.py
++++ b/django/core/management/commands/loaddata.py
+@@ -362,11 +362,13 @@ class Command(BaseCommand):
+         """
+         dirs = []
+         fixture_dirs = settings.FIXTURE_DIRS
++        # Normalize paths to strings for consistent comparison.
++        fixture_dirs = [os.path.realpath(d) for d in fixture_dirs]
+         if len(fixture_dirs) != len(set(fixture_dirs)):
+             raise ImproperlyConfigured("settings.FIXTURE_DIRS contains duplicates.")
+         for app_config in apps.get_app_configs():
+             app_label = app_config.label
+-            app_dir = os.path.join(app_config.path, "fixtures")
++            app_dir = os.path.realpath(os.path.join(app_config.path, "fixtures"))
+             if app_dir in fixture_dirs:
+                 raise ImproperlyConfigured(
+                     "'%s' is a default fixture directory for the '%s' app "
+@@ -380,7 +382,7 @@ class Command(BaseCommand):
+                 dirs.append(app_dir)
+         dirs.extend(fixture_dirs)
+         dirs.append("")
+-        return [os.path.realpath(d) for d in dirs]
++        return dirs
+ 
+     def parse_name(self, fixture_name):
+         """

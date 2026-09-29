@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "run_id": "qwen35-ifeval-20260925",
+  "suite_id": "warpcore-v1",
+  "execution_state": "failed",
+  "lifecycle": "invalid",
+  "history": [
+    {
+      "state": "planned",
+      "timestamp": "2026-09-25T07:08:42Z",
+      "note": "Campaign initialized by create_campaign"
+    },
+    {
+      "state": "preflight_passed",
+      "timestamp": "2026-09-25T07:10:19Z"
+    },
+    {
+      "state": "running",
+      "timestamp": "2026-09-25T07:10:19Z"
+    },
+    {
+      "state": "failed",
+      "timestamp": "2026-09-25T07:10:38Z",
+      "exit_code": 1
+    }
+  ]
+}

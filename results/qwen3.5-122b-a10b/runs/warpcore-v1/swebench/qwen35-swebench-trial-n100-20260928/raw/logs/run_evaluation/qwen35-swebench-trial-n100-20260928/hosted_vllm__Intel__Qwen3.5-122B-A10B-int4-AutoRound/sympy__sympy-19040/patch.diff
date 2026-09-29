@@ -1,0 +1,40 @@
+diff --git a/sympy/polys/sqfreetools.py b/sympy/polys/sqfreetools.py
+index 1783a7744a..ead64d41c0 100644
+--- a/sympy/polys/sqfreetools.py
++++ b/sympy/polys/sqfreetools.py
+@@ -11,7 +11,7 @@
+ from sympy.polys.densebasic import (
+     dup_strip,
+     dup_LC, dmp_ground_LC,
+-    dmp_zero_p,
++    dmp_zero_p, dmp_one_p,
+     dmp_ground,
+     dup_degree, dmp_degree,
+     dmp_raise, dmp_inject,
+@@ -20,7 +20,8 @@
+     dup_diff, dmp_diff,
+     dup_shift, dmp_compose,
+     dup_monic, dmp_ground_monic,
+-    dup_primitive, dmp_ground_primitive)
++    dup_primitive, dmp_ground_primitive,
++    dmp_diff_in)
+ from sympy.polys.euclidtools import (
+     dup_inner_gcd, dmp_inner_gcd,
+     dup_gcd, dmp_gcd,
+@@ -252,7 +253,15 @@ def dmp_sqf_part(f, u, K):
+     if K.is_negative(dmp_ground_LC(f, u, K)):
+         f = dmp_neg(f, u, K)
+ 
+-    gcd = dmp_gcd(f, dmp_diff(f, 1, u, K), u, K)
++    # For multivariate polynomials, compute the GCD of f and all its
++    # partial derivatives to get the full square-free part
++    gcd = f
++    for j in range(u + 1):
++        f_diff = dmp_diff_in(f, 1, j, u, K)
++        gcd = dmp_gcd(gcd, f_diff, u, K)
++        if dmp_one_p(gcd, u, K):
++            break
++
+     sqf = dmp_quo(f, gcd, u, K)
+ 
+     if K.is_Field:

@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "suite_id": "warpcore-v1",
+  "model_id": "Intel/Qwen3.5-122B-A10B-int4-AutoRound",
+  "model_revision": "3045d02bb737effc4581da91bddbad3be02934e4",
+  "qualification_run": "run-20260927e",
+  "required_terminal_status": "Submitted",
+  "required_submitted": 20,
+  "observed_instances": 20,
+  "generation_dispositions": {
+    "ContextWindowExceededError": 1,
+    "LimitsExceeded": 2,
+    "Submitted": 17
+  },
+  "non_submitted": {
+    "astropy__astropy-14096": "LimitsExceeded",
+    "psf__requests-6028": "ContextWindowExceededError",
+    "pylint-dev__pylint-4551": "LimitsExceeded"
+  },
+  "official_grading": {
+    "resolved_ids": 14,
+    "unresolved_ids": 3,
+    "empty_patch_ids": 3,
+    "error_ids": 0,
+    "incomplete_ids": 0
+  },
+  "qualified": false,
+  "qualification_artifact_written": false,
+  "canonical_n100_launched": false,
+  "publishable_swebench_score": false,
+  "decision": "Blocked by the warpcore-v1 qualification gate: 17 of 20 instances produced nonempty Submitted patches, while two exhausted the 250-step limit and one exceeded the 262144-token context window. No qualification record was sealed and the canonical n=100 campaign was not launched.",
+  "interpretation": "Submitted means a gradeable patch was produced; it is not a correctness verdict. The official diagnostic grading of this nonqualifying n=20 run found 14 resolved, 3 unresolved, and 3 empty-patch instances. Those diagnostic outcomes do not constitute the suite's canonical n=100 SWE-bench score.",
+  "evidence": {
+    "preds_json": {
+      "path": "run-20260927e/raw/preds.json",
+      "sha256": "5c2b40365d33bdf9b2637d61ba626e5d708abdc1e74ff83016b75d2740ab4708"
+    },
+    "exit_statuses_json": {
+      "path": "run-20260927e/raw/exit_statuses.json",
+      "sha256": "0637a40e75eac0621a6baecde48bec812947d18291b3a421dc05fb56d635b88f"
+    },
+    "grading_results_json": {
+      "path": "run-20260927e/raw/grading_results.json",
+      "sha256": "6c940585eb56b2f7c67777f04d609352a9fad03f3129e402c14897e9db3dc7c2"
+    },
+    "official_grader_report": {
+      "path": "run-20260927e/raw/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound.run-20260927e.json",
+      "sha256": "fd5296a6ab68e17586b4ccf4713bb5c90943822fc2bee4de4192968e17844d97"
+    },
+    "run_log": {
+      "path": "run-20260927e/raw/run.log",
+      "sha256": "f563d73427d5407189a85467af690f28d2455fafc128bf767ae15ab22ef64d58"
+    },
+    "minisweagent_log": {
+      "path": "run-20260927e/raw/minisweagent.log",
+      "sha256": "f53798608e1b5a6b7119cde61c1a458ce7124981a4138390d7a67a967e0ff403"
+    }
+  },
+  "other_attempts": {
+    "run": "partial attempt: 1 Submitted and 1 ContextWindowExceededError",
+    "run-20260927b": "partial attempt: 14 Submitted and 3 LimitsExceeded",
+    "run-20260927c": "invalid launch: ModuleNotFoundError before any trajectory",
+    "run-20260927d": "partial attempt: 11 Submitted and 1 LimitsExceeded"
+  },
+  "noncanonical_n100_trial_launched": true,
+  "noncanonical_n100_trial": {
+    "run_id": "qwen35-swebench-trial-n100-20260928",
+    "run_dir": "results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928",
+    "lifecycle": "diagnostic",
+    "expected": 100,
+    "observed": 100,
+    "submitted_nonempty": 76,
+    "generation_dispositions": {
+      "ContextWindowExceededError": 1,
+      "LimitsExceeded": 21,
+      "Submitted": 76,
+      "Timeout": 2
+    },
+    "resolved": 57,
+    "unresolved": 19,
+    "empty_patch": 24,
+    "grading_errors": 0,
+    "incomplete": 0,
+    "publishable": false,
+    "interpretation": "The frozen seed-42 n=100 set was run only to gather diagnostic evidence after the 17/20 qualification result. It does not alter the failed 20/20 gate, create a qualification seal, authorize a canonical launch, or populate the canonical matrix."
+  }
+}

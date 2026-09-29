@@ -248,6 +248,19 @@ class TestCommandConstruction(unittest.TestCase):
         )
         return runner, run_dir
 
+    def test_ifeval_uses_pinned_harness_builtin_without_custom_include_path(self):
+        """IFEval's YAML imports its scorer as ``utils`` relative to the builtin task dir.
+
+        The repository snapshot is hash-identical to the pinned lm-eval 0.4.12 task,
+        but placing suite/tasks on lm-eval's custom include path makes ``utils``
+        unimportable because that directory intentionally does not duplicate the
+        harness-owned scorer package.
+        """
+        runner, _ = self._make_runner(bench="ifeval")
+        cmd = runner.build_command()
+        self.assertNotIn("--include_path", cmd)
+        self.assertEqual(cmd[cmd.index("--tasks") + 1], "ifeval")
+
     def test_command_includes_task_from_suite(self):
         """Generated command must use the task name from the pinned task YAML's 'task:' field."""
         runner, run_dir = self._make_runner()

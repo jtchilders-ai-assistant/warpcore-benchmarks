@@ -1,0 +1,21 @@
+diff --git a/sphinx/ext/autodoc/__init__.py b/sphinx/ext/autodoc/__init__.py
+index 76265f5be..bdbc5bc49 100644
+--- a/sphinx/ext/autodoc/__init__.py
++++ b/sphinx/ext/autodoc/__init__.py
+@@ -735,6 +735,16 @@ class Documenter:
+             elif 'public' in metadata:
+                 # consider a member public if docstring has "public" metadata
+                 isprivate = False
++            elif (namespace, membername) in attr_docs:
++                # consider a member public if attribute docstring has "public" metadata
++                attr_doc = '\n'.join(attr_docs[(namespace, membername)])
++                metadata = extract_metadata(attr_doc)
++                if 'private' in metadata:
++                    isprivate = True
++                elif 'public' in metadata:
++                    isprivate = False
++                else:
++                    isprivate = membername.startswith('_')
+             else:
+                 isprivate = membername.startswith('_')
+ 

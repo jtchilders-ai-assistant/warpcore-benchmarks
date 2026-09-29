@@ -29,7 +29,8 @@ SWEBENCH_INSTANCES ?= results/qwen3.6-35b-a3b/raw/swebench/preds_shuffle100.json
 
 # Failed campaigns retained as nonpublishable diagnostic evidence. Each carries a
 # derived diagnostic_summary.json that `make diagnostic-verify` re-checks against
-# its own artifacts.
+# its own artifacts. Completed diagnostic trials retain real grading artifacts and
+# are reconciled by their campaign-specific evidence tests in the `ci` target.
 DIAGNOSTIC_RUNS := results/gpt-oss-120b/runs/warpcore-v1/swebench/gptoss-swebench-n100-20260921
 
 .PHONY: all figs data clean check preflight manifest check-artifacts audit samples ci preflight-serving preflight-selftest quality-preflight quality-preflight-selftest contract run-quality run-swebench validate-campaign publish-campaign qualify-swebench verify-swebench-qualification qualification-selftest run-swebench-qualification diagnostic-verify
@@ -122,7 +123,7 @@ ci: check check-artifacts contract diagnostic-verify
 	@$(PYTHON) $(VIZ)/validate_samples.py --warn-only
 	@$(PYTHON) $(VIZ)/quality_preflight.py --self-test
 	@$(PYTHON) $(VIZ)/swebench_qualification.py --self-test
-	@$(PYTHON) -m pytest tests/test_run_quality.py tests/test_task5_acceptance.py tests/test_run_swebench.py tests/test_task6_hardening.py tests/test_validate_campaign.py tests/test_validator_scan_timeout.py tests/test_publish_campaign.py tests/test_publish_swebench_score.py tests/test_task7_adversarial.py tests/test_task7_contracts.py tests/test_task7_authoritative_validator.py tests/test_task7_evidence_paths.py tests/test_task7_runner_integration.py tests/test_task7_submitted_and_scoring_provenance.py tests/test_task7_swe_digest.py tests/test_task7_swebench_contracts.py tests/test_swebench_qualification.py tests/test_lmeval_sidecar.py tests/test_result_registry.py tests/test_task9_readiness.py tests/test_runtime_error_fail_closed.py tests/test_swebench_circuit_breaker.py tests/test_viz_model_metadata.py -q
+	@$(PYTHON) -m pytest tests/test_run_quality.py tests/test_task5_acceptance.py tests/test_run_swebench.py tests/test_task6_hardening.py tests/test_validate_campaign.py tests/test_validator_scan_timeout.py tests/test_publish_campaign.py tests/test_publish_swebench_score.py tests/test_task7_adversarial.py tests/test_task7_contracts.py tests/test_task7_authoritative_validator.py tests/test_task7_evidence_paths.py tests/test_task7_runner_integration.py tests/test_task7_submitted_and_scoring_provenance.py tests/test_task7_swe_digest.py tests/test_task7_swebench_contracts.py tests/test_swebench_qualification.py tests/test_lmeval_sidecar.py tests/test_result_registry.py tests/test_task9_readiness.py tests/test_runtime_error_fail_closed.py tests/test_swebench_circuit_breaker.py tests/test_viz_model_metadata.py tests/test_qwen35_campaign_evidence.py -q
 	@echo "OK: figures reproducible, no new provenance gaps, suite contract valid, diagnostics match their evidence."
 
 # Suite and adapter contract validation (warpcore-v1 design §12 step 2).
@@ -169,7 +170,7 @@ quality-preflight-selftest:
 
 # Contract-aware quality runner (Task 5).
 # Required variables: SUITE, ADAPTER, BENCH, ENDPOINT, THROUGHPUT, CONCURRENCY, TIMEOUT, PROMPT_TOKENS
-# Optional: RUN_ID, RUN_DIR, DRY_RUN=1, ALLOW_NO_SCREEN=1, RESUME=1
+# Optional: RUN_ID, RUN_DIR, MAX_TOKENS_PROBE, DRY_RUN=1, ALLOW_NO_SCREEN=1, RESUME=1
 #
 # PROMPT_TOKENS — measured tokenized prompt maxima for each benchmark (required).
 #   Format: bench=N,bench2=N2  e.g. PROMPT_TOKENS=gsm8k=500,ifeval=2000
@@ -202,6 +203,7 @@ run-quality:
 		--concurrency $(CONCURRENCY) \
 		--timeout $(TIMEOUT) \
 		--prompt-tokens $(PROMPT_TOKENS) \
+		$(if $(MAX_TOKENS_PROBE),--max-tokens-probe $(MAX_TOKENS_PROBE),) \
 		$(if $(RUN_ID),--run-id $(RUN_ID),) \
 		$(if $(RUN_DIR),--run-dir $(RUN_DIR),) \
 		$(if $(DRY_RUN),--dry-run,) \
@@ -243,6 +245,7 @@ run-swebench:
 		$(if $(WORKERS),--workers $(WORKERS),) \
 		$(if $(DRY_RUN),--dry-run,) \
 		$(if $(ALLOW_NO_SCREEN),--allow-no-screen,) \
+		$(if $(NONCANONICAL_TRIAL),--noncanonical-trial,) \
 		$(if $(RESUME),--resume,)
 
 # Campaign validator (Task 7).

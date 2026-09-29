@@ -1,0 +1,45 @@
+2026-09-28 23:06:35,243 - INFO - Creating container for django__django-16485...
+2026-09-28 23:06:35,502 - INFO - Container for django__django-16485 created: 43567b5a8e6585ea5a65703f9378ac3d4f030c5257f5421c44aeeddf663eb389
+2026-09-28 23:06:35,781 - INFO - Container for django__django-16485 started: 43567b5a8e6585ea5a65703f9378ac3d4f030c5257f5421c44aeeddf663eb389
+2026-09-28 23:06:35,783 - INFO - Intermediate patch for django__django-16485 written to logs/run_evaluation/qwen35-swebench-trial-n100-20260928/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/django__django-16485/patch.diff, now applying to container...
+2026-09-28 23:06:36,159 - INFO - >>>>> Applied Patch:
+Checking patch django/template/defaultfilters.py...
+Applied patch django/template/defaultfilters.py cleanly.
+
+2026-09-28 23:06:40,728 - INFO - Git diff before:
+diff --git a/django/template/defaultfilters.py b/django/template/defaultfilters.py
+index 23c3a08c67..3032a36f76 100644
+--- a/django/template/defaultfilters.py
++++ b/django/template/defaultfilters.py
+@@ -183,7 +183,7 @@ def floatformat(text, arg=-1):
+     tupl = d.as_tuple()
+     units = len(tupl[1])
+     units += -tupl[2] if m else tupl[2]
+-    prec = abs(p) + units + 1
++    prec = max(1, abs(p) + units + 1)
+ 
+     # Avoid conversion to scientific notation by accessing `sign`, `digits`,
+     # and `exponent` from Decimal.as_tuple() directly.
+2026-09-28 23:06:40,729 - INFO - Eval script for django__django-16485 written to logs/run_evaluation/qwen35-swebench-trial-n100-20260928/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/django__django-16485/eval.sh; copying to container...
+2026-09-28 23:06:49,848 - INFO - Test runtime: 8.99 seconds
+2026-09-28 23:06:49,848 - INFO - Test output for django__django-16485 written to logs/run_evaluation/qwen35-swebench-trial-n100-20260928/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/django__django-16485/test_output.txt
+2026-09-28 23:06:49,950 - INFO - Git diff after:
+diff --git a/django/template/defaultfilters.py b/django/template/defaultfilters.py
+index 23c3a08c67..3032a36f76 100644
+--- a/django/template/defaultfilters.py
++++ b/django/template/defaultfilters.py
+@@ -183,7 +183,7 @@ def floatformat(text, arg=-1):
+     tupl = d.as_tuple()
+     units = len(tupl[1])
+     units += -tupl[2] if m else tupl[2]
+-    prec = abs(p) + units + 1
++    prec = max(1, abs(p) + units + 1)
+ 
+     # Avoid conversion to scientific notation by accessing `sign`, `digits`,
+     # and `exponent` from Decimal.as_tuple() directly.
+2026-09-28 23:06:49,950 - INFO - Grading answer for django__django-16485...
+2026-09-28 23:06:49,950 - INFO - report: {'django__django-16485': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_zero_values (template_tests.filter_tests.test_floatformat.FunctionTests.test_zero_values)'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_floatformat01 (template_tests.filter_tests.test_floatformat.FloatformatTests.test_floatformat01)', 'test_floatformat02 (template_tests.filter_tests.test_floatformat.FloatformatTests.test_floatformat02)', 'test_float_dunder_method (template_tests.filter_tests.test_floatformat.FunctionTests.test_float_dunder_method)', 'test_force_grouping (template_tests.filter_tests.test_floatformat.FunctionTests.test_force_grouping)', 'test_infinity (template_tests.filter_tests.test_floatformat.FunctionTests.test_infinity)', 'test_inputs (template_tests.filter_tests.test_floatformat.FunctionTests.test_inputs)', '#15789', 'test_negative_zero_values (template_tests.filter_tests.test_floatformat.FunctionTests.test_negative_zero_values)', 'test_unlocalize (template_tests.filter_tests.test_floatformat.FunctionTests.test_unlocalize)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-16485: resolved: True
+2026-09-28 23:06:49,951 - INFO - Attempting to stop container sweb.eval.django__django-16485.qwen35-swebench-trial-n100-20260928...
+2026-09-28 23:07:05,262 - INFO - Attempting to remove container sweb.eval.django__django-16485.qwen35-swebench-trial-n100-20260928...
+2026-09-28 23:07:05,419 - INFO - Container sweb.eval.django__django-16485.qwen35-swebench-trial-n100-20260928 removed.

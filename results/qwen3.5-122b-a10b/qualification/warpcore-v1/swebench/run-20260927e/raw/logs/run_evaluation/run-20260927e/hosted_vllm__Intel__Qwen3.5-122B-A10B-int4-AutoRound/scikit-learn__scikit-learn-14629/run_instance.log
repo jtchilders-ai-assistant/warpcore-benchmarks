@@ -1,0 +1,63 @@
+2026-09-27 15:19:23,517 - INFO - Creating container for scikit-learn__scikit-learn-14629...
+2026-09-27 15:19:23,657 - INFO - Container for scikit-learn__scikit-learn-14629 created: 2098ddf916cc5201a258021b8bd646dd735c2a8ae0d176a226b8421d06f2e5c0
+2026-09-27 15:19:23,919 - INFO - Container for scikit-learn__scikit-learn-14629 started: 2098ddf916cc5201a258021b8bd646dd735c2a8ae0d176a226b8421d06f2e5c0
+2026-09-27 15:19:23,920 - INFO - Intermediate patch for scikit-learn__scikit-learn-14629 written to logs/run_evaluation/run-20260927e/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/scikit-learn__scikit-learn-14629/patch.diff, now applying to container...
+2026-09-27 15:19:24,242 - INFO - >>>>> Applied Patch:
+Checking patch sklearn/model_selection/_validation.py...
+Applied patch sklearn/model_selection/_validation.py cleanly.
+
+2026-09-27 15:19:24,909 - INFO - Git diff before:
+diff --git a/sklearn/model_selection/_validation.py b/sklearn/model_selection/_validation.py
+index 95669a212..044f53674 100644
+--- a/sklearn/model_selection/_validation.py
++++ b/sklearn/model_selection/_validation.py
+@@ -853,10 +853,15 @@ def _fit_and_predict(estimator, X, y, train, test, verbose, fit_params,
+         estimator.fit(X_train, y_train, **fit_params)
+     func = getattr(estimator, method)
+     predictions = func(X_test)
+-    if method in ['decision_function', 'predict_proba', 'predict_log_proba']:
++    if method in ('decision_function', 'predict_proba', 'predict_log_proba'):
+         if isinstance(predictions, list):
++            # For multi-output estimators, classes_ is a list of arrays
++            if hasattr(estimator, 'classes_'):
++                classes = estimator.classes_
++            else:
++                classes = [e.classes_ for e in estimator.estimators_]
+             predictions = [_enforce_prediction_order(
+-                estimator.classes_[i_label], predictions[i_label],
++                classes[i_label], predictions[i_label],
+                 n_classes=len(set(y[:, i_label])), method=method)
+                 for i_label in range(len(predictions))]
+         else:
+2026-09-27 15:19:24,909 - INFO - Eval script for scikit-learn__scikit-learn-14629 written to logs/run_evaluation/run-20260927e/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/scikit-learn__scikit-learn-14629/eval.sh; copying to container...
+2026-09-27 15:19:46,967 - INFO - Test runtime: 21.94 seconds
+2026-09-27 15:19:46,968 - INFO - Test output for scikit-learn__scikit-learn-14629 written to logs/run_evaluation/run-20260927e/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/scikit-learn__scikit-learn-14629/test_output.txt
+2026-09-27 15:19:47,223 - INFO - Git diff after:
+diff --git a/sklearn/model_selection/_validation.py b/sklearn/model_selection/_validation.py
+index 95669a212..044f53674 100644
+--- a/sklearn/model_selection/_validation.py
++++ b/sklearn/model_selection/_validation.py
+@@ -853,10 +853,15 @@ def _fit_and_predict(estimator, X, y, train, test, verbose, fit_params,
+         estimator.fit(X_train, y_train, **fit_params)
+     func = getattr(estimator, method)
+     predictions = func(X_test)
+-    if method in ['decision_function', 'predict_proba', 'predict_log_proba']:
++    if method in ('decision_function', 'predict_proba', 'predict_log_proba'):
+         if isinstance(predictions, list):
++            # For multi-output estimators, classes_ is a list of arrays
++            if hasattr(estimator, 'classes_'):
++                classes = estimator.classes_
++            else:
++                classes = [e.classes_ for e in estimator.estimators_]
+             predictions = [_enforce_prediction_order(
+-                estimator.classes_[i_label], predictions[i_label],
++                classes[i_label], predictions[i_label],
+                 n_classes=len(set(y[:, i_label])), method=method)
+                 for i_label in range(len(predictions))]
+         else:
+2026-09-27 15:19:47,223 - INFO - Grading answer for scikit-learn__scikit-learn-14629...
+2026-09-27 15:19:47,234 - INFO - report: {'scikit-learn__scikit-learn-14629': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['sklearn/tests/test_multioutput.py::test_multi_output_classes_[estimator1]']}, 'PASS_TO_PASS': {'success': ['sklearn/tests/test_multioutput.py::test_multi_target_regression', 'sklearn/tests/test_multioutput.py::test_multi_target_regression_partial_fit', 'sklearn/tests/test_multioutput.py::test_multi_target_regression_one_target', 'sklearn/tests/test_multioutput.py::test_multi_target_sparse_regression', 'sklearn/tests/test_multioutput.py::test_multi_target_sample_weights_api', 'sklearn/tests/test_multioutput.py::test_multi_target_sample_weight_partial_fit', 'sklearn/tests/test_multioutput.py::test_multi_target_sample_weights', 'sklearn/tests/test_multioutput.py::test_multi_output_classification_partial_fit_parallelism', 'sklearn/tests/test_multioutput.py::test_multi_output_predict_proba', 'sklearn/tests/test_multioutput.py::test_multi_output_classification_partial_fit', 'sklearn/tests/test_multioutput.py::test_multi_output_classification_partial_fit_no_first_classes_exception', 'sklearn/tests/test_multioutput.py::test_multi_output_classification', 'sklearn/tests/test_multioutput.py::test_multiclass_multioutput_estimator', 'sklearn/tests/test_multioutput.py::test_multiclass_multioutput_estimator_predict_proba', 'sklearn/tests/test_multioutput.py::test_multi_output_classification_sample_weights', 'sklearn/tests/test_multioutput.py::test_multi_output_classification_partial_fit_sample_weights', 'sklearn/tests/test_multioutput.py::test_multi_output_exceptions', 'sklearn/tests/test_multioutput.py::test_classifier_chain_fit_and_predict_with_linear_svc', 'sklearn/tests/test_multioutput.py::test_classifier_chain_fit_and_predict_with_sparse_data', 'sklearn/tests/test_multioutput.py::test_classifier_chain_vs_independent_models', 'sklearn/tests/test_multioutput.py::test_base_chain_fit_and_predict', 'sklearn/tests/test_multioutput.py::test_base_chain_fit_and_predict_with_sparse_data_and_cv', 'sklearn/tests/test_multioutput.py::test_base_chain_random_order', 'sklearn/tests/test_multioutput.py::test_base_chain_crossval_fit_and_predict', 'sklearn/tests/test_multioutput.py::test_multi_output_classes_[estimator0]', 'sklearn/tests/test_multioutput.py::test_multi_output_classes_[estimator2]'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for scikit-learn__scikit-learn-14629: resolved: False
+2026-09-27 15:19:47,237 - INFO - Attempting to stop container sweb.eval.scikit-learn__scikit-learn-14629.run-20260927e...
+2026-09-27 15:20:02,513 - INFO - Attempting to remove container sweb.eval.scikit-learn__scikit-learn-14629.run-20260927e...
+2026-09-27 15:20:02,703 - INFO - Container sweb.eval.scikit-learn__scikit-learn-14629.run-20260927e removed.

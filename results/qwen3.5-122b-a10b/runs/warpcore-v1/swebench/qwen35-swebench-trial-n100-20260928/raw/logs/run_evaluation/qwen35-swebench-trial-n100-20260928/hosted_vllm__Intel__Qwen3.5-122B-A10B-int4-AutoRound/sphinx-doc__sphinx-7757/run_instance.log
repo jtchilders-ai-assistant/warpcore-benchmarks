@@ -1,0 +1,79 @@
+2026-09-28 23:10:15,466 - INFO - Creating container for sphinx-doc__sphinx-7757...
+2026-09-28 23:10:15,641 - INFO - Container for sphinx-doc__sphinx-7757 created: eef0862c4d35e2277970a47c18e08bff2cd0a5ed5f6299a80631a9609229cb0f
+2026-09-28 23:10:16,092 - INFO - Container for sphinx-doc__sphinx-7757 started: eef0862c4d35e2277970a47c18e08bff2cd0a5ed5f6299a80631a9609229cb0f
+2026-09-28 23:10:16,092 - INFO - Intermediate patch for sphinx-doc__sphinx-7757 written to logs/run_evaluation/qwen35-swebench-trial-n100-20260928/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/sphinx-doc__sphinx-7757/patch.diff, now applying to container...
+2026-09-28 23:10:16,442 - INFO - >>>>> Applied Patch:
+Checking patch sphinx/util/inspect.py...
+Applied patch sphinx/util/inspect.py cleanly.
+
+2026-09-28 23:10:17,474 - INFO - Git diff before:
+diff --git a/sphinx/util/inspect.py b/sphinx/util/inspect.py
+index 15f0d66e2..163b094df 100644
+--- a/sphinx/util/inspect.py
++++ b/sphinx/util/inspect.py
+@@ -521,10 +521,23 @@ def signature_from_str(signature: str) -> inspect.Signature:
+     params = []
+ 
+     if hasattr(args, "posonlyargs"):
+-        for arg in args.posonlyargs:  # type: ignore
++        # PEP-570: Positional-only parameters
++        # defaults are assigned from the end of the parameter list
++        # so we need to calculate how many defaults are for positional-only args
++        num_posonly_with_defaults = max(0, len(args.defaults) - len(args.args))
++        for i, arg in enumerate(args.posonlyargs):  # type: ignore
+             annotation = ast_unparse(arg.annotation) or Parameter.empty
++            # Calculate if this positional-only arg has a default
++            # Position from the end of all positional parameters (posonly + args)
++            pos_from_end = len(args.posonlyargs) - i
++            if pos_from_end <= num_posonly_with_defaults:
++                # This arg has a default
++                # The index in defaults is: num_posonly_with_defaults - pos_from_end
++                default = ast_unparse(args.defaults[num_posonly_with_defaults - pos_from_end])
++            else:
++                default = Parameter.empty
+             params.append(Parameter(arg.arg, Parameter.POSITIONAL_ONLY,
+-                                    annotation=annotation))
++                                    default=default, annotation=annotation))
+ 
+     for i, arg in enumerate(args.args):
+         if len(args.args) - i <= len(args.defaults):
+2026-09-28 23:10:17,475 - INFO - Eval script for sphinx-doc__sphinx-7757 written to logs/run_evaluation/qwen35-swebench-trial-n100-20260928/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/sphinx-doc__sphinx-7757/eval.sh; copying to container...
+2026-09-28 23:10:26,601 - INFO - Test runtime: 9.00 seconds
+2026-09-28 23:10:26,602 - INFO - Test output for sphinx-doc__sphinx-7757 written to logs/run_evaluation/qwen35-swebench-trial-n100-20260928/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/sphinx-doc__sphinx-7757/test_output.txt
+2026-09-28 23:10:26,859 - INFO - Git diff after:
+diff --git a/sphinx/util/inspect.py b/sphinx/util/inspect.py
+index 15f0d66e2..163b094df 100644
+--- a/sphinx/util/inspect.py
++++ b/sphinx/util/inspect.py
+@@ -521,10 +521,23 @@ def signature_from_str(signature: str) -> inspect.Signature:
+     params = []
+ 
+     if hasattr(args, "posonlyargs"):
+-        for arg in args.posonlyargs:  # type: ignore
++        # PEP-570: Positional-only parameters
++        # defaults are assigned from the end of the parameter list
++        # so we need to calculate how many defaults are for positional-only args
++        num_posonly_with_defaults = max(0, len(args.defaults) - len(args.args))
++        for i, arg in enumerate(args.posonlyargs):  # type: ignore
+             annotation = ast_unparse(arg.annotation) or Parameter.empty
++            # Calculate if this positional-only arg has a default
++            # Position from the end of all positional parameters (posonly + args)
++            pos_from_end = len(args.posonlyargs) - i
++            if pos_from_end <= num_posonly_with_defaults:
++                # This arg has a default
++                # The index in defaults is: num_posonly_with_defaults - pos_from_end
++                default = ast_unparse(args.defaults[num_posonly_with_defaults - pos_from_end])
++            else:
++                default = Parameter.empty
+             params.append(Parameter(arg.arg, Parameter.POSITIONAL_ONLY,
+-                                    annotation=annotation))
++                                    default=default, annotation=annotation))
+ 
+     for i, arg in enumerate(args.args):
+         if len(args.args) - i <= len(args.defaults):
+2026-09-28 23:10:26,860 - INFO - Grading answer for sphinx-doc__sphinx-7757...
+2026-09-28 23:10:26,865 - INFO - report: {'sphinx-doc__sphinx-7757': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['tests/test_util_inspect.py::test_signature_from_str_positionaly_only_args'], 'failure': []}, 'PASS_TO_PASS': {'success': ['tests/test_util_inspect.py::test_signature', 'tests/test_util_inspect.py::test_signature_partial', 'tests/test_util_inspect.py::test_signature_methods', 'tests/test_util_inspect.py::test_signature_partialmethod', 'tests/test_util_inspect.py::test_signature_annotations', 'tests/test_util_inspect.py::test_signature_annotations_py38', 'tests/test_util_inspect.py::test_signature_from_str_basic', 'tests/test_util_inspect.py::test_signature_from_str_default_values', 'tests/test_util_inspect.py::test_signature_from_str_annotations', 'tests/test_util_inspect.py::test_signature_from_str_complex_annotations', 'tests/test_util_inspect.py::test_signature_from_str_kwonly_args', 'tests/test_util_inspect.py::test_signature_from_str_invalid', 'tests/test_util_inspect.py::test_safe_getattr_with_default', 'tests/test_util_inspect.py::test_safe_getattr_with_exception', 'tests/test_util_inspect.py::test_safe_getattr_with_property_exception', 'tests/test_util_inspect.py::test_safe_getattr_with___dict___override', 'tests/test_util_inspect.py::test_dictionary_sorting', 'tests/test_util_inspect.py::test_set_sorting', 'tests/test_util_inspect.py::test_set_sorting_fallback', 'tests/test_util_inspect.py::test_frozenset_sorting', 'tests/test_util_inspect.py::test_frozenset_sorting_fallback', 'tests/test_util_inspect.py::test_dict_customtype', 'tests/test_util_inspect.py::test_isclassmethod', 'tests/test_util_inspect.py::test_isstaticmethod', 'tests/test_util_inspect.py::test_iscoroutinefunction', 'tests/test_util_inspect.py::test_isfunction', 'tests/test_util_inspect.py::test_isbuiltin', 'tests/test_util_inspect.py::test_isdescriptor', 'tests/test_util_inspect.py::test_isattributedescriptor', 'tests/test_util_inspect.py::test_isproperty', 'tests/test_util_inspect.py::test_unpartial', 'tests/test_util_inspect.py::test_getdoc_inherited_decorated_method', 'tests/test_util_inspect.py::test_is_builtin_class_method'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sphinx-doc__sphinx-7757: resolved: True
+2026-09-28 23:10:26,866 - INFO - Attempting to stop container sweb.eval.sphinx-doc__sphinx-7757.qwen35-swebench-trial-n100-20260928...
+2026-09-28 23:10:42,127 - INFO - Attempting to remove container sweb.eval.sphinx-doc__sphinx-7757.qwen35-swebench-trial-n100-20260928...
+2026-09-28 23:10:42,329 - INFO - Container sweb.eval.sphinx-doc__sphinx-7757.qwen35-swebench-trial-n100-20260928 removed.

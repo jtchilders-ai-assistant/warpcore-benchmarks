@@ -1,0 +1,107 @@
+diff --git a/classes.dot b/classes.dot
+new file mode 100644
+index 00000000..6b2ccf84
+--- /dev/null
++++ b/classes.dot
+@@ -0,0 +1,4 @@
++digraph "classes" {
++charset="utf-8"
++rankdir=BT
++}
+diff --git a/pylint/pyreverse/diagrams.py b/pylint/pyreverse/diagrams.py
+index bf9f67af..b3d321a2 100644
+--- a/pylint/pyreverse/diagrams.py
++++ b/pylint/pyreverse/diagrams.py
+@@ -91,9 +91,13 @@ class ClassDiagram(Figure, FilterMixIn):
+         ):
+             if not self.show_attr(node_name):
+                 continue
+-            names = self.class_names(associated_nodes)
+-            if names:
+-                node_name = "{} : {}".format(node_name, ", ".join(names))
++            # Check if there's a type hint for this attribute
++            if hasattr(node, 'type_hints') and node_name in node.type_hints:
++                node_name = "{} : {}".format(node_name, node.type_hints[node_name])
++            else:
++                names = self.class_names(associated_nodes)
++                if names:
++                    node_name = "{} : {}".format(node_name, ", ".join(names))
+             attrs.append(node_name)
+         return sorted(attrs)
+ 
+diff --git a/pylint/pyreverse/inspector.py b/pylint/pyreverse/inspector.py
+index 8fa12202..84939d99 100644
+--- a/pylint/pyreverse/inspector.py
++++ b/pylint/pyreverse/inspector.py
+@@ -23,6 +23,39 @@ import astroid
+ from pylint.pyreverse import utils
+ 
+ 
++
++def _get_annotation_name(node):
++    """Get the string representation of an annotation node."""
++    if node is None:
++        return None
++    if isinstance(node, astroid.Name):
++        return node.name
++    if isinstance(node, astroid.Subscript):
++        # Handle generic types like List[str], Optional[str], Dict[str, int], etc.
++        # Also handle Callable[[int], str]
++        value = _get_annotation_name(node.value)
++        if isinstance(node.slice, astroid.Tuple) and node.slice.elts and isinstance(node.slice.elts[0], astroid.List):
++            # This is a Callable type: Callable[[arg1, arg2, ...], return_type]
++            args = ', '.join(_get_annotation_name(elt) for elt in node.slice.elts[0].elts)
++            return f'Callable[[{args}], {_get_annotation_name(node.slice.elts[1])}]'
++        slice_val = _get_annotation_name(node.slice)
++        if value and slice_val:
++            return f'{value}[{slice_val}]'
++    if isinstance(node, astroid.Tuple):
++        # Handle tuple types like Dict[str, int] where the slice is a tuple
++        elts = [_get_annotation_name(elt) for elt in node.elts]
++        return ', '.join(elts)
++    if isinstance(node, astroid.List):
++        # Handle list types like Callable[[int], str] where the first element is a List
++        # This should not be reached directly, but handle it just in case
++        elts = [_get_annotation_name(elt) for elt in node.elts]
++        return ', '.join(elts)
++    if isinstance(node, astroid.Attribute):
++        # Handle module-based types like typing.List
++        return f'{_get_annotation_name(node.expr)}.{node.attrname}'
++    return str(node)
++
++
+ def _iface_hdlr(_):
+     """Handler used by interfaces to handle suspicious interface nodes."""
+     return True
+@@ -171,6 +204,31 @@ class Linker(IdGeneratorMixIn, utils.LocalsVisitor):
+             node.implements = list(interfaces(node, self.inherited_interfaces))
+         except astroid.InferenceError:
+             node.implements = ()
++        # extract type hints from __init__ method
++        self._extract_type_hints_from_init(node)
++
++    def _extract_type_hints_from_init(self, node):
++        """Extract type hints from the __init__ method and store them in node.type_hints.
++        
++        This method looks for the __init__ method in the class and extracts type hints
++        from its arguments. The type hints are stored in node.type_hints as a dictionary
++        mapping attribute names to their type hint strings.
++        """
++        node.type_hints = {}
++        for item in node.body:
++            if isinstance(item, astroid.FunctionDef) and item.name == '__init__':
++                # Extract type hints from arguments
++                if item.args and item.args.args:
++                    for i, arg in enumerate(item.args.args):
++                        if i == 0:  # skip 'self'
++                            continue
++                        if i < len(item.args.annotations):
++                            ann = item.args.annotations[i]
++                            if ann is not None:
++                                type_name = _get_annotation_name(ann)
++                                if type_name:
++                                    node.type_hints[arg.name] = type_name
++                break
+ 
+     def visit_functiondef(self, node):
+         """visit an astroid.Function node

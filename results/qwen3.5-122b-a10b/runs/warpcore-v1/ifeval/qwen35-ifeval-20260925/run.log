@@ -1,0 +1,77 @@
+2026-09-25:02:10:20 INFO     [config.evaluate_config:307] Using default fewshot_as_multiturn=True.
+2026-09-25:02:10:38 WARNING  [tasks._index:70] Task 'ifeval' from /Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/suite/tasks/ifeval_v4.yaml overrides existing task from /Users/jchilders/workspaces/lmeval-venv/lib/python3.11/site-packages/lm_eval/tasks/ifeval/ifeval.yaml
+2026-09-25:02:10:38 INFO     [_cli.run:387] Including path: /Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/suite/tasks
+2026-09-25:02:10:38 INFO     [_cli.run:388] Selected Tasks: ['ifeval']
+2026-09-25:02:10:38 INFO     [evaluator:214] Setting random seed to 0 | Setting numpy seed to 1234 | Setting torch manual seed to 1234 | Setting fewshot manual seed to 1234
+2026-09-25:02:10:38 WARNING  [evaluator:226] generation_kwargs: {'max_gen_toks': 65536, 'temperature': 0, 'do_sample': False} specified through cli, these settings will update set parameters in yaml tasks. Ensure 'do_sample=True' for non-greedy decoding!
+2026-09-25:02:10:38 INFO     [evaluator:239] Initializing sidecar-chat-completions model, with arguments: {'base_url': 'http://csi370295.alcf.anl.gov:8000/v1/chat/completions', 'model': 'Intel/Qwen3.5-122B-A10B-int4-AutoRound', 'num_concurrent': 4, 'max_retries': 0, 'timeout': 9000, 'tokenized_requests': False, 'sidecar_path': '/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/results/qwen3.5-122b-a10b/runs/warpcore-v1/ifeval/qwen35-ifeval-20260925/raw/response_metadata.jsonl'}
+2026-09-25:02:10:38 INFO     [models.api_models:179] Using max length 2048 - 1
+2026-09-25:02:10:38 INFO     [models.api_models:200] Using tokenizer None
+Traceback (most recent call last):
+  File "/Users/jchilders/workspaces/lmeval-venv/lib/python3.11/site-packages/lm_eval/tasks/_yaml_loader.py", line 118, in _import_func_in_yml
+    module = __import__(mod_path, fromlist=[fn_name])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ModuleNotFoundError: No module named 'utils'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/viz/lmeval_sidecar_runner.py", line 51, in <module>
+    cli_evaluate()
+  File "/Users/jchilders/workspaces/lmeval-venv/lib/python3.11/site-packages/lm_eval/__main__.py", line 10, in cli_evaluate
+    parser.execute(args)
+  File "/Users/jchilders/workspaces/lmeval-venv/lib/python3.11/site-packages/lm_eval/_cli/harness.py", line 60, in execute
+    args.func(args)
+  File "/Users/jchilders/workspaces/lmeval-venv/lib/python3.11/site-packages/lm_eval/_cli/run.py", line 391, in _execute
+    results = simple_evaluate(
+              ^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/workspaces/lmeval-venv/lib/python3.11/site-packages/lm_eval/utils.py", line 575, in _wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/workspaces/lmeval-venv/lib/python3.11/site-packages/lm_eval/evaluator.py", line 302, in simple_evaluate
+    loaded = task_manager.load(tasks)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/workspaces/lmeval-venv/lib/python3.11/site-packages/lm_eval/tasks/manager.py", line 208, in load
+    obj = self._load_spec(spec) if not isinstance(spec, (Task, Group)) else spec  # type:ignore[invalid-argument-type]
+          ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/workspaces/lmeval-venv/lib/python3.11/site-packages/lm_eval/tasks/manager.py", line 154, in _load_spec
+    return self._factory.build(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/workspaces/lmeval-venv/lib/python3.11/site-packages/lm_eval/tasks/_factory.py", line 61, in build
+    return self._build_task(entry, overrides)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/workspaces/lmeval-venv/lib/python3.11/site-packages/lm_eval/tasks/_factory.py", line 67, in _build_task
+    cfg = self._load_full_config(entry, overrides)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/workspaces/lmeval-venv/lib/python3.11/site-packages/lm_eval/tasks/_factory.py", line 261, in _load_full_config
+    cfg = deepcopy(load_yaml(entry.yaml_path, resolve_func=True))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/workspaces/lmeval-venv/lib/python3.11/site-packages/lm_eval/tasks/_yaml_loader.py", line 185, in load_yaml
+    cfg = yaml.load(fh, Loader=loader_cls)  # noqa: S506
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/workspaces/lmeval-venv/lib/python3.11/site-packages/yaml/__init__.py", line 81, in load
+    return loader.get_single_data()
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/workspaces/lmeval-venv/lib/python3.11/site-packages/yaml/constructor.py", line 51, in get_single_data
+    return self.construct_document(node)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/workspaces/lmeval-venv/lib/python3.11/site-packages/yaml/constructor.py", line 60, in construct_document
+    for dummy in generator:
+  File "/Users/jchilders/workspaces/lmeval-venv/lib/python3.11/site-packages/yaml/constructor.py", line 413, in construct_yaml_map
+    value = self.construct_mapping(node)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/workspaces/lmeval-venv/lib/python3.11/site-packages/yaml/constructor.py", line 218, in construct_mapping
+    return super().construct_mapping(node, deep=deep)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/workspaces/lmeval-venv/lib/python3.11/site-packages/yaml/constructor.py", line 143, in construct_mapping
+    value = self.construct_object(value_node, deep=deep)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/workspaces/lmeval-venv/lib/python3.11/site-packages/yaml/constructor.py", line 100, in construct_object
+    data = constructor(self, node)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/workspaces/lmeval-venv/lib/python3.11/site-packages/lm_eval/tasks/_yaml_loader.py", line 22, in ctor
+    return _import_func_in_yml(spec, base_dir)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jchilders/workspaces/lmeval-venv/lib/python3.11/site-packages/lm_eval/tasks/_yaml_loader.py", line 121, in _import_func_in_yml
+    raise ImportError(
+ImportError: Cannot import module 'utils' for function 'process_results' (from YAML in /Users/jchilders/workspaces/warpcore-benchmarks/.worktrees/qwen35-campaign/suite/tasks)
