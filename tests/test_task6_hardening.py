@@ -1218,7 +1218,9 @@ class TestPreflightX86Strictness(unittest.TestCase):
             stderr = ""
 
         runner = self._make_runner()
-        with patch.object(_sp, "run", return_value=FakeResult()):
+        with patch.object(
+            runner, "_probe_mini_swe_agent_version", return_value=(0, "2.4.6")
+        ), patch.object(_sp, "run", return_value=FakeResult()):
             with patch("urllib.request.urlopen") as urlopen:
                 rc = runner._run_preflight()
         self.assertNotEqual(
@@ -1245,7 +1247,9 @@ class TestPreflightX86Strictness(unittest.TestCase):
             stderr = ""
 
         runner = self._make_runner()
-        with patch.object(_sp, "run", return_value=FakeResult()):
+        with patch.object(
+            runner, "_probe_mini_swe_agent_version", return_value=(0, "2.4.6")
+        ), patch.object(_sp, "run", return_value=FakeResult()):
             rc = runner._run_preflight()
         self.assertNotEqual(
             rc,
@@ -1265,7 +1269,9 @@ class TestPreflightX86Strictness(unittest.TestCase):
             stderr = ""
 
         runner = self._make_runner()
-        with patch.object(_sp, "run", return_value=FakeResult()):
+        with patch.object(
+            runner, "_probe_mini_swe_agent_version", return_value=(0, "2.4.6")
+        ), patch.object(_sp, "run", return_value=FakeResult()):
             # After passing x86 check, /v1/models will fail (no real endpoint)
             # We just want to confirm x86_64 doesn't fail the x86 check itself
             with patch("urllib.request.urlopen", side_effect=_uerr.URLError("no endpoint")):
@@ -1341,7 +1347,9 @@ class TestPreflightModelsApiKey(unittest.TestCase):
             prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
             api_key="TEST_API_KEY_789",
         )
-        with patch.object(_sp, "run", return_value=FakeResult()):
+        with patch.object(
+            runner, "_probe_mini_swe_agent_version", return_value=(0, "2.4.6")
+        ), patch.object(_sp, "run", return_value=FakeResult()):
             with patch("urllib.request.urlopen", side_effect=fake_urlopen):
                 runner._run_preflight()
 

@@ -772,6 +772,7 @@ class SwebenchRunner:
         endpoint: str,
         run_dir: pathlib.Path,
         repo: Optional[pathlib.Path] = None,
+        python_executable: Optional[str] = None,
         api_key: str = "warpcore",
         workers: int = 4,
         dry_run: bool = False,
@@ -802,6 +803,7 @@ class SwebenchRunner:
         self.adapter_path = pathlib.Path(adapter_path).resolve()
         self.endpoint = endpoint
         self.run_dir = pathlib.Path(run_dir).resolve()
+        self._python_executable = python_executable or sys.executable
         self.api_key = api_key
         self.workers = int(workers)
         self.dry_run = dry_run
@@ -1702,6 +1704,38 @@ class SwebenchRunner:
         )
         (self.run_dir / "command.txt").write_text(prefix + cmd_line + "\n", encoding="utf-8")
 
+    def _probe_mini_swe_agent_version(self) -> tuple[int, str]:
+        """Import mini-swe-agent through the exact generation interpreter."""
+        import subprocess as _sp
+
+        probe = (
+            "import importlib.metadata as m; "
+            "print(m.version('mini-swe-agent'))"
+        )
+        try:
+            result = _sp.run(
+                [self._python_executable, "-c", probe],
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=30,
+            )
+        except Exception as exc:
+            print(
+                f"[run-swebench] PREFLIGHT INCONCLUSIVE: cannot execute pinned "
+                f"mini-swe-agent interpreter: {exc}",
+                file=sys.stderr,
+            )
+            return EXIT_INCONCLUSIVE, ""
+        if result.returncode != 0:
+            print(
+                "[run-swebench] PREFLIGHT INCONCLUSIVE: pinned generation interpreter "
+                "cannot import mini-swe-agent.",
+                file=sys.stderr,
+            )
+            return EXIT_INCONCLUSIVE, ""
+        return 0, result.stdout.strip().splitlines()[-1] if result.stdout.strip() else ""
+
     def _run_preflight(self) -> int:
         """Run the SWE-bench preflight gate; return exit code (0=pass, 1=defect, 2=inconclusive).
 
@@ -1716,8 +1750,23 @@ class SwebenchRunner:
 
         # --- Default live preflight ---
 
-        # 1. x86 Docker host check
+        # 1. Exact production interpreter import/version and x86 Docker host.
         import subprocess as _sp
+        version_rc, installed_version = self._probe_mini_swe_agent_version()
+        if version_rc != 0:
+            return version_rc
+        required_version = str(
+            (self._suite.get("required_harness") or {}).get("mini_swe_agent_version", "")
+        )
+        if not required_version or installed_version != required_version:
+            print(
+                f"[run-swebench] PREFLIGHT FAIL: mini-swe-agent version "
+                f"{installed_version!r} does not match frozen suite requirement "
+                f"{required_version!r}.",
+                file=sys.stderr,
+            )
+            return EXIT_DEFECT
+
         try:
             docker_info_result = _sp.run(
                 ["docker", "info", "--format", "{{.Architecture}}"],
@@ -1779,7 +1828,77 @@ class SwebenchRunner:
             )
             return EXIT_INCONCLUSIVE
 
-        # 3. Image cache check via swebench_preflight.py
+        # 3. Real bounded generation/tool-call probe through the production API path.
+        # /models proves only metadata reachability; SWE-bench requires a parsed bash
+        # tool call with valid JSON arguments from chat/completions.
+        probe_url = self.endpoint.rstrip("/") + "/chat/completions"
+        probe_payload = json.dumps({
+            "model": self._model_id,
+            "messages": [{
+                "role": "user",
+                "content": (
+                    "Call the bash tool exactly once with command "
+                    "printf SWEBENCH_PREFLIGHT_OK"
+                ),
+            }],
+            "temperature": 0,
+            "max_tokens": 1024,
+            "tool_choice": "auto",
+            "tools": [{
+                "type": "function",
+                "function": {
+                    "name": "bash",
+                    "description": "Run a shell command",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {"command": {"type": "string"}},
+                        "required": ["command"],
+                        "additionalProperties": False,
+                    },
+                },
+            }],
+        }).encode("utf-8")
+        probe_headers = {"Content-Type": "application/json"}
+        if self.api_key:
+            probe_headers["Authorization"] = f"Bearer {self.api_key}"
+        probe_request = _req.Request(
+            probe_url, data=probe_payload, headers=probe_headers, method="POST"
+        )
+        try:
+            with _req.urlopen(probe_request, timeout=1800) as resp:  # noqa: S310
+                probe_data = json.loads(resp.read())
+            choice = (probe_data.get("choices") or [None])[0]
+            message = (choice or {}).get("message") or {}
+            tool_calls = message.get("tool_calls") or []
+            valid_bash_call = False
+            for call in tool_calls:
+                function = (call or {}).get("function") or {}
+                if function.get("name") != "bash":
+                    continue
+                try:
+                    arguments = json.loads(function.get("arguments") or "")
+                except (TypeError, json.JSONDecodeError):
+                    continue
+                command = arguments.get("command") if isinstance(arguments, dict) else None
+                if isinstance(command, str) and command.strip():
+                    valid_bash_call = True
+                    break
+            if (choice or {}).get("finish_reason") != "tool_calls" or not valid_bash_call:
+                print(
+                    "[run-swebench] PREFLIGHT FAIL: bounded production probe did not "
+                    "return a parsed bash tool call with valid nonempty command JSON.",
+                    file=sys.stderr,
+                )
+                return EXIT_DEFECT
+        except (_uerr.URLError, OSError, ValueError, json.JSONDecodeError) as exc:
+            print(
+                f"[run-swebench] PREFLIGHT INCONCLUSIVE: production tool-call probe "
+                f"at {probe_url} failed: {exc}",
+                file=sys.stderr,
+            )
+            return EXIT_INCONCLUSIVE
+
+        # 4. Image cache check via swebench_preflight.py
         preflight_script = _VIZ_DIR / "swebench_preflight.py"
         if not preflight_script.exists():
             print(
@@ -1828,7 +1947,7 @@ class SwebenchRunner:
         anchored_ids = [f"^{re.escape(iid)}$" for iid in self._instance_ids]
         filter_regex = "|".join(anchored_ids)
         return [
-            sys.executable, "-m", "minisweagent.run.benchmarks.swebench",
+            self._python_executable, "-m", "minisweagent.run.benchmarks.swebench",
             "--subset", "princeton-nlp/SWE-bench_Verified",
             "--split", "test",
             "--filter", filter_regex,
@@ -2773,6 +2892,12 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     ap.add_argument("--run-id", default=None)
     ap.add_argument("--run-dir", type=pathlib.Path, default=None)
     ap.add_argument("--repo", type=pathlib.Path, default=None)
+    ap.add_argument(
+        "--python-executable",
+        default=None,
+        help="Python interpreter containing the pinned mini-swe-agent installation. "
+             "Defaults to the interpreter running this contract runner.",
+    )
     ap.add_argument("--api-key", default="warpcore")
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--prompt-tokens", type=str, default=None,
@@ -2840,6 +2965,7 @@ def main(argv=None) -> int:
                 endpoint=args.endpoint,
                 run_dir=qual_run_dir,
                 repo=repo,
+                python_executable=args.python_executable,
                 api_key=args.api_key,
                 workers=args.workers,
                 dry_run=args.dry_run,
@@ -2853,9 +2979,11 @@ def main(argv=None) -> int:
         return runner.run() if args.dry_run else runner.run_qualification()
 
     # --- Qualification gate, before create_campaign touches the filesystem ---
-    # A live launch must fail closed with no campaign directory, no status.json,
-    # and no manifest when it is not authorized. A dry run skips this check here
-    # because the runner reports the same verdict without side effects.
+    # A live v1 launch must fail closed with no campaign directory, no status.json,
+    # and no manifest when it is not authorized. V2 explicitly authorizes direct
+    # n=100 after production preflight, so it must not consult a qualification seal.
+    # A dry run skips this check here because the runner reports the policy without
+    # side effects.
     if not args.dry_run and not args.noncanonical_trial:
         try:
             import yaml as _yaml_gate
@@ -2865,28 +2993,41 @@ def main(argv=None) -> int:
             )
             _suite_id_gate = _suite_gate.get("suite_id", "warpcore-v1")
             _slug_gate = (_adapter_gate.get("model") or {}).get("slug", "unknown")
+            _launch_mode_gate = (
+                ((_suite_gate.get("benchmarks") or {}).get(_SWEBENCH_BENCH) or {})
+                .get("launch_authorization", {})
+                .get("mode", "")
+            )
         except Exception as exc:
-            print(f"ERROR: cannot read suite or adapter for qualification: {exc}", file=sys.stderr)
+            print(f"ERROR: cannot read suite or adapter for launch authorization: {exc}", file=sys.stderr)
             return EXIT_CONFIG
-        artifact_path = args.qualification or swebench_qualification.default_artifact_path(
-            repo, _suite_id_gate, _slug_gate
-        )
-        verdict = swebench_qualification.verify_qualification_for_launch(
-            repo=_REPO_DIR,
-            suite_path=suite_path,
-            adapter_path=pathlib.Path(args.adapter).resolve(),
-            endpoint=args.endpoint,
-            artifact_path=artifact_path,
-            api_key=args.api_key,
-        )
-        if not verdict.ok:
-            print(verdict.render(), file=sys.stderr)
+        if _launch_mode_gate not in {"qualification_seal", "direct_n100_after_preflight"}:
             print(
-                f"ERROR: refusing to create or launch a canonical SWE-bench campaign "
-                f"without a valid qualification ({artifact_path}).",
+                f"ERROR: unknown or absent SWE-bench launch authorization mode "
+                f"{_launch_mode_gate!r}; refusing launch.",
                 file=sys.stderr,
             )
-            return EXIT_DEFECT
+            return EXIT_CONFIG
+        if _launch_mode_gate == "qualification_seal":
+            artifact_path = args.qualification or swebench_qualification.default_artifact_path(
+                repo, _suite_id_gate, _slug_gate
+            )
+            verdict = swebench_qualification.verify_qualification_for_launch(
+                repo=_REPO_DIR,
+                suite_path=suite_path,
+                adapter_path=pathlib.Path(args.adapter).resolve(),
+                endpoint=args.endpoint,
+                artifact_path=artifact_path,
+                api_key=args.api_key,
+            )
+            if not verdict.ok:
+                print(verdict.render(), file=sys.stderr)
+                print(
+                    f"ERROR: refusing to create or launch a canonical SWE-bench campaign "
+                    f"without a valid qualification ({artifact_path}).",
+                    file=sys.stderr,
+                )
+                return EXIT_DEFECT
 
     # Resolve run directory
     if args.run_dir is not None:
@@ -2967,6 +3108,7 @@ def main(argv=None) -> int:
             endpoint=args.endpoint,
             run_dir=run_dir,
             repo=repo,
+            python_executable=args.python_executable,
             api_key=args.api_key,
             workers=args.workers,
             dry_run=args.dry_run,
