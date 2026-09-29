@@ -9,7 +9,7 @@
 
 Make the top-level SWE-bench comparison directly answer two questions for the same frozen 100 instances:
 
-1. How many instances produced a nonempty patch that reached grading?
+1. How many assigned instances produced a nonempty patch?
 2. How many of all 100 assigned instances were resolved?
 
 For future campaigns, remove the separate n=20 launch qualification and run the full frozen n=100 campaign after cheap live preflight, while retaining the in-run systemic-failure circuit breaker and all evidence/publication gates.
