@@ -163,21 +163,26 @@ class TestProductionGenerationToolProbe(unittest.TestCase):
                 prompt_token_maxima={"gsm8k": 500, "ifeval": 2000, "gpqa_diamond": 1000},
             )
 
-    def test_constructor_preserves_venv_symlink_path(self):
-        venv_python = pathlib.Path("/Users/jchilders/swebench-run/venv/bin/python")
-        if not venv_python.exists():
-            self.skipTest("production mini-swe-agent venv is not installed")
-        runner = run_swebench.SwebenchRunner(
-            suite_path=_REPO / "suite" / "warpcore-v2.yaml",
-            adapter_path=_REPO / "adapters" / "ornith-1.5-35b-a3b.yaml",
-            endpoint="http://endpoint.example/v1",
-            run_dir=self.run_dir,
-            repo=_REPO,
-            python_executable=str(venv_python),
-            allow_no_screen=True,
-            prompt_token_maxima={"gsm8k": 500, "ifeval": 2000, "gpqa_diamond": 1000},
-        )
-        self.assertEqual(runner._python_executable, str(venv_python.absolute()))
+    def test_constructor_preserves_interpreter_symlink_path(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = pathlib.Path(tmp)
+            target = tmp_path / "python-target"
+            target.write_text("#!/bin/sh\nexit 0\n")
+            target.chmod(0o700)
+            venv_python = tmp_path / "venv-python"
+            venv_python.symlink_to(target)
+            runner = run_swebench.SwebenchRunner(
+                suite_path=_REPO / "suite" / "warpcore-v2.yaml",
+                adapter_path=_REPO / "adapters" / "ornith-1.5-35b-a3b.yaml",
+                endpoint="http://endpoint.example/v1",
+                run_dir=self.run_dir,
+                repo=_REPO,
+                python_executable=str(venv_python),
+                allow_no_screen=True,
+                prompt_token_maxima={"gsm8k": 500, "ifeval": 2000, "gpqa_diamond": 1000},
+            )
+            self.assertEqual(runner._python_executable, str(venv_python.absolute()))
+            self.assertNotEqual(runner._python_executable, str(target.resolve()))
 
     def test_generation_argv_uses_explicit_pinned_interpreter(self):
         pinned = "/opt/pinned/bin/python"
