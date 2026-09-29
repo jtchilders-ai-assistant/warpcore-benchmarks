@@ -38,13 +38,14 @@ The table will not show conditional `resolved / submitted` percentages. Those re
 
 For a selected n=100 report:
 
+- `submitted = count of assigned instances with a nonempty model_patch in predictions` (when predictions are retained); for older aggregate-only reports, `submitted = resolved + submitted-but-wrong` where those fields are proven by the retained aggregate artifact.
 - `resolved = len(resolved_ids)`
-- `submitted-but-wrong = len(unresolved_ids)`
-- `submitted = resolved + submitted-but-wrong`
-- `empty/error/incomplete` remain outside `submitted` and still remain failures in the full denominator
+- `submitted-but-wrong = len(unresolved_ids)` (graded but not resolved)
+- `grading_error = len(error_ids)` — nonempty patches that reached the grader but failed before a terminal verdict; these count as **submitted** (nonempty patch exists) but **not resolved**
+- `empty/incomplete` remain outside `submitted` and are failures in the full denominator
 - `resolved percentage = resolved / 100`
 
-A generated nonempty patch that fails before a terminal grader verdict is not counted as submitted in the headline. It must remain visible as a grading error in provenance. This makes “submitted” mean “gradeable patch with a verdict,” matching the user-facing comparison question and preventing ambiguous treatment of historical grader errors.
+A nonempty patch that receives a grading error is **submitted** (evidence of a nonempty patch is in predictions) but **not resolved**. It must remain visible as a grading error in provenance. This makes “submitted” mean “instances with a nonempty generated patch,” regardless of whether grading succeeded. Older aggregate-only reports may prove submitted count only through their retained `resolved + unresolved` partition and must carry an explicit provenance caveat when per-prediction evidence is absent.
 
 ### 3.3 Selected run per model
 
@@ -53,7 +54,7 @@ Use the newest, best-provenance completed n=100 run for each model:
 - Ornith 1.0: historical retained n=100 report — submitted 91/100, resolved 73/100.
 - Laguna S 2.1: historical retained n=100 report — submitted 65/100, resolved 55/100.
 - Nemotron 3.5 Lightning: historical retained n=100 report — submitted 98/100, resolved 51/100.
-- Qwen3.6: validated `warpcore-v1` run `qwen36-swebench-n100-20260919` — submitted 87/100, resolved 57/100. The older 44/100 run remains historical and is disclosed in its footnote.
+- Qwen3.6: validated `warpcore-v1` run `qwen36-swebench-n100-20260919` — submitted 89/100, resolved 57/100. **Submitted is derived from nonempty `model_patch` in predictions (89 of 100 predictions have a nonempty patch); the 2 grading errors (`error_ids`) also have nonempty patches and are therefore counted as submitted but not resolved.** The older 44/100 run remains historical and is disclosed in its footnote.
 - Qwen3.5: completed diagnostic run `qwen35-swebench-trial-n100-20260928` — submitted 76/100, resolved 57/100, visibly labeled diagnostic because it was not eligible under the frozen v1 qualification policy.
 
 Models without a completed, gradeable n=100 result show `not measured` in both columns.

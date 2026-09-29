@@ -9,7 +9,6 @@ Usage:  python3 viz/fig2_swebench.py
 """
 from __future__ import annotations
 
-import json
 from collections import Counter
 
 import matplotlib
@@ -17,20 +16,27 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Patch
 
-from common import C, REPO, SHORT, SWE_ORDER, SWEBENCH_RESULTS, TINY, paired_diff, save
-
-SWEBENCH = SWEBENCH_RESULTS
+from common import C, REPO, SHORT, SWE_ORDER, TINY, paired_diff, save
+from swebench_reporting import selected_swebench_reports
 
 
 def load_swebench():
-    data = {m: json.loads((REPO / p).read_text()) for m, p in SWEBENCH.items()}
-    resolved = {m: set(d["resolved_ids"]) for m, d in data.items()}
-    empty = {m: set(d["empty_patch_ids"]) for m, d in data.items()}
-    submitted = {m: set(d["submitted_ids"]) for m, d in data.items()}
-    sets = list(submitted.values())
-    assert all(s == sets[0] for s in sets), \
-        "instance sets differ across models -- paired statistics would be invalid"
-    return resolved, empty, sorted(sets[0])
+    reports = selected_swebench_reports(REPO)
+    resolved = {m: set(reports[m]["resolved_ids"]) for m in SWE_ORDER}
+    empty = {m: set(reports[m]["empty_patch_ids"]) for m in SWE_ORDER}
+    partitions = [
+        set(reports[m]["resolved_ids"])
+        | set(reports[m]["unresolved_ids"])
+        | set(reports[m]["empty_patch_ids"])
+        | set(reports[m]["error_ids"])
+        | set(reports[m]["incomplete_ids"])
+        for m in SWE_ORDER
+    ]
+    if not partitions or any(ids != partitions[0] for ids in partitions):
+        raise ValueError("instance sets differ across models -- paired statistics invalid")
+    if len(partitions[0]) != 100:
+        raise ValueError(f"expected exactly 100 SWE-bench instances, got {len(partitions[0])}")
+    return resolved, empty, sorted(partitions[0])
 
 
 def main() -> None:
@@ -83,11 +89,8 @@ def main() -> None:
 
     # ------------------------------------------- bottom-left: decomposition
     #
-    # The takeaway here is Laguna: it has the WORST submission rate (65/100) but
-    # the BEST accuracy on what it does submit, so its headline 55 understates it
-    # more than any other model's. Sorting by resolve-rate makes that visible.
     ax1 = fig.add_subplot(gs[1, 0])
-    order = sorted(SWE_ORDER, key=lambda m: -len(R[m]) / max(100 - len(EP[m]), 1))
+    order = sorted(SWE_ORDER, key=lambda m: -len(R[m]))
     y = np.arange(NM)
     res = [len(R[m]) for m in order]
     ep = [len(EP[m]) for m in order]
@@ -103,13 +106,13 @@ def main() -> None:
             ax1.text(r + f + e / 2, i, str(e), ha="center", va="center",
                      fontsize=8.5, color="#7A2E00", fontweight="bold")
     ax1.set_yticks(y)
-    ax1.set_yticklabels([f"{TINY[m]}\n{100 * len(R[m]) / max(100 - len(EP[m]), 1):.0f}% of submitted"
+    ax1.set_yticklabels([f"{TINY[m]}\n{len(R[m])}/100 resolved"
                          for m in order], fontsize=8)
     ax1.set_xlim(0, 100)
     ax1.set_ylim(NM - 0.05, -0.55)
     ax1.set_xlabel("instances (of 100)")
-    ax1.set_title("Laguna is the most accurate coder here (85% of what it\n"
-                  "submits resolves) but submits least \u2014 35 never finish",
+    ax1.set_title("Full-denominator SWE-bench outcomes\n"
+                  "resolved, unresolved, and empty patches",
                   fontsize=9.8)
 
     # ------------------------------------------ bottom-right: paired diffs
@@ -137,8 +140,8 @@ def main() -> None:
     ax2.set_xlim(-14, 46)
     ax2.set_ylim(len(pairs) - 0.25, -0.75)
     ax2.set_xlabel("paired difference in % resolved (95% CI, same 100 instances)")
-    ax2.set_title("Ornith beats Laguna by 18 pp, but 35 of Laguna's misses\n"
-                  "are non-submissions \u2014 the gap is not all capability",
+    ax2.set_title("Paired resolved-rate differences\n"
+                  "on the identical 100-instance set",
                   fontsize=9.8)
     ax2.legend(handles=[Patch(fc="#2E7D32", label="CI excludes 0 \u2014 real"),
                         Patch(fc="#B00020", label="CI crosses 0 \u2014 not distinguishable")],

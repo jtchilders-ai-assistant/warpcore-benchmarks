@@ -300,6 +300,16 @@ legacy `raw/swebench/` and normalized `runs/<suite>/swebench/<run-id>/` layouts;
 different runs to manufacture a complete row. Lifecycle and publication eligibility are separate:
 Qwen3.5's complete row is diagnostic evidence, not a canonical score.
 
+For comparable n=100 reporting, **submitted** means an assigned instance with a nonempty
+`model_patch`; **resolved** means an ID in the official `resolved_ids`; any displayed correctness
+percentage is `resolved / 100`. The selected Qwen3.6 `warpcore-v1` root is supported by retained
+predictions and reports **89/100 nonempty patches** and **57/100 resolved**; its two grading-error
+patches count as submitted but not resolved. Qwen3.5 likewise has retained predictions proving
+**76/100 nonempty patches** and 57/100 resolved, but that run remains diagnostic and excluded from
+the canonical matrix. Historical Ornith, Laguna, and Lightning prediction files prove their
+nonempty-patch totals, while their older manifests, trajectories, and exit-status artifacts retain
+the provenance limitations shown below; no missing cause labels are reconstructed.
+
 gpt-oss is published as **blocked / no score** (a vLLM tool-call bug, see `raw/DIAGNOSIS.json`), so
 its absent preds and report are correct behaviour, not a gap. Its historical table row describes the
 pre-contract `raw/swebench/` tree. gpt-oss additionally has a **failed warpcore-v1 campaign**,

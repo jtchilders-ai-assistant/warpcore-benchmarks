@@ -32,7 +32,8 @@ import json
 import random
 from collections import defaultdict
 
-from common import DATA, REPO, SWEBENCH_RESULTS
+from common import DATA, REPO, SWE_ORDER
+from swebench_reporting import selected_swebench_reports
 
 MIN_N = 4
 B = 10000
@@ -45,10 +46,13 @@ def repo_of(instance_id: str) -> str:
 
 
 def per_repo(model: str) -> dict[str, list[int]]:
-    d = json.loads((REPO / SWEBENCH_RESULTS[model]).read_text())
+    d = selected_swebench_reports(REPO)[model]
     resolved = set(d["resolved_ids"])
     buckets: dict[str, list[int]] = defaultdict(list)
-    for inst in d["submitted_ids"]:
+    inventory = set().union(*(set(d[k]) for k in (
+        "resolved_ids", "unresolved_ids", "empty_patch_ids", "error_ids", "incomplete_ids"
+    )))
+    for inst in inventory:
         buckets[repo_of(inst)].append(1 if inst in resolved else 0)
     return dict(buckets)
 
@@ -73,7 +77,7 @@ def bootstrap_ci(buckets: dict[str, list[int]], repos: list[str]) -> list:
 
 
 def main() -> None:
-    models = [m for m in SWEBENCH_RESULTS if m != "gpt-oss-120b"]
+    models = list(SWE_ORDER)
     buckets = {m: per_repo(m) for m in models}
 
     # Repos meeting MIN_N in every model, so the comparison is like-for-like.
@@ -91,8 +95,8 @@ def main() -> None:
         "models": {},
     }
     for m in models:
-        d = json.loads((REPO / SWEBENCH_RESULTS[m]).read_text())
-        nominal = 100 * len(d["resolved_ids"]) / len(d["submitted_ids"])
+        d = selected_swebench_reports(REPO)[m]
+        nominal = 100 * len(d["resolved_ids"]) / d["expected"]
         out["models"][m] = {
             "nominal_pct": round(nominal, 1),
             "balanced_pct": round(balanced(buckets[m], repos), 1),

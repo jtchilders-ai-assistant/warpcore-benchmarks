@@ -245,13 +245,14 @@ only because the flag rides with the data and no ranking claim depends on it —
 the paired test needs no attribution at all. Either commit the artifact or drop
 the entry; do not let a second such case appear without the same disclosure.
 
-**Mind the vocabulary.** Repo prose calls empty-patch instances "non-submissions",
-but the harness did receive a submission — an empty one; they land in
-`empty_patch_ids` and `submitted_ids` still counts them. Say **ungraded** or
-**empty patch**. Nor is `completed_ids` the verdict set: it can undercount when
-an instance is re-graded after a harness timeout. `resolved_ids | unresolved_ids`
-is the only ground truth for "did it get a verdict?", and `submitted_ids` is the
-right pool for a paired comparison.
+**Mind the vocabulary.** In user-facing SWE-bench reporting, **submitted means an assigned
+instance with a nonempty `model_patch`**. A nonempty patch with a grading error is still submitted,
+but not resolved. `empty_patch_ids` are empty patches and therefore not submitted under this
+reporting definition, even when a legacy harness field named `submitted_ids` includes every assigned
+instance. Nor is `completed_ids` the verdict set: it can undercount when an instance is re-graded
+after a harness timeout. Use `resolved_ids | unresolved_ids` only for “received a terminal grader
+verdict,” use retained predictions for nonempty-patch submission counts, and use the full frozen
+100-ID inventory for paired comparisons.
 
 **Config files must match the run they document.** `launch_ornith.sh` declares
 `--gpu-memory-utilization 0.90` while the SWE-bench run used **0.55**; both are
