@@ -300,6 +300,17 @@ legacy `raw/swebench/` and normalized `runs/<suite>/swebench/<run-id>/` layouts;
 different runs to manufacture a complete row. Lifecycle and publication eligibility are separate:
 Qwen3.5's complete row is diagnostic evidence, not a canonical score.
 
+`warpcore-v1` is frozen and continues to require its fresh n=20 SWE-bench
+qualification seal. `warpcore-v2` changes only launch authorization: it forbids
+that seal, requires production endpoint/model/tool-call preflight immediately
+before a direct n=100 launch, and retains the in-run systemic-failure circuit
+breaker. Canonical v2 evidence includes `preflight.json`,
+`launch_authorization.json`, `circuit_breaker.json`, predictions, grading,
+terminal status, manifest, and `DONE`. Missing or malformed authorization,
+prediction, grading, or full-denominator evidence blocks validation and
+publication. A noncanonical trial is diagnostic evidence only and cannot be
+promoted by bypassing either suite's launch policy.
+
 For comparable n=100 reporting, **submitted** means an assigned instance with a nonempty
 `model_patch`; **resolved** means an ID in the official `resolved_ids`; any displayed correctness
 percentage is `resolved / 100`. The selected Qwen3.6 `warpcore-v1` root is supported by retained

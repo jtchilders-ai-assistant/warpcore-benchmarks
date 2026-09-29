@@ -13,6 +13,11 @@ basis, and documents the serving issues encountered on the hardware and how they
 > validated campaign (Qwen3.6 SWE-bench, 57/100). The two data products are distinct: the legacy table
 > below cannot be silently promoted to canonical status, and the v1 matrix will not inherit historical
 > artifacts without explicit re-validation.
+> `warpcore-v1` remains frozen with its n=20 qualification gate. The explicit
+> `warpcore-v2` protocol instead launches the same frozen n=100 SWE-bench set
+> only after production endpoint/model/tool-call preflight, with the systemic-
+> failure circuit breaker active throughout generation. This changes launch
+> authorization, not the denominator or scoring semantics.
 > See [PROVENANCE.md §6](PROVENANCE.md) for the lifecycle classification and the fail-closed registry.
 
 ## Results at a glance
