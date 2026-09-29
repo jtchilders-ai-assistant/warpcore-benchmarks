@@ -1,0 +1,91 @@
+2026-09-28 23:09:55,937 - INFO - Creating container for sphinx-doc__sphinx-7440...
+2026-09-28 23:09:56,153 - INFO - Container for sphinx-doc__sphinx-7440 created: 8df1ee53843df9ce1fd8abece94fb6c07fd398bf1c39868cd4bcf4a7bf38caa3
+2026-09-28 23:09:56,716 - INFO - Container for sphinx-doc__sphinx-7440 started: 8df1ee53843df9ce1fd8abece94fb6c07fd398bf1c39868cd4bcf4a7bf38caa3
+2026-09-28 23:09:56,723 - INFO - Intermediate patch for sphinx-doc__sphinx-7440 written to logs/run_evaluation/qwen35-swebench-trial-n100-20260928/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/sphinx-doc__sphinx-7440/patch.diff, now applying to container...
+2026-09-28 23:09:57,189 - INFO - >>>>> Applied Patch:
+Checking patch sphinx/domains/std.py...
+Applied patch sphinx/domains/std.py cleanly.
+
+2026-09-28 23:09:58,411 - INFO - Git diff before:
+diff --git a/sphinx/domains/std.py b/sphinx/domains/std.py
+index d820cfe5c..90b9f3f89 100644
+--- a/sphinx/domains/std.py
++++ b/sphinx/domains/std.py
+@@ -305,7 +305,7 @@ def make_glossary_term(env: "BuildEnvironment", textnodes: Iterable[Node], index
+         term['ids'].append(node_id)
+ 
+     std = cast(StandardDomain, env.get_domain('std'))
+-    std.note_object('term', termtext.lower(), node_id, location=term)
++    std.note_object('term', termtext, node_id, location=term)
+ 
+     # add an index entry too
+     indexnode = addnodes.index()
+@@ -928,9 +928,20 @@ class StandardDomain(Domain):
+                           node: pending_xref, contnode: Element) -> Element:
+         objtypes = self.objtypes_for_role(typ) or []
+         for objtype in objtypes:
+-            if (objtype, target) in self.objects:
+-                docname, labelid = self.objects[objtype, target]
++            if objtype == 'term':
++                # case-insensitive lookup for term references
++                target_lower = target.lower()
++                for key in self.objects:
++                    if key[0] == objtype and key[1].lower() == target_lower:
++                        docname, labelid = self.objects[key]
++                        break
++                else:
++                    continue
+                 break
++            else:
++                if (objtype, target) in self.objects:
++                    docname, labelid = self.objects[objtype, target]
++                    break
+         else:
+             docname, labelid = '', ''
+         if not docname:
+2026-09-28 23:09:58,412 - INFO - Eval script for sphinx-doc__sphinx-7440 written to logs/run_evaluation/qwen35-swebench-trial-n100-20260928/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/sphinx-doc__sphinx-7440/eval.sh; copying to container...
+2026-09-28 23:10:09,956 - INFO - Test runtime: 11.35 seconds
+2026-09-28 23:10:09,956 - INFO - Test output for sphinx-doc__sphinx-7440 written to logs/run_evaluation/qwen35-swebench-trial-n100-20260928/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/sphinx-doc__sphinx-7440/test_output.txt
+2026-09-28 23:10:10,071 - INFO - Git diff after:
+diff --git a/sphinx/domains/std.py b/sphinx/domains/std.py
+index d820cfe5c..90b9f3f89 100644
+--- a/sphinx/domains/std.py
++++ b/sphinx/domains/std.py
+@@ -305,7 +305,7 @@ def make_glossary_term(env: "BuildEnvironment", textnodes: Iterable[Node], index
+         term['ids'].append(node_id)
+ 
+     std = cast(StandardDomain, env.get_domain('std'))
+-    std.note_object('term', termtext.lower(), node_id, location=term)
++    std.note_object('term', termtext, node_id, location=term)
+ 
+     # add an index entry too
+     indexnode = addnodes.index()
+@@ -928,9 +928,20 @@ class StandardDomain(Domain):
+                           node: pending_xref, contnode: Element) -> Element:
+         objtypes = self.objtypes_for_role(typ) or []
+         for objtype in objtypes:
+-            if (objtype, target) in self.objects:
+-                docname, labelid = self.objects[objtype, target]
++            if objtype == 'term':
++                # case-insensitive lookup for term references
++                target_lower = target.lower()
++                for key in self.objects:
++                    if key[0] == objtype and key[1].lower() == target_lower:
++                        docname, labelid = self.objects[key]
++                        break
++                else:
++                    continue
+                 break
++            else:
++                if (objtype, target) in self.objects:
++                    docname, labelid = self.objects[objtype, target]
++                    break
+         else:
+             docname, labelid = '', ''
+         if not docname:
+2026-09-28 23:10:10,071 - INFO - Grading answer for sphinx-doc__sphinx-7440...
+2026-09-28 23:10:10,083 - INFO - report: {'sphinx-doc__sphinx-7440': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['tests/test_domain_std.py::test_glossary'], 'failure': []}, 'PASS_TO_PASS': {'success': ['tests/test_domain_std.py::test_process_doc_handle_figure_caption', 'tests/test_domain_std.py::test_process_doc_handle_table_title', 'tests/test_domain_std.py::test_get_full_qualified_name', 'tests/test_domain_std.py::test_glossary_warning', 'tests/test_domain_std.py::test_glossary_comment', 'tests/test_domain_std.py::test_glossary_comment2', 'tests/test_domain_std.py::test_glossary_sorted', 'tests/test_domain_std.py::test_glossary_alphanumeric', 'tests/test_domain_std.py::test_glossary_conflicted_labels', 'tests/test_domain_std.py::test_cmdoption', 'tests/test_domain_std.py::test_multiple_cmdoptions', 'tests/test_domain_std.py::test_disabled_docref'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sphinx-doc__sphinx-7440: resolved: True
+2026-09-28 23:10:10,083 - INFO - Attempting to stop container sweb.eval.sphinx-doc__sphinx-7440.qwen35-swebench-trial-n100-20260928...
+2026-09-28 23:10:25,319 - INFO - Attempting to remove container sweb.eval.sphinx-doc__sphinx-7440.qwen35-swebench-trial-n100-20260928...
+2026-09-28 23:10:25,545 - INFO - Container sweb.eval.sphinx-doc__sphinx-7440.qwen35-swebench-trial-n100-20260928 removed.

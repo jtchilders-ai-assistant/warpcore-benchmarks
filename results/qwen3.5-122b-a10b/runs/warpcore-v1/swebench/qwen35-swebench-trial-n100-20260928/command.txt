@@ -1,0 +1,2 @@
+NONCANONICAL TRIAL — frozen n=100; lifecycle=diagnostic; canonical qualification not passed; not publication-eligible
+python3 viz/run_swebench.py --suite suite/warpcore-v1.yaml --adapter adapters/qwen3.5-122b-a10b.yaml --endpoint http://csi370295.alcf.anl.gov:8000/v1 --run-id qwen35-swebench-trial-n100-20260928 --model Intel/Qwen3.5-122B-A10B-int4-AutoRound

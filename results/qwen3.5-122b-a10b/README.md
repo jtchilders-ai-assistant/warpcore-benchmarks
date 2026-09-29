@@ -143,6 +143,24 @@ unresolved, and 3 empty-patch instances. **14/20 is not the canonical suite scor
 published as the SWE-bench cell. The complete gate decision is retained in
 [`qualification_decision.json`](qualification/warpcore-v1/swebench/qualification_decision.json).
 
+### SWE-bench frozen n=100 diagnostic trial
+
+Because 17/20 qualification instances produced gradeable patches, we gathered broader evidence with
+the unchanged frozen seed-42 n=100 inventory and scaffold under the runner's explicit
+`--noncanonical-trial` mode. The completed trial resolved **57/100 overall**. Generation produced
+**76 nonempty `Submitted` patches**, 21 `LimitsExceeded`, 2 `Timeout`, and 1
+`ContextWindowExceededError`; official grading classified **57 resolved, 19 unresolved, and 24 empty
+patches**, with **0 grading errors and 0 incomplete instances**. Conditional on a nonempty submitted
+patch, 57/76 were resolved; that conditional rate must not replace the full-denominator 57/100 result.
+
+This result is **diagnostic, not canonical**. The qualification gate still failed, no
+`qualification.json` exists, `canonical_n100_launched` remains false, and the trial lifecycle is
+`diagnostic`; therefore it is not publication-eligible and remains excluded from the canonical matrix.
+All 100 predictions, source trajectories, byte-matched normalized trajectory copies, agent exit
+statuses, official grader reports/logs, suite snapshots, manifest, status history, command, and `DONE`
+sentinel are retained under
+[`qwen35-swebench-trial-n100-20260928/`](runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/).
+
 ## Throughput refresh — 2026-09-24
 
 A fresh 512-input/256-output sweep on the campaign serving profile completed **1,280/1,280**
@@ -157,8 +175,9 @@ campaign measurement.
 
 - **MTP / speculative decoding.** The baseline remains MTP-off; this is the lever relevant to the
   Reddit ~50 tok/s single-stream claim.
-- A future SWE-bench n=100 campaign requires a new, fresh n=20 qualification that satisfies the
-  unchanged 20/20 submission gate. Reusing or sealing the failed qualification is prohibited.
+- A future **canonical** SWE-bench campaign requires a new, fresh n=20 qualification that satisfies
+  the unchanged 20/20 submission gate. The retained diagnostic n=100 trial cannot be promoted by
+  reusing or sealing the failed qualification.
 
 ## Reproduce
 

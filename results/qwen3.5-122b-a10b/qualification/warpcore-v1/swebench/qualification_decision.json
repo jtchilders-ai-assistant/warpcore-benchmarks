@@ -61,5 +61,27 @@
     "run-20260927b": "partial attempt: 14 Submitted and 3 LimitsExceeded",
     "run-20260927c": "invalid launch: ModuleNotFoundError before any trajectory",
     "run-20260927d": "partial attempt: 11 Submitted and 1 LimitsExceeded"
+  },
+  "noncanonical_n100_trial_launched": true,
+  "noncanonical_n100_trial": {
+    "run_id": "qwen35-swebench-trial-n100-20260928",
+    "run_dir": "results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928",
+    "lifecycle": "diagnostic",
+    "expected": 100,
+    "observed": 100,
+    "submitted_nonempty": 76,
+    "generation_dispositions": {
+      "ContextWindowExceededError": 1,
+      "LimitsExceeded": 21,
+      "Submitted": 76,
+      "Timeout": 2
+    },
+    "resolved": 57,
+    "unresolved": 19,
+    "empty_patch": 24,
+    "grading_errors": 0,
+    "incomplete": 0,
+    "publishable": false,
+    "interpretation": "The frozen seed-42 n=100 set was run only to gather diagnostic evidence after the 17/20 qualification result. It does not alter the failed 20/20 gate, create a qualification seal, authorize a canonical launch, or populate the canonical matrix."
   }
 }

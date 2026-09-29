@@ -1,0 +1,25 @@
+# Canonical serving adapter for Intel Qwen3.5-122B-A10B INT4 AutoRound on one GB10.
+# Immutable model and image identities were captured before campaign launch.
+
+adapter_schema_version: 1
+campaign_status: canonical
+
+model:
+  slug: qwen3.5-122b-a10b
+  id: Intel/Qwen3.5-122B-A10B-int4-AutoRound
+  revision: 3045d02bb737effc4581da91bddbad3be02934e4
+
+serving:
+  image: eugr/spark-vllm@sha256:c154ad0a2575d6c42f8e05cba16ef255ce4ff54d537ad37987ca5b4215cb58b8
+  engine: vllm
+  engine_version: 0.29.1rc1.dev427+g0748d3bd5.d20260920
+  quantization: int4-autoround
+  reasoning_parser: qwen3
+  tool_call_parser: qwen3_xml
+  tokenizer: Qwen/Qwen3.5-122B-A10B
+  moe_backend: marlin
+  max_model_len: 262144
+  gpu_memory_utilization: 0.8
+  max_num_seqs: 128
+  environment:
+    VLLM_MARLIN_USE_ATOMIC_ADD: "1"

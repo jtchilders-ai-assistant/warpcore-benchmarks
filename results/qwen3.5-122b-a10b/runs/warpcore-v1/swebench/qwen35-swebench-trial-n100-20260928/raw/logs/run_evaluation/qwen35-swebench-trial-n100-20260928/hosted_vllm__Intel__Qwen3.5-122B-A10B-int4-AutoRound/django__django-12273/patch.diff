@@ -1,0 +1,31 @@
+diff --git a/django/db/models/base.py b/django/db/models/base.py
+index 844c01e95e..1e65b22376 100644
+--- a/django/db/models/base.py
++++ b/django/db/models/base.py
+@@ -566,7 +566,16 @@ class Model(metaclass=ModelBase):
+ 
+     def _get_pk_val(self, meta=None):
+         meta = meta or self._meta
+-        return getattr(self, meta.pk.attname)
++        pk_val = getattr(self, meta.pk.attname)
++        # If the model has parents and the parent's PK is None,
++        # consider the child's PK as None as well.
++        # This is needed to support resetting the parent's PK to None
++        # (e.g., self.parent_ptr = None) to create a new object.
++        if pk_val is not None and meta.parents and not self._state.adding:
++            for parent, field in meta.parents.items():
++                if getattr(self, parent._meta.pk.attname) is None:
++                    return None
++        return pk_val
+ 
+     def _set_pk_val(self, value):
+         return setattr(self, self._meta.pk.attname, value)
+@@ -805,7 +814,7 @@ class Model(metaclass=ModelBase):
+         for parent, field in meta.parents.items():
+             # Make sure the link fields are synced between parent and self.
+             if (field and getattr(self, parent._meta.pk.attname) is None and
+-                    getattr(self, field.attname) is not None):
++                    getattr(self, field.attname) is not None and self._state.adding):
+                 setattr(self, parent._meta.pk.attname, getattr(self, field.attname))
+             parent_inserted = self._save_parents(cls=parent, using=using, update_fields=update_fields)
+             updated = self._save_table(

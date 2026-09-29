@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "suite_id": "warpcore-v1",
+  "suite_schema_version": 1,
+  "run_id": "qwen35-swebench-trial-n100-20260928",
+  "benchmark": "swebench",
+  "adapter_hash": "ca1b63546a0c742775da305cb247407a1056938817808a1a07dc25297a7c9e99",
+  "suite_input_hashes": {
+    "suite/warpcore-v1.yaml": "cc4f314301e80bf97140d848a27ae8bb869a49c853c984949270070ecd4d7aaa",
+    "suite/swebench/instances-seed42-n100.json": "d46f257dc87482e432307a6e96d5ee2d14b372df0c43b413eba48a573c6d0a24",
+    "suite/swebench/scaffold.yaml": "419244dc6060fc242ba4defb72c3098c351ed6b4325ac6742737a463ace6125f"
+  },
+  "serving_profile_digest": "sha256:5c280a7a0dbf72ba4955757f76727f2e654f64564996ff1c7b12c440f8ae2dec",
+  "model": {
+    "slug": "qwen3.5-122b-a10b",
+    "id": "Intel/Qwen3.5-122B-A10B-int4-AutoRound",
+    "revision": "3045d02bb737effc4581da91bddbad3be02934e4"
+  },
+  "serving": {
+    "image_digest": "sha256:c154ad0a2575d6c42f8e05cba16ef255ce4ff54d537ad37987ca5b4215cb58b8",
+    "engine": "vllm",
+    "engine_version": "0.29.1rc1.dev427+g0748d3bd5.d20260920",
+    "effective_args": [
+      "--quantization=int4-autoround",
+      "--reasoning-parser=qwen3",
+      "--tool-call-parser=qwen3_xml",
+      "--tokenizer=Qwen/Qwen3.5-122B-A10B",
+      "--moe-backend=marlin",
+      "--max-model-len=262144",
+      "--gpu-memory-utilization=0.8",
+      "--max-num-seqs=128",
+      "--engine=vllm",
+      "--engine-version=0.29.1rc1.dev427+g0748d3bd5.d20260920",
+      "--env=VLLM_MARLIN_USE_ATOMIC_ADD=1"
+    ],
+    "environment": {
+      "VLLM_MARLIN_USE_ATOMIC_ADD": "1"
+    },
+    "hardware_id": "dgx-spark-gb10"
+  },
+  "item_inventory": {
+    "expected": 100,
+    "submitted": 100,
+    "instance_ids_hash": "f81e294e48301b1523c194b70d8f399bef0bfd41728eb89e081548290c57734e"
+  },
+  "timing": {
+    "started_utc": "2026-09-28T00:54:21Z",
+    "completed_utc": "2026-09-29T04:14:58Z"
+  },
+  "artifact_inventory": {
+    "samples_jsonl_gz": false,
+    "per_item_csv": false,
+    "run_log": true,
+    "command_txt": true,
+    "done_sentinel": true,
+    "preds_json": true,
+    "exit_statuses_json": true,
+    "grading_results_json": true
+  }
+}

@@ -1,0 +1,241 @@
+2026-09-28 23:13:01,216 - INFO - Creating container for sympy__sympy-15976...
+2026-09-28 23:13:01,494 - INFO - Container for sympy__sympy-15976 created: 7b58b0f6a0d716b82159b462de2479f73721b6d20021588ac78ab6954bd4635e
+2026-09-28 23:13:01,895 - INFO - Container for sympy__sympy-15976 started: 7b58b0f6a0d716b82159b462de2479f73721b6d20021588ac78ab6954bd4635e
+2026-09-28 23:13:01,896 - INFO - Intermediate patch for sympy__sympy-15976 written to logs/run_evaluation/qwen35-swebench-trial-n100-20260928/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/sympy__sympy-15976/patch.diff, now applying to container...
+2026-09-28 23:13:02,367 - INFO - >>>>> Applied Patch:
+Checking patch sympy/printing/mathml.py...
+Applied patch sympy/printing/mathml.py cleanly.
+
+2026-09-28 23:13:03,930 - INFO - Git diff before:
+diff --git a/sympy/printing/mathml.py b/sympy/printing/mathml.py
+index 3f8b8d49e..0e2158502 100644
+--- a/sympy/printing/mathml.py
++++ b/sympy/printing/mathml.py
+@@ -335,7 +335,7 @@ def _print_Sum(self, e):
+     def _print_Symbol(self, sym):
+         ci = self.dom.createElement(self.mathml_tag(sym))
+ 
+-        def join(items):
++        def join(items, tag='mml:mi'):
+             if len(items) > 1:
+                 mrow = self.dom.createElement('mml:mrow')
+                 for i, item in enumerate(items):
+@@ -343,14 +343,14 @@ def join(items):
+                         mo = self.dom.createElement('mml:mo')
+                         mo.appendChild(self.dom.createTextNode(" "))
+                         mrow.appendChild(mo)
+-                    mi = self.dom.createElement('mml:mi')
+-                    mi.appendChild(self.dom.createTextNode(item))
+-                    mrow.appendChild(mi)
++                    elem = self.dom.createElement(tag)
++                    elem.appendChild(self.dom.createTextNode(item))
++                    mrow.appendChild(elem)
+                 return mrow
+             else:
+-                mi = self.dom.createElement('mml:mi')
+-                mi.appendChild(self.dom.createTextNode(items[0]))
+-                return mi
++                elem = self.dom.createElement(tag)
++                elem.appendChild(self.dom.createTextNode(items[0]))
++                return elem
+ 
+         # translate name, supers and subs to unicode characters
+         def translate(s):
+@@ -372,19 +372,19 @@ def translate(s):
+             else:
+                 msub = self.dom.createElement('mml:msub')
+                 msub.appendChild(mname)
+-                msub.appendChild(join(subs))
++                msub.appendChild(join(subs, 'mml:mn' if all(s.isdigit() for s in subs) else 'mml:mi'))
+                 ci.appendChild(msub)
+         else:
+             if len(subs) == 0:
+                 msup = self.dom.createElement('mml:msup')
+                 msup.appendChild(mname)
+-                msup.appendChild(join(supers))
++                msup.appendChild(join(supers, 'mml:mn' if all(s.isdigit() for s in supers) else 'mml:mi'))
+                 ci.appendChild(msup)
+             else:
+                 msubsup = self.dom.createElement('mml:msubsup')
+                 msubsup.appendChild(mname)
+-                msubsup.appendChild(join(subs))
+-                msubsup.appendChild(join(supers))
++                msubsup.appendChild(join(subs, 'mml:mn' if all(s.isdigit() for s in subs) else 'mml:mi'))
++                msubsup.appendChild(join(supers, 'mml:mn' if all(s.isdigit() for s in supers) else 'mml:mi'))
+                 ci.appendChild(msubsup)
+         return ci
+ 
+@@ -748,7 +748,7 @@ def _print_Symbol(self, sym, style='plain'):
+         if style == 'bold':
+             x.setAttribute('mathvariant', 'bold')
+ 
+-        def join(items):
++        def join(items, tag='mi'):
+             if len(items) > 1:
+                 mrow = self.dom.createElement('mrow')
+                 for i, item in enumerate(items):
+@@ -756,14 +756,14 @@ def join(items):
+                         mo = self.dom.createElement('mo')
+                         mo.appendChild(self.dom.createTextNode(" "))
+                         mrow.appendChild(mo)
+-                    mi = self.dom.createElement('mi')
+-                    mi.appendChild(self.dom.createTextNode(item))
+-                    mrow.appendChild(mi)
++                    elem = self.dom.createElement(tag)
++                    elem.appendChild(self.dom.createTextNode(item))
++                    mrow.appendChild(elem)
+                 return mrow
+             else:
+-                mi = self.dom.createElement('mi')
+-                mi.appendChild(self.dom.createTextNode(items[0]))
+-                return mi
++                elem = self.dom.createElement(tag)
++                elem.appendChild(self.dom.createTextNode(items[0]))
++                return elem
+ 
+         # translate name, supers and subs to unicode characters
+         def translate(s):
+@@ -785,19 +785,19 @@ def translate(s):
+             else:
+                 msub = self.dom.createElement('msub')
+                 msub.appendChild(mname)
+-                msub.appendChild(join(subs))
++                msub.appendChild(join(subs, 'mn' if all(s.isdigit() for s in subs) else 'mi'))
+                 x.appendChild(msub)
+         else:
+             if len(subs) == 0:
+                 msup = self.dom.createElement('msup')
+                 msup.appendChild(mname)
+-                msup.appendChild(join(supers))
++                msup.appendChild(join(supers, 'mn' if all(s.isdigit() for s in supers) else 'mi'))
+                 x.appendChild(msup)
+             else:
+                 msubsup = self.dom.createElement('msubsup')
+                 msubsup.appendChild(mname)
+-                msubsup.appendChild(join(subs))
+-                msubsup.appendChild(join(supers))
++                msubsup.appendChild(join(subs, 'mn' if all(s.isdigit() for s in subs) else 'mi'))
++                msubsup.appendChild(join(supers, 'mn' if all(s.isdigit() for s in supers) else 'mi'))
+                 x.appendChild(msubsup)
+         return x
+2026-09-28 23:13:03,931 - INFO - Eval script for sympy__sympy-15976 written to logs/run_evaluation/qwen35-swebench-trial-n100-20260928/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/sympy__sympy-15976/eval.sh; copying to container...
+2026-09-28 23:13:10,962 - INFO - Test runtime: 6.88 seconds
+2026-09-28 23:13:10,963 - INFO - Test output for sympy__sympy-15976 written to logs/run_evaluation/qwen35-swebench-trial-n100-20260928/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/sympy__sympy-15976/test_output.txt
+2026-09-28 23:13:11,093 - INFO - Git diff after:
+diff --git a/sympy/printing/mathml.py b/sympy/printing/mathml.py
+index 3f8b8d49e..0e2158502 100644
+--- a/sympy/printing/mathml.py
++++ b/sympy/printing/mathml.py
+@@ -335,7 +335,7 @@ def _print_Sum(self, e):
+     def _print_Symbol(self, sym):
+         ci = self.dom.createElement(self.mathml_tag(sym))
+ 
+-        def join(items):
++        def join(items, tag='mml:mi'):
+             if len(items) > 1:
+                 mrow = self.dom.createElement('mml:mrow')
+                 for i, item in enumerate(items):
+@@ -343,14 +343,14 @@ def join(items):
+                         mo = self.dom.createElement('mml:mo')
+                         mo.appendChild(self.dom.createTextNode(" "))
+                         mrow.appendChild(mo)
+-                    mi = self.dom.createElement('mml:mi')
+-                    mi.appendChild(self.dom.createTextNode(item))
+-                    mrow.appendChild(mi)
++                    elem = self.dom.createElement(tag)
++                    elem.appendChild(self.dom.createTextNode(item))
++                    mrow.appendChild(elem)
+                 return mrow
+             else:
+-                mi = self.dom.createElement('mml:mi')
+-                mi.appendChild(self.dom.createTextNode(items[0]))
+-                return mi
++                elem = self.dom.createElement(tag)
++                elem.appendChild(self.dom.createTextNode(items[0]))
++                return elem
+ 
+         # translate name, supers and subs to unicode characters
+         def translate(s):
+@@ -372,19 +372,19 @@ def translate(s):
+             else:
+                 msub = self.dom.createElement('mml:msub')
+                 msub.appendChild(mname)
+-                msub.appendChild(join(subs))
++                msub.appendChild(join(subs, 'mml:mn' if all(s.isdigit() for s in subs) else 'mml:mi'))
+                 ci.appendChild(msub)
+         else:
+             if len(subs) == 0:
+                 msup = self.dom.createElement('mml:msup')
+                 msup.appendChild(mname)
+-                msup.appendChild(join(supers))
++                msup.appendChild(join(supers, 'mml:mn' if all(s.isdigit() for s in supers) else 'mml:mi'))
+                 ci.appendChild(msup)
+             else:
+                 msubsup = self.dom.createElement('mml:msubsup')
+                 msubsup.appendChild(mname)
+-                msubsup.appendChild(join(subs))
+-                msubsup.appendChild(join(supers))
++                msubsup.appendChild(join(subs, 'mml:mn' if all(s.isdigit() for s in subs) else 'mml:mi'))
++                msubsup.appendChild(join(supers, 'mml:mn' if all(s.isdigit() for s in supers) else 'mml:mi'))
+                 ci.appendChild(msubsup)
+         return ci
+ 
+@@ -748,7 +748,7 @@ def _print_Symbol(self, sym, style='plain'):
+         if style == 'bold':
+             x.setAttribute('mathvariant', 'bold')
+ 
+-        def join(items):
++        def join(items, tag='mi'):
+             if len(items) > 1:
+                 mrow = self.dom.createElement('mrow')
+                 for i, item in enumerate(items):
+@@ -756,14 +756,14 @@ def join(items):
+                         mo = self.dom.createElement('mo')
+                         mo.appendChild(self.dom.createTextNode(" "))
+                         mrow.appendChild(mo)
+-                    mi = self.dom.createElement('mi')
+-                    mi.appendChild(self.dom.createTextNode(item))
+-                    mrow.appendChild(mi)
++                    elem = self.dom.createElement(tag)
++                    elem.appendChild(self.dom.createTextNode(item))
++                    mrow.appendChild(elem)
+                 return mrow
+             else:
+-                mi = self.dom.createElement('mi')
+-                mi.appendChild(self.dom.createTextNode(items[0]))
+-                return mi
++                elem = self.dom.createElement(tag)
++                elem.appendChild(self.dom.createTextNode(items[0]))
++                return elem
+ 
+         # translate name, supers and subs to unicode characters
+         def translate(s):
+@@ -785,19 +785,19 @@ def translate(s):
+             else:
+                 msub = self.dom.createElement('msub')
+                 msub.appendChild(mname)
+-                msub.appendChild(join(subs))
++                msub.appendChild(join(subs, 'mn' if all(s.isdigit() for s in subs) else 'mi'))
+                 x.appendChild(msub)
+         else:
+             if len(subs) == 0:
+                 msup = self.dom.createElement('msup')
+                 msup.appendChild(mname)
+-                msup.appendChild(join(supers))
++                msup.appendChild(join(supers, 'mn' if all(s.isdigit() for s in supers) else 'mi'))
+                 x.appendChild(msup)
+             else:
+                 msubsup = self.dom.createElement('msubsup')
+                 msubsup.appendChild(mname)
+-                msubsup.appendChild(join(subs))
+-                msubsup.appendChild(join(supers))
++                msubsup.appendChild(join(subs, 'mn' if all(s.isdigit() for s in subs) else 'mi'))
++                msubsup.appendChild(join(supers, 'mn' if all(s.isdigit() for s in supers) else 'mi'))
+                 x.appendChild(msubsup)
+         return x
+2026-09-28 23:13:11,093 - INFO - Grading answer for sympy__sympy-15976...
+2026-09-28 23:13:11,094 - INFO - report: {'sympy__sympy-15976': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_presentation_symbol']}, 'PASS_TO_PASS': {'success': ['test_mathml_printer', 'test_content_printmethod', 'test_content_mathml_core', 'test_content_mathml_functions', 'test_content_mathml_limits', 'test_content_mathml_integrals', 'test_content_mathml_matrices', 'test_content_mathml_sums', 'test_content_mathml_tuples', 'test_content_mathml_add', 'test_content_mathml_Rational', 'test_content_mathml_constants', 'test_content_mathml_trig', 'test_content_mathml_relational', 'test_content_mathml_greek', 'test_content_mathml_order', 'test_content_settings', 'test_presentation_printmethod', 'test_presentation_mathml_core', 'test_presentation_mathml_functions', 'test_presentation_mathml_limits', 'test_presentation_mathml_integrals', 'test_presentation_mathml_matrices', 'test_presentation_mathml_sums', 'test_presentation_mathml_add', 'test_presentation_mathml_Rational', 'test_presentation_mathml_constants', 'test_presentation_mathml_trig', 'test_presentation_mathml_relational', 'test_presentation_mathml_greek', 'test_presentation_mathml_order', 'test_presentation_settings', 'test_toprettyxml_hooking', 'test_print_basic', 'test_root_notation_print', 'test_print_matrix_symbol'], 'failure': ['test_content_symbol']}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-15976: resolved: False
+2026-09-28 23:13:11,095 - INFO - Attempting to stop container sweb.eval.sympy__sympy-15976.qwen35-swebench-trial-n100-20260928...
+2026-09-28 23:13:26,353 - INFO - Attempting to remove container sweb.eval.sympy__sympy-15976.qwen35-swebench-trial-n100-20260928...
+2026-09-28 23:13:26,577 - INFO - Container sweb.eval.sympy__sympy-15976.qwen35-swebench-trial-n100-20260928 removed.

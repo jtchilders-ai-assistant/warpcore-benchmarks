@@ -1,0 +1,45 @@
+diff --git a/sphinx/builders/linkcheck.py b/sphinx/builders/linkcheck.py
+index dd5317087..68b6ad122 100644
+--- a/sphinx/builders/linkcheck.py
++++ b/sphinx/builders/linkcheck.py
+@@ -213,7 +213,39 @@ class CheckExternalLinksBuilder(Builder):
+             if len(uri) == 0 or uri.startswith(('#', 'mailto:', 'ftp:')):
+                 return 'unchecked', '', 0
+             elif not uri.startswith(('http:', 'https:')):
+-                return 'local', '', 0
++                # Check if it's a local document reference
++                # Split off anchor if present
++                if '#' in uri:
++                    docname, anchor = uri.split('#', 1)
++                else:
++                    docname = uri
++                    anchor = None
++                
++                # Check if the document exists
++                if docname not in self.env.found_docs:
++                    return 'broken', 'document not found', 0
++                
++                # If there's an anchor, check if it exists in the document
++                if anchor and self.app.config.linkcheck_anchors:
++                    # Check if the anchor should be ignored
++                    for rex in self.anchors_ignore:
++                        if rex.match(anchor):
++                            anchor = None
++                            break
++                    
++                    if anchor:
++                        doctree = self.env.get_doctree(docname)
++                        if not doctree:
++                            return 'broken', 'document not found', 0
++                        anchor_found = False
++                        for node in doctree.traverse():
++                            if 'ids' in node and anchor in node['ids']:
++                                anchor_found = True
++                                break
++                        if not anchor_found:
++                            return 'broken', 'anchor not found', 0
++                
++                return 'working', '', 0
+             elif uri in self.good:
+                 return 'working', 'old', 0
+             elif uri in self.broken:

@@ -293,20 +293,37 @@ rather than trusting this table to stay current. `-` = missing, `↺` = recovere
 | qwen3.6-35b-a3b | **–** | ✅ | ✅ | ✅ | **✗ lost** | ↺ | **–** | **–** |
 | gpt-oss-120b | **–** | *n/a, blocked* | *n/a* | ✅ | **✗ lost** | **–** | **–** | **–** |
 | nemotron-3-super-120b | **–** | *no SWE-bench run* | | | | | | **–** |
-| qwen3.5-122b-a10b | **–** | *no SWE-bench run* | | | | | | **–** |
+| qwen3.5-122b-a10b | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+The table reports the strongest single retained SWE-bench evidence root for each model across the
+legacy `raw/swebench/` and normalized `runs/<suite>/swebench/<run-id>/` layouts; it never combines
+different runs to manufacture a complete row. Lifecycle and publication eligibility are separate:
+Qwen3.5's complete row is diagnostic evidence, not a canonical score.
 
 gpt-oss is published as **blocked / no score** (a vLLM tool-call bug, see `raw/DIAGNOSIS.json`), so
-its absent preds and report are correct behaviour, not a gap. The table row above describes the
-pre-contract `raw/swebench/` tree only. gpt-oss additionally has a **failed warpcore-v1 campaign**,
+its absent preds and report are correct behaviour, not a gap. Its historical table row describes the
+pre-contract `raw/swebench/` tree. gpt-oss additionally has a **failed warpcore-v1 campaign**,
 `runs/warpcore-v1/swebench/gptoss-swebench-n100-20260921`, which reproduced the same tool-call bug
 on the current stack (ISSUES #18). That run retains manifest, status history, command, both logs,
 preds, exit statuses, and all 51 trajectories as `raw/trajectories.tar.gz` — but it is **not a
 score**: 49 of 100 frozen instances were never attempted and nothing was graded. It is registered
 `invalid` and is reachable only through the registry and `make diagnostic-verify`.
 
+Qwen3.5 additionally has a complete **diagnostic/noncanonical** frozen n=100 trial at
+`runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928`. Its n=20 qualification failed the
+unchanged 20/20 `Submitted` gate (17/20), so no qualification seal exists and the trial cannot enter
+the canonical matrix. The trial nevertheless retains all 100 trajectories and predictions, normalized
+exit statuses, official grading report and per-instance logs, manifest, lifecycle history, command,
+suite input snapshots, and `DONE`. Agent outcomes were 76 `Submitted`, 21 `LimitsExceeded`, 2
+`Timeout`, and 1 `ContextWindowExceededError`; official grading found 57 resolved, 19 unresolved, 24
+empty patches, 0 errors, and 0 incomplete. Its registry lifecycle is `diagnostic`, not `current`.
+
 **A failed campaign is still required to retain evidence.** The retention rules in §2 apply
-regardless of outcome; what changes is that the run carries a derived `diagnostic_summary.json`
-instead of a score, and that its creation-time manifest is kept **unrepaired**. An aborted run's
+regardless of outcome. A failed/aborted run carries a derived `diagnostic_summary.json` instead of a
+score, and its creation-time manifest is kept **unrepaired**. A completed diagnostic trial such as
+Qwen3.5 retains its real grading artifacts and is checked by its evidence-reconciliation tests; it
+must not be forced through the failed-campaign summarizer, which correctly rejects score-bearing
+completed runs. An aborted run's
 manifest still says `submitted: 0`, `completed_utc: null`, and all artifact flags false, because
 that is what the runner actually wrote. Correcting those fields after the fact would turn raw
 evidence into a reconstruction; derive the reconciled counts into a separate summary instead.

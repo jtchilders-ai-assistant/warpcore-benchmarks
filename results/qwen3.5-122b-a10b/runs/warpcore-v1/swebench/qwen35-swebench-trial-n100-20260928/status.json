@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "run_id": "qwen35-swebench-trial-n100-20260928",
+  "suite_id": "warpcore-v1",
+  "execution_state": "completed",
+  "lifecycle": "diagnostic",
+  "history": [
+    {
+      "state": "planned",
+      "timestamp": "2026-09-28T00:54:21Z",
+      "note": "Explicit noncanonical diagnostic trial initialized by create_campaign"
+    },
+    {
+      "state": "preflight_passed",
+      "timestamp": "2026-09-28T00:54:23Z"
+    },
+    {
+      "state": "running",
+      "timestamp": "2026-09-28T00:54:23Z",
+      "note": "generation phase started; grading phase started"
+    },
+    {
+      "state": "completed",
+      "timestamp": "2026-09-29T04:14:58Z",
+      "note": "grading completed; all dispositions verified"
+    }
+  ]
+}

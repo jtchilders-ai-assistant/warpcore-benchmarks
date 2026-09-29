@@ -1,0 +1,106 @@
+2026-09-28 23:12:47,830 - INFO - Creating container for sympy__sympy-13974...
+2026-09-28 23:12:47,997 - INFO - Container for sympy__sympy-13974 created: 9fdcbea5bf66d00c9a2e92ab9a59cde33f032d34eba771a066289e6a6e587c41
+2026-09-28 23:12:48,388 - INFO - Container for sympy__sympy-13974 started: 9fdcbea5bf66d00c9a2e92ab9a59cde33f032d34eba771a066289e6a6e587c41
+2026-09-28 23:12:48,388 - INFO - Intermediate patch for sympy__sympy-13974 written to logs/run_evaluation/qwen35-swebench-trial-n100-20260928/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/sympy__sympy-13974/patch.diff, now applying to container...
+2026-09-28 23:12:48,894 - INFO - >>>>> Applied Patch:
+/tmp/patch.diff:11: trailing whitespace.
+        
+Checking patch sympy/core/power.py...
+Checking patch sympy/physics/quantum/tensorproduct.py...
+Applied patch sympy/core/power.py cleanly.
+Applied patch sympy/physics/quantum/tensorproduct.py cleanly.
+warning: 1 line adds whitespace errors.
+
+2026-09-28 23:12:50,272 - INFO - Git diff before:
+diff --git a/sympy/core/power.py b/sympy/core/power.py
+index 02ec6480c..db90736e1 100644
+--- a/sympy/core/power.py
++++ b/sympy/core/power.py
+@@ -822,6 +822,21 @@ def _eval_expand_power_exp(self, **hints):
+             return Mul(*expr)
+         return self.func(b, e)
+ 
++    def _eval_expand_tensorproduct(self, **hints):
++        """Expand powers of TensorProduct.
++        
++        For example, (AxB)**n -> (A**n)x(B**n) for integer n > 0.
++        """
++        from sympy.physics.quantum.tensorproduct import TensorProduct
++        b = self.base
++        e = self.exp
++        if isinstance(b, TensorProduct) and e.is_Integer and e > 0:
++            # Expand the power to a Mul of TensorProducts
++            from sympy.physics.quantum.tensorproduct import tensor_product_simp_Mul
++            expanded = Mul._from_args([b for _ in range(int(e))])
++            return tensor_product_simp_Mul(expanded)
++        return self
++
+     def _eval_expand_power_base(self, **hints):
+         """(a*b)**n -> a**n * b**n"""
+         force = hints.get('force', False)
+diff --git a/sympy/physics/quantum/tensorproduct.py b/sympy/physics/quantum/tensorproduct.py
+index 9dd10d219..d923a9c2e 100644
+--- a/sympy/physics/quantum/tensorproduct.py
++++ b/sympy/physics/quantum/tensorproduct.py
+@@ -382,6 +382,10 @@ def tensor_product_simp(e, **hints):
+     if isinstance(e, Add):
+         return Add(*[tensor_product_simp(arg) for arg in e.args])
+     elif isinstance(e, Pow):
++        if isinstance(e.base, TensorProduct) and e.exp.is_Integer and e.exp > 0:
++            # Expand the power to a Mul of TensorProducts
++            expanded = Mul._from_args([e.base for _ in range(int(e.exp))])
++            return tensor_product_simp_Mul(expanded)
+         return tensor_product_simp(e.base) ** e.exp
+     elif isinstance(e, Mul):
+         return tensor_product_simp_Mul(e)
+2026-09-28 23:12:50,273 - INFO - Eval script for sympy__sympy-13974 written to logs/run_evaluation/qwen35-swebench-trial-n100-20260928/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/sympy__sympy-13974/eval.sh; copying to container...
+2026-09-28 23:13:00,103 - INFO - Test runtime: 9.61 seconds
+2026-09-28 23:13:00,103 - INFO - Test output for sympy__sympy-13974 written to logs/run_evaluation/qwen35-swebench-trial-n100-20260928/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound/sympy__sympy-13974/test_output.txt
+2026-09-28 23:13:00,286 - INFO - Git diff after:
+diff --git a/sympy/core/power.py b/sympy/core/power.py
+index 02ec6480c..db90736e1 100644
+--- a/sympy/core/power.py
++++ b/sympy/core/power.py
+@@ -822,6 +822,21 @@ def _eval_expand_power_exp(self, **hints):
+             return Mul(*expr)
+         return self.func(b, e)
+ 
++    def _eval_expand_tensorproduct(self, **hints):
++        """Expand powers of TensorProduct.
++        
++        For example, (AxB)**n -> (A**n)x(B**n) for integer n > 0.
++        """
++        from sympy.physics.quantum.tensorproduct import TensorProduct
++        b = self.base
++        e = self.exp
++        if isinstance(b, TensorProduct) and e.is_Integer and e > 0:
++            # Expand the power to a Mul of TensorProducts
++            from sympy.physics.quantum.tensorproduct import tensor_product_simp_Mul
++            expanded = Mul._from_args([b for _ in range(int(e))])
++            return tensor_product_simp_Mul(expanded)
++        return self
++
+     def _eval_expand_power_base(self, **hints):
+         """(a*b)**n -> a**n * b**n"""
+         force = hints.get('force', False)
+diff --git a/sympy/physics/quantum/tensorproduct.py b/sympy/physics/quantum/tensorproduct.py
+index 9dd10d219..d923a9c2e 100644
+--- a/sympy/physics/quantum/tensorproduct.py
++++ b/sympy/physics/quantum/tensorproduct.py
+@@ -382,6 +382,10 @@ def tensor_product_simp(e, **hints):
+     if isinstance(e, Add):
+         return Add(*[tensor_product_simp(arg) for arg in e.args])
+     elif isinstance(e, Pow):
++        if isinstance(e.base, TensorProduct) and e.exp.is_Integer and e.exp > 0:
++            # Expand the power to a Mul of TensorProducts
++            expanded = Mul._from_args([e.base for _ in range(int(e.exp))])
++            return tensor_product_simp_Mul(expanded)
+         return tensor_product_simp(e.base) ** e.exp
+     elif isinstance(e, Mul):
+         return tensor_product_simp_Mul(e)
+2026-09-28 23:13:00,287 - INFO - Grading answer for sympy__sympy-13974...
+2026-09-28 23:13:00,293 - INFO - report: {'sympy__sympy-13974': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_tensor_product_simp']}, 'PASS_TO_PASS': {'success': ['test_tensor_product_abstract', 'test_tensor_product_expand', 'test_tensor_product_commutator', 'test_issue_5923'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-13974: resolved: False
+2026-09-28 23:13:00,295 - INFO - Attempting to stop container sweb.eval.sympy__sympy-13974.qwen35-swebench-trial-n100-20260928...
+2026-09-28 23:13:15,602 - INFO - Attempting to remove container sweb.eval.sympy__sympy-13974.qwen35-swebench-trial-n100-20260928...
+2026-09-28 23:13:15,808 - INFO - Container sweb.eval.sympy__sympy-13974.qwen35-swebench-trial-n100-20260928 removed.

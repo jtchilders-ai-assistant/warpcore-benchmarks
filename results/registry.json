@@ -308,6 +308,19 @@
       "note": "Nonqualifying n=20 SWE-bench evidence: 17 Submitted, two LimitsExceeded, and one ContextWindowExceededError. Diagnostic official grading found 14 resolved and 3 unresolved among the 17 submitted patches, plus 3 empty-patch instances corresponding to the non-submissions. The mandatory 20/20 Submitted gate failed; no qualification record was sealed and canonical n=100 was not launched. This entry is not a canonical score.",
       "caveats": "Qualification diagnostic only. Submitted is not Resolved; the 14/20 diagnostic grade is not the suite n=100 result.",
       "run_dir": "results/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run-20260927e"
+    },
+    {
+      "id": "qwen3.5-122b-a10b/swebench/warpcore-v1/qwen35-swebench-trial-n100-20260928",
+      "status": "diagnostic",
+      "paths": [
+        "results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/preds.json",
+        "results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/exit_statuses.json",
+        "results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/grading_results.json",
+        "results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/hosted_vllm__Intel__Qwen3.5-122B-A10B-int4-AutoRound.qwen35-swebench-trial-n100-20260928.json"
+      ],
+      "note": "Completed explicit noncanonical frozen seed-42 n=100 diagnostic trial after the n=20 qualification missed the mandatory 20/20 Submitted gate. Generation: 76 Submitted, 21 LimitsExceeded, 2 Timeout, 1 ContextWindowExceededError. Official grading: 57 resolved, 19 unresolved, 24 empty patches, 0 errors, 0 incomplete. All 100 predictions and trajectories are retained and reconciled.",
+      "caveats": "Diagnostic evidence only: no qualification seal, not a canonical or publication-eligible score, and excluded from the canonical matrix.",
+      "run_dir": "results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928"
     }
   ]
 }
