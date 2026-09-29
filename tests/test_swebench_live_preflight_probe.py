@@ -61,6 +61,57 @@ class TestProductionGenerationToolProbe(unittest.TestCase):
             self.assertEqual(rc, 0)
             fake_runner.run.assert_called_once_with()
 
+    def test_v2_cli_preflight_failure_blocks_generation(self):
+        run_id = "v2-preflight-failure-test"
+        run_dir = (
+            _REPO / "results" / "ornith-1.5-35b-a3b" / "runs" /
+            "warpcore-v2" / "swebench" / run_id
+        )
+        if run_dir.exists():
+            raise AssertionError(f"test residue exists: {run_dir}")
+        run_dir.mkdir(parents=True)
+        try:
+            status = {
+                "schema_version": 1,
+                "run_id": run_id,
+                "suite_id": "warpcore-v2",
+                "execution_state": "planned",
+                "lifecycle": "current",
+                "history": [{
+                    "state": "planned",
+                    "timestamp": "2026-09-29T00:00:00Z",
+                    "note": "test",
+                }],
+            }
+            (run_dir / "status.json").write_text(json.dumps(status))
+            generation = Mock(return_value=0)
+            with patch(
+                "create_campaign.create_campaign", return_value=run_dir
+            ), patch.object(
+                run_swebench.SwebenchRunner,
+                "_run_preflight",
+                return_value=run_swebench.EXIT_DEFECT,
+            ), patch.object(
+                run_swebench.SwebenchRunner,
+                "_run_generation",
+                generation,
+            ):
+                rc = run_swebench.main([
+                    "--suite", str(_REPO / "suite" / "warpcore-v2.yaml"),
+                    "--adapter", str(_REPO / "adapters" / "ornith-1.5-35b-a3b.yaml"),
+                    "--endpoint", "http://endpoint.example/v1",
+                    "--run-dir", str(run_dir),
+                    "--repo", str(_REPO),
+                    "--prompt-tokens", "gsm8k=500,ifeval=2000,gpqa_diamond=1000",
+                    "--allow-no-screen",
+                    "--resume",
+                ])
+            self.assertEqual(rc, run_swebench.EXIT_DEFECT)
+            generation.assert_not_called()
+        finally:
+            import shutil
+            shutil.rmtree(run_dir, ignore_errors=True)
+
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.run_dir = pathlib.Path(self.tmp.name) / "run"
@@ -99,6 +150,19 @@ class TestProductionGenerationToolProbe(unittest.TestCase):
             rc = self.runner._run_preflight()
         return rc, calls
 
+    def test_constructor_rejects_invalid_explicit_interpreter(self):
+        with self.assertRaisesRegex(ValueError, "python_executable"):
+            run_swebench.SwebenchRunner(
+                suite_path=_REPO / "suite" / "warpcore-v2.yaml",
+                adapter_path=_REPO / "adapters" / "ornith-1.5-35b-a3b.yaml",
+                endpoint="http://endpoint.example/v1",
+                run_dir=self.run_dir,
+                repo=_REPO,
+                python_executable="/definitely/missing/python",
+                allow_no_screen=True,
+                prompt_token_maxima={"gsm8k": 500, "ifeval": 2000, "gpqa_diamond": 1000},
+            )
+
     def test_generation_argv_uses_explicit_pinned_interpreter(self):
         pinned = "/opt/pinned/bin/python"
         self.runner._python_executable = pinned
@@ -116,6 +180,53 @@ class TestProductionGenerationToolProbe(unittest.TestCase):
         }
         rc, _calls = self._run(payload, mini_version="9.9.9")
         self.assertEqual(rc, run_swebench.EXIT_DEFECT)
+
+    def test_preflight_inconclusive_when_mini_version_probe_fails(self):
+        payload = {
+            "choices": [{
+                "finish_reason": "tool_calls",
+                "message": {"tool_calls": [{
+                    "function": {"name": "bash", "arguments": '{"command":"true"}'},
+                }]},
+            }]
+        }
+        with patch.object(
+            self.runner,
+            "_probe_mini_swe_agent_version",
+            return_value=(run_swebench.EXIT_INCONCLUSIVE, ""),
+        ):
+            rc = self.runner._run_preflight()
+        self.assertEqual(rc, run_swebench.EXIT_INCONCLUSIVE)
+
+    def test_preflight_image_cache_uses_pinned_interpreter(self):
+        pinned = "/opt/pinned/bin/python"
+        self.runner._python_executable = pinned
+        payload = {
+            "choices": [{
+                "finish_reason": "tool_calls",
+                "message": {"tool_calls": [{
+                    "function": {"name": "bash", "arguments": '{"command":"true"}'},
+                }]},
+            }]
+        }
+        models = {"data": [{"id": "ornith-ai/Ornith-1.5-35B-A3B-FP8"}]}
+        subprocess_argv = []
+
+        def run(argv, **_kwargs):
+            subprocess_argv.append(argv)
+            return _SubprocessResult()
+
+        def urlopen(req, **_kwargs):
+            return _Response(models if req.full_url.endswith("/models") else payload)
+
+        with patch.object(
+            self.runner, "_probe_mini_swe_agent_version", return_value=(0, "2.4.6")
+        ), patch("subprocess.run", side_effect=run), patch(
+            "urllib.request.urlopen", side_effect=urlopen
+        ):
+            self.assertEqual(self.runner._run_preflight(), 0)
+        image_probe = next(argv for argv in subprocess_argv if "swebench_preflight.py" in " ".join(argv))
+        self.assertEqual(image_probe[0], pinned)
 
     def test_preflight_requires_real_parsed_bash_tool_call(self):
         payload = {

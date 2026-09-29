@@ -803,7 +803,15 @@ class SwebenchRunner:
         self.adapter_path = pathlib.Path(adapter_path).resolve()
         self.endpoint = endpoint
         self.run_dir = pathlib.Path(run_dir).resolve()
-        self._python_executable = python_executable or sys.executable
+        if python_executable is not None:
+            executable_path = pathlib.Path(python_executable).expanduser()
+            if not executable_path.is_file() or not os.access(executable_path, os.X_OK):
+                raise ValueError(
+                    f"python_executable must name an existing executable file: {python_executable!r}"
+                )
+            self._python_executable = str(executable_path.resolve())
+        else:
+            self._python_executable = sys.executable
         self.api_key = api_key
         self.workers = int(workers)
         self.dry_run = dry_run
@@ -1829,8 +1837,8 @@ class SwebenchRunner:
             return EXIT_INCONCLUSIVE
 
         # 3. Real bounded generation/tool-call probe through the production API path.
-        # /models proves only metadata reachability; SWE-bench requires a parsed bash
-        # tool call with valid JSON arguments from chat/completions.
+        # Five minutes is ample for 1024 tokens at the campaign's qualified serving
+        # rate while bounding a wedged endpoint far below the 30-minute task timeout.
         probe_url = self.endpoint.rstrip("/") + "/chat/completions"
         probe_payload = json.dumps({
             "model": self._model_id,
@@ -1865,7 +1873,7 @@ class SwebenchRunner:
             probe_url, data=probe_payload, headers=probe_headers, method="POST"
         )
         try:
-            with _req.urlopen(probe_request, timeout=1800) as resp:  # noqa: S310
+            with _req.urlopen(probe_request, timeout=300) as resp:  # noqa: S310
                 probe_data = json.loads(resp.read())
             choice = (probe_data.get("choices") or [None])[0]
             message = (choice or {}).get("message") or {}
@@ -1918,7 +1926,7 @@ class SwebenchRunner:
 
         try:
             result = _sp.run(
-                [sys.executable, str(preflight_script), "--instances", tmp_instances],
+                [self._python_executable, str(preflight_script), "--instances", tmp_instances],
                 capture_output=True,
                 text=True,
                 check=False,
@@ -2999,7 +3007,11 @@ def main(argv=None) -> int:
                 .get("mode", "")
             )
         except Exception as exc:
-            print(f"ERROR: cannot read suite or adapter for launch authorization: {exc}", file=sys.stderr)
+            print(
+                "ERROR: cannot read suite or adapter for launch authorization: "
+                f"{type(exc).__name__}: {exc}",
+                file=sys.stderr,
+            )
             return EXIT_CONFIG
         if _launch_mode_gate not in {"qualification_seal", "direct_n100_after_preflight"}:
             print(
