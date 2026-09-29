@@ -809,7 +809,7 @@ class SwebenchRunner:
                 raise ValueError(
                     f"python_executable must name an existing executable file: {python_executable!r}"
                 )
-            self._python_executable = str(executable_path.resolve())
+            self._python_executable = str(executable_path.absolute())
         else:
             self._python_executable = sys.executable
         self.api_key = api_key
