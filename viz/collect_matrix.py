@@ -20,7 +20,7 @@ import json
 import os
 import re
 
-from common import DATA, REPO, SWEBENCH_RESULTS
+from common import DATA, REPO
 
 # Artifact registry (Task 8): every published source path must be classified.
 # lookup_path() is fail-closed: an unregistered path raises KeyError, preventing
@@ -56,8 +56,6 @@ QUALITY = {
         gsm8k="raw/quality/gsm8k/results_2026-08-22T04-37-53.389704.json",
         ifeval="raw/quality/ifeval/results_2026-08-22T06-10-16.893966.json"),
 }
-
-SWEBENCH = SWEBENCH_RESULTS
 
 # Composite headline values consume both a base result and a replay result.
 # Register and gate every component, not just the first file read above.

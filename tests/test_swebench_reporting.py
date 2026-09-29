@@ -608,3 +608,31 @@ def test_qwen35_card_states_full_denominator_submission_count() -> None:
     assert "57/100" in card
     assert "diagnostic" in card.lower()
     assert "not canonical" in card.lower()
+
+
+def test_legacy_source_map_is_not_used_by_matrix_collector() -> None:
+    collector = (REPO / "viz/collect_matrix.py").read_text()
+    assert "SWEBENCH_RESULTS" not in collector
+    assert "SWEBENCH =" not in collector
+
+
+def test_legacy_source_map_deprecation_names_real_replacement() -> None:
+    common = (REPO / "viz/common.py").read_text()
+    assert "swebench_reporting.selected_swebench_reports()" in common
+    assert "SWEBENCH_BUNDLES" not in common
+
+
+def test_qwen36_selected_exit_status_source_is_registered() -> None:
+    registry = json.loads((REPO / "results/registry.json").read_text())
+    registered = {path for entry in registry["entries"] for path in entry["paths"]}
+    expected = (
+        "results/qwen3.6-35b-a3b/runs/warpcore-v1/swebench/"
+        "qwen36-swebench-n100-20260919/raw/exit_statuses.json"
+    )
+    assert expected in registered
+
+
+def test_provenance_audit_covers_all_selected_swebench_sources() -> None:
+    audit = (REPO / "viz/audit_provenance.py").read_text()
+    assert "selected_swebench_reports" in audit
+    assert "EXIT_STATUSES" in audit

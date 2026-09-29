@@ -52,7 +52,7 @@ def per_repo(model: str) -> dict[str, list[int]]:
     inventory = set().union(*(set(d[k]) for k in (
         "resolved_ids", "unresolved_ids", "empty_patch_ids", "error_ids", "incomplete_ids"
     )))
-    for inst in inventory:
+    for inst in sorted(inventory):
         buckets[repo_of(inst)].append(1 if inst in resolved else 0)
     return dict(buckets)
 

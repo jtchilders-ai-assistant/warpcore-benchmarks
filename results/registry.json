@@ -173,7 +173,8 @@
       "status": "historical",
       "paths": [
         "results/nemotron-3.5-lightning-30b/raw/swebench_verified_n100_results.json",
-        "results/nemotron-3.5-lightning-30b/raw/swebench_verified_n100_preds.json"
+        "results/nemotron-3.5-lightning-30b/raw/swebench_verified_n100_preds.json",
+        "results/nemotron-3.5-lightning-30b/raw/swebench/exit_statuses_final_segment_n28.yaml"
       ],
       "note": "Pre-contract SWE-bench Verified n=100 seed-42 run. Two-segment run (vLLM v0.27.1 + v0.27.2rc1 nightly after engine wedge). Exit statuses committed. Trajectories lost. No run manifest. 51/100 resolved."
     },
@@ -182,7 +183,8 @@
       "status": "historical",
       "paths": [
         "results/laguna-s-2.1-118b/raw/swebench/swebench_verified_n100_results.json",
-        "results/laguna-s-2.1-118b/raw/swebench/swebench_verified_n100_preds.json"
+        "results/laguna-s-2.1-118b/raw/swebench/swebench_verified_n100_preds.json",
+        "results/laguna-s-2.1-118b/raw/swebench/exit_statuses_n100.yaml"
       ],
       "note": "Pre-contract SWE-bench Verified n=100 seed-42 run. Best-documented SWE-bench run in the repo: manifest committed, exit_statuses reconstructed from trajectories, trajectories.tar.gz committed. 55/100 resolved; 35 empty patches (25 RepeatedFormatError serving defect)."
     },
@@ -199,7 +201,8 @@
       "status": "current",
       "paths": [
         "results/qwen3.6-35b-a3b/runs/warpcore-v1/swebench/qwen36-swebench-n100-20260919/raw/grading_results.json",
-        "results/qwen3.6-35b-a3b/runs/warpcore-v1/swebench/qwen36-swebench-n100-20260919/raw/preds.json"
+        "results/qwen3.6-35b-a3b/runs/warpcore-v1/swebench/qwen36-swebench-n100-20260919/raw/preds.json",
+        "results/qwen3.6-35b-a3b/runs/warpcore-v1/swebench/qwen36-swebench-n100-20260919/raw/exit_statuses.json"
       ],
       "note": "Canonical warpcore-v1 SWE-bench Verified frozen seed-42 n=100 campaign. Full denominator: 57 resolved, 30 unresolved, 11 empty patches, and 2 official-grader timeout errors; generation had 89 Submitted, 10 LimitsExceeded, 1 RepeatedFormatError, and 0 RuntimeError. Exact 100-item evidence and publication validation passed.",
       "v1_validated": true,

@@ -59,8 +59,8 @@ TINY = {
 # best-first. Single source of truth -- collect_matrix and fig2/fig3 all import
 # this, so a new run cannot be added to one and forgotten in the other.
 #
-# DEPRECATED: Use SWEBENCH_BUNDLES (below) for new code. SWEBENCH_RESULTS is
-# preserved for backward compatibility with code that uses the legacy paths.
+# DEPRECATED: Use swebench_reporting.selected_swebench_reports() for new code.
+# SWEBENCH_RESULTS is preserved for backward compatibility with legacy audits.
 SWEBENCH_RESULTS = {
     "ornith-35b":
         "results/ornith-35b/raw/swebench/swebench_verified_n100_results.json",
