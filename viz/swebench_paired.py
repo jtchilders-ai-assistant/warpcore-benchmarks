@@ -45,8 +45,9 @@ import math
 
 import yaml
 
-from common import DATA, REPO, SWEBENCH_RESULTS
+from common import DATA, REPO
 from swebench_fair import EXIT_STATUSES, INFRA_STATUSES, load_statuses
+from swebench_reporting import selected_swebench_reports
 
 # Pairs worth publishing: (a, b, optional model whose infra exclusions define
 # a like-for-like subset). Kept explicit rather than all-pairs so the output
@@ -103,20 +104,28 @@ def infra_excluded(model: str) -> set:
     """
     if model not in EXIT_STATUSES:
         return set()
-    res = json.loads((REPO / SWEBENCH_RESULTS[model]).read_text())
+    res = selected_swebench_reports(REPO)[model]
     verdict = set(res["resolved_ids"]) | set(res["unresolved_ids"])
-    submitted = set(res["submitted_ids"])
+    inventory = (
+        verdict | set(res["empty_patch_ids"]) | set(res["error_ids"])
+        | set(res["incomplete_ids"])
+    )
     status_of = load_statuses(EXIT_STATUSES[model])
     return {
         inst for inst, st in status_of.items()
-        if inst not in verdict and inst in submitted and st in INFRA_STATUSES
+        if inst not in verdict and inst in inventory and st in INFRA_STATUSES
     }
 
 
 def compare(a: str, b: str, subset_from: str | None) -> dict:
-    ra = json.loads((REPO / SWEBENCH_RESULTS[a]).read_text())
-    rb = json.loads((REPO / SWEBENCH_RESULTS[b]).read_text())
-    sa, sb = set(ra["submitted_ids"]), set(rb["submitted_ids"])
+    reports = selected_swebench_reports(REPO)
+    ra, rb = reports[a], reports[b]
+    sa = set().union(*(set(ra[k]) for k in (
+        "resolved_ids", "unresolved_ids", "empty_patch_ids", "error_ids", "incomplete_ids"
+    )))
+    sb = set().union(*(set(rb[k]) for k in (
+        "resolved_ids", "unresolved_ids", "empty_patch_ids", "error_ids", "incomplete_ids"
+    )))
     shared = sa & sb
     if sa != sb:
         raise SystemExit(

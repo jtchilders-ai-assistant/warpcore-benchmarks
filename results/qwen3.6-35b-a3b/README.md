@@ -132,6 +132,14 @@ models — it is a single test case. Raw per-problem log:
 
 ## Agentic coding — SWE-bench Verified
 
+**Selected result:** the validated `warpcore-v1` run
+`qwen36-swebench-n100-20260919` produced **89/100 nonempty patches** and resolved
+**57/100 (57%)**. Official grading partitioned the set into 57 resolved, 30 unresolved,
+11 empty patches, and 2 grading errors. The two grading-error predictions contain nonempty
+patches, so they count as submitted but not resolved. The older historical run documented below
+is preserved for provenance (**71/100 nonempty patches, 44/100 resolved**) but is no longer the
+headline comparison.
+
 [SWE-bench Verified](https://www.swebench.com/): resolve real GitHub issues by producing a patch that
 makes the repo's hidden test suite pass. Run with [mini-swe-agent](https://github.com/SWE-agent/mini-swe-agent)
 v2.4.6 (bash-only agent loop, no custom scaffolding). **The agent and the x86 test-execution Docker

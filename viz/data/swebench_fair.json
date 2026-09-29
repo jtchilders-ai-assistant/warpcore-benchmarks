@@ -47,22 +47,35 @@
   "src": "results/ornith-35b/raw/swebench/swebench_verified_n100_results.json",
   "verdicts": 91
  },
+ "qwen3.5-122b-a10b": {
+  "attributed": false,
+  "causes": {},
+  "fair_n": 100,
+  "fair_pct": 57.0,
+  "infra_excluded": 0,
+  "no_verdict": 24,
+  "nominal_pct": 57.0,
+  "note": "no exit_statuses artifact committed",
+  "resolved": 57,
+  "src": "results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/grading_results.json",
+  "verdicts": 76
+ },
  "qwen3.6-35b-a3b": {
   "attributed": true,
   "causes": {
-   "LimitsExceeded": 7,
-   "Submitted": 5,
-   "TimeoutExpired": 22
+   "LimitsExceeded": 10,
+   "RepeatedFormatError": 1,
+   "Submitted": 2
   },
-  "exit_statuses_src": "results/qwen3.6-35b-a3b/raw/swebench/exit_statuses_shuffle100.yaml",
-  "fair_n": 78,
-  "fair_pct": 56.4,
-  "infra_excluded": 22,
-  "no_verdict": 34,
-  "nominal_pct": 44.0,
-  "resolved": 44,
-  "src": "results/qwen3.6-35b-a3b/raw/swebench/swebench_verified_shuffle100_report.json",
+  "exit_statuses_src": "results/qwen3.6-35b-a3b/runs/warpcore-v1/swebench/qwen36-swebench-n100-20260919/raw/exit_statuses.json",
+  "fair_n": 99,
+  "fair_pct": 57.6,
+  "infra_excluded": 1,
+  "no_verdict": 13,
+  "nominal_pct": 57.0,
+  "resolved": 57,
+  "src": "results/qwen3.6-35b-a3b/runs/warpcore-v1/swebench/qwen36-swebench-n100-20260919/raw/grading_results.json",
   "statuses_cover": 100,
-  "verdicts": 66
+  "verdicts": 87
  }
 }

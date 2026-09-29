@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/jtchilders-ai-assistant/warpcore-benchmarks/suite/schemas/suite.schema.json",
-  "title": "Warpcore v1 Suite Specification",
-  "description": "Schema for the suite/warpcore-v1.yaml file. Defines the contract for all experiment-level settings owned by the suite. Lifecycle and execution state enums are owned by result-status.schema.json; the suite YAML must not duplicate them.",
+  "title": "Warpcore Suite Specification",
+  "description": "Schema for warpcore suite YAML files (warpcore-v1.yaml, warpcore-v2.yaml, etc.). Defines the contract for all experiment-level settings owned by the suite. Lifecycle and execution state enums are owned by result-status.schema.json; the suite YAML must not duplicate them.",
   "type": "object",
   "required": [
     "suite_id",
@@ -17,13 +17,13 @@
   "properties": {
     "suite_id": {
       "type": "string",
-      "const": "warpcore-v1",
-      "description": "Canonical suite identifier. Must be exactly 'warpcore-v1'."
+      "enum": ["warpcore-v1", "warpcore-v2"],
+      "description": "Canonical suite identifier. Must be 'warpcore-v1' or 'warpcore-v2'."
     },
     "suite_schema_version": {
       "type": "integer",
-      "const": 1,
-      "description": "Schema version. Must be exactly 1."
+      "enum": [1, 2],
+      "description": "Schema version. Must be 1 (warpcore-v1) or 2 (warpcore-v2)."
     },
     "statistical_policy": {
       "type": "object",
@@ -464,7 +464,7 @@
         "required_evidence",
         "retry_policy",
         "timeout_policy",
-        "qualification"
+        "launch_authorization"
       ],
       "additionalProperties": false,
       "properties": {
@@ -556,43 +556,31 @@
         "timeout_policy": {
           "$ref": "#/$defs/timeout_policy"
         },
+        "launch_authorization": {
+          "$ref": "#/$defs/swebench_launch_authorization"
+        },
         "qualification": {
-          "type": "object",
-          "description": "Suite-owned SWE-bench launch qualification policy. Enforced by viz/swebench_qualification.py: the ID set is derived from the frozen instance set, never hand-picked, and a campaign may not launch without a fresh record bound to it.",
-          "required": [
-            "ids_file",
-            "ids_sha256",
-            "expected_count",
-            "selection_criterion",
-            "required_terminal_status",
-            "max_age_hours"
-          ],
-          "additionalProperties": false,
-          "properties": {
-            "ids_file": {
-              "type": "string"
-            },
-            "ids_sha256": {
-              "$ref": "#/$defs/sha256_hex64"
-            },
-            "expected_count": {
-              "type": "integer",
-              "const": 20
-            },
-            "selection_criterion": {
-              "type": "string",
-              "minLength": 1
-            },
-            "required_terminal_status": {
-              "type": "string",
-              "const": "Submitted"
-            },
-            "max_age_hours": {
-              "type": "integer",
-              "minimum": 1
+          "$ref": "#/$defs/swebench_qualification"
+        }
+      },
+      "if": {
+        "properties": {
+          "launch_authorization": {
+            "properties": {
+              "mode": { "const": "qualification_seal" }
             }
           }
         }
+      },
+      "then": {
+        "required": ["qualification"],
+        "description": "qualification_seal mode requires the qualification block"
+      },
+      "else": {
+        "not": {
+          "required": ["qualification"]
+        },
+        "description": "direct_n100_after_preflight mode must NOT have a qualification block"
       }
     },
     "throughput_benchmark": {
@@ -658,6 +646,56 @@
         },
         "timeout_policy": {
           "$ref": "#/$defs/timeout_policy"
+        }
+      }
+    },
+    "swebench_launch_authorization": {
+      "type": "object",
+      "description": "Explicit launch authorization policy for SWE-bench. Closed vocabulary — unknown modes fail closed. qualification_seal requires a fresh 20-instance qualification record; direct_n100_after_preflight requires all production preflight gates but no separate qualification.",
+      "required": ["mode"],
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["qualification_seal", "direct_n100_after_preflight"],
+          "description": "Closed launch authorization vocabulary. Only these two values are accepted; all others fail the schema."
+        }
+      }
+    },
+    "swebench_qualification": {
+      "type": "object",
+      "description": "Suite-owned SWE-bench launch qualification policy. Enforced by viz/swebench_qualification.py: the ID set is derived from the frozen instance set, never hand-picked, and a campaign may not launch without a fresh record bound to it. Only present in qualification_seal mode.",
+      "required": [
+        "ids_file",
+        "ids_sha256",
+        "expected_count",
+        "selection_criterion",
+        "required_terminal_status",
+        "max_age_hours"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "ids_file": {
+          "type": "string"
+        },
+        "ids_sha256": {
+          "$ref": "#/$defs/sha256_hex64"
+        },
+        "expected_count": {
+          "type": "integer",
+          "const": 20
+        },
+        "selection_criterion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "required_terminal_status": {
+          "type": "string",
+          "const": "Submitted"
+        },
+        "max_age_hours": {
+          "type": "integer",
+          "minimum": 1
         }
       }
     }

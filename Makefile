@@ -123,7 +123,7 @@ ci: check check-artifacts contract diagnostic-verify
 	@$(PYTHON) $(VIZ)/validate_samples.py --warn-only
 	@$(PYTHON) $(VIZ)/quality_preflight.py --self-test
 	@$(PYTHON) $(VIZ)/swebench_qualification.py --self-test
-	@$(PYTHON) -m pytest tests/test_run_quality.py tests/test_task5_acceptance.py tests/test_run_swebench.py tests/test_task6_hardening.py tests/test_validate_campaign.py tests/test_validator_scan_timeout.py tests/test_publish_campaign.py tests/test_publish_swebench_score.py tests/test_task7_adversarial.py tests/test_task7_contracts.py tests/test_task7_authoritative_validator.py tests/test_task7_evidence_paths.py tests/test_task7_runner_integration.py tests/test_task7_submitted_and_scoring_provenance.py tests/test_task7_swe_digest.py tests/test_task7_swebench_contracts.py tests/test_swebench_qualification.py tests/test_lmeval_sidecar.py tests/test_result_registry.py tests/test_task9_readiness.py tests/test_runtime_error_fail_closed.py tests/test_swebench_circuit_breaker.py tests/test_viz_model_metadata.py tests/test_qwen35_campaign_evidence.py -q
+	@$(PYTHON) -m pytest tests/test_run_quality.py tests/test_task5_acceptance.py tests/test_run_swebench.py tests/test_task6_hardening.py tests/test_validate_campaign.py tests/test_validator_scan_timeout.py tests/test_publish_campaign.py tests/test_publish_swebench_score.py tests/test_task7_adversarial.py tests/test_task7_contracts.py tests/test_task7_authoritative_validator.py tests/test_task7_evidence_paths.py tests/test_task7_runner_integration.py tests/test_task7_submitted_and_scoring_provenance.py tests/test_task7_swe_digest.py tests/test_task7_swebench_contracts.py tests/test_swebench_qualification.py tests/test_lmeval_sidecar.py tests/test_result_registry.py tests/test_task9_readiness.py tests/test_runtime_error_fail_closed.py tests/test_swebench_circuit_breaker.py tests/test_warpcore_v2.py tests/test_viz_model_metadata.py tests/test_qwen35_campaign_evidence.py -q
 	@echo "OK: figures reproducible, no new provenance gaps, suite contract valid, diagnostics match their evidence."
 
 # Suite and adapter contract validation (warpcore-v1 design §12 step 2).
@@ -133,6 +133,7 @@ contract:
 	@$(PYTHON) $(VIZ)/validate_suite.py suite/warpcore-v1.yaml \
 		--adapter adapters/qwen3.6-35b-a3b.yaml \
 		--prompt-tokens gsm8k=256,ifeval=373,gpqa_diamond=2808
+	@$(PYTHON) $(VIZ)/validate_suite.py suite/warpcore-v2.yaml
 
 # Mandatory quality-run gate: serving preflight + output budget + timeout arithmetic.
 # Run this BEFORE any quality run. All three checks must pass.
@@ -210,21 +211,27 @@ run-quality:
 		$(if $(ALLOW_NO_SCREEN),--allow-no-screen,) \
 		$(if $(RESUME),--resume,)
 
-# Contract-aware SWE-bench runner (Task 6).
+# Contract-aware SWE-bench runner (Tasks 6 and 9).
 # Required variables: SUITE, ADAPTER, ENDPOINT, PROMPT_TOKENS
 # Optional: RUN_ID, RUN_DIR, API_KEY, WORKERS, DRY_RUN=1, ALLOW_NO_SCREEN=1, RESUME=1
+#
+# Launch authorization is suite-owned and fail-closed:
+#   warpcore-v1 requires its existing fresh n=20 qualification seal.
+#   warpcore-v2 forbids that seal and instead performs endpoint/model/tool-call
+#   preflight immediately before a direct n=100 launch; its in-run systemic-failure
+#   circuit breaker remains mandatory. Never use NONCANONICAL_TRIAL for canonical work.
 #
 # PROMPT_TOKENS — measured tokenized prompt maxima for quality benchmarks (required for
 #   adapter campaign-readiness validation even for SWE-bench runs).
 #   Format: bench=N,bench2=N2  e.g. PROMPT_TOKENS=gsm8k=500,ifeval=2000,gpqa_diamond=1000
 #
 # Dry-run (inspect scaffold config, no network/GPU):
-#   make run-swebench SUITE=suite/warpcore-v1.yaml ADAPTER=adapters/qwen3.6-35b-a3b.yaml \
+#   make run-swebench SUITE=suite/warpcore-v2.yaml ADAPTER=adapters/qwen3.6-35b-a3b.yaml \
 #       ENDPOINT=http://h:8000/v1 PROMPT_TOKENS=gsm8k=500,ifeval=2000,gpqa_diamond=1000 DRY_RUN=1
 #
 # Live run (must be inside /usr/bin/screen on Mac mini):
 #   screen -S swebench-run
-#   make run-swebench SUITE=suite/warpcore-v1.yaml ADAPTER=adapters/qwen3.6-35b-a3b.yaml \
+#   make run-swebench SUITE=suite/warpcore-v2.yaml ADAPTER=adapters/qwen3.6-35b-a3b.yaml \
 #       ENDPOINT=http://h:8000/v1 PROMPT_TOKENS=gsm8k=500,ifeval=2000,gpqa_diamond=1000
 #
 # Exit 0 = success + DONE written, 1 = preflight/generation/grading failure,

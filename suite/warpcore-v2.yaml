@@ -1,21 +1,28 @@
-# warpcore-v1 benchmark suite specification
+# warpcore-v2 benchmark suite specification
 #
-# Single source of truth for all model-independent experiment variables.
-# A serving adapter may not override any value defined here.
-# Any change to a dataset, instance set, prompt, scoring rule, generation ceiling,
-# harness behavior, or denominator creates a new suite version.
+# v2 is a clone of v1 with one change: SWE-bench launch authorization mode.
+# v1 requires a 20-instance qualification seal before every n=100 launch.
+# v2 replaces that with explicit direct_n100_after_preflight authorization:
+# no separate qualification task sample; all production preflight gates must
+# pass, and the same in-run circuit breaker applies.
+#
+# All other experiment-identity fields (dataset revision, instance set,
+# scaffold, harness versions, statistical policy, generation ceilings,
+# retry/timeout policies, circuit breaker) are IDENTICAL to v1, making
+# results directly comparable under paired analysis.
 #
 # Authoritative design:
-#   docs/superpowers/specs/2026-09-15-warpcore-v1-apples-to-apples-design.md
+#   docs/superpowers/specs/2026-09-29-swebench-reporting-and-v2-launch-design.md
 #
-# Dataset revisions are current local HuggingFace refs captured for v1 (prospective).
-# They are pinned here for reproducibility; they are NOT claimed to match any
+# Dataset revisions are the same local HuggingFace refs as v1.
+# They are pinned for reproducibility and are NOT claimed to match any
 # prior historical run.
 
-suite_id: "warpcore-v1"
-suite_schema_version: 1
+suite_id: "warpcore-v2"
+suite_schema_version: 2
 
-# ── Statistical reporting policy ────────────────────────────────────────────
+# ── Statistical reporting policy ─────────────────────────────────────────────
+# Identical to v1: v2 results are directly comparable under paired analysis.
 statistical_policy:
   cross_model_comparison: "paired_per_item"
   binary_test: "exact_mcnemar_binomial"
@@ -24,7 +31,7 @@ statistical_policy:
   interval_method: "wilson"
   reweighted_requires_uncertainty: true
 
-# ── Benchmarks ───────────────────────────────────────────────────────────────
+# ── Benchmarks ────────────────────────────────────────────────────────────────
 benchmarks:
 
   gsm8k:
@@ -43,21 +50,6 @@ benchmarks:
     num_fewshot: 0
     canonical_headline: "exact_match"
     expected_item_count: 1319
-    # GSM8K canonical variant selection:
-    #   Two retained variants: results/qwen3.6-35b-a3b/raw/gsm8k_cot_zeroshot_clean.yaml
-    #   and results/nemotron-3.5-lightning-30b/raw/gsm8k_cot_zeroshot_clean.yaml.
-    #   The qwen variant is canonical because:
-    #   1. It contains metadata.version and metadata.fixed fields recording the fix history,
-    #      while the nemotron variant is the older file without that provenance.
-    #   2. The fix it records (2026-09-06: dataset_path gsm8k->openai/gsm8k; removed chained
-    #      double-regex that truncated to first digit) is an evidence-based improvement.
-    #   3. The qwen variant was the active task file for the successful Ornith clean-task run.
-    #   4. The nemotron variant is otherwise byte-for-byte identical to the qwen variant
-    #      minus only the metadata block, confirming it is the prior version.
-    #
-    # scoring_implementation: GSM8K scoring is implemented entirely within the pinned
-    # task file (gsm8k_clean_v1.yaml, hash above). There is no separate utility file;
-    # the answer extraction regex and exact-match logic live in the task YAML.
     required_evidence:
       - "aggregate_result"
       - "samples_jsonl_gz"
@@ -83,8 +75,6 @@ benchmarks:
     task_file: "suite/tasks/ifeval_v4.yaml"
     task_sha256: "3d8a3eb32de03f6a23ac87b46951d972a4ec7cb137e753365c0271594e38f84b"
     dataset:
-      # Exact dataset and revision pinned.  Task content separately pinned by
-      # task_file/task_sha256 above (lm-eval 0.4.12 builtin ifeval.yaml).
       path: "google/IFEval"
       name: null
       split: "train"
@@ -96,9 +86,6 @@ benchmarks:
     num_fewshot: 0
     canonical_headline: "prompt_level_strict_acc"
     expected_item_count: 541
-    # scoring_implementation: IFEval scoring utilities are embedded in the lm-eval harness
-    # (pinned to revision lm_eval_revision in required_harness). There is no separate
-    # external utility file; the instruction-following scorer runs within lm-eval.
     required_evidence:
       - "aggregate_result"
       - "samples_jsonl_gz"
@@ -137,9 +124,6 @@ benchmarks:
     num_fewshot: 0
     canonical_headline: "answer_line_exact_match"
     expected_item_count: 198
-    # scoring_implementation: GPQA scoring is implemented in the pinned task file
-    # (gpqa_diamond_clean_v3.yaml) plus the pinned utility module (gpqa_utils.py,
-    # hash above). Both are required evidence; the utils_sha256 above pins them.
     required_evidence:
       - "aggregate_result"
       - "samples_jsonl_gz"
@@ -164,7 +148,7 @@ benchmarks:
     description: "SWE-bench Verified, seed-42 n=100 instance set"
     dataset:
       # Canonical HuggingFace repository: princeton-nlp/SWE-bench_Verified.
-      # Revision is a current local HF ref captured for v1 (prospective).
+      # Same revision as v1 for direct comparability.
       path: "princeton-nlp/SWE-bench_Verified"
       revision: "c104f840cc67f8b6eec6f759ebc8b2693d585d4a"
     instance_set_file: "suite/swebench/instances-seed42-n100.json"
@@ -172,37 +156,15 @@ benchmarks:
     scaffold_file: "suite/swebench/scaffold.yaml"
     scaffold_sha256: "419244dc6060fc242ba4defb72c3098c351ed6b4325ac6742737a463ace6125f"
     expected_item_count: 100
-    # ── Launch authorization (suite-owned, enforced by viz/run_swebench.py) ──
-    # Closed vocabulary: unknown modes fail closed.
-    # qualification_seal: canonical launch requires a fresh 20-instance qualification record.
-    # direct_n100_after_preflight: launch after all production preflight gates pass (v2 only).
+    # ── Launch authorization (v2 change from v1) ──────────────────────────────
+    # v1 uses qualification_seal (requires 20-instance qual record).
+    # v2 uses direct_n100_after_preflight: no separate task sample, but ALL
+    # production preflight gates must pass and the in-run circuit breaker
+    # remains active. Unknown modes fail closed.
     launch_authorization:
-      mode: "qualification_seal"
-    # ── Launch qualification (suite-owned, enforced by viz/swebench_qualification.py) ──
-    # A canonical SWE-bench campaign may launch only when a fresh qualification
-    # record proves the production runner produced 20 clean submissions on the
-    # instance set below and the official grader terminally dispositioned all 20.
-    #
-    # The 20 IDs are DERIVED, not hand-picked: group the frozen seed-42 n=100 set
-    # by repository (text before the final '-'), order repositories
-    # lexicographically, keep frozen-set order within a repository, then take
-    # instances round-robin one per repository per round until 20 are selected.
-    # Round 1 therefore covers all 11 repositories in the frozen set. The file is
-    # emitted in frozen-set order so it reads as a subsequence of the n=100 set.
-    # viz/swebench_qualification.derive_qualification_instance_ids recomputes this
-    # and suite validation fails if the committed file disagrees — so no adapter,
-    # CLI flag, or operator preference can substitute convenient cases.
-    qualification:
-      ids_file: "suite/swebench/qualification-ids-v1.json"
-      ids_sha256: "1db9143f59e1900749bd750effe2fe2b98a81544d95f28abb95c0352f9c74aba"
-      expected_count: 20
-      selection_criterion: "round_robin_by_repository_over_frozen_seed42_n100"
-      required_terminal_status: "Submitted"
-      # Serving state (weights, parser, image) can change under a stable endpoint,
-      # so a qualification expires. 24 h is one operating day: long enough to
-      # qualify and launch in the same session, short enough that a re-served
-      # engine cannot inherit yesterday's authorization.
-      max_age_hours: 24
+      mode: "direct_n100_after_preflight"
+    # NOTE: No 'qualification' block here — direct_n100_after_preflight mode
+    # does not use and must not carry a qualification block.
     canonical_headline: "resolved_div_all_100_assigned"
     # All 100 assigned instances remain in the denominator; disposition categories
     # explain misses but do not erase them.
@@ -254,12 +216,10 @@ benchmarks:
     retry_policy:
       max_retries: 0
     timeout_policy:
-      # vllm bench serve runs until the concurrency sweep reaches plateau naturally;
-      # no client-level per-request timeout is imposed. Termination is determined
-      # by the sweep logic, not a fixed numeric ceiling.
       use_arithmetic: false
 
-# ── Suite-level policies ─────────────────────────────────────────────────────
+# ── Suite-level policies ──────────────────────────────────────────────────────
+# Identical to v1 for direct comparability.
 required_harness:
   lm_eval_version: "0.4.12"
   lm_eval_revision: "6d642546f4688648fced259eb3302efd36ece5af"

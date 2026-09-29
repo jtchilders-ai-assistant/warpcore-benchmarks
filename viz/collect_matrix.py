@@ -20,7 +20,7 @@ import json
 import os
 import re
 
-from common import DATA, REPO, SWEBENCH_RESULTS
+from common import DATA, REPO
 
 # Artifact registry (Task 8): every published source path must be classified.
 # lookup_path() is fail-closed: an unregistered path raises KeyError, preventing
@@ -56,8 +56,6 @@ QUALITY = {
         gsm8k="raw/quality/gsm8k/results_2026-08-22T04-37-53.389704.json",
         ifeval="raw/quality/ifeval/results_2026-08-22T06-10-16.893966.json"),
 }
-
-SWEBENCH = SWEBENCH_RESULTS
 
 # Composite headline values consume both a base result and a replay result.
 # Register and gate every component, not just the first file read above.
@@ -156,41 +154,45 @@ def collect() -> dict:
 
     # ---- SWE-bench Verified
     #
-    # `value` is the headline resolved count. Two extra fields matter for honest
-    # reporting and are carried through to the figures:
-    #   empty_patch  -- misses where the agent never submitted a patch at all.
-    #                   These are NOT "wrong answer"; they are budget/format
-    #                   ceilings, and they differ by 17x across these models.
-    #   resolve_rate -- resolved / submitted. Separates "can it fix bugs?" from
-    #                   "can it drive the harness to completion?".
-    for model, rel in SWEBENCH.items():
-        # Fail-closed registry check for SWE-bench source paths.
-        _registry_lookup(rel)  # raises KeyError if unregistered
-        d = json.loads((REPO / rel).read_text())
-        resolved = len(d["resolved_ids"])
-        empty = len(d["empty_patch_ids"])
-        submitted = resolved + len(d["unresolved_ids"])
-        entry: dict = dict(value=float(resolved), empty_patch=empty,
-                           submitted=submitted,
-                           resolve_rate=round(100 * resolved / submitted, 1) if submitted else None,
-                           src=rel)
-        # exit statuses explain WHY a patch was empty; committed per PROVENANCE.md §2
-        exits = REPO / rel.rsplit("/", 1)[0] / "exit_statuses_n100.yaml"
-        if exits.exists():
-            counts: dict[str, int] = {}
-            cur = None
-            for line in exits.read_text().splitlines():
-                if line.startswith("    - "):
-                    if cur:
-                        counts[cur] = counts.get(cur, 0) + 1
-                elif line.startswith("  ") and line.rstrip().endswith(":"):
-                    cur = line.strip().rstrip(":")
-            if counts:
-                entry["exit_statuses"] = counts
+    # `value` is the headline resolved count out of 100. We use the shared
+    # swebench_reporting parser so counts are source-derived, never hand-entered.
+    # Key fields:
+    #   expected     -- always 100 (the frozen seed-42 n=100 set)
+    #   submitted    -- instances with a nonempty model_patch (from predictions
+    #                   when available; otherwise resolved+unresolved+error from
+    #                   the aggregate artifact)
+    #   value        -- resolved count (= resolved/100 * 100)
+    #   empty_patch  -- instances where the agent never produced a diff
+    #   resolve_rate -- resolved / 100 (full denominator, never resolved/submitted)
+    #   provenance   -- "normalized-complete" | "legacy-aggregate"
+    #   lifecycle    -- "current" | "historical" | "diagnostic"
+    from swebench_reporting import selected_swebench_reports  # type: ignore[import]
+    swe_reports = selected_swebench_reports(REPO)
+
+    for model, r in swe_reports.items():
+        if model not in out:
+            out[model] = {}
+        resolved = r["resolved"]
+        submitted = r["submitted"]
+        expected = r["expected"]
+        entry: dict = dict(
+                value=float(resolved),
+                expected=expected,
+                submitted=submitted,
+                empty_patch=r["empty_patch"],
+                grading_error=r["grading_error"],
+                incomplete=r["incomplete"],
+                resolve_rate=round(100.0 * resolved / expected, 1),
+                provenance=r["provenance"],
+                lifecycle=r["lifecycle"],
+            src=r["source_paths"][0],
+        )
         out[model]["swebench"] = entry
 
-    out["laguna-s-2.1-118b"]["swebench"]["note"] = (
-        "35 empty patches (25 RepeatedFormatError) -- floor, not ceiling")
+    # Carry any legacy per-model notes that belong here.
+    if "laguna-s-2.1-118b" in out and "swebench" in out["laguna-s-2.1-118b"]:
+        out["laguna-s-2.1-118b"]["swebench"]["note"] = (
+            "35 empty patches (25 RepeatedFormatError) -- floor, not ceiling")
 
     return out
 

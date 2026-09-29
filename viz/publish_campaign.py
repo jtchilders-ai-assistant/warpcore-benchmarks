@@ -452,6 +452,12 @@ def _build_entries(canonical_runs: list) -> list[dict]:
     """Build canonical matrix entries from validated+current runs."""
     entries = []
     for r in canonical_runs:
+        status = r.get("status") or {}
+        if status.get("execution_state") not in _PUBLICATION_STATES:
+            continue
+        if status.get("lifecycle") != "current":
+            continue
+
         manifest = r["manifest"]
         run_info = r["run_info"]
         run_dir = run_info["run_dir"]
@@ -474,6 +480,63 @@ def _build_entries(canonical_runs: list) -> list[dict]:
         score_values = list(scores.values())
         mean_score = sum(score_values) / n
 
+        swebench_fields = {}
+        if benchmark == "swebench":
+            raw_dir = pathlib.Path(run_dir) / "raw"
+            try:
+                predictions = json.loads((raw_dir / "preds.json").read_text())
+                grading = json.loads((raw_dir / "grading_results.json").read_text())
+            except (OSError, json.JSONDecodeError, TypeError) as exc:
+                raise ValueError(
+                    f"{run_dir}: SWE-bench publication evidence is missing or malformed: {exc}"
+                ) from exc
+            if not isinstance(predictions, dict) or not isinstance(grading, dict):
+                raise ValueError(
+                    f"{run_dir}: SWE-bench predictions and grading evidence must be JSON objects"
+                )
+            submitted = 0
+            for iid, prediction in predictions.items():
+                if not isinstance(iid, str) or not isinstance(prediction, dict):
+                    raise ValueError(
+                        f"{run_dir}: predictions must map string instance IDs to objects"
+                    )
+                patch = prediction.get("model_patch", "")
+                if not isinstance(patch, str):
+                    raise ValueError(
+                        f"{run_dir}: prediction {iid!r} has non-string model_patch"
+                    )
+                submitted += bool(patch.strip())
+
+            resolved = len(grading.get("resolved_ids", []))
+            unresolved = len(grading.get("unresolved_ids", []))
+            empty_patch = len(grading.get("empty_patch_ids", []))
+            grading_error = len(grading.get("error_ids", []))
+            incomplete = len(grading.get("incomplete_ids", []))
+            if resolved + unresolved == 0:
+                raise ValueError(
+                    f"{run_dir}: no graded verdict exists in resolved_ids or unresolved_ids"
+                )
+            recorded_submitted = manifest.get("item_inventory", {}).get("submitted")
+            if recorded_submitted is not None and recorded_submitted != submitted:
+                raise ValueError(
+                    f"{run_dir}: manifest submitted={recorded_submitted} does not match "
+                    f"nonempty prediction count {submitted}"
+                )
+            if resolved > submitted:
+                raise ValueError(
+                    f"{run_dir}: resolved count {resolved} exceeds nonempty submitted count {submitted}"
+                )
+            swebench_fields = {
+                "submitted": submitted,
+                "resolved": resolved,
+                "submitted_but_wrong": submitted - resolved,
+                "model_non_submission": n - submitted,
+                "empty_patch": empty_patch,
+                "grading_error": grading_error,
+                "infrastructure_failure": incomplete,
+                "incomplete": incomplete,
+            }
+
         entry = {
             "model_slug": manifest.get("model", {}).get("slug", run_info["model_slug"]),
             "benchmark": manifest.get("benchmark", ""),
@@ -486,6 +549,7 @@ def _build_entries(canonical_runs: list) -> list[dict]:
             "manifest_run_id": manifest.get("run_id", ""),
             "item_ids": sorted(scores.keys()) if scores else [],
             "imputed": False,  # never imputed
+            **swebench_fields,
         }
         entries.append(entry)
     return entries

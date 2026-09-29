@@ -31,14 +31,13 @@
   },
   "swebench": {
    "empty_patch": 35,
-   "exit_statuses": {
-    "ContextWindowExceededError": 9,
-    "LimitsExceeded": 1,
-    "RepeatedFormatError": 25,
-    "Submitted": 65
-   },
+   "expected": 100,
+   "grading_error": 0,
+   "incomplete": 0,
+   "lifecycle": "historical",
    "note": "35 empty patches (25 RepeatedFormatError) -- floor, not ceiling",
-   "resolve_rate": 84.6,
+   "provenance": "normalized-complete",
+   "resolve_rate": 55.0,
    "src": "results/laguna-s-2.1-118b/raw/swebench/swebench_verified_n100_results.json",
    "submitted": 65,
    "value": 55.0
@@ -81,7 +80,12 @@
   },
   "swebench": {
    "empty_patch": 2,
-   "resolve_rate": 52.0,
+   "expected": 100,
+   "grading_error": 0,
+   "incomplete": 0,
+   "lifecycle": "historical",
+   "provenance": "normalized-complete",
+   "resolve_rate": 51.0,
    "src": "results/nemotron-3.5-lightning-30b/raw/swebench_verified_n100_results.json",
    "submitted": 98,
    "value": 51.0
@@ -107,10 +111,29 @@
   },
   "swebench": {
    "empty_patch": 9,
-   "resolve_rate": 80.2,
+   "expected": 100,
+   "grading_error": 0,
+   "incomplete": 0,
+   "lifecycle": "historical",
+   "provenance": "normalized-complete",
+   "resolve_rate": 73.0,
    "src": "results/ornith-35b/raw/swebench/swebench_verified_n100_results.json",
    "submitted": 91,
    "value": 73.0
+  }
+ },
+ "qwen3.5-122b-a10b": {
+  "swebench": {
+   "empty_patch": 24,
+   "expected": 100,
+   "grading_error": 0,
+   "incomplete": 0,
+   "lifecycle": "diagnostic",
+   "provenance": "normalized-complete",
+   "resolve_rate": 57.0,
+   "src": "results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/grading_results.json",
+   "submitted": 76,
+   "value": 57.0
   }
  },
  "qwen3.6-35b-a3b": {
@@ -131,11 +154,16 @@
    "value": 84.84
   },
   "swebench": {
-   "empty_patch": 29,
-   "resolve_rate": 66.7,
-   "src": "results/qwen3.6-35b-a3b/raw/swebench/swebench_verified_shuffle100_report.json",
-   "submitted": 66,
-   "value": 44.0
+   "empty_patch": 11,
+   "expected": 100,
+   "grading_error": 2,
+   "incomplete": 0,
+   "lifecycle": "current",
+   "provenance": "normalized-complete",
+   "resolve_rate": 57.0,
+   "src": "results/qwen3.6-35b-a3b/runs/warpcore-v1/swebench/qwen36-swebench-n100-20260919/raw/grading_results.json",
+   "submitted": 89,
+   "value": 57.0
   }
  }
 }

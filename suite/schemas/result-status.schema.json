@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/jtchilders-ai-assistant/warpcore-benchmarks/suite/schemas/result-status.schema.json",
-  "title": "Warpcore v1 Result Status",
+  "title": "Warpcore Result Status",
   "description": "Append-only campaign state record. Separates execution state from artifact lifecycle. State transitions are recorded in history; a later state never erases earlier failure or retry history.",
   "type": "object",
   "required": [
@@ -25,8 +25,8 @@
     },
     "suite_id": {
       "type": "string",
-      "description": "Suite identifier. Must be exactly 'warpcore-v1'.",
-      "const": "warpcore-v1"
+      "description": "Suite identifier. Must name a supported Warpcore suite.",
+      "enum": ["warpcore-v1", "warpcore-v2"]
     },
     "execution_state": {
       "type": "string",

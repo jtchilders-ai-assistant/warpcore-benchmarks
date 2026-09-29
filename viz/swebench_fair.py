@@ -36,7 +36,8 @@ import json
 
 import yaml
 
-from common import DATA, REPO, SWEBENCH_RESULTS
+from common import DATA, REPO
+from swebench_reporting import selected_swebench_reports
 
 # Statuses where the harness/serving stack failed before the model could answer.
 INFRA_STATUSES = {
@@ -55,7 +56,7 @@ MODEL_STATUSES = {"LimitsExceeded", "ContextWindowExceededError", "Submitted"}
 # committed exit statuses -- see results/ornith-35b (a known provenance gap).
 EXIT_STATUSES = {
     "qwen3.6-35b-a3b":
-        "results/qwen3.6-35b-a3b/raw/swebench/exit_statuses_shuffle100.yaml",
+        "results/qwen3.6-35b-a3b/runs/warpcore-v1/swebench/qwen36-swebench-n100-20260919/raw/exit_statuses.json",
     "laguna-s-2.1-118b":
         "results/laguna-s-2.1-118b/raw/swebench/exit_statuses_n100.yaml",
     "nemotron-3.5-lightning-30b":
@@ -67,7 +68,16 @@ N_TOTAL = 100
 
 def load_statuses(rel: str) -> dict[str, str]:
     """instance_id -> exit status, from the committed YAML."""
-    doc = yaml.safe_load((REPO / rel).read_text())
+    path = REPO / rel
+    if path.suffix == ".json":
+        doc = json.loads(path.read_text())
+        return {
+            instance_id: (
+                value.get("status") if isinstance(value, dict) else str(value)
+            )
+            for instance_id, value in doc.items()
+        }
+    doc = yaml.safe_load(path.read_text())
     by_status = doc["instances_by_exit_status"]
     return {inst: status for status, insts in by_status.items() for inst in insts}
 
@@ -75,8 +85,7 @@ def load_statuses(rel: str) -> dict[str, str]:
 def compute() -> dict:
     out: dict[str, dict] = {}
 
-    for model, rel in SWEBENCH_RESULTS.items():
-        d = json.loads((REPO / rel).read_text())
+    for model, d in selected_swebench_reports(REPO).items():
         resolved = set(d["resolved_ids"])
         verdict = resolved | set(d["unresolved_ids"])
         no_verdict = N_TOTAL - len(verdict)
@@ -86,7 +95,7 @@ def compute() -> dict:
             verdicts=len(verdict),
             no_verdict=no_verdict,
             nominal_pct=round(100 * len(resolved) / N_TOTAL, 1),
-            src=rel,
+            src=d["source_paths"][0],
         )
 
         rel_yaml = EXIT_STATUSES.get(model)
@@ -97,14 +106,17 @@ def compute() -> dict:
                          causes={}, note="no exit_statuses artifact committed")
         else:
             status_of = load_statuses(rel_yaml)
-            submitted = set(d["submitted_ids"])
+            inventory = (
+                resolved | set(d["unresolved_ids"]) | set(d["empty_patch_ids"])
+                | set(d["error_ids"]) | set(d["incomplete_ids"])
+            )
             causes: dict[str, int] = {}
             infra = 0
             foreign: list[str] = []
             for inst, status in status_of.items():
                 if inst in verdict:
                     continue  # got a verdict; cause is moot
-                if inst not in submitted:
+                if inst not in inventory:
                     # This instance was never part of the run. A stale file, a
                     # different segment, or a hand-edit can name instances from
                     # the wider 500-problem pool; counting one as "infra" would
@@ -142,7 +154,7 @@ def compute() -> dict:
             # accounted for. Refuse to publish an attributed fair denominator
             # when even one submitted no-verdict instance has no status.
             uncovered = sorted(
-                (submitted - verdict) - set(status_of)
+                (inventory - verdict) - set(status_of)
             )
             if uncovered:
                 raise SystemExit(

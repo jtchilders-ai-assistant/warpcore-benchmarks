@@ -869,6 +869,17 @@ class SwebenchRunner:
             )
         self._bench_cfg: dict = benchmarks[_SWEBENCH_BENCH]
 
+        # -- Parse and validate launch authorization mode (fail closed) --
+        _CLOSED_LAUNCH_MODES = {"qualification_seal", "direct_n100_after_preflight"}
+        launch_auth = self._bench_cfg.get("launch_authorization") or {}
+        self._launch_mode: str = launch_auth.get("mode", "")
+        if self._launch_mode not in _CLOSED_LAUNCH_MODES:
+            raise ValueError(
+                f"Suite {suite_path} swebench.launch_authorization.mode {self._launch_mode!r} "
+                f"is unknown or absent. Accepted modes: {sorted(_CLOSED_LAUNCH_MODES)}. "
+                "Unknown or missing policy fails closed — cannot launch."
+            )
+
         # Suite-level IDs
         self._suite_id: str = self._suite.get("suite_id", "warpcore-v1")
         self._run_id: str = self.run_dir.name
@@ -1288,6 +1299,13 @@ class SwebenchRunner:
                     "result is not publication-eligible."
                 )
                 return EXIT_SUCCESS
+            if self._launch_mode == "direct_n100_after_preflight":
+                print(
+                    "[dry-run] DIRECT-N100-AFTER-PREFLIGHT (v2): no qualification seal required. "
+                    "Authorization is established by passing all production preflight gates. "
+                    "The in-run circuit breaker is active."
+                )
+                return EXIT_SUCCESS
             # A dry run inspects; it never authorizes. Report the gate verdict
             # plainly so an operator cannot read "dry-run OK" as "cleared to launch".
             verdict = self.check_qualification()
@@ -1364,6 +1382,17 @@ class SwebenchRunner:
             print(
                 "[run-swebench] NONCANONICAL TRIAL: running frozen n=100 without a "
                 "qualification seal; lifecycle=diagnostic and not publication-eligible.",
+                file=sys.stderr,
+            )
+        elif self._launch_mode == "direct_n100_after_preflight":
+            # v2: no qualification gate — authorization is established by passing
+            # all production preflight checks at runtime. The qualification verifier
+            # seam is not used in this path; the verifier is only for v1 tests.
+            qualification = None
+            _print_ok_banner = False
+            print(
+                "[run-swebench] DIRECT-N100-AFTER-PREFLIGHT: v2 launch mode — "
+                "no qualification seal required; preflight gates are mandatory.",
                 file=sys.stderr,
             )
         elif self._qualification_verifier is not None:
@@ -2388,13 +2417,38 @@ class SwebenchRunner:
         timing = manifest.setdefault("timing", {})
         timing["completed_utc"] = _utcnow()
 
-        # Compute submitted count from grading_results.json.
-        # Grading has already been verified by _verify_grading_evidence before this
-        # method is called — any malformed or missing grading file would have caused
-        # an earlier EXIT_DEFECT.  We still parse strictly here (fail-closed, not
-        # best-effort) because the submitted count must equal the actual disposition
-        # union and silent submitted=0 would be a correctness violation.
+        # Compute submitted count from preds.json using the reporting definition:
+        # an assigned instance is submitted iff model_patch is a nonempty string.
+        # This is intentionally independent of grader outcome; a nonempty patch in
+        # error_ids is submitted but not resolved.
         raw_dir = self.run_dir / "raw"
+        preds_path = raw_dir / "preds.json"
+        try:
+            predictions = json.loads(preds_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError) as exc:
+            raise ValueError(
+                f"preds.json at {preds_path} is not readable JSON: {exc}. "
+                "Manifest submitted count cannot be derived."
+            ) from exc
+        if not isinstance(predictions, dict):
+            raise ValueError(
+                f"preds.json must be a JSON object; got {type(predictions).__name__}."
+            )
+        submitted_count = 0
+        for iid, prediction in predictions.items():
+            if not isinstance(iid, str) or not isinstance(prediction, dict):
+                raise ValueError("preds.json must map string instance IDs to JSON objects.")
+            patch = prediction.get("model_patch", "")
+            if not isinstance(patch, str):
+                raise ValueError(
+                    f"preds.json[{iid!r}].model_patch must be a string; "
+                    f"got {type(patch).__name__}."
+                )
+            if patch.strip():
+                submitted_count += 1
+
+        # Grading has already been verified by _verify_grading_evidence before this
+        # method is called. Parse it again strictly to guard the completion update.
         grading_path = raw_dir / "grading_results.json"
         if not grading_path.exists():
             raise ValueError(
@@ -2419,7 +2473,7 @@ class SwebenchRunner:
             "resolved_ids", "unresolved_ids", "empty_patch_ids",
             "error_ids", "incomplete_ids",
         )
-        submitted_count = 0
+        disposition_count = 0
         seen_ids: set = set()
         for key in _DISPOSITION_KEYS:
             ids = grading.get(key) or []
@@ -2435,15 +2489,15 @@ class SwebenchRunner:
                         "categories. Disposition union must be disjoint."
                     )
                 seen_ids.add(iid)
-            submitted_count += len(ids)
+            disposition_count += len(ids)
 
-        # submitted must equal the number of expected instances
+        # Every assigned instance must have exactly one terminal disposition.
         expected_count = manifest.get("item_inventory", {}).get("expected", 0)
-        if expected_count and submitted_count != expected_count:
+        if expected_count and disposition_count != expected_count:
             raise ValueError(
-                f"Grading disposition union covers {submitted_count} instances but "
+                f"Grading disposition union covers {disposition_count} instances but "
                 f"manifest.item_inventory.expected = {expected_count}. "
-                "submitted must equal expected — all instances must have a terminal disposition."
+                "Every assigned instance must have one terminal disposition."
             )
 
         inventory = manifest.setdefault("item_inventory", {})

@@ -3,56 +3,56 @@
     "full": {
       "a_pct": 51.0,
       "a_resolved": 51,
-      "b_pct": 44.0,
-      "b_resolved": 44,
-      "both": 33,
+      "b_pct": 57.0,
+      "b_resolved": 57,
+      "both": 42,
       "mcnemar": {
-        "b": 18,
-        "c": 11,
-        "chi2_uncorrected": 1.69,
-        "chi2_yates": 1.241,
-        "discordant": 29,
-        "p_exact": 0.2649,
-        "p_uncorrected": 0.1936,
-        "p_yates": 0.2652
+        "b": 9,
+        "c": 15,
+        "chi2_uncorrected": 1.5,
+        "chi2_yates": 1.042,
+        "discordant": 24,
+        "p_exact": 0.3075,
+        "p_uncorrected": 0.2207,
+        "p_yates": 0.3074
       },
       "n": 100,
-      "neither": 38,
+      "neither": 34,
       "paired_diff_ci95_pp": [
-        -3.6,
-        17.6
+        -15.6,
+        3.6
       ],
-      "paired_diff_pp": 7.0
+      "paired_diff_pp": -6.0
     },
     "model_a": "nemotron-3.5-lightning-30b",
     "model_b": "qwen3.6-35b-a3b",
     "subset": {
-      "a_pct": 52.6,
-      "a_resolved": 41,
-      "a_solved_among_dropped": 10,
-      "b_pct": 56.4,
-      "b_resolved": 44,
+      "a_pct": 51.5,
+      "a_resolved": 51,
+      "a_solved_among_dropped": 0,
+      "b_pct": 57.6,
+      "b_resolved": 57,
       "b_solved_among_dropped": 0,
-      "both": 33,
+      "both": 42,
       "defined_by": "qwen3.6-35b-a3b",
-      "dropped": 22,
+      "dropped": 1,
       "mcnemar": {
-        "b": 8,
-        "c": 11,
-        "chi2_uncorrected": 0.474,
-        "chi2_yates": 0.211,
-        "discordant": 19,
-        "p_exact": 0.6476,
-        "p_uncorrected": 0.4913,
-        "p_yates": 0.6464
+        "b": 9,
+        "c": 15,
+        "chi2_uncorrected": 1.5,
+        "chi2_yates": 1.042,
+        "discordant": 24,
+        "p_exact": 0.3075,
+        "p_uncorrected": 0.2207,
+        "p_yates": 0.3074
       },
-      "n": 78,
-      "neither": 26,
+      "n": 99,
+      "neither": 33,
       "paired_diff_ci95_pp": [
-        -14.8,
-        7.1
+        -15.8,
+        3.6
       ],
-      "paired_diff_pp": -3.8
+      "paired_diff_pp": -6.1
     }
   },
   "ornith-35b__vs__laguna-s-2.1-118b": {

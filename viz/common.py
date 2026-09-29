@@ -58,6 +58,9 @@ TINY = {
 # The models with a SWE-bench Verified n=100 run on the IDENTICAL seed-42 set,
 # best-first. Single source of truth -- collect_matrix and fig2/fig3 all import
 # this, so a new run cannot be added to one and forgotten in the other.
+#
+# DEPRECATED: Use swebench_reporting.selected_swebench_reports() for new code.
+# SWEBENCH_RESULTS is preserved for backward compatibility with legacy audits.
 SWEBENCH_RESULTS = {
     "ornith-35b":
         "results/ornith-35b/raw/swebench/swebench_verified_n100_results.json",
@@ -66,7 +69,7 @@ SWEBENCH_RESULTS = {
     "laguna-s-2.1-118b":
         "results/laguna-s-2.1-118b/raw/swebench/swebench_verified_n100_results.json",
     "qwen3.6-35b-a3b":
-        "results/qwen3.6-35b-a3b/raw/swebench/swebench_verified_shuffle100_report.json",
+        "results/qwen3.6-35b-a3b/runs/warpcore-v1/swebench/qwen36-swebench-n100-20260919/raw/grading_results.json",
 }
 SWE_ORDER = ["ornith-35b", "laguna-s-2.1-118b",
              "nemotron-3.5-lightning-30b", "qwen3.6-35b-a3b"]

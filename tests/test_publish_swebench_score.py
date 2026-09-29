@@ -41,10 +41,18 @@ def test_swebench_matrix_entry_has_score_and_all_item_ids(tmp_path):
         "error_ids": ["e"],
         "incomplete_ids": [],
     }))
+    (raw / "preds.json").write_text(json.dumps({
+        "a": {"model_patch": "patch-a"},
+        "b": {"model_patch": "patch-b"},
+        "c": {"model_patch": "patch-c"},
+        "d": {"model_patch": ""},
+        "e": {"model_patch": "patch-e"},
+    }))
     runs = [{
         "manifest": {
             "benchmark": "swebench", "suite_id": "warpcore-v1", "run_id": "run-1",
-            "model": {"slug": "model-a"}, "item_inventory": {"expected": 5},
+            "model": {"slug": "model-a"},
+            "item_inventory": {"expected": 5, "submitted": 4},
         },
         "status": {"lifecycle": "current", "execution_state": "validated"},
         "run_info": {"run_dir": tmp_path, "model_slug": "model-a"},
@@ -54,6 +62,14 @@ def test_swebench_matrix_entry_has_score_and_all_item_ids(tmp_path):
 
     assert entry["score"] == 0.4
     assert entry["item_ids"] == ["a", "b", "c", "d", "e"]
+    assert entry["submitted"] == 4
+    assert entry["resolved"] == 2
+    assert entry["submitted_but_wrong"] == 2
+    assert entry["model_non_submission"] == 1
+    assert entry["empty_patch"] == 1
+    assert entry["grading_error"] == 1
+    assert entry["infrastructure_failure"] == 0
+    assert entry["incomplete"] == 0
 
 
 def test_swebench_matrix_entry_rejects_incomplete_score_inventory(tmp_path):

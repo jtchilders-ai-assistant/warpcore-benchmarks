@@ -147,8 +147,8 @@ published as the SWE-bench cell. The complete gate decision is retained in
 
 Because 17/20 qualification instances produced gradeable patches, we gathered broader evidence with
 the unchanged frozen seed-42 n=100 inventory and scaffold under the runner's explicit
-`--noncanonical-trial` mode. The completed trial resolved **57/100 overall**. Generation produced
-**76 nonempty `Submitted` patches**, 21 `LimitsExceeded`, 2 `Timeout`, and 1
+`--noncanonical-trial` mode. The completed trial produced **76/100 nonempty patches** and resolved
+**57/100 overall**. Generation recorded 76 `Submitted`, 21 `LimitsExceeded`, 2 `Timeout`, and 1
 `ContextWindowExceededError`; official grading classified **57 resolved, 19 unresolved, and 24 empty
 patches**, with **0 grading errors and 0 incomplete instances**. Conditional on a nonempty submitted
 patch, 57/76 were resolved; that conditional rate must not replace the full-denominator 57/100 result.

@@ -51,17 +51,17 @@
     },
     "qwen3.6-35b-a3b": {
       "balanced_ci95_pp": [
-        26.5,
-        54.5
+        46.5,
+        70.5
       ],
-      "balanced_pct": 40.2,
-      "nominal_pct": 44.0,
+      "balanced_pct": 58.5,
+      "nominal_pct": 57.0,
       "per_repo": {
         "astropy": "2/5",
-        "django": "26/56",
-        "pytest-dev": "1/4",
+        "django": "34/56",
+        "pytest-dev": "4/4",
         "scikit-learn": "3/5",
-        "sphinx-doc": "5/10",
+        "sphinx-doc": "7/10",
         "sympy": "2/10"
       }
     }

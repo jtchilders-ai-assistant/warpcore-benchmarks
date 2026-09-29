@@ -229,15 +229,17 @@ def main(argv=None) -> int:
         print("  -", g)
 
     # --- Registry gap check (Task 8) ----------------------------------------
-    # Every published source path in collect_matrix.QUALITY and
-    # common.SWEBENCH_RESULTS must have a classified registry entry.
+    # Every published source path in collect_matrix.QUALITY, the shared selected
+    # SWE-bench bundles, and fair-denominator exit-status inputs must have a
+    # classified registry entry.
     # Unregistered paths are surfaced here as new provenance gaps, consistent
     # with the ratchet model.  Readers must use viz_registry.lookup_path()
     # fail-closed; this check verifies coverage is maintained.
     try:
         from viz_registry import load_registry as _vr_load  # type: ignore[import]
         import collect_matrix as _cm
-        import common as _common
+        from swebench_fair import EXIT_STATUSES as _swe_exit_statuses
+        from swebench_reporting import selected_swebench_reports as _selected_swebench_reports
         reg = _vr_load()
         registered_paths: set[str] = set()
         for _e in reg["entries"]:
@@ -249,7 +251,11 @@ def main(argv=None) -> int:
                 p = f"results/{model}/{rel}"
                 if p not in registered_paths:
                     unregistered.append(p)
-        for p in _common.SWEBENCH_RESULTS.values():
+        for _report in _selected_swebench_reports(REPO).values():
+            for p in _report["source_paths"]:
+                if p not in registered_paths:
+                    unregistered.append(p)
+        for p in _swe_exit_statuses.values():
             if p not in registered_paths:
                 unregistered.append(p)
         for p in _cm.COMPOSITE_COMPONENTS:

@@ -287,16 +287,39 @@ def _validate_swebench(repo: Path, bench: dict) -> list[str]:
     # scaffold_file / scaffold_sha256
     errors.extend(_validate_file_hash_pair(repo, bench, "swebench", "scaffold_file", "scaffold_sha256"))
 
-    # Suite-owned launch qualification set. Delegated to the authoritative gate
-    # module so the derivation rule has exactly one implementation; imported
-    # lazily because that module imports this one.
-    import sys as _sys
-    _viz_dir = str(Path(__file__).resolve().parent)
-    if _viz_dir not in _sys.path:
-        _sys.path.insert(0, _viz_dir)
-    from swebench_qualification import validate_suite_qualification_config
+    # Suite-owned launch authorization: mode-dependent qualification check.
+    # The launch_authorization.mode field is required by the schema.
+    # Fail closed on missing or unknown mode.
+    launch_auth = bench.get("launch_authorization") or {}
+    launch_mode = launch_auth.get("mode", "")
 
-    errors.extend(validate_suite_qualification_config(repo, bench))
+    _CLOSED_MODES = {"qualification_seal", "direct_n100_after_preflight"}
+    if launch_mode not in _CLOSED_MODES:
+        errors.append(
+            f"swebench: launch_authorization.mode {launch_mode!r} is unknown or missing. "
+            f"Accepted values: {sorted(_CLOSED_MODES)}. Unknown policy fails closed."
+        )
+        return errors
+
+    if launch_mode == "qualification_seal":
+        # Delegated to the authoritative gate module so the derivation rule has
+        # exactly one implementation; imported lazily because that module imports this one.
+        import sys as _sys
+        _viz_dir = str(Path(__file__).resolve().parent)
+        if _viz_dir not in _sys.path:
+            _sys.path.insert(0, _viz_dir)
+        from swebench_qualification import validate_suite_qualification_config
+
+        errors.extend(validate_suite_qualification_config(repo, bench))
+    elif launch_mode == "direct_n100_after_preflight":
+        # v2 direct mode: must NOT carry a qualification block (schema enforces this
+        # via if/then/else, but we double-check here for defense-in-depth).
+        if "qualification" in bench:
+            errors.append(
+                "swebench: launch_authorization.mode='direct_n100_after_preflight' "
+                "must not carry a 'qualification' block — contradictory policy. "
+                "Remove the qualification block from this suite."
+            )
 
     return errors
 
