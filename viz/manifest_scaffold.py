@@ -159,7 +159,10 @@ def main(argv=None) -> int:
         cands = sorted((model_dir / "raw").glob("launch*.sh"))
         launch = cands[0] if cands else None
         if launch:
-            print(f"  using launch script: {launch.relative_to(REPO)}")
+            print(
+                f"  using launch script: {launch.relative_to(REPO)}",
+                file=sys.stderr,
+            )
 
     manifest = build(args.model, args.bench, args.endpoint, launch)
 
