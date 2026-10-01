@@ -58,6 +58,13 @@ def _source_bundles(repo: Path) -> dict[str, dict[str, Any]]:
             "lifecycle": "historical",
             "is_legacy": True,
         },
+        "ornith-1.5-35b-a3b": {
+            # recovered and publication-validated warpcore-v2 run
+            "grading": r / "results/ornith-1.5-35b-a3b/runs/warpcore-v2/swebench/ornith15-swebench-n100-20260929/raw/grading_results.json",
+            "predictions": r / "results/ornith-1.5-35b-a3b/runs/warpcore-v2/swebench/ornith15-swebench-n100-20260929/raw/preds.json",
+            "lifecycle": "current",
+            "is_legacy": False,
+        },
         "laguna-s-2.1-118b": {
             "grading": r / "results/laguna-s-2.1-118b/raw/swebench/swebench_verified_n100_results.json",
             "predictions": r / "results/laguna-s-2.1-118b/raw/swebench/swebench_verified_n100_preds.json",

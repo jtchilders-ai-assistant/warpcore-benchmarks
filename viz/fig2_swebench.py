@@ -121,7 +121,8 @@ def main() -> None:
     # decides whether Ornith's repo-best 73 is a real capability lead or partly a
     # harness-completion lead, so it goes first.
     ax2 = fig.add_subplot(gs[1, 1])
-    pairs = [("ornith-35b", "laguna-s-2.1-118b"),
+    pairs = [("ornith-35b", "ornith-1.5-35b-a3b"),
+             ("ornith-35b", "laguna-s-2.1-118b"),
              ("laguna-s-2.1-118b", "nemotron-3.5-lightning-30b"),
              ("laguna-s-2.1-118b", "qwen3.6-35b-a3b"),
              ("ornith-35b", "nemotron-3.5-lightning-30b"),

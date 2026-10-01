@@ -474,7 +474,7 @@ class TestQualificationVerifierSeam(unittest.TestCase):
         _KNOWN_CLI_OPTIONS = {
             "-h", "--help",
             "--suite", "--adapter", "--endpoint", "--run-id", "--run-dir",
-            "--repo", "--api-key", "--workers", "--prompt-tokens",
+            "--repo", "--python-executable", "--api-key", "--workers", "--prompt-tokens",
             "--qualification", "--qualification-run", "--noncanonical-trial",
             "--dry-run", "--allow-no-screen", "--resume", "--model",
         }

@@ -121,8 +121,8 @@ def main() -> None:
     repo_of = {i: i.split("__")[0] for i in inst}
     rc = Counter(repo_of.values())
 
-    fig = plt.figure(figsize=(13.6, 5.4))
-    gs = fig.add_gridspec(1, 3, width_ratios=[1.34, 1.10, 0.92], wspace=0.30)
+    fig = plt.figure(figsize=(15.2, 5.4))
+    gs = fig.add_gridspec(1, 3, width_ratios=[1.30, 1.20, 1.18], wspace=0.34)
 
     draw_table(fig.add_subplot(gs[0, 0]), BM)
 
@@ -189,7 +189,7 @@ def main() -> None:
         ax3.text(i - w / 2, o + 1.5, f"{o:.0f}", ha="center", fontsize=8.4, fontweight="bold")
         ax3.text(i + w / 2, b + 1.5, f"{b:.0f}", ha="center", fontsize=8.4, color="#444")
     ax3.set_xticks(x)
-    ax3.set_xticklabels([TINY[m] for m in SWE_ORDER], fontsize=8.0)
+    ax3.set_xticklabels([TINY[m] for m in SWE_ORDER], fontsize=7.8, rotation=18, ha="right")
     ax3.set_ylim(0, 88)
     ax3.set_ylabel("% resolved")
     # State the takeaway from the DATA, not a hardcoded sentence -- rank order and

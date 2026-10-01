@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "run_id": "ornith15-swebench-n100-20260929",
+  "suite_id": "warpcore-v2",
+  "execution_state": "validated",
+  "lifecycle": "current",
+  "history": [
+    {
+      "state": "planned",
+      "timestamp": "2026-09-29T18:43:54Z",
+      "note": "Campaign initialized by create_campaign"
+    },
+    {
+      "state": "preflight_passed",
+      "timestamp": "2026-09-29T18:43:59Z"
+    },
+    {
+      "state": "running",
+      "timestamp": "2026-09-29T18:43:59Z",
+      "note": "generation phase started; grading phase started"
+    },
+    {
+      "state": "failed",
+      "timestamp": "2026-09-30T23:40:35Z",
+      "note": "Initial grading invocation failed after generation completed 100/100 because the runner used sys.executable, whose environment lacked swebench."
+    },
+    {
+      "state": "completed",
+      "timestamp": "2026-10-01T00:41:00Z",
+      "note": "Recovered official grading from the unchanged retained raw/preds.json and frozen n=100 inventory using /Users/jchilders/swebench-run/venv/bin/python with swebench 4.1.0; normalized report retained as raw/grading_results.json. The original failure remains in this append-only history.",
+      "recovery": true
+    },
+    {
+      "state": "validated",
+      "timestamp": "2026-10-01T00:59:24Z",
+      "note": "authoritative publication validation passed after recovered grading and full artifact reconciliation"
+    }
+  ]
+}

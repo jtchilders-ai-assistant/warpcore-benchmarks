@@ -1,18 +1,18 @@
 # ornith-ai/Ornith-1.5-35B-A3B-FP8 — Warpcore Benchmark Card
 
-- **Campaign date:** 2026-09-22 → 2026-09-24
+- **Campaign dates:** 2026-09-22 → 2026-10-01
 - **Model:** `ornith-ai/Ornith-1.5-35B-A3B-FP8`
 - **Pinned model revision:** `fab11c26e2325a42f4b32da0249c819a0bade1b1`
 - **Host:** Warpcore, NVIDIA DGX Spark / GB10
 - **Serving image:** `eugr/spark-vllm@sha256:c154ad0a2575d6c42f8e05cba16ef255ce4ff54d537ad37987ca5b4215cb58b8`
 - **vLLM:** `0.29.1rc1.dev427+g0748d3bd5.d20260920`
-- **Harness:** `warpcore-v1`, campaign branch commit `b4874b38b567dfa73409f512b417cf4ee699a91b`
+- **Harnesses:** `warpcore-v1` quality/throughput and `warpcore-v2` SWE-bench
 
 ## Summary
 
 - **Serving qualification passed:** ordinary chat, native tool use, and a 60-request strict-schema stress test completed successfully.
 - **GSM8K validated:** **88.02%** canonical anchored answer-line exact match (1161/1319), with flexible-fallback diagnostic **97.04%**. Three responses (0.23%) exhausted the 8,192-token generation ceiling and are counted as failures.
-- **SWE-bench is not measured:** the required n=20 launch qualification failed, so the canonical n=100 run was not started. At termination, 11 instances had submitted nonempty patches, five had exhausted the 250-step limit, one had a 1,800-second transport timeout, and three had not completed. The qualification was not graded and is not a SWE-bench capability score.
+- **SWE-bench Verified:** **59/100 resolved (59.0%)** on the frozen seed-42 n=100 inventory. Submission reliability was **69/100 nonempty patches**; 29 instances hit the step limit and 2 ended in `RepeatedFormatError`. Official grading had zero errors and zero incomplete instances.
 - **GPQA-Diamond is invalid/nonpublishable:** 35/198 responses exhausted the 65,536-token ceiling without a final answer. The diagnostic aggregate was 77.27% anchored answer-line, but it is not promoted as a canonical score.
 - **IFEval was not measured** in this campaign.
 
@@ -28,28 +28,21 @@ GSM8K used greedy decoding (`temperature=0`), concurrency 8, and an 8,192-token 
 
 The GPQA evidence is retained under [`runs/warpcore-v1/gpqa_diamond/run-2026-09-23T01-48-07/`](runs/warpcore-v1/gpqa_diamond/run-2026-09-23T01-48-07/). Its failed/invalid lifecycle must not be interpreted as a score of record.
 
-## SWE-bench qualification — failed; n=100 not run
+## SWE-bench Verified — `warpcore-v2` frozen n=100
 
-The frozen suite requires a fresh 20-instance production qualification with 20/20 clean submissions before authorizing the canonical n=100 run. This model did not pass that gate.
+The canonical v2 campaign used the fixed seed-42 100-instance inventory and four mini-swe-agent 2.4.6 workers. Correctness and submission reliability are deliberately separate:
 
-Observed terminal evidence before fail-closed termination:
+- **Resolved:** 59/100 (**59.0%**, full assigned denominator; 95% Wilson interval **49.2%–68.1%**)
+- **Nonempty submissions:** 69/100
+- **Unresolved nonempty patches:** 10
+- **Empty patches / non-submissions:** 31
+- **Generation dispositions among non-submissions:** 29 `LimitsExceeded`, 2 `RepeatedFormatError`
+- **Official grading errors:** 0
+- **Incomplete instances:** 0
 
-- **11 `Submitted`**, each with a nonempty patch
-- **5 `LimitsExceeded`**, each consuming the full configured 250 API calls without submitting a patch
-- **1 `Timeout`**: `matplotlib__matplotlib-25332`, a LiteLLM/HTTP read timeout after 1,800 seconds
-- **3 incomplete** when 20/20 success had become impossible
+The first grading invocation failed after all 100 predictions and trajectories had been retained because the runner used `sys.executable`, whose Python environment lacked `swebench`. The official grader was rerun against the **unchanged** `raw/preds.json` with the pinned campaign interpreter and SWE-bench 4.1.0. No inference was replayed. `status.json` preserves the original failure and records an explicit recovery transition; [`RECOVERY.md`](runs/warpcore-v2/swebench/ornith15-swebench-n100-20260929/RECOVERY.md) gives the full procedure and evidence map.
 
-The five step-limit failures were:
-
-- `astropy__astropy-14096`
-- `psf__requests-6028`
-- `pylint-dev__pylint-4551`
-- `pylint-dev__pylint-6903`
-- `pydata__xarray-6938`
-
-This result supports a narrow conclusion: **under the frozen mini-swe-agent scaffold and 250-step budget, Ornith-1.5 was not reliable enough to proceed to n=100.** It does not establish a SWE-bench resolution rate because the qualification was stopped early and no official grading run was performed. Eleven successful nonempty submissions and functioning native tool calls argue against blanket harness incompatibility; the dominant observed failure was model/agent non-convergence, plus one infrastructure timeout.
-
-Retained qualification evidence is under [`qualification/warpcore-v1/swebench/run/`](qualification/warpcore-v1/swebench/run/). No `qualification.json` was sealed.
+Canonical evidence is under [`runs/warpcore-v2/swebench/ornith15-swebench-n100-20260929/`](runs/warpcore-v2/swebench/ornith15-swebench-n100-20260929/). The earlier v1 n=20 qualification remains retained separately as diagnostic history; v2's launch policy directly executes the frozen n=100 campaign after mandatory production preflight, so the obsolete v1 gate does not govern this score.
 
 ## Throughput and latency
 
@@ -71,10 +64,11 @@ Throughput plateaus around concurrency 128. Higher concurrency adds essentially 
 
 The serving adapter is [`../../adapters/ornith-1.5-35b-a3b.yaml`](../../adapters/ornith-1.5-35b-a3b.yaml). It records the exact checkpoint revision, serving image digest, parser settings, context limit, memory utilization, and sequence capacity.
 
-This card distinguishes three states deliberately:
+This card distinguishes four states deliberately:
 
 1. **Validated measurement:** GSM8K.
-2. **Failed qualification / not measured:** SWE-bench.
-3. **Completed but scientifically invalid diagnostic:** GPQA-Diamond.
+2. **Validated `warpcore-v2` measurement:** SWE-bench Verified, including the preserved grading-recovery history.
+3. **Not measured:** IFEval.
+4. **Completed but scientifically invalid diagnostic:** GPQA-Diamond.
 
-Neither a failed qualification nor a completed harness process is silently promoted into a capability score.
+Neither an old failed qualification nor a completed harness process is silently promoted into a capability score. The SWE-bench value is published only from the complete retained n=100 evidence and official grader partitions.

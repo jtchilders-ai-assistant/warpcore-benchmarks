@@ -85,6 +85,11 @@
           "exit_code": {
             "type": ["integer", "null"],
             "description": "Harness exit code if applicable"
+          },
+          "recovery": {
+            "type": "boolean",
+            "const": true,
+            "description": "Marks an audited recovery from a prior failed post-processing state"
           }
         }
       },

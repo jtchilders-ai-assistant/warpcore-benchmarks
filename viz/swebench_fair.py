@@ -55,6 +55,8 @@ MODEL_STATUSES = {"LimitsExceeded", "ContextWindowExceededError", "Submitted"}
 # Exit-status artifacts, relative to the repo root. A model absent here has no
 # committed exit statuses -- see results/ornith-35b (a known provenance gap).
 EXIT_STATUSES = {
+    "ornith-1.5-35b-a3b":
+        "results/ornith-1.5-35b-a3b/runs/warpcore-v2/swebench/ornith15-swebench-n100-20260929/raw/exit_statuses.json",
     "qwen3.6-35b-a3b":
         "results/qwen3.6-35b-a3b/runs/warpcore-v1/swebench/qwen36-swebench-n100-20260919/raw/exit_statuses.json",
     "laguna-s-2.1-118b":

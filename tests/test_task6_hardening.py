@@ -991,6 +991,38 @@ class TestLiveSubprocessRunners(unittest.TestCase):
             "calls subprocess.run.",
         )
 
+    def test_run_grading_uses_pinned_python_executable(self):
+        """Grading must use the same explicit environment verified by preflight."""
+        import subprocess as _sp
+        attempted = []
+
+        def fake_run(cmd, *args, **kwargs):
+            attempted.append(cmd)
+            raise FileNotFoundError("fake: command not found")
+
+        pinned_python = self.tmp / "grading-venv" / "bin" / "python"
+        pinned_python.parent.mkdir(parents=True)
+        pinned_python.write_text("#!/bin/sh\nexit 0\n")
+        pinned_python.chmod(0o755)
+        runner = run_swebench.SwebenchRunner(
+            suite_path=_REAL_SUITE,
+            adapter_path=self.adapter_path,
+            endpoint="http://localhost:8000/v1",
+            run_dir=self.run_dir,
+            repo=self.tmp,
+            dry_run=False,
+            allow_no_screen=True,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
+            python_executable=str(pinned_python),
+        )
+        preds_path = self.run_dir / "raw" / "preds.json"
+        preds_path.parent.mkdir(parents=True, exist_ok=True)
+        preds_path.write_text("{}")
+        with patch.object(_sp, "run", side_effect=fake_run):
+            runner._run_grading(preds_path)
+
+        self.assertEqual(attempted[0][0], str(pinned_python.absolute()))
+
     def test_run_generation_uses_argv_not_shell(self):
         """_run_generation must use argv list, not shell=True."""
         import subprocess as _sp
@@ -1218,7 +1250,9 @@ class TestPreflightX86Strictness(unittest.TestCase):
             stderr = ""
 
         runner = self._make_runner()
-        with patch.object(_sp, "run", return_value=FakeResult()):
+        with patch.object(
+            runner, "_probe_mini_swe_agent_version", return_value=(0, "2.4.6")
+        ), patch.object(_sp, "run", return_value=FakeResult()):
             with patch("urllib.request.urlopen") as urlopen:
                 rc = runner._run_preflight()
         self.assertNotEqual(
@@ -1245,7 +1279,9 @@ class TestPreflightX86Strictness(unittest.TestCase):
             stderr = ""
 
         runner = self._make_runner()
-        with patch.object(_sp, "run", return_value=FakeResult()):
+        with patch.object(
+            runner, "_probe_mini_swe_agent_version", return_value=(0, "2.4.6")
+        ), patch.object(_sp, "run", return_value=FakeResult()):
             rc = runner._run_preflight()
         self.assertNotEqual(
             rc,
@@ -1265,7 +1301,9 @@ class TestPreflightX86Strictness(unittest.TestCase):
             stderr = ""
 
         runner = self._make_runner()
-        with patch.object(_sp, "run", return_value=FakeResult()):
+        with patch.object(
+            runner, "_probe_mini_swe_agent_version", return_value=(0, "2.4.6")
+        ), patch.object(_sp, "run", return_value=FakeResult()):
             # After passing x86 check, /v1/models will fail (no real endpoint)
             # We just want to confirm x86_64 doesn't fail the x86 check itself
             with patch("urllib.request.urlopen", side_effect=_uerr.URLError("no endpoint")):
@@ -1341,7 +1379,9 @@ class TestPreflightModelsApiKey(unittest.TestCase):
             prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
             api_key="TEST_API_KEY_789",
         )
-        with patch.object(_sp, "run", return_value=FakeResult()):
+        with patch.object(
+            runner, "_probe_mini_swe_agent_version", return_value=(0, "2.4.6")
+        ), patch.object(_sp, "run", return_value=FakeResult()):
             with patch("urllib.request.urlopen", side_effect=fake_urlopen):
                 runner._run_preflight()
 

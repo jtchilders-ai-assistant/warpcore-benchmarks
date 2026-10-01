@@ -203,6 +203,14 @@ The third item — launch scripts writing their own resolved args — is still o
 
 ---
 
+### Ornith-1.5 `warpcore-v2` SWE-bench grading recovery (2026-10-01)
+
+Run `ornith15-swebench-n100-20260929` completed generation for every frozen seed-42 instance and retained all 100 predictions and trajectories. Its first grading invocation then failed because the runner used `sys.executable`, whose Python environment lacked the SWE-bench package. The official grader was rerun against the unchanged `raw/preds.json` with the pinned campaign interpreter and SWE-bench 4.1.0; no inference was replayed.
+
+The recovered official partitions are 59 resolved, 10 unresolved, 31 empty patches, 0 grading errors, and 0 incomplete. Generation produced 69 nonempty patches; the remaining 31 dispositions were 29 `LimitsExceeded` and 2 `RepeatedFormatError`. `status.json` keeps the original failed transition and an explicit marked recovery before validation. The original grader report, recovery log, normalized report, predictions, exit statuses, and [`RECOVERY.md`](results/ornith-1.5-35b-a3b/runs/warpcore-v2/swebench/ornith15-swebench-n100-20260929/RECOVERY.md) are committed with the run.
+
+---
+
 ## 6. Artifact lifecycle registry (Task 8, 2026-09-16)
 
 Every published source path referenced by `viz/collect_matrix.py` and `viz/common.py`

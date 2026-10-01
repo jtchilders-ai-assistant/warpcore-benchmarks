@@ -91,6 +91,20 @@
    "value": 51.0
   }
  },
+ "ornith-1.5-35b-a3b": {
+  "swebench": {
+   "empty_patch": 31,
+   "expected": 100,
+   "grading_error": 0,
+   "incomplete": 0,
+   "lifecycle": "current",
+   "provenance": "normalized-complete",
+   "resolve_rate": 59.0,
+   "src": "results/ornith-1.5-35b-a3b/runs/warpcore-v2/swebench/ornith15-swebench-n100-20260929/raw/grading_results.json",
+   "submitted": 69,
+   "value": 59.0
+  }
+ },
  "ornith-35b": {
   "gpqa": {
    "note": "64k replay composite; 15/198 (7.6%) still budget-truncated",

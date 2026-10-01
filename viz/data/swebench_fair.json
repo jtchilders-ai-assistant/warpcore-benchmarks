@@ -34,6 +34,23 @@
   "statuses_cover": 28,
   "verdicts": 98
  },
+ "ornith-1.5-35b-a3b": {
+  "attributed": true,
+  "causes": {
+   "LimitsExceeded": 29,
+   "RepeatedFormatError": 2
+  },
+  "exit_statuses_src": "results/ornith-1.5-35b-a3b/runs/warpcore-v2/swebench/ornith15-swebench-n100-20260929/raw/exit_statuses.json",
+  "fair_n": 98,
+  "fair_pct": 60.2,
+  "infra_excluded": 2,
+  "no_verdict": 31,
+  "nominal_pct": 59.0,
+  "resolved": 59,
+  "src": "results/ornith-1.5-35b-a3b/runs/warpcore-v2/swebench/ornith15-swebench-n100-20260929/raw/grading_results.json",
+  "statuses_cover": 100,
+  "verdicts": 69
+ },
  "ornith-35b": {
   "attributed": false,
   "causes": {},

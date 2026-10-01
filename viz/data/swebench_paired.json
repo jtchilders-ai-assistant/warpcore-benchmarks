@@ -138,5 +138,33 @@
     },
     "model_a": "ornith-35b",
     "model_b": "nemotron-3.5-lightning-30b"
+  },
+  "ornith-35b__vs__ornith-1.5-35b-a3b": {
+    "full": {
+      "a_pct": 73.0,
+      "a_resolved": 73,
+      "b_pct": 59.0,
+      "b_resolved": 59,
+      "both": 52,
+      "mcnemar": {
+        "b": 21,
+        "c": 7,
+        "chi2_uncorrected": 7.0,
+        "chi2_yates": 6.036,
+        "discordant": 28,
+        "p_exact": 0.0125,
+        "p_uncorrected": 0.0082,
+        "p_yates": 0.014
+      },
+      "n": 100,
+      "neither": 20,
+      "paired_diff_ci95_pp": [
+        3.6,
+        24.4
+      ],
+      "paired_diff_pp": 14.0
+    },
+    "model_a": "ornith-35b",
+    "model_b": "ornith-1.5-35b-a3b"
   }
 }

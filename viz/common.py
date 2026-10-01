@@ -49,7 +49,8 @@ SHORT = {
     "laguna-s-2.1-118b": "Laguna-S-2.1-118B",
 }
 TINY = {
-    "ornith-35b": "Ornith",
+    "ornith-35b": "Ornith 1.0",
+    "ornith-1.5-35b-a3b": "Ornith 1.5",
     "nemotron-3.5-lightning-30b": "Lightning",
     "qwen3.6-35b-a3b": "Qwen3.6",
     "laguna-s-2.1-118b": "Laguna",
@@ -64,6 +65,8 @@ TINY = {
 SWEBENCH_RESULTS = {
     "ornith-35b":
         "results/ornith-35b/raw/swebench/swebench_verified_n100_results.json",
+    "ornith-1.5-35b-a3b":
+        "results/ornith-1.5-35b-a3b/runs/warpcore-v2/swebench/ornith15-swebench-n100-20260929/raw/grading_results.json",
     "nemotron-3.5-lightning-30b":
         "results/nemotron-3.5-lightning-30b/raw/swebench_verified_n100_results.json",
     "laguna-s-2.1-118b":
@@ -71,7 +74,7 @@ SWEBENCH_RESULTS = {
     "qwen3.6-35b-a3b":
         "results/qwen3.6-35b-a3b/runs/warpcore-v1/swebench/qwen36-swebench-n100-20260919/raw/grading_results.json",
 }
-SWE_ORDER = ["ornith-35b", "laguna-s-2.1-118b",
+SWE_ORDER = ["ornith-35b", "ornith-1.5-35b-a3b", "laguna-s-2.1-118b",
              "nemotron-3.5-lightning-30b", "qwen3.6-35b-a3b"]
 
 # Item counts per benchmark (harness configs / model cards).
