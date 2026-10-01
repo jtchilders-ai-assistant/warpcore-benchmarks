@@ -34,6 +34,10 @@ EXPECTED_SELECTED = {
         submitted=91, resolved=73, expected=100,
         unresolved=18, empty_patch=9, grading_error=0, incomplete=0,
     ),
+    "ornith-1.5-35b-a3b": dict(
+        submitted=69, resolved=59, expected=100,
+        unresolved=10, empty_patch=31, grading_error=0, incomplete=0,
+    ),
     "laguna-s-2.1-118b": dict(
         submitted=65, resolved=55, expected=100,
         unresolved=10, empty_patch=35, grading_error=0, incomplete=0,
@@ -61,8 +65,8 @@ FROZEN_IDS: set[str] = set(json.loads(INSTANCES_PATH.read_text()))
 # 1. Source selection
 # ---------------------------------------------------------------------------
 
-def test_selected_swebench_reports_returns_all_five_models() -> None:
-    """selected_swebench_reports returns exactly the five known models."""
+def test_selected_swebench_reports_returns_all_six_models() -> None:
+    """selected_swebench_reports returns exactly the six known models."""
     reports = selected_swebench_reports(REPO)
     assert set(reports.keys()) == set(EXPECTED_SELECTED.keys())
 
@@ -92,6 +96,17 @@ def test_old_qwen36_run_is_addressable_but_not_selected() -> None:
     reports = selected_swebench_reports(REPO)
     # The selected report resolves 57, not 44
     assert reports["qwen3.6-35b-a3b"]["resolved"] == 57
+
+
+def test_ornith15_selected_run_is_recovered_validated_v2() -> None:
+    reports = selected_swebench_reports(REPO)
+    report = reports["ornith-1.5-35b-a3b"]
+    assert report["lifecycle"] == "current"
+    assert report["provenance"] == "normalized-complete"
+    assert report["resolved"] == 59
+    assert report["submitted"] == 69
+    source_paths = " ".join(report["source_paths"])
+    assert "ornith15-swebench-n100-20260929" in source_paths
 
 
 def test_qwen35_selected_run_is_diagnostic_trial() -> None:

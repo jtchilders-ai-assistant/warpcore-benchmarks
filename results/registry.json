@@ -317,6 +317,19 @@
       "run_dir": "results/qwen3.5-122b-a10b/qualification/warpcore-v1/swebench/run-20260927e"
     },
     {
+      "id": "ornith-1.5-35b-a3b/swebench/warpcore-v2/ornith15-swebench-n100-20260929",
+      "status": "current",
+      "paths": [
+        "results/ornith-1.5-35b-a3b/runs/warpcore-v2/swebench/ornith15-swebench-n100-20260929/raw/grading_results.json",
+        "results/ornith-1.5-35b-a3b/runs/warpcore-v2/swebench/ornith15-swebench-n100-20260929/raw/preds.json",
+        "results/ornith-1.5-35b-a3b/runs/warpcore-v2/swebench/ornith15-swebench-n100-20260929/raw/exit_statuses.json",
+        "results/ornith-1.5-35b-a3b/runs/warpcore-v2/swebench/ornith15-swebench-n100-20260929/raw/hosted_vllm__ornith-ai__Ornith-1.5-35B-A3B-FP8.ornith15-swebench-n100-20260929-recovery.json"
+      ],
+      "note": "Canonical warpcore-v2 SWE-bench Verified frozen seed-42 n=100 campaign. Generation completed all 100 instances with 69 nonempty patches (59 resolved, 10 unresolved), 29 LimitsExceeded, and 2 RepeatedFormatError; official grading had 0 errors and 0 incomplete. The initial grading subprocess failed because it used an interpreter without swebench. Grading was recovered from the unchanged predictions under the pinned environment; status.json preserves the failed transition and explicit recovery.",
+      "v1_validated": true,
+      "run_dir": "results/ornith-1.5-35b-a3b/runs/warpcore-v2/swebench/ornith15-swebench-n100-20260929"
+    },
+    {
       "id": "qwen3.5-122b-a10b/swebench/warpcore-v1/qwen35-swebench-trial-n100-20260928",
       "status": "diagnostic",
       "paths": [

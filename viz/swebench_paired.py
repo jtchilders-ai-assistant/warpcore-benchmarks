@@ -53,6 +53,7 @@ from swebench_reporting import selected_swebench_reports
 # a like-for-like subset). Kept explicit rather than all-pairs so the output
 # stays readable and every entry is one the README actually cites.
 PAIRS = [
+    ("ornith-35b", "ornith-1.5-35b-a3b", None),
     ("ornith-35b", "laguna-s-2.1-118b", "laguna-s-2.1-118b"),
     ("nemotron-3.5-lightning-30b", "qwen3.6-35b-a3b", "qwen3.6-35b-a3b"),
     ("ornith-35b", "nemotron-3.5-lightning-30b", None),

@@ -3,12 +3,11 @@
 Strict-TDD tests for two repair areas:
 
   S1  Submitted-count reconciliation (SWE authoritative validator)
-      manifest.item_inventory.submitted must exist and equal:
-        • expected (from manifest.item_inventory.expected)
-        • len(frozen_ids)
-      Missing, bool, non-int, lower, and higher values all fail.
-      Preds, statuses, grading dispositions, and trajectories must still
-      each reconcile exactly with frozen IDs.
+      manifest.item_inventory.submitted must exist and equal the number of
+      retained predictions with a nonempty model_patch. The full frozen ID set
+      remains the assigned/expected denominator and must be covered exactly.
+      Missing, bool, non-int, negative, above-expected, and prediction-mismatch
+      values all fail.
 
   S2  Quality per_item submitted validation
       manifest.item_inventory.submitted must exist as a non-bool int and
@@ -491,11 +490,10 @@ def _make_quality_run(
 # ===========================================================================
 
 class TestS1SweSubmittedReconciliation(unittest.TestCase):
-    """manifest.item_inventory.submitted must exist and equal expected and len(frozen_ids).
+    """manifest.item_inventory.submitted must equal nonempty model_patch count.
 
-    The validator's _validate_swebench_frozen_ids function must enforce this.
-    Missing, bool, non-int, lower, and higher values must all fail.
-    Existing preds/statuses/grading/trajectories reconciliation must still pass.
+    The validator's _validate_swebench_frozen_ids function must keep exact
+    assigned-ID coverage separate from user-facing submission reliability.
     """
 
     def _run(self, submitted, ids=None):
@@ -508,8 +506,8 @@ class TestS1SweSubmittedReconciliation(unittest.TestCase):
             adapter_path = repo / "adapters" / "swe-model.yaml"
             return validate_campaign.validate(run_dir, suite_path, adapter_path)
 
-    def test_submitted_equals_frozen_count_passes(self):
-        """Positive: submitted == len(frozen_ids) == expected passes."""
+    def test_submitted_equals_nonempty_prediction_count_passes(self):
+        """Positive: submitted equals the retained nonempty patch count."""
         result = self._run(submitted=_N_FROZEN)
         errors_about_submitted = [
             e for e in result.errors if "submitted" in e.lower()
@@ -519,6 +517,22 @@ class TestS1SweSubmittedReconciliation(unittest.TestCase):
             f"Valid submitted count should produce no submitted-related errors; "
             f"got: {errors_about_submitted}",
         )
+
+    def test_submitted_below_assigned_passes_when_predictions_match(self):
+        """Empty patches reduce submitted without reducing assigned coverage."""
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = pathlib.Path(tmp) / "repo"
+            suite_path, frozen_ids = _make_swe_suite(repo)
+            run_dir = _make_swe_run(repo, suite_path, frozen_ids, submitted=_N_FROZEN - 1)
+            preds_path = run_dir / "raw" / "preds.json"
+            preds = json.loads(preds_path.read_text())
+            preds[frozen_ids[-1]]["model_patch"] = ""
+            preds_path.write_text(json.dumps(preds))
+            result = validate_campaign.validate(
+                run_dir, suite_path, repo / "adapters" / "swe-model.yaml"
+            )
+            errors_about_submitted = [e for e in result.errors if "submitted" in e.lower()]
+            self.assertEqual(errors_about_submitted, [], errors_about_submitted)
 
     def test_submitted_missing_fails(self):
         """submitted key absent from item_inventory must fail."""
@@ -572,8 +586,8 @@ class TestS1SweSubmittedReconciliation(unittest.TestCase):
             f"Must report error for string submitted; got: {result.errors}",
         )
 
-    def test_submitted_lower_than_frozen_fails(self):
-        """submitted < len(frozen_ids) must fail."""
+    def test_submitted_prediction_mismatch_fails(self):
+        """A lower manifest count fails when all retained patches are nonempty."""
         result = self._run(submitted=_N_FROZEN - 1)
         self.assertFalse(result.passed, "Low submitted must fail")
         submitted_errors = [e for e in result.errors if "submitted" in e.lower()]
@@ -592,8 +606,8 @@ class TestS1SweSubmittedReconciliation(unittest.TestCase):
             f"Must report error for submitted > frozen count; got: {result.errors}",
         )
 
-    def test_submitted_zero_with_nonempty_frozen_fails(self):
-        """submitted=0 when frozen IDs is non-empty must fail."""
+    def test_submitted_zero_with_nonempty_predictions_fails(self):
+        """submitted=0 fails when retained predictions contain nonempty patches."""
         result = self._run(submitted=0)
         self.assertFalse(result.passed, "submitted=0 with non-empty frozen must fail")
         submitted_errors = [e for e in result.errors if "submitted" in e.lower()]

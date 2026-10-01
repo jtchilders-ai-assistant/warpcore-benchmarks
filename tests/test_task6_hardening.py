@@ -991,6 +991,38 @@ class TestLiveSubprocessRunners(unittest.TestCase):
             "calls subprocess.run.",
         )
 
+    def test_run_grading_uses_pinned_python_executable(self):
+        """Grading must use the same explicit environment verified by preflight."""
+        import subprocess as _sp
+        attempted = []
+
+        def fake_run(cmd, *args, **kwargs):
+            attempted.append(cmd)
+            raise FileNotFoundError("fake: command not found")
+
+        pinned_python = self.tmp / "grading-venv" / "bin" / "python"
+        pinned_python.parent.mkdir(parents=True)
+        pinned_python.write_text("#!/bin/sh\nexit 0\n")
+        pinned_python.chmod(0o755)
+        runner = run_swebench.SwebenchRunner(
+            suite_path=_REAL_SUITE,
+            adapter_path=self.adapter_path,
+            endpoint="http://localhost:8000/v1",
+            run_dir=self.run_dir,
+            repo=self.tmp,
+            dry_run=False,
+            allow_no_screen=True,
+            prompt_token_maxima=_PROMPT_TOKEN_MAXIMA,
+            python_executable=str(pinned_python),
+        )
+        preds_path = self.run_dir / "raw" / "preds.json"
+        preds_path.parent.mkdir(parents=True, exist_ok=True)
+        preds_path.write_text("{}")
+        with patch.object(_sp, "run", side_effect=fake_run):
+            runner._run_grading(preds_path)
+
+        self.assertEqual(attempted[0][0], str(pinned_python.absolute()))
+
     def test_run_generation_uses_argv_not_shell(self):
         """_run_generation must use argv list, not shell=True."""
         import subprocess as _sp

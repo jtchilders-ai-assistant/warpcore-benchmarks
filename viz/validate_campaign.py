@@ -649,6 +649,7 @@ def _validate_swebench_frozen_ids(
     item_inv = manifest.get("item_inventory", {})
 
     # --- preds.json: shape + exact key equality ---
+    preds = None
     preds_path = raw_dir / "preds.json"
     if preds_path.exists():
         try:
@@ -752,34 +753,52 @@ def _validate_swebench_frozen_ids(
             "The manifest expected count must equal the suite expected_item_count."
         )
 
-    # --- manifest.item_inventory.submitted — must exist and equal len(frozen_ids) ---
-    # submitted must be a non-bool integer equal to expected and len(frozen_ids).
-    # Missing, bool, non-int, lower, and higher values all fail.
+    # --- manifest.item_inventory.submitted: nonempty generated patches ---
+    # User-facing SWE-bench reporting defines submitted as a retained nonempty
+    # model_patch, distinct from the 100 assigned/attempted instances. Reconcile
+    # it directly against predictions rather than treating assignment as submission.
     if "submitted" not in item_inv:
         errors.append(
-            "manifest.item_inventory.submitted is absent. "
-            "SWE-bench manifests must record the count of submitted instances "
-            f"in item_inventory.submitted (must equal {len(frozen_ids)})."
+            "manifest.item_inventory.submitted is absent. SWE-bench manifests must "
+            "record the nonempty model_patch count."
         )
     else:
         submitted_raw = item_inv["submitted"]
         if isinstance(submitted_raw, bool):
             errors.append(
-                f"manifest.item_inventory.submitted={submitted_raw!r} is a boolean, not an integer. "
-                "submitted must be a non-bool integer equal to the frozen instance count."
+                f"manifest.item_inventory.submitted={submitted_raw!r} is a boolean, not an integer."
             )
         elif not isinstance(submitted_raw, int):
             errors.append(
                 f"manifest.item_inventory.submitted={submitted_raw!r} is not an integer "
-                f"(got {type(submitted_raw).__name__}). "
-                "submitted must be a non-bool integer equal to the frozen instance count."
+                f"(got {type(submitted_raw).__name__})."
             )
-        elif submitted_raw != len(frozen_ids):
+        elif submitted_raw < 0 or submitted_raw > len(frozen_ids):
             errors.append(
-                f"manifest.item_inventory.submitted={submitted_raw} does not match "
-                f"the suite frozen instance count {len(frozen_ids)}. "
-                "submitted must equal expected_item_count and the number of frozen IDs."
+                f"manifest.item_inventory.submitted={submitted_raw} is outside the valid "
+                f"range 0..{len(frozen_ids)}."
             )
+        elif isinstance(preds, dict):
+            nonempty_count = 0
+            malformed_patches: list[str] = []
+            for iid, prediction in preds.items():
+                if not isinstance(prediction, dict):
+                    continue  # the shape error above is authoritative
+                patch = prediction.get("model_patch", "")
+                if not isinstance(patch, str):
+                    malformed_patches.append(iid)
+                elif patch.strip():
+                    nonempty_count += 1
+            if malformed_patches:
+                errors.append(
+                    "preds.json contains non-string model_patch values for instance ID(s): "
+                    f"{sorted(malformed_patches)[:5]}"
+                )
+            elif submitted_raw != nonempty_count:
+                errors.append(
+                    f"manifest.item_inventory.submitted={submitted_raw} does not match "
+                    f"the nonempty prediction count {nonempty_count}."
+                )
 
     # --- manifest.item_inventory.instance_ids_hash vs frozen set digest ---
     recorded_hash = item_inv.get("instance_ids_hash", "")
@@ -948,7 +967,14 @@ def validate_status_consistency(status: dict) -> list[str]:
             errors.append(f"status.history first entry must be 'planned', got {state!r}")
         if prev_state is not None and state in _VALID_STATES:
             legal_next = _LEGAL_TRANSITIONS.get(prev_state, set())
-            if state not in legal_next and not (prev_state == "running" and state == "failed"):
+            is_recovery = (
+                prev_state == "failed"
+                and state == "completed"
+                and entry.get("recovery") is True
+                and isinstance(entry.get("note"), str)
+                and bool(entry["note"].strip())
+            )
+            if state not in legal_next and not is_recovery:
                 errors.append(
                     f"status.history invalid transition at [{idx}]: "
                     f"{prev_state!r} -> {state!r}"

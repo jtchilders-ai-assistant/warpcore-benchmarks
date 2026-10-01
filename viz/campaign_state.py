@@ -121,6 +121,105 @@ def _validate_utc_timestamp(ts: str) -> None:
 # Core state machine
 # ---------------------------------------------------------------------------
 
+_LEGAL_HISTORY_TRANSITIONS = {
+    "planned": {"preflight_passed"},
+    "preflight_passed": {"running"},
+    "running": {"completed", "failed"},
+    "completed": {"validated"},
+    "validated": {"published"},
+}
+
+
+def _is_marked_recovery(previous_state: str, entry: dict) -> bool:
+    return (
+        previous_state == "failed"
+        and entry.get("state") == "completed"
+        and entry.get("recovery") is True
+        and isinstance(entry.get("note"), str)
+        and bool(entry["note"].strip())
+    )
+
+
+def _validate_history(status: dict) -> tuple[list[dict], str]:
+    """Validate a complete status history and return it plus its last timestamp."""
+    history = status.get("history", [])
+    if not isinstance(history, list) or not history:
+        raise InvalidTransitionError("Inconsistent status: history must be a non-empty list")
+
+    previous_state = None
+    previous_ts = None
+    for index, entry in enumerate(history):
+        if not isinstance(entry, dict):
+            raise InvalidTransitionError(f"Invalid history entry at index {index}")
+        state = entry.get("state", "")
+        entry_ts = entry.get("timestamp", "")
+        _validate_utc_timestamp(entry_ts)
+        if index == 0 and state != "planned":
+            raise InvalidTransitionError("Invalid history: first state must be 'planned'")
+        if previous_state is not None:
+            legal_next = _LEGAL_HISTORY_TRANSITIONS.get(previous_state, set())
+            if state not in legal_next and not _is_marked_recovery(previous_state, entry):
+                raise InvalidTransitionError(
+                    f"Invalid history transition at index {index}: "
+                    f"{previous_state!r} -> {state!r}"
+                )
+        if previous_ts is not None and entry_ts < previous_ts:
+            raise InvalidTimestampError(
+                f"Non-monotonic history timestamp at index {index}: {entry_ts!r} "
+                f"is earlier than {previous_ts!r}"
+            )
+        previous_state, previous_ts = state, entry_ts
+
+    current_state = status.get("execution_state", "")
+    if previous_state != current_state:
+        raise InvalidTransitionError(
+            f"Inconsistent status: execution_state={current_state!r} but "
+            f"history tail state={previous_state!r}. History tail must match execution_state."
+        )
+    assert isinstance(previous_ts, str)
+    return history, previous_ts
+
+
+def recover_failed_postprocessing(
+    status: dict,
+    timestamp: str,
+    note: str,
+) -> dict:
+    """Recover a failed campaign whose immutable generation evidence is complete.
+
+    This is deliberately narrower than a normal state transition.  It permits
+    ``failed -> completed`` only for an ``invalid`` run and appends an explicit
+    recovery marker, preserving the original failure in history.  Callers must
+    still run the ordinary campaign validator before advancing to ``validated``.
+    """
+    _validate_utc_timestamp(timestamp)
+    if status.get("execution_state") != "failed" or status.get("lifecycle") != "invalid":
+        raise InvalidTransitionError(
+            "Post-processing recovery requires execution_state='failed' and "
+            "lifecycle='invalid'."
+        )
+    if not isinstance(note, str) or not note.strip():
+        raise InvalidTransitionError("Post-processing recovery requires a non-empty audit note.")
+
+    history, last_timestamp = _validate_history(status)
+    if timestamp < last_timestamp:
+        raise InvalidTimestampError(
+            f"Non-monotonic timestamp: recovery timestamp {timestamp!r} is earlier than "
+            f"failed timestamp {last_timestamp!r}."
+        )
+
+    recovered = copy.deepcopy(status)
+    recovered["execution_state"] = "completed"
+    recovered["lifecycle"] = "current"
+    recovered["history"] = list(recovered["history"]) + [{
+        "state": "completed",
+        "timestamp": timestamp,
+        "note": note.strip(),
+        "recovery": True,
+    }]
+    return recovered
+
+
 def apply_transition(
     status: dict,
     new_state: str,
@@ -162,38 +261,8 @@ def apply_transition(
 
     current_state = status.get("execution_state", "")
     current_lifecycle = status.get("lifecycle", "current")
-    history = status.get("history", [])
+    history, previous_ts = _validate_history(status)
 
-    if not isinstance(history, list) or not history:
-        raise InvalidTransitionError("Inconsistent status: history must be a non-empty list")
-
-    # Validate the complete append-only chain, not only its tail.
-    previous_state = None
-    previous_ts = None
-    for index, entry in enumerate(history):
-        if not isinstance(entry, dict):
-            raise InvalidTransitionError(f"Invalid history entry at index {index}")
-        state = entry.get("state", "")
-        entry_ts = entry.get("timestamp", "")
-        _validate_utc_timestamp(entry_ts)
-        if index == 0 and state != "planned":
-            raise InvalidTransitionError("Invalid history: first state must be 'planned'")
-        if previous_state is not None and (previous_state, state) not in _LEGAL_TRANSITIONS:
-            raise InvalidTransitionError(
-                f"Invalid history transition at index {index}: {previous_state!r} -> {state!r}"
-            )
-        if previous_ts is not None and entry_ts < previous_ts:
-            raise InvalidTimestampError(
-                f"Non-monotonic history timestamp at index {index}: {entry_ts!r} "
-                f"is earlier than {previous_ts!r}"
-            )
-        previous_state, previous_ts = state, entry_ts
-
-    if previous_state != current_state:
-        raise InvalidTransitionError(
-            f"Inconsistent status: execution_state={current_state!r} but "
-            f"history tail state={previous_state!r}. History tail must match execution_state."
-        )
     if timestamp < previous_ts:
         raise InvalidTimestampError(
             f"Non-monotonic timestamp: new timestamp {timestamp!r} is earlier than "

@@ -33,6 +33,22 @@
         "sympy": "3/10"
       }
     },
+    "ornith-1.5-35b-a3b": {
+      "balanced_ci95_pp": [
+        44.5,
+        66.5
+      ],
+      "balanced_pct": 55.4,
+      "nominal_pct": 59.0,
+      "per_repo": {
+        "astropy": "1/5",
+        "django": "35/56",
+        "pytest-dev": "4/4",
+        "scikit-learn": "4/5",
+        "sphinx-doc": "5/10",
+        "sympy": "2/10"
+      }
+    },
     "ornith-35b": {
       "balanced_ci95_pp": [
         52.3,

@@ -2342,7 +2342,7 @@ class SwebenchRunner:
         # Official flags: -d dataset, -s split, -i instance_ids..., -p preds_path,
         #                 -id run_id, --report_dir output_dir
         cmd = [
-            sys.executable, "-m", "swebench.harness.run_evaluation",
+            self._python_executable, "-m", "swebench.harness.run_evaluation",
             "-d", "princeton-nlp/SWE-bench_Verified",
             "-s", "test",
             "-i", *self._instance_ids,

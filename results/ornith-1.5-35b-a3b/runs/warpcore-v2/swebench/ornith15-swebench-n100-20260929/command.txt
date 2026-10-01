@@ -1,0 +1,1 @@
+python3 viz/run_swebench.py --suite suite/warpcore-v2.yaml --adapter adapters/ornith-1.5-35b-a3b.yaml --endpoint http://csi370295.alcf.anl.gov:8000/v1 --run-id ornith15-swebench-n100-20260929 --model ornith-ai/Ornith-1.5-35B-A3B-FP8
