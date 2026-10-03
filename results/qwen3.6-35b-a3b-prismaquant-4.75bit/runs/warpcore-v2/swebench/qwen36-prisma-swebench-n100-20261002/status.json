@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "run_id": "qwen36-prisma-swebench-n100-20261002",
+  "suite_id": "warpcore-v2",
+  "execution_state": "validated",
+  "lifecycle": "current",
+  "history": [
+    {
+      "state": "planned",
+      "timestamp": "2026-10-02T23:27:01Z",
+      "note": "Campaign initialized by create_campaign"
+    },
+    {
+      "state": "preflight_passed",
+      "timestamp": "2026-10-02T23:27:05Z"
+    },
+    {
+      "state": "running",
+      "timestamp": "2026-10-02T23:27:05Z",
+      "note": "generation phase started; grading phase started"
+    },
+    {
+      "state": "completed",
+      "timestamp": "2026-10-03T13:49:00Z",
+      "note": "grading completed; all dispositions verified"
+    },
+    {
+      "state": "validated",
+      "timestamp": "2026-10-03T14:55:19Z"
+    }
+  ]
+}

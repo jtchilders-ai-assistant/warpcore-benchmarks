@@ -1627,15 +1627,47 @@ def _secret_scan(run_dir: pathlib.Path, errors: list) -> None:
         )
         return
 
-    # gitleaks v8 scans arbitrary directory trees with the `dir` command.  Any
-    # result other than a clean exit is blocking: exit 1 means a finding, while
-    # other codes mean the required scan itself did not complete.
+    # gitleaks v8 scans arbitrary directory trees with the `dir` command.  Use
+    # only the containing repository's explicit fingerprint ignore file; never
+    # inherit a broader parent-directory ignore that could silently weaken the
+    # campaign gate.
+    scan_argv = [gitleaks_bin, "dir", "--redact", "--exit-code", "1"]
+    repo_root = next(
+        (parent for parent in (run_dir, *run_dir.parents) if (parent / ".git").exists()),
+        None,
+    )
+    if repo_root is None:
+        results_root = next(
+            (parent for parent in run_dir.parents if parent.name == "results"),
+            None,
+        )
+        repo_root = results_root.parent if results_root is not None else None
+    scan_cwd = None
+    scan_target = str(run_dir)
+    if repo_root is not None:
+        ignore_path = repo_root / ".gitleaksignore"
+        if ignore_path.is_file():
+            # Run from the repository root and scan a repository-relative path.
+            # Gitleaks fingerprints include the scanned path, so absolute paths
+            # would make an exact reviewed fingerprint host-specific and would
+            # fail in a clean CI checkout.
+            scan_cwd = repo_root
+            try:
+                scan_target = str(run_dir.relative_to(repo_root))
+            except ValueError:
+                scan_target = str(run_dir)
+            scan_argv.extend(["--gitleaks-ignore-path", str(ignore_path)])
+    scan_argv.append(scan_target)
+
+    # Any result other than a clean exit is blocking: exit 1 means a finding,
+    # while other codes mean the required scan itself did not complete.
     try:
         result = _subprocess.run(
-            [gitleaks_bin, "dir", "--redact", "--exit-code", "1", str(run_dir)],
+            scan_argv,
             capture_output=True,
             text=True,
             timeout=_GITLEAKS_SCAN_TIMEOUT_SECONDS,
+            cwd=scan_cwd,
         )
     except (OSError, _subprocess.TimeoutExpired) as exc:
         errors.append(f"gitleaks artifact scan could not be completed: {exc}")

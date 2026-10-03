@@ -1,0 +1,24 @@
+# Canonical adapter for the pinned PrismaQuant 4.75-bit Qwen3.6 deployment.
+# Identity and effective serving arguments were read from the live Warpcore
+# container before campaign launch; experiment-level settings remain suite-owned.
+adapter_schema_version: 1
+campaign_status: canonical
+
+model:
+  slug: qwen3.6-35b-a3b-prismaquant-4.75bit
+  id: rdtand/Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm
+  revision: e347d86b2a6cba4b54ea6f87ca247f60439eed07
+
+serving:
+  image: eugr/spark-vllm@sha256:c154ad0a2575d6c42f8e05cba16ef255ce4ff54d537ad37987ca5b4215cb58b8
+  engine: vllm
+  engine_version: 0.29.1rc1.dev427
+  quantization: modelopt_mixed_nvfp4_mxfp8_bf16
+  reasoning_parser: qwen3
+  tool_call_parser: qwen3_xml
+  tokenizer: null
+  moe_backend: null
+  max_model_len: 262144
+  gpu_memory_utilization: 0.8
+  max_num_seqs: 128
+  environment: {}

@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "suite_id": "warpcore-v2",
+  "suite_schema_version": 2,
+  "run_id": "qwen36-prisma-swebench-n100-20261002",
+  "benchmark": "swebench",
+  "adapter_hash": "945a99886a706ccc1c51e08039022c1bf23ff867a458454874bc91966ce23199",
+  "suite_input_hashes": {
+    "suite/warpcore-v2.yaml": "5340b473f6c590380d01dc95008c1d46634722b314fa723059da799877dc3a80",
+    "suite/swebench/instances-seed42-n100.json": "d46f257dc87482e432307a6e96d5ee2d14b372df0c43b413eba48a573c6d0a24",
+    "suite/swebench/scaffold.yaml": "419244dc6060fc242ba4defb72c3098c351ed6b4325ac6742737a463ace6125f"
+  },
+  "serving_profile_digest": "sha256:fc0743f6ea7bc7108285dc4690aaecfc2bdce2cdaf8f0cc3a3d961bed97b65d4",
+  "model": {
+    "slug": "qwen3.6-35b-a3b-prismaquant-4.75bit",
+    "id": "rdtand/Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm",
+    "revision": "e347d86b2a6cba4b54ea6f87ca247f60439eed07"
+  },
+  "serving": {
+    "image_digest": "sha256:c154ad0a2575d6c42f8e05cba16ef255ce4ff54d537ad37987ca5b4215cb58b8",
+    "engine": "vllm",
+    "engine_version": "0.29.1rc1.dev427",
+    "effective_args": [
+      "--quantization=modelopt_mixed_nvfp4_mxfp8_bf16",
+      "--reasoning-parser=qwen3",
+      "--tool-call-parser=qwen3_xml",
+      "--max-model-len=262144",
+      "--gpu-memory-utilization=0.8",
+      "--max-num-seqs=128",
+      "--engine=vllm",
+      "--engine-version=0.29.1rc1.dev427"
+    ],
+    "environment": {},
+    "hardware_id": "dgx-spark-gb10"
+  },
+  "item_inventory": {
+    "expected": 100,
+    "submitted": 79,
+    "instance_ids_hash": "f81e294e48301b1523c194b70d8f399bef0bfd41728eb89e081548290c57734e"
+  },
+  "timing": {
+    "started_utc": "2026-10-02T23:27:01Z",
+    "completed_utc": "2026-10-03T13:49:00Z"
+  },
+  "artifact_inventory": {
+    "samples_jsonl_gz": false,
+    "per_item_csv": false,
+    "run_log": true,
+    "command_txt": true,
+    "done_sentinel": true,
+    "preds_json": true,
+    "exit_statuses_json": true,
+    "grading_results_json": true
+  }
+}

@@ -1,0 +1,73 @@
+2026-10-03 08:31:13,236 - INFO - Creating container for astropy__astropy-13453...
+2026-10-03 08:31:13,437 - INFO - Container for astropy__astropy-13453 created: 0922af92a755c0a14c3f7f4b8c2fd38e6a6b671f63bca94cdef74f4b41d7bae0
+2026-10-03 08:31:13,764 - INFO - Container for astropy__astropy-13453 started: 0922af92a755c0a14c3f7f4b8c2fd38e6a6b671f63bca94cdef74f4b41d7bae0
+2026-10-03 08:31:13,765 - INFO - Intermediate patch for astropy__astropy-13453 written to logs/run_evaluation/qwen36-prisma-swebench-n100-20261002/hosted_vllm__rdtand__Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm/astropy__astropy-13453/patch.diff, now applying to container...
+2026-10-03 08:31:14,302 - INFO - >>>>> Applied Patch:
+Checking patch astropy/io/ascii/html.py...
+Applied patch astropy/io/ascii/html.py cleanly.
+
+2026-10-03 08:31:16,764 - INFO - Git diff before:
+diff --git a/astropy/io/ascii/html.py b/astropy/io/ascii/html.py
+index 266cf229c..2f25795ae 100644
+--- a/astropy/io/ascii/html.py
++++ b/astropy/io/ascii/html.py
+@@ -349,12 +349,14 @@ class HTML(core.BaseReader):
+         cols = list(table.columns.values())
+ 
+         self.data.header.cols = cols
++        self.data.cols = cols
+ 
+         if isinstance(self.data.fill_values, tuple):
+             self.data.fill_values = [self.data.fill_values]
+ 
+         self.data._set_fill_values(cols)
+ 
++        self.data._set_col_formats()
+         lines = []
+ 
+         # Set HTML escaping to False for any column in the raw_html_cols input
+@@ -430,6 +432,7 @@ class HTML(core.BaseReader):
+                                     # Split up multicolumns into separate columns
+                                     new_col = Column([el[i] for el in col])
+ 
++                                    new_col.info.format = col.info.format
+                                     new_col_iter_str_vals = self.fill_values(
+                                         col, new_col.info.iter_str_vals())
+                                     col_str_iters.append(new_col_iter_str_vals)
+2026-10-03 08:31:16,765 - INFO - Eval script for astropy__astropy-13453 written to logs/run_evaluation/qwen36-prisma-swebench-n100-20261002/hosted_vllm__rdtand__Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm/astropy__astropy-13453/eval.sh; copying to container...
+2026-10-03 08:33:29,345 - INFO - Test runtime: 132.38 seconds
+2026-10-03 08:33:29,349 - INFO - Test output for astropy__astropy-13453 written to logs/run_evaluation/qwen36-prisma-swebench-n100-20261002/hosted_vllm__rdtand__Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm/astropy__astropy-13453/test_output.txt
+2026-10-03 08:33:29,480 - INFO - Git diff after:
+diff --git a/astropy/io/ascii/html.py b/astropy/io/ascii/html.py
+index 266cf229c..2f25795ae 100644
+--- a/astropy/io/ascii/html.py
++++ b/astropy/io/ascii/html.py
+@@ -349,12 +349,14 @@ class HTML(core.BaseReader):
+         cols = list(table.columns.values())
+ 
+         self.data.header.cols = cols
++        self.data.cols = cols
+ 
+         if isinstance(self.data.fill_values, tuple):
+             self.data.fill_values = [self.data.fill_values]
+ 
+         self.data._set_fill_values(cols)
+ 
++        self.data._set_col_formats()
+         lines = []
+ 
+         # Set HTML escaping to False for any column in the raw_html_cols input
+@@ -430,6 +432,7 @@ class HTML(core.BaseReader):
+                                     # Split up multicolumns into separate columns
+                                     new_col = Column([el[i] for el in col])
+ 
++                                    new_col.info.format = col.info.format
+                                     new_col_iter_str_vals = self.fill_values(
+                                         col, new_col.info.iter_str_vals())
+                                     col_str_iters.append(new_col_iter_str_vals)
+2026-10-03 08:33:29,480 - INFO - Grading answer for astropy__astropy-13453...
+2026-10-03 08:33:29,487 - INFO - report: {'astropy__astropy-13453': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['astropy/io/ascii/tests/test_html.py::test_write_table_formatted_columns'], 'failure': []}, 'PASS_TO_PASS': {'success': ['astropy/io/ascii/tests/test_html.py::test_listwriter', 'astropy/io/ascii/tests/test_html.py::test_htmlinputter_no_bs4', 'astropy/io/ascii/tests/test_html.py::test_multicolumn_write', 'astropy/io/ascii/tests/test_html.py::test_write_no_multicols', 'astropy/io/ascii/tests/test_html.py::test_write_table_html_fill_values', 'astropy/io/ascii/tests/test_html.py::test_write_table_html_fill_values_optional_columns', 'astropy/io/ascii/tests/test_html.py::test_write_table_html_fill_values_masked', 'astropy/io/ascii/tests/test_html.py::test_multicolumn_table_html_fill_values', 'astropy/io/ascii/tests/test_html.py::test_multi_column_write_table_html_fill_values_masked'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for astropy__astropy-13453: resolved: True
+2026-10-03 08:33:29,488 - INFO - Attempting to stop container sweb.eval.astropy__astropy-13453.qwen36-prisma-swebench-n100-20261002...
+2026-10-03 08:33:44,752 - INFO - Attempting to remove container sweb.eval.astropy__astropy-13453.qwen36-prisma-swebench-n100-20261002...
+2026-10-03 08:33:44,957 - INFO - Container sweb.eval.astropy__astropy-13453.qwen36-prisma-swebench-n100-20261002 removed.

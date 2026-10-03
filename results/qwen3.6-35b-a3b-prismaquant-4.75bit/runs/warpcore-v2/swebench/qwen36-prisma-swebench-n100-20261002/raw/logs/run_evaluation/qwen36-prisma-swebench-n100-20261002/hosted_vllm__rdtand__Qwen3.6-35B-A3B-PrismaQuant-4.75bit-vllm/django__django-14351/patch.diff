@@ -1,0 +1,17 @@
+diff --git a/django/db/models/fields/related_lookups.py b/django/db/models/fields/related_lookups.py
+index d745ecd5f9..1ce748aa7e 100644
+--- a/django/db/models/fields/related_lookups.py
++++ b/django/db/models/fields/related_lookups.py
+@@ -86,9 +86,9 @@ class RelatedIn(In):
+                     AND)
+             return root_constraint.as_sql(compiler, connection)
+         else:
+-            if (not getattr(self.rhs, 'has_select_fields', True) and
+-                    not getattr(self.lhs.field.target_field, 'primary_key', False)):
+-                self.rhs.clear_select_clause()
++            if (not getattr(self.rhs, 'has_select_fields', True) or \
++                    (hasattr(self.rhs, 'default_cols') and self.rhs.default_cols)) and \
++                    not getattr(self.lhs.field.target_field, 'primary_key', False):
+                 if (getattr(self.lhs.output_field, 'primary_key', False) and
+                         self.lhs.output_field.model == self.rhs.model):
+                     # A case like Restaurant.objects.filter(place__in=restaurant_qs),

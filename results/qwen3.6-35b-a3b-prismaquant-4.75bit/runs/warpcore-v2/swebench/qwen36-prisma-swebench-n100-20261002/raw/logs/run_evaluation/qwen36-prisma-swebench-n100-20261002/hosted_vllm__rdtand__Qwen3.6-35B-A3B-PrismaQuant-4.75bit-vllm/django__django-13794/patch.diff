@@ -1,0 +1,25 @@
+diff --git a/django/template/defaultfilters.py b/django/template/defaultfilters.py
+index 1c844580c6..7f887575ed 100644
+--- a/django/template/defaultfilters.py
++++ b/django/template/defaultfilters.py
+@@ -10,7 +10,8 @@ from urllib.parse import quote
+ 
+ from django.utils import formats
+ from django.utils.dateformat import format, time_format
+-from django.utils.encoding import iri_to_uri
++from django.utils.encoding import force_str, iri_to_uri
++from django.utils.functional import Promise
+ from django.utils.html import (
+     avoid_wrapping, conditional_escape, escape, escapejs,
+     json_script as _json_script, linebreaks, strip_tags, urlize as _urlize,
+@@ -678,6 +679,10 @@ def add(value, arg):
+         return int(value) + int(arg)
+     except (ValueError, TypeError):
+         try:
++            # If either value is a string (including lazy strings), convert both to strings
++            # to handle lazy string concatenation properly.
++            if isinstance(value, (str, Promise)) and isinstance(arg, (str, Promise)):
++                return force_str(value) + force_str(arg)
+             return value + arg
+         except Exception:
+             return ''

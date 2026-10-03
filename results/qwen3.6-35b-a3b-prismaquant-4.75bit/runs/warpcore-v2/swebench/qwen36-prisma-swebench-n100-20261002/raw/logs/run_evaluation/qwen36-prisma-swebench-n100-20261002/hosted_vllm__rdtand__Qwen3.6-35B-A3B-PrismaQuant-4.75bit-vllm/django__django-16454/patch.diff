@@ -1,0 +1,109 @@
+diff --git a/django/core/management/base.py b/django/core/management/base.py
+index abc6f79a15..a33331d58c 100644
+--- a/django/core/management/base.py
++++ b/django/core/management/base.py
+@@ -5,7 +5,7 @@ be executed through ``django-admin`` or ``manage.py``).
+ import argparse
+ import os
+ import sys
+-from argparse import ArgumentParser, HelpFormatter
++from argparse import ArgumentParser, HelpFormatter, SUPPRESS
+ from io import TextIOBase
+ 
+ import django
+@@ -43,6 +43,78 @@ class SystemCheckError(CommandError):
+     pass
+ 
+ 
++class CommandParser(ArgumentParser):
++    """
++    Customized ArgumentParser class to improve some error messages and prevent
++    SystemExit in several occasions, as SystemExit is unacceptable when a
++    command is called programmatically.
++    """
++
++    def __init__(
++        self, *, missing_args_message=None, called_from_command_line=None, **kwargs
++    ):
++        self.missing_args_message = missing_args_message
++        self.called_from_command_line = called_from_command_line
++        super().__init__(**kwargs)
++
++    def parse_args(self, args=None, namespace=None):
++        # Catch missing argument for a better error message
++        if self.missing_args_message and not (
++            args or any(not arg.startswith("-") for arg in args)
++        ):
++            self.error(self.missing_args_message)
++        return super().parse_args(args, namespace)
++
++class _SubParsersAction(argparse._SubParsersAction):
++    """
++    Customized _SubParsersAction class to ensure subparsers inherit the
++    special attributes from the parent parser.
++    """
++
++    def __init__(
++        self,
++        option_strings,
++        prog,
++        parser_class,
++        dest=SUPPRESS,
++        required=False,
++        help=None,
++        metavar=None,
++        missing_args_message=None,
++        called_from_command_line=None,
++        parent_parser=None,
++    ):
++        self._missing_args_message = missing_args_message
++        self._called_from_command_line = called_from_command_line
++        self._parent_parser = parent_parser
++        super().__init__(
++            option_strings,
++            prog,
++            parser_class,
++            dest=dest,
++            required=required,
++            help=help,
++            metavar=metavar,
++        )
++
++    def add_parser(self, name, **kwargs):
++        # Ensure subparsers inherit the special attributes from the parent parser
++        # at the time the subparser is created, not at the time the parser is created.
++        # This is important because called_from_command_line may be set to True
++        # after the parser is created.
++        if self._parent_parser is not None:
++            kwargs.setdefault(
++                "missing_args_message", self._parent_parser.missing_args_message
++            )
++            kwargs.setdefault(
++                "called_from_command_line", self._parent_parser.called_from_command_line
++            )
++        else:
++            kwargs.setdefault("missing_args_message", self._missing_args_message)
++            kwargs.setdefault("called_from_command_line", self._called_from_command_line)
++        return super().add_parser(name, **kwargs)
++
++
+ class CommandParser(ArgumentParser):
+     """
+     Customized ArgumentParser class to improve some error messages and prevent
+@@ -71,6 +143,16 @@ class CommandParser(ArgumentParser):
+         else:
+             raise CommandError("Error: %s" % message)
+ 
++    def add_subparsers(self, **kwargs):
++        # Register the custom _SubParsersAction class
++        self.register('action', 'parsers', _SubParsersAction)
++        # Ensure subparsers inherit the special attributes
++        kwargs.setdefault("parser_class", type(self))
++        kwargs.setdefault("missing_args_message", self.missing_args_message)
++        kwargs.setdefault("called_from_command_line", self.called_from_command_line)
++        kwargs.setdefault("parent_parser", self)
++        return super().add_subparsers(**kwargs)
++
+ 
+ def handle_default_options(options):
+     """

@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "suite_id": "warpcore-v2",
+  "suite_schema_version": 2,
+  "run_id": "qwen36-prisma-gpqa-20261001",
+  "benchmark": "gpqa_diamond",
+  "adapter_hash": "945a99886a706ccc1c51e08039022c1bf23ff867a458454874bc91966ce23199",
+  "suite_input_hashes": {
+    "suite/warpcore-v2.yaml": "5340b473f6c590380d01dc95008c1d46634722b314fa723059da799877dc3a80",
+    "suite/tasks/gpqa_diamond_clean_v3.yaml": "833259292b956a4bc620352c95ae43c30bb9d2b4049aebd3f67c4a1ec3b4267f",
+    "suite/tasks/gpqa_utils.py": "7c755f2c3f8f4ac20de96fb68941c43424d2ded0552d5ab81e672e15c410655c"
+  },
+  "serving_profile_digest": "sha256:fc0743f6ea7bc7108285dc4690aaecfc2bdce2cdaf8f0cc3a3d961bed97b65d4",
+  "model": {
+    "slug": "qwen3.6-35b-a3b-prismaquant-4.75bit",
+    "id": "rdtand/Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm",
+    "revision": "e347d86b2a6cba4b54ea6f87ca247f60439eed07"
+  },
+  "serving": {
+    "image_digest": "sha256:c154ad0a2575d6c42f8e05cba16ef255ce4ff54d537ad37987ca5b4215cb58b8",
+    "engine": "vllm",
+    "engine_version": "0.29.1rc1.dev427",
+    "effective_args": [
+      "--quantization=modelopt_mixed_nvfp4_mxfp8_bf16",
+      "--reasoning-parser=qwen3",
+      "--tool-call-parser=qwen3_xml",
+      "--max-model-len=262144",
+      "--gpu-memory-utilization=0.8",
+      "--max-num-seqs=128",
+      "--engine=vllm",
+      "--engine-version=0.29.1rc1.dev427"
+    ],
+    "environment": {},
+    "hardware_id": "dgx-spark-gb10"
+  },
+  "item_inventory": {
+    "expected": 198,
+    "submitted": 198
+  },
+  "timing": {
+    "started_utc": "2026-10-01T20:43:28Z",
+    "completed_utc": "2026-10-02T06:02:01Z"
+  },
+  "artifact_inventory": {
+    "samples_jsonl_gz": true,
+    "per_item_csv": true,
+    "run_log": true,
+    "command_txt": true,
+    "done_sentinel": true
+  }
+}

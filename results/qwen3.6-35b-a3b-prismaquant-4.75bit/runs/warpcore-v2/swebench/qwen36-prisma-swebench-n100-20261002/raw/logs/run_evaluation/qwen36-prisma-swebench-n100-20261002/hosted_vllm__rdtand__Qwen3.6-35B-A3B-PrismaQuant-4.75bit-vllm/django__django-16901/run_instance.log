@@ -1,0 +1,93 @@
+2026-10-03 08:39:46,993 - INFO - Creating container for django__django-16901...
+2026-10-03 08:39:47,126 - INFO - Container for django__django-16901 created: 486338a22d2a09e3c1ecceea39cee06b17abe3e51a7448076046326fcbd4d783
+2026-10-03 08:39:47,377 - INFO - Container for django__django-16901 started: 486338a22d2a09e3c1ecceea39cee06b17abe3e51a7448076046326fcbd4d783
+2026-10-03 08:39:47,378 - INFO - Intermediate patch for django__django-16901 written to logs/run_evaluation/qwen36-prisma-swebench-n100-20261002/hosted_vllm__rdtand__Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm/django__django-16901/patch.diff, now applying to container...
+2026-10-03 08:39:47,628 - INFO - >>>>> Applied Patch:
+Checking patch django/db/models/sql/where.py...
+Applied patch django/db/models/sql/where.py cleanly.
+
+2026-10-03 08:39:51,695 - INFO - Git diff before:
+diff --git a/django/db/models/sql/where.py b/django/db/models/sql/where.py
+index aaab1730b7..2f92dd6ef1 100644
+--- a/django/db/models/sql/where.py
++++ b/django/db/models/sql/where.py
+@@ -6,7 +6,9 @@ from functools import reduce
+ 
+ from django.core.exceptions import EmptyResultSet, FullResultSet
+ from django.db.models.expressions import Case, When
++from django.db.models.functions import Mod
+ from django.db.models.lookups import Exact
++from django.db.models.query_utils import Q
+ from django.utils import tree
+ from django.utils.functional import cached_property
+ 
+@@ -129,13 +131,18 @@ class WhereNode(tree.Node):
+             # Convert if the database doesn't support XOR:
+             #   a XOR b XOR c XOR ...
+             # to:
+-            #   (a OR b OR c OR ...) AND (a + b + c + ...) == 1
+-            lhs = self.__class__(self.children, OR)
++            #   (a OR b OR c OR ...) AND (a + b + c + ...) % 2 == 1
++            # Convert children to Q objects if they are tuples
++            children = [
++                Q(*c) if isinstance(c, tuple) else c for c in self.children
++            ]
++            lhs = self.__class__(children, OR)
+             rhs_sum = reduce(
+                 operator.add,
+-                (Case(When(c, then=1), default=0) for c in self.children),
++                (Case(When(c, then=1), default=0) for c in children),
+             )
+-            rhs = Exact(1, rhs_sum)
++            # Check if the count of true values is odd (parity check)
++            rhs = Exact(1, Mod(rhs_sum, 2))
+             return self.__class__([lhs, rhs], AND, self.negated).as_sql(
+                 compiler, connection
+             )
+2026-10-03 08:39:51,695 - INFO - Eval script for django__django-16901 written to logs/run_evaluation/qwen36-prisma-swebench-n100-20261002/hosted_vllm__rdtand__Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm/django__django-16901/eval.sh; copying to container...
+2026-10-03 08:40:04,714 - INFO - Test runtime: 12.83 seconds
+2026-10-03 08:40:04,715 - INFO - Test output for django__django-16901 written to logs/run_evaluation/qwen36-prisma-swebench-n100-20261002/hosted_vllm__rdtand__Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm/django__django-16901/test_output.txt
+2026-10-03 08:40:04,852 - INFO - Git diff after:
+diff --git a/django/db/models/sql/where.py b/django/db/models/sql/where.py
+index aaab1730b7..2f92dd6ef1 100644
+--- a/django/db/models/sql/where.py
++++ b/django/db/models/sql/where.py
+@@ -6,7 +6,9 @@ from functools import reduce
+ 
+ from django.core.exceptions import EmptyResultSet, FullResultSet
+ from django.db.models.expressions import Case, When
++from django.db.models.functions import Mod
+ from django.db.models.lookups import Exact
++from django.db.models.query_utils import Q
+ from django.utils import tree
+ from django.utils.functional import cached_property
+ 
+@@ -129,13 +131,18 @@ class WhereNode(tree.Node):
+             # Convert if the database doesn't support XOR:
+             #   a XOR b XOR c XOR ...
+             # to:
+-            #   (a OR b OR c OR ...) AND (a + b + c + ...) == 1
+-            lhs = self.__class__(self.children, OR)
++            #   (a OR b OR c OR ...) AND (a + b + c + ...) % 2 == 1
++            # Convert children to Q objects if they are tuples
++            children = [
++                Q(*c) if isinstance(c, tuple) else c for c in self.children
++            ]
++            lhs = self.__class__(children, OR)
+             rhs_sum = reduce(
+                 operator.add,
+-                (Case(When(c, then=1), default=0) for c in self.children),
++                (Case(When(c, then=1), default=0) for c in children),
+             )
+-            rhs = Exact(1, rhs_sum)
++            # Check if the count of true values is odd (parity check)
++            rhs = Exact(1, Mod(rhs_sum, 2))
+             return self.__class__([lhs, rhs], AND, self.negated).as_sql(
+                 compiler, connection
+             )
+2026-10-03 08:40:04,852 - INFO - Grading answer for django__django-16901...
+2026-10-03 08:40:04,853 - INFO - report: {'django__django-16901': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_filter_multiple (xor_lookups.tests.XorLookupsTests.test_filter_multiple)'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_empty_in (xor_lookups.tests.XorLookupsTests.test_empty_in)', 'test_exclude (xor_lookups.tests.XorLookupsTests.test_exclude)', 'test_filter (xor_lookups.tests.XorLookupsTests.test_filter)', 'test_filter_negated (xor_lookups.tests.XorLookupsTests.test_filter_negated)', 'test_pk_q (xor_lookups.tests.XorLookupsTests.test_pk_q)', 'test_stages (xor_lookups.tests.XorLookupsTests.test_stages)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-16901: resolved: True
+2026-10-03 08:40:04,854 - INFO - Attempting to stop container sweb.eval.django__django-16901.qwen36-prisma-swebench-n100-20261002...
+2026-10-03 08:40:20,209 - INFO - Attempting to remove container sweb.eval.django__django-16901.qwen36-prisma-swebench-n100-20261002...
+2026-10-03 08:40:20,339 - INFO - Container sweb.eval.django__django-16901.qwen36-prisma-swebench-n100-20261002 removed.
