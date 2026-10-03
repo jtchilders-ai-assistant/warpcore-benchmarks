@@ -1,0 +1,59 @@
+2026-10-03 08:44:40,697 - INFO - Creating container for sphinx-doc__sphinx-8593...
+2026-10-03 08:44:40,868 - INFO - Container for sphinx-doc__sphinx-8593 created: 9b1be6ed8a387913ef1684dc27f49a954965c716c194306a8feb1dd553acf4e1
+2026-10-03 08:44:41,246 - INFO - Container for sphinx-doc__sphinx-8593 started: 9b1be6ed8a387913ef1684dc27f49a954965c716c194306a8feb1dd553acf4e1
+2026-10-03 08:44:41,247 - INFO - Intermediate patch for sphinx-doc__sphinx-8593 written to logs/run_evaluation/qwen36-prisma-swebench-n100-20261002/hosted_vllm__rdtand__Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm/sphinx-doc__sphinx-8593/patch.diff, now applying to container...
+2026-10-03 08:44:41,893 - INFO - >>>>> Applied Patch:
+Checking patch sphinx/ext/autodoc/__init__.py...
+Applied patch sphinx/ext/autodoc/__init__.py cleanly.
+
+2026-10-03 08:44:43,278 - INFO - Git diff before:
+diff --git a/sphinx/ext/autodoc/__init__.py b/sphinx/ext/autodoc/__init__.py
+index 76265f5be..f5c664f9d 100644
+--- a/sphinx/ext/autodoc/__init__.py
++++ b/sphinx/ext/autodoc/__init__.py
+@@ -735,6 +735,16 @@ class Documenter:
+             elif 'public' in metadata:
+                 # consider a member public if docstring has "public" metadata
+                 isprivate = False
++            elif (namespace, membername) in attr_docs:
++                # check for metadata in attr_docs for module/class attributes
++                attr_doc = ' '.join(attr_docs[(namespace, membername)])
++                attr_metadata = extract_metadata(attr_doc)
++                if 'private' in attr_metadata:
++                    isprivate = True
++                elif 'public' in attr_metadata:
++                    isprivate = False
++                else:
++                    isprivate = membername.startswith('_')
+             else:
+                 isprivate = membername.startswith('_')
+2026-10-03 08:44:43,279 - INFO - Eval script for sphinx-doc__sphinx-8593 written to logs/run_evaluation/qwen36-prisma-swebench-n100-20261002/hosted_vllm__rdtand__Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm/sphinx-doc__sphinx-8593/eval.sh; copying to container...
+2026-10-03 08:44:56,760 - INFO - Test runtime: 13.28 seconds
+2026-10-03 08:44:56,761 - INFO - Test output for sphinx-doc__sphinx-8593 written to logs/run_evaluation/qwen36-prisma-swebench-n100-20261002/hosted_vllm__rdtand__Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm/sphinx-doc__sphinx-8593/test_output.txt
+2026-10-03 08:44:56,930 - INFO - Git diff after:
+diff --git a/sphinx/ext/autodoc/__init__.py b/sphinx/ext/autodoc/__init__.py
+index 76265f5be..f5c664f9d 100644
+--- a/sphinx/ext/autodoc/__init__.py
++++ b/sphinx/ext/autodoc/__init__.py
+@@ -735,6 +735,16 @@ class Documenter:
+             elif 'public' in metadata:
+                 # consider a member public if docstring has "public" metadata
+                 isprivate = False
++            elif (namespace, membername) in attr_docs:
++                # check for metadata in attr_docs for module/class attributes
++                attr_doc = ' '.join(attr_docs[(namespace, membername)])
++                attr_metadata = extract_metadata(attr_doc)
++                if 'private' in attr_metadata:
++                    isprivate = True
++                elif 'public' in attr_metadata:
++                    isprivate = False
++                else:
++                    isprivate = membername.startswith('_')
+             else:
+                 isprivate = membername.startswith('_')
+2026-10-03 08:44:56,930 - INFO - Grading answer for sphinx-doc__sphinx-8593...
+2026-10-03 08:44:56,933 - INFO - report: {'sphinx-doc__sphinx-8593': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['tests/test_ext_autodoc_private_members.py::test_private_field', 'tests/test_ext_autodoc_private_members.py::test_private_members'], 'failure': []}, 'PASS_TO_PASS': {'success': ['tests/test_ext_autodoc_private_members.py::test_private_field_and_private_members'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sphinx-doc__sphinx-8593: resolved: True
+2026-10-03 08:44:56,934 - INFO - Attempting to stop container sweb.eval.sphinx-doc__sphinx-8593.qwen36-prisma-swebench-n100-20261002...
+2026-10-03 08:45:12,291 - INFO - Attempting to remove container sweb.eval.sphinx-doc__sphinx-8593.qwen36-prisma-swebench-n100-20261002...
+2026-10-03 08:45:12,508 - INFO - Container sweb.eval.sphinx-doc__sphinx-8593.qwen36-prisma-swebench-n100-20261002 removed.

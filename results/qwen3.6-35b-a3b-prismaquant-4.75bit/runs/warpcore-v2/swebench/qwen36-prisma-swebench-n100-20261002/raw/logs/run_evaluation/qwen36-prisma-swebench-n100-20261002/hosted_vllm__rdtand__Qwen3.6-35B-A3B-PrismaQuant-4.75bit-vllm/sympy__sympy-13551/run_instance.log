@@ -1,0 +1,73 @@
+2026-10-03 08:45:52,274 - INFO - Creating container for sympy__sympy-13551...
+2026-10-03 08:45:52,427 - INFO - Container for sympy__sympy-13551 created: a0f71199276755497fb23a7a5fa041c848e43e5f079cf50c5a187bd59535f46c
+2026-10-03 08:45:52,905 - INFO - Container for sympy__sympy-13551 started: a0f71199276755497fb23a7a5fa041c848e43e5f079cf50c5a187bd59535f46c
+2026-10-03 08:45:52,905 - INFO - Intermediate patch for sympy__sympy-13551 written to logs/run_evaluation/qwen36-prisma-swebench-n100-20261002/hosted_vllm__rdtand__Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm/sympy__sympy-13551/patch.diff, now applying to container...
+2026-10-03 08:45:53,297 - INFO - >>>>> Applied Patch:
+Checking patch sympy/concrete/products.py...
+Applied patch sympy/concrete/products.py cleanly.
+
+2026-10-03 08:45:54,804 - INFO - Git diff before:
+diff --git a/sympy/concrete/products.py b/sympy/concrete/products.py
+index 66aafde2d..b9fb0f1b1 100644
+--- a/sympy/concrete/products.py
++++ b/sympy/concrete/products.py
+@@ -278,14 +278,20 @@ def _eval_product(self, term, limits):
+             p, q = term.as_numer_denom()
+             q = self._eval_product(q, (k, a, n))
+             if q.is_Number:
+-
+                 # There is expression, which couldn't change by
+                 # as_numer_denom(). E.g. n**(2/3) + 1 --> (n**(2/3) + 1, 1).
+                 # We have to catch this case.
+ 
+-                p = sum([self._eval_product(i, (k, a, n)) for i in p.as_coeff_Add()])
++                # Check if p is a polynomial in k. If not, we cannot
++                # compute the product of a sum as a sum of products.
++                if p.is_polynomial(k):
++                    p = sum([self._eval_product(i, (k, a, n)) for i in p.as_coeff_Add()])
++                else:
++                    return None
+             else:
+                 p = self._eval_product(p, (k, a, n))
++                if p is None:
++                    return None
+             return p / q
+ 
+         elif term.is_Mul:
+2026-10-03 08:45:54,805 - INFO - Eval script for sympy__sympy-13551 written to logs/run_evaluation/qwen36-prisma-swebench-n100-20261002/hosted_vllm__rdtand__Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm/sympy__sympy-13551/eval.sh; copying to container...
+2026-10-03 08:46:46,600 - INFO - Test runtime: 51.55 seconds
+2026-10-03 08:46:46,601 - INFO - Test output for sympy__sympy-13551 written to logs/run_evaluation/qwen36-prisma-swebench-n100-20261002/hosted_vllm__rdtand__Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm/sympy__sympy-13551/test_output.txt
+2026-10-03 08:46:46,730 - INFO - Git diff after:
+diff --git a/sympy/concrete/products.py b/sympy/concrete/products.py
+index 66aafde2d..b9fb0f1b1 100644
+--- a/sympy/concrete/products.py
++++ b/sympy/concrete/products.py
+@@ -278,14 +278,20 @@ def _eval_product(self, term, limits):
+             p, q = term.as_numer_denom()
+             q = self._eval_product(q, (k, a, n))
+             if q.is_Number:
+-
+                 # There is expression, which couldn't change by
+                 # as_numer_denom(). E.g. n**(2/3) + 1 --> (n**(2/3) + 1, 1).
+                 # We have to catch this case.
+ 
+-                p = sum([self._eval_product(i, (k, a, n)) for i in p.as_coeff_Add()])
++                # Check if p is a polynomial in k. If not, we cannot
++                # compute the product of a sum as a sum of products.
++                if p.is_polynomial(k):
++                    p = sum([self._eval_product(i, (k, a, n)) for i in p.as_coeff_Add()])
++                else:
++                    return None
+             else:
+                 p = self._eval_product(p, (k, a, n))
++                if p is None:
++                    return None
+             return p / q
+ 
+         elif term.is_Mul:
+2026-10-03 08:46:46,730 - INFO - Grading answer for sympy__sympy-13551...
+2026-10-03 08:46:46,731 - INFO - report: {'sympy__sympy-13551': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_issue_13546'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_karr_convention', 'test_karr_proposition_2a', 'test_karr_proposition_2b', 'test_simple_products', 'test_multiple_products', 'test_rational_products', 'test_special_products', 'test__eval_product', 'test_product_pow', 'test_infinite_product', 'test_conjugate_transpose', 'test_simplify', 'test_change_index', 'test_reorder', 'test_Product_is_convergent', 'test_reverse_order', 'test_issue_9983'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-13551: resolved: True
+2026-10-03 08:46:46,732 - INFO - Attempting to stop container sweb.eval.sympy__sympy-13551.qwen36-prisma-swebench-n100-20261002...
+2026-10-03 08:47:02,064 - INFO - Attempting to remove container sweb.eval.sympy__sympy-13551.qwen36-prisma-swebench-n100-20261002...
+2026-10-03 08:47:02,247 - INFO - Container sweb.eval.sympy__sympy-13551.qwen36-prisma-swebench-n100-20261002 removed.

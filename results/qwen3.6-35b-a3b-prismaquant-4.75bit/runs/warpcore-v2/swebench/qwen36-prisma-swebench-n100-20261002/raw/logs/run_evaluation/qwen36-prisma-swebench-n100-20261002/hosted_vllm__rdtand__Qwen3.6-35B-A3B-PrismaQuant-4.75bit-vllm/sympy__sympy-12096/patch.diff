@@ -1,0 +1,18 @@
+diff --git a/sympy/core/function.py b/sympy/core/function.py
+index 1b8005e1d..b0f10d34f 100644
+--- a/sympy/core/function.py
++++ b/sympy/core/function.py
+@@ -507,7 +507,12 @@ def _eval_evalf(self, prec):
+             func = getattr(mpmath, fname)
+         except (AttributeError, KeyError):
+             try:
+-                return Float(self._imp_(*self.args), prec)
++                result = self._imp_(*self.args)
++                # If the result has free symbols, return the original expression unchanged
++                if result.free_symbols:
++                    return self
++                # Otherwise, call evalf() on the result to recursively evaluate nested functions
++                return result.evalf()
+             except (AttributeError, TypeError, ValueError):
+                 return
+ 

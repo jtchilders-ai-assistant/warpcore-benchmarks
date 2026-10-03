@@ -341,6 +341,54 @@
       "note": "Completed explicit noncanonical frozen seed-42 n=100 diagnostic trial after the n=20 qualification missed the mandatory 20/20 Submitted gate. Generation: 76 Submitted, 21 LimitsExceeded, 2 Timeout, 1 ContextWindowExceededError. Official grading: 57 resolved, 19 unresolved, 24 empty patches, 0 errors, 0 incomplete. All 100 predictions and trajectories are retained and reconciled.",
       "caveats": "Diagnostic evidence only: no qualification seal, not a canonical or publication-eligible score, and excluded from the canonical matrix.",
       "run_dir": "results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928"
+    },
+    {
+      "id": "qwen3.6-35b-a3b-prismaquant-4.75bit/gpqa-diamond/warpcore-v2/qwen36-prisma-gpqa-20261001",
+      "status": "current",
+      "paths": [
+        "results/qwen3.6-35b-a3b-prismaquant-4.75bit/runs/warpcore-v2/gpqa_diamond/qwen36-prisma-gpqa-20261001/raw/rdtand__Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm/results_2026-10-02T01-01-59.361779.json",
+        "results/qwen3.6-35b-a3b-prismaquant-4.75bit/runs/warpcore-v2/gpqa_diamond/qwen36-prisma-gpqa-20261001/raw/rdtand__Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm/samples_gpqa_diamond_cot_zeroshot_clean_2026-10-02T01-01-59.361779.jsonl.gz",
+        "results/qwen3.6-35b-a3b-prismaquant-4.75bit/runs/warpcore-v2/gpqa_diamond/qwen36-prisma-gpqa-20261001/per_item.csv"
+      ],
+      "note": "Canonical warpcore-v2 GPQA-Diamond run. Publication validation passed on all 198 items; 140 anchored answer-line exact matches. Thirty-seven empty 65,536-token budget exhaustions remain failures in the denominator.",
+      "v1_validated": true,
+      "run_dir": "results/qwen3.6-35b-a3b-prismaquant-4.75bit/runs/warpcore-v2/gpqa_diamond/qwen36-prisma-gpqa-20261001"
+    },
+    {
+      "id": "qwen3.6-35b-a3b-prismaquant-4.75bit/gsm8k/warpcore-v2/qwen36-prisma-gsm8k-20261002",
+      "status": "current",
+      "paths": [
+        "results/qwen3.6-35b-a3b-prismaquant-4.75bit/runs/warpcore-v2/gsm8k/qwen36-prisma-gsm8k-20261002/raw/rdtand__Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm/results_2026-10-02T02-21-00.565711.json",
+        "results/qwen3.6-35b-a3b-prismaquant-4.75bit/runs/warpcore-v2/gsm8k/qwen36-prisma-gsm8k-20261002/raw/rdtand__Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm/samples_gsm8k_cot_zeroshot_clean_2026-10-02T02-21-00.565711.jsonl.gz",
+        "results/qwen3.6-35b-a3b-prismaquant-4.75bit/runs/warpcore-v2/gsm8k/qwen36-prisma-gsm8k-20261002/per_item.csv"
+      ],
+      "note": "Canonical warpcore-v2 GSM8K run. Publication validation passed on all 1,319 items; 1,273 anchored answer-line exact matches, with no empty or budget-exhausted responses.",
+      "v1_validated": true,
+      "run_dir": "results/qwen3.6-35b-a3b-prismaquant-4.75bit/runs/warpcore-v2/gsm8k/qwen36-prisma-gsm8k-20261002"
+    },
+    {
+      "id": "qwen3.6-35b-a3b-prismaquant-4.75bit/ifeval/warpcore-v2/qwen36-prisma-ifeval-20261002",
+      "status": "current",
+      "paths": [
+        "results/qwen3.6-35b-a3b-prismaquant-4.75bit/runs/warpcore-v2/ifeval/qwen36-prisma-ifeval-20261002/raw/rdtand__Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm/results_2026-10-02T07-43-19.372407.json",
+        "results/qwen3.6-35b-a3b-prismaquant-4.75bit/runs/warpcore-v2/ifeval/qwen36-prisma-ifeval-20261002/raw/rdtand__Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm/samples_ifeval_2026-10-02T07-43-19.372407.jsonl.gz",
+        "results/qwen3.6-35b-a3b-prismaquant-4.75bit/runs/warpcore-v2/ifeval/qwen36-prisma-ifeval-20261002/per_item.csv"
+      ],
+      "note": "Canonical warpcore-v2 IFEval run. Publication validation passed on all 541 prompts; prompt-level strict accuracy is 469/541 (86.6913%). Twenty-six empty 65,536-token budget exhaustions remain failures in the denominator.",
+      "v1_validated": true,
+      "run_dir": "results/qwen3.6-35b-a3b-prismaquant-4.75bit/runs/warpcore-v2/ifeval/qwen36-prisma-ifeval-20261002"
+    },
+    {
+      "id": "qwen3.6-35b-a3b-prismaquant-4.75bit/swebench/warpcore-v2/qwen36-prisma-swebench-n100-20261002",
+      "status": "current",
+      "paths": [
+        "results/qwen3.6-35b-a3b-prismaquant-4.75bit/runs/warpcore-v2/swebench/qwen36-prisma-swebench-n100-20261002/raw/grading_results.json",
+        "results/qwen3.6-35b-a3b-prismaquant-4.75bit/runs/warpcore-v2/swebench/qwen36-prisma-swebench-n100-20261002/raw/preds.json",
+        "results/qwen3.6-35b-a3b-prismaquant-4.75bit/runs/warpcore-v2/swebench/qwen36-prisma-swebench-n100-20261002/raw/exit_statuses.json"
+      ],
+      "note": "Canonical warpcore-v2 SWE-bench Verified frozen seed-42 n=100 campaign. Full denominator: 61 resolved, 18 submitted but unresolved, and 21 empty/non-submitted; generation produced 79 Submitted, 13 LimitsExceeded, 7 ContextWindowExceededError, and 1 RepeatedFormatError. Official grading had 0 errors and 0 incomplete instances.",
+      "v1_validated": true,
+      "run_dir": "results/qwen3.6-35b-a3b-prismaquant-4.75bit/runs/warpcore-v2/swebench/qwen36-prisma-swebench-n100-20261002"
     }
   ]
 }

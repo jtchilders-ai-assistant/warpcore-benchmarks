@@ -36,6 +36,7 @@ C = {
     "ornith-1.5-35b-a3b": "#F0E442",
     "qwen3.5-122b-a10b": "#CC79A7",
     "qwen3.6-35b-a3b": "#56B4E9",
+    "qwen3.6-35b-a3b-prismaquant-4.75bit": "#000000",
     "laguna-s-2.1-118b": "#7F7F7F",
 }
 SHORT = {
@@ -46,6 +47,7 @@ SHORT = {
     "ornith-1.5-35b-a3b": "Ornith-1.5-35B-A3B",
     "qwen3.5-122b-a10b": "Qwen3.5-122B-int4",
     "qwen3.6-35b-a3b": "Qwen3.6-35B",
+    "qwen3.6-35b-a3b-prismaquant-4.75bit": "Qwen3.6-35B-Prisma",
     "laguna-s-2.1-118b": "Laguna-S-2.1-118B",
 }
 TINY = {
@@ -53,6 +55,7 @@ TINY = {
     "ornith-1.5-35b-a3b": "Ornith 1.5",
     "nemotron-3.5-lightning-30b": "Lightning",
     "qwen3.6-35b-a3b": "Qwen3.6",
+    "qwen3.6-35b-a3b-prismaquant-4.75bit": "Qwen3.6 Prisma",
     "laguna-s-2.1-118b": "Laguna",
 }
 

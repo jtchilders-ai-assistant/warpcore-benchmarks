@@ -1,0 +1,45 @@
+2026-10-03 08:33:21,894 - INFO - Creating container for django__django-13023...
+2026-10-03 08:33:22,091 - INFO - Container for django__django-13023 created: 9d98d05951bea6817e3254dd55ce919764b918dcacd70314bd1ccb09988ee666
+2026-10-03 08:33:22,595 - INFO - Container for django__django-13023 started: 9d98d05951bea6817e3254dd55ce919764b918dcacd70314bd1ccb09988ee666
+2026-10-03 08:33:22,596 - INFO - Intermediate patch for django__django-13023 written to logs/run_evaluation/qwen36-prisma-swebench-n100-20261002/hosted_vllm__rdtand__Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm/django__django-13023/patch.diff, now applying to container...
+2026-10-03 08:33:23,339 - INFO - >>>>> Applied Patch:
+Checking patch django/db/models/fields/__init__.py...
+Applied patch django/db/models/fields/__init__.py cleanly.
+
+2026-10-03 08:33:29,066 - INFO - Git diff before:
+diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py
+index 0fd69059ee..28374272f4 100644
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -1501,7 +1501,7 @@ class DecimalField(Field):
+             return self.context.create_decimal_from_float(value)
+         try:
+             return decimal.Decimal(value)
+-        except decimal.InvalidOperation:
++        except (decimal.InvalidOperation, TypeError, ValueError):
+             raise exceptions.ValidationError(
+                 self.error_messages['invalid'],
+                 code='invalid',
+2026-10-03 08:33:29,067 - INFO - Eval script for django__django-13023 written to logs/run_evaluation/qwen36-prisma-swebench-n100-20261002/hosted_vllm__rdtand__Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm/django__django-13023/eval.sh; copying to container...
+2026-10-03 08:33:43,745 - INFO - Test runtime: 14.54 seconds
+2026-10-03 08:33:43,746 - INFO - Test output for django__django-13023 written to logs/run_evaluation/qwen36-prisma-swebench-n100-20261002/hosted_vllm__rdtand__Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm/django__django-13023/test_output.txt
+2026-10-03 08:33:43,855 - INFO - Git diff after:
+diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py
+index 0fd69059ee..28374272f4 100644
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -1501,7 +1501,7 @@ class DecimalField(Field):
+             return self.context.create_decimal_from_float(value)
+         try:
+             return decimal.Decimal(value)
+-        except decimal.InvalidOperation:
++        except (decimal.InvalidOperation, TypeError, ValueError):
+             raise exceptions.ValidationError(
+                 self.error_messages['invalid'],
+                 code='invalid',
+2026-10-03 08:33:43,855 - INFO - Grading answer for django__django-13023...
+2026-10-03 08:33:43,856 - INFO - report: {'django__django-13023': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_invalid_value (model_fields.test_decimalfield.DecimalFieldTests)', 'test_lookup_really_big_value (model_fields.test_decimalfield.DecimalFieldTests)'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_default (model_fields.test_decimalfield.DecimalFieldTests)', 'test_filter_with_strings (model_fields.test_decimalfield.DecimalFieldTests)', 'test_get_prep_value (model_fields.test_decimalfield.DecimalFieldTests)', 'test_max_decimal_places_validation (model_fields.test_decimalfield.DecimalFieldTests)', 'test_max_digits_validation (model_fields.test_decimalfield.DecimalFieldTests)', 'test_max_whole_digits_validation (model_fields.test_decimalfield.DecimalFieldTests)', "Trailing zeros in the fractional part aren't truncated.", 'test_save_without_float_conversion (model_fields.test_decimalfield.DecimalFieldTests)', 'test_to_python (model_fields.test_decimalfield.DecimalFieldTests)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-13023: resolved: True
+2026-10-03 08:33:43,857 - INFO - Attempting to stop container sweb.eval.django__django-13023.qwen36-prisma-swebench-n100-20261002...
+2026-10-03 08:33:59,102 - INFO - Attempting to remove container sweb.eval.django__django-13023.qwen36-prisma-swebench-n100-20261002...
+2026-10-03 08:33:59,318 - INFO - Container sweb.eval.django__django-13023.qwen36-prisma-swebench-n100-20261002 removed.

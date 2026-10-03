@@ -1,0 +1,75 @@
+2026-10-03 08:43:53,710 - INFO - Creating container for sphinx-doc__sphinx-7757...
+2026-10-03 08:43:53,909 - INFO - Container for sphinx-doc__sphinx-7757 created: 573c6d3f1d42729b589665087586adf2ec5540f8db18ae1274945e774b4503eb
+2026-10-03 08:43:54,547 - INFO - Container for sphinx-doc__sphinx-7757 started: 573c6d3f1d42729b589665087586adf2ec5540f8db18ae1274945e774b4503eb
+2026-10-03 08:43:54,548 - INFO - Intermediate patch for sphinx-doc__sphinx-7757 written to logs/run_evaluation/qwen36-prisma-swebench-n100-20261002/hosted_vllm__rdtand__Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm/sphinx-doc__sphinx-7757/patch.diff, now applying to container...
+2026-10-03 08:43:55,140 - INFO - >>>>> Applied Patch:
+Checking patch sphinx/util/inspect.py...
+Applied patch sphinx/util/inspect.py cleanly.
+
+2026-10-03 08:43:56,636 - INFO - Git diff before:
+diff --git a/sphinx/util/inspect.py b/sphinx/util/inspect.py
+index 15f0d66e2..d91373fcc 100644
+--- a/sphinx/util/inspect.py
++++ b/sphinx/util/inspect.py
+@@ -521,10 +521,21 @@ def signature_from_str(signature: str) -> inspect.Signature:
+     params = []
+ 
+     if hasattr(args, "posonlyargs"):
+-        for arg in args.posonlyargs:  # type: ignore
++        for i, arg in enumerate(args.posonlyargs):  # type: ignore
+             annotation = ast_unparse(arg.annotation) or Parameter.empty
++            # PEP-570: defaults for positional-only args are stored in the defaults list
++            # The defaults are stored in reverse order
++            if len(args.defaults) - len(args.args) > 0:
++                # There are defaults for positional-only args
++                default_index = -(len(args.args) + len(args.posonlyargs) - i)
++                if -default_index <= len(args.defaults):
++                    default = ast_unparse(args.defaults[default_index])
++                else:
++                    default = Parameter.empty
++            else:
++                default = Parameter.empty
+             params.append(Parameter(arg.arg, Parameter.POSITIONAL_ONLY,
+-                                    annotation=annotation))
++                                    default=default, annotation=annotation))
+ 
+     for i, arg in enumerate(args.args):
+         if len(args.args) - i <= len(args.defaults):
+2026-10-03 08:43:56,637 - INFO - Eval script for sphinx-doc__sphinx-7757 written to logs/run_evaluation/qwen36-prisma-swebench-n100-20261002/hosted_vllm__rdtand__Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm/sphinx-doc__sphinx-7757/eval.sh; copying to container...
+2026-10-03 08:44:06,942 - INFO - Test runtime: 10.09 seconds
+2026-10-03 08:44:06,943 - INFO - Test output for sphinx-doc__sphinx-7757 written to logs/run_evaluation/qwen36-prisma-swebench-n100-20261002/hosted_vllm__rdtand__Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm/sphinx-doc__sphinx-7757/test_output.txt
+2026-10-03 08:44:07,072 - INFO - Git diff after:
+diff --git a/sphinx/util/inspect.py b/sphinx/util/inspect.py
+index 15f0d66e2..d91373fcc 100644
+--- a/sphinx/util/inspect.py
++++ b/sphinx/util/inspect.py
+@@ -521,10 +521,21 @@ def signature_from_str(signature: str) -> inspect.Signature:
+     params = []
+ 
+     if hasattr(args, "posonlyargs"):
+-        for arg in args.posonlyargs:  # type: ignore
++        for i, arg in enumerate(args.posonlyargs):  # type: ignore
+             annotation = ast_unparse(arg.annotation) or Parameter.empty
++            # PEP-570: defaults for positional-only args are stored in the defaults list
++            # The defaults are stored in reverse order
++            if len(args.defaults) - len(args.args) > 0:
++                # There are defaults for positional-only args
++                default_index = -(len(args.args) + len(args.posonlyargs) - i)
++                if -default_index <= len(args.defaults):
++                    default = ast_unparse(args.defaults[default_index])
++                else:
++                    default = Parameter.empty
++            else:
++                default = Parameter.empty
+             params.append(Parameter(arg.arg, Parameter.POSITIONAL_ONLY,
+-                                    annotation=annotation))
++                                    default=default, annotation=annotation))
+ 
+     for i, arg in enumerate(args.args):
+         if len(args.args) - i <= len(args.defaults):
+2026-10-03 08:44:07,072 - INFO - Grading answer for sphinx-doc__sphinx-7757...
+2026-10-03 08:44:07,076 - INFO - report: {'sphinx-doc__sphinx-7757': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['tests/test_util_inspect.py::test_signature_from_str_positionaly_only_args'], 'failure': []}, 'PASS_TO_PASS': {'success': ['tests/test_util_inspect.py::test_signature', 'tests/test_util_inspect.py::test_signature_partial', 'tests/test_util_inspect.py::test_signature_methods', 'tests/test_util_inspect.py::test_signature_partialmethod', 'tests/test_util_inspect.py::test_signature_annotations', 'tests/test_util_inspect.py::test_signature_annotations_py38', 'tests/test_util_inspect.py::test_signature_from_str_basic', 'tests/test_util_inspect.py::test_signature_from_str_default_values', 'tests/test_util_inspect.py::test_signature_from_str_annotations', 'tests/test_util_inspect.py::test_signature_from_str_complex_annotations', 'tests/test_util_inspect.py::test_signature_from_str_kwonly_args', 'tests/test_util_inspect.py::test_signature_from_str_invalid', 'tests/test_util_inspect.py::test_safe_getattr_with_default', 'tests/test_util_inspect.py::test_safe_getattr_with_exception', 'tests/test_util_inspect.py::test_safe_getattr_with_property_exception', 'tests/test_util_inspect.py::test_safe_getattr_with___dict___override', 'tests/test_util_inspect.py::test_dictionary_sorting', 'tests/test_util_inspect.py::test_set_sorting', 'tests/test_util_inspect.py::test_set_sorting_fallback', 'tests/test_util_inspect.py::test_frozenset_sorting', 'tests/test_util_inspect.py::test_frozenset_sorting_fallback', 'tests/test_util_inspect.py::test_dict_customtype', 'tests/test_util_inspect.py::test_isclassmethod', 'tests/test_util_inspect.py::test_isstaticmethod', 'tests/test_util_inspect.py::test_iscoroutinefunction', 'tests/test_util_inspect.py::test_isfunction', 'tests/test_util_inspect.py::test_isbuiltin', 'tests/test_util_inspect.py::test_isdescriptor', 'tests/test_util_inspect.py::test_isattributedescriptor', 'tests/test_util_inspect.py::test_isproperty', 'tests/test_util_inspect.py::test_unpartial', 'tests/test_util_inspect.py::test_getdoc_inherited_decorated_method', 'tests/test_util_inspect.py::test_is_builtin_class_method'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sphinx-doc__sphinx-7757: resolved: True
+2026-10-03 08:44:07,077 - INFO - Attempting to stop container sweb.eval.sphinx-doc__sphinx-7757.qwen36-prisma-swebench-n100-20261002...
+2026-10-03 08:44:22,379 - INFO - Attempting to remove container sweb.eval.sphinx-doc__sphinx-7757.qwen36-prisma-swebench-n100-20261002...
+2026-10-03 08:44:22,566 - INFO - Container sweb.eval.sphinx-doc__sphinx-7757.qwen36-prisma-swebench-n100-20261002 removed.

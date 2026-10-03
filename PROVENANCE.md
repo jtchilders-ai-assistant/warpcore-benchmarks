@@ -302,6 +302,7 @@ rather than trusting this table to stay current. `-` = missing, `↺` = recovere
 | gpt-oss-120b | **–** | *n/a, blocked* | *n/a* | ✅ | **✗ lost** | **–** | **–** | **–** |
 | nemotron-3-super-120b | **–** | *no SWE-bench run* | | | | | | **–** |
 | qwen3.5-122b-a10b | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| qwen3.6-35b-a3b-prismaquant-4.75bit | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 The table reports the strongest single retained SWE-bench evidence root for each model across the
 legacy `raw/swebench/` and normalized `runs/<suite>/swebench/<run-id>/` layouts; it never combines
@@ -309,15 +310,47 @@ different runs to manufacture a complete row. Lifecycle and publication eligibil
 Qwen3.5's complete row is diagnostic evidence, not a canonical score.
 
 `warpcore-v1` is frozen and continues to require its fresh n=20 SWE-bench
-qualification seal. `warpcore-v2` changes only launch authorization: it forbids
-that seal, requires production endpoint/model/tool-call preflight immediately
-before a direct n=100 launch, and retains the in-run systemic-failure circuit
-breaker. Canonical v2 evidence includes `preflight.json`,
-`launch_authorization.json`, `circuit_breaker.json`, predictions, grading,
-terminal status, manifest, and `DONE`. Missing or malformed authorization,
-prediction, grading, or full-denominator evidence blocks validation and
-publication. A noncanonical trial is diagnostic evidence only and cannot be
-promoted by bypassing either suite's launch policy.
+qualification seal. `warpcore-v2` replaces that seal with the suite-owned
+`direct_n100_after_preflight` mode: the production runner must pass its endpoint,
+model-identity, container-cache, and native-tool-call checks immediately before
+launch, while the same in-run systemic-failure circuit breaker remains active.
+Canonical v2 evidence includes predictions, exit statuses, trajectories, grading,
+terminal status, manifest, command, run log, and `DONE`. A `circuit_breaker.json`
+is written only when the breaker trips; its absence from a successful complete run
+is expected. Missing or malformed launch-policy, prediction, grading, or
+full-denominator evidence blocks validation and publication. A noncanonical trial
+is diagnostic evidence only and cannot be promoted by bypassing either suite's
+launch policy.
+
+### Qwen3.6 PrismaQuant `warpcore-v2` campaign (2026-10-01–03)
+
+The `qwen3.6-35b-a3b-prismaquant-4.75bit` campaign is the first complete four-cell
+`warpcore-v2` publication. All runs bind to model revision
+`e347d86b2a6cba4b54ea6f87ca247f60439eed07`, image digest
+`sha256:c154ad0a2575d6c42f8e05cba16ef255ce4ff54d537ad37987ca5b4215cb58b8`,
+adapter hash `945a99886a706ccc1c51e08039022c1bf23ff867a458454874bc91966ce23199`,
+and serving-profile digest
+`sha256:fc0743f6ea7bc7108285dc4690aaecfc2bdce2cdaf8f0cc3a3d961bed97b65d4`.
+The retained launch script matches the serving-host copy at SHA-256
+`f835d7326229492e3244859b67e763c690d4bad53b1285a4beb2f2f31d8f4757`.
+
+Quality evidence retains complete lm-eval 0.4.12 aggregate output, compressed
+samples, per-item normalized evidence, request-bound response metadata, run logs,
+commands, manifests, lifecycle histories, and completion sentinels. The canonical
+scores are GSM8K 1273/1319, IFEval prompt-strict 469/541, and GPQA-Diamond
+140/198. IFEval's 26 and GPQA's 37 `finish_reason=length` empty responses remain
+failures in their full denominators; no served-only correction is applied.
+
+SWE-bench retains the exact frozen 100-instance predictions, normalized exit
+statuses, all 100 runner-normalized trajectories, and a compressed archive of the
+byte-identical source trajectories, plus official grading partitions and per-instance logs, run log, command,
+manifest, lifecycle history, and `DONE`. The complete partition is 61 resolved,
+18 submitted-but-unresolved, and 21 empty/non-submitted; submitted is independently
+derived as 79 nonempty `model_patch` values. Official grading reports zero errors
+and zero incomplete instances. The duplicate trajectory layouts are intentionally
+retained because both are runner-produced evidence consumed by existing audit and
+reproduction paths; all 100 pairs were byte-compared before the source copies were
+archived for repository-efficient publication.
 
 For comparable n=100 reporting, **submitted** means an assigned instance with a nonempty
 `model_patch`; **resolved** means an ID in the official `resolved_ids`; any displayed correctness

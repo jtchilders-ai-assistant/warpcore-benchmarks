@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "run_id": "qwen36-prisma-gsm8k-20261002",
+  "suite_id": "warpcore-v2",
+  "execution_state": "validated",
+  "lifecycle": "current",
+  "history": [
+    {
+      "state": "planned",
+      "timestamp": "2026-10-02T06:12:56Z",
+      "note": "Campaign initialized by create_campaign"
+    },
+    {
+      "state": "preflight_passed",
+      "timestamp": "2026-10-02T06:13:16Z"
+    },
+    {
+      "state": "running",
+      "timestamp": "2026-10-02T06:13:16Z"
+    },
+    {
+      "state": "completed",
+      "timestamp": "2026-10-02T07:21:02Z"
+    },
+    {
+      "state": "validated",
+      "timestamp": "2026-10-03T15:09:47Z"
+    }
+  ]
+}

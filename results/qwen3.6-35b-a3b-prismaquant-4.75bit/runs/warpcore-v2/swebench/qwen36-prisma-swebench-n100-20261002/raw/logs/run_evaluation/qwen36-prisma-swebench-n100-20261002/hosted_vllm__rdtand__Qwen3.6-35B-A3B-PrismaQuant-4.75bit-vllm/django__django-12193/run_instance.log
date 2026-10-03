@@ -1,0 +1,43 @@
+2026-10-03 08:32:37,660 - INFO - Creating container for django__django-12193...
+2026-10-03 08:32:37,839 - INFO - Container for django__django-12193 created: cf162bb3fe0d57a94ce7384b310b650a35b1668b2f6eaa45e18d6df41360b5a2
+2026-10-03 08:32:38,393 - INFO - Container for django__django-12193 started: cf162bb3fe0d57a94ce7384b310b650a35b1668b2f6eaa45e18d6df41360b5a2
+2026-10-03 08:32:38,394 - INFO - Intermediate patch for django__django-12193 written to logs/run_evaluation/qwen36-prisma-swebench-n100-20261002/hosted_vllm__rdtand__Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm/django__django-12193/patch.diff, now applying to container...
+2026-10-03 08:32:38,805 - INFO - >>>>> Applied Patch:
+Checking patch django/contrib/postgres/forms/array.py...
+Applied patch django/contrib/postgres/forms/array.py cleanly.
+
+2026-10-03 08:32:44,231 - INFO - Git diff before:
+diff --git a/django/contrib/postgres/forms/array.py b/django/contrib/postgres/forms/array.py
+index 2e19cd574a..37ca071216 100644
+--- a/django/contrib/postgres/forms/array.py
++++ b/django/contrib/postgres/forms/array.py
+@@ -147,7 +147,7 @@ class SplitArrayWidget(forms.Widget):
+             if id_:
+                 final_attrs = {**final_attrs, 'id': '%s_%s' % (id_, i)}
+             context['widget']['subwidgets'].append(
+-                self.widget.get_context(name + '_%s' % i, widget_value, final_attrs)['widget']
++                self.widget.get_context(name + '_%s' % i, widget_value, dict(final_attrs))['widget']
+             )
+         return context
+2026-10-03 08:32:44,232 - INFO - Eval script for django__django-12193 written to logs/run_evaluation/qwen36-prisma-swebench-n100-20261002/hosted_vllm__rdtand__Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm/django__django-12193/eval.sh; copying to container...
+2026-10-03 08:33:04,200 - INFO - Test runtime: 19.81 seconds
+2026-10-03 08:33:04,200 - INFO - Test output for django__django-12193 written to logs/run_evaluation/qwen36-prisma-swebench-n100-20261002/hosted_vllm__rdtand__Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm/django__django-12193/test_output.txt
+2026-10-03 08:33:04,325 - INFO - Git diff after:
+diff --git a/django/contrib/postgres/forms/array.py b/django/contrib/postgres/forms/array.py
+index 2e19cd574a..37ca071216 100644
+--- a/django/contrib/postgres/forms/array.py
++++ b/django/contrib/postgres/forms/array.py
+@@ -147,7 +147,7 @@ class SplitArrayWidget(forms.Widget):
+             if id_:
+                 final_attrs = {**final_attrs, 'id': '%s_%s' % (id_, i)}
+             context['widget']['subwidgets'].append(
+-                self.widget.get_context(name + '_%s' % i, widget_value, final_attrs)['widget']
++                self.widget.get_context(name + '_%s' % i, widget_value, dict(final_attrs))['widget']
+             )
+         return context
+2026-10-03 08:33:04,325 - INFO - Grading answer for django__django-12193...
+2026-10-03 08:33:04,328 - INFO - report: {'django__django-12193': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['test_get_context_does_not_mutate_attrs (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)']}, 'PASS_TO_PASS': {'success': ['test_render_check_exception (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_check_test (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_empty (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_false (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_int (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_none (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_true (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_render_value (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_value_from_datadict (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_value_from_datadict_string_int (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)', 'test_value_omitted_from_data (forms_tests.widget_tests.test_checkboxinput.CheckboxInputTest)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-12193: resolved: False
+2026-10-03 08:33:04,329 - INFO - Attempting to stop container sweb.eval.django__django-12193.qwen36-prisma-swebench-n100-20261002...
+2026-10-03 08:33:19,583 - INFO - Attempting to remove container sweb.eval.django__django-12193.qwen36-prisma-swebench-n100-20261002...
+2026-10-03 08:33:19,837 - INFO - Container sweb.eval.django__django-12193.qwen36-prisma-swebench-n100-20261002 removed.

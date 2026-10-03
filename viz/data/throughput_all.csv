@@ -93,3 +93,12 @@ qwen3.6-35b-a3b,48,144,144.0,111.9,329.45,3408.23,3357.7,3996.27,132.83,results/
 qwen3.6-35b-a3b,64,192,192.0,132.58,370.74,4524.53,4106.66,5350.34,155.45,results/qwen3.6-35b-a3b/raw/throughput_sweep/sweep.log
 qwen3.6-35b-a3b,96,288,288.0,168.73,436.95,6055.06,6531.83,8080.44,196.6,results/qwen3.6-35b-a3b/raw/throughput_sweep/sweep.log
 qwen3.6-35b-a3b,128,384,384.0,201.96,486.74,6925.23,7019.36,10960.44,236.51,results/qwen3.6-35b-a3b/raw/throughput_sweep/sweep.log
+qwen3.6-35b-a3b-prismaquant-4.75bit,1,32,32.0,113.56,72.14,143.93,153.27,162.88,13.35,results/qwen3.6-35b-a3b-prismaquant-4.75bit/raw/throughput_sweep/sweep.log
+qwen3.6-35b-a3b-prismaquant-4.75bit,2,32,32.0,63.13,129.77,206.56,206.77,223.37,14.31,results/qwen3.6-35b-a3b-prismaquant-4.75bit/raw/throughput_sweep/sweep.log
+qwen3.6-35b-a3b-prismaquant-4.75bit,4,32,32.0,41.1,199.33,253.8,239.49,350.03,18.0,results/qwen3.6-35b-a3b-prismaquant-4.75bit/raw/throughput_sweep/sweep.log
+qwen3.6-35b-a3b-prismaquant-4.75bit,8,32,32.0,28.23,290.18,371.17,301.45,717.19,24.3,results/qwen3.6-35b-a3b-prismaquant-4.75bit/raw/throughput_sweep/sweep.log
+qwen3.6-35b-a3b-prismaquant-4.75bit,16,48,48.0,29.81,412.28,581.91,431.31,1348.75,32.94,results/qwen3.6-35b-a3b-prismaquant-4.75bit/raw/throughput_sweep/sweep.log
+qwen3.6-35b-a3b-prismaquant-4.75bit,32,96,96.0,43.31,567.43,958.9,639.56,2941.25,49.04,results/qwen3.6-35b-a3b-prismaquant-4.75bit/raw/throughput_sweep/sweep.log
+qwen3.6-35b-a3b-prismaquant-4.75bit,64,192,192.0,70.76,694.66,1761.74,1027.1,6661.12,79.04,results/qwen3.6-35b-a3b-prismaquant-4.75bit/raw/throughput_sweep/sweep.log
+qwen3.6-35b-a3b-prismaquant-4.75bit,96,288,288.0,96.68,762.64,2691.97,1346.79,11425.01,107.14,results/qwen3.6-35b-a3b-prismaquant-4.75bit/raw/throughput_sweep/sweep.log
+qwen3.6-35b-a3b-prismaquant-4.75bit,128,384,384.0,122.56,802.07,3689.06,1640.18,16561.39,135.19,results/qwen3.6-35b-a3b-prismaquant-4.75bit/raw/throughput_sweep/sweep.log

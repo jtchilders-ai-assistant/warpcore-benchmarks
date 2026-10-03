@@ -1,0 +1,59 @@
+diff --git a/pylint/pyreverse/inspector.py b/pylint/pyreverse/inspector.py
+index 8fa12202..146e5e1c 100644
+--- a/pylint/pyreverse/inspector.py
++++ b/pylint/pyreverse/inspector.py
+@@ -166,6 +166,8 @@ class Linker(IdGeneratorMixIn, utils.LocalsVisitor):
+             for assignattr in assignattrs:
+                 if not isinstance(assignattr, astroid.Unknown):
+                     self.handle_assignattr_type(assignattr, node)
++        # resolve type hints from function arguments
++        self._handle_type_hints_from_args(node)
+         # resolve implemented interface
+         try:
+             node.implements = list(interfaces(node, self.inherited_interfaces))
+@@ -236,6 +238,45 @@ class Linker(IdGeneratorMixIn, utils.LocalsVisitor):
+         except astroid.InferenceError:
+             pass
+ 
++    def _handle_type_hints_from_args(self, node):
++        """Handle type hints from function arguments.
++
++        Extract type hints from function arguments (especially __init__)
++        and use them to populate instance_attrs_type.
++        """
++        for method in node.values():
++            if not isinstance(method, astroid.FunctionDef):
++                continue
++            # Only process __init__ method for instance attributes
++            if method.name != "__init__":
++                continue
++            # Skip methods without args (e.g., from built-in classes)
++            if method.args is None or method.args.args is None:
++                continue
++            # Get the annotations from the function arguments
++            for i, arg in enumerate(method.args.args):
++                if i < len(method.args.annotations):
++                    annotation = method.args.annotations[i]
++                    if annotation is None:
++                        continue
++                    # Skip 'self' argument
++                    if arg.name == "self":
++                        continue
++                    # Get the type name from the annotation
++                    try:
++                        for inferred in annotation.infer():
++                            if inferred is astroid.Uninferable:
++                                continue
++                            if isinstance(inferred, astroid.ClassDef):
++                                # Add the inferred class to instance_attrs_type
++                                current = set(node.instance_attrs_type[arg.name])
++                                node.instance_attrs_type[arg.name] = list(
++                                    current | {inferred}
++                                )
++                                break
++                    except astroid.InferenceError:
++                        pass
++
+     def visit_import(self, node):
+         """visit an astroid.Import node
+ 

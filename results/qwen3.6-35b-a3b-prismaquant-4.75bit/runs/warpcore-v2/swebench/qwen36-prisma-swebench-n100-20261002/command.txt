@@ -1,0 +1,1 @@
+python3 viz/run_swebench.py --suite suite/warpcore-v2.yaml --adapter adapters/qwen3.6-35b-a3b-prismaquant-4.75bit.yaml --endpoint http://csi370295.alcf.anl.gov:8000/v1 --run-id qwen36-prisma-swebench-n100-20261002 --model rdtand/Qwen3.6-35B-A3B-PrismaQuant-4.75bit-vllm
