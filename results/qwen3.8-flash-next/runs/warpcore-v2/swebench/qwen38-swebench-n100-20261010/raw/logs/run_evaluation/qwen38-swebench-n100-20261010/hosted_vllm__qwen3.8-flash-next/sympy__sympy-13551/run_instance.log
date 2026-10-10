@@ -1,0 +1,101 @@
+2026-10-10 17:00:04,797 - INFO - Creating container for sympy__sympy-13551...
+2026-10-10 17:00:05,063 - INFO - Container for sympy__sympy-13551 created: 3f713d651f3c71686d84f6bd39f64571bfe88a0e97192f0fbf40e1f67f144ded
+2026-10-10 17:00:05,471 - INFO - Container for sympy__sympy-13551 started: 3f713d651f3c71686d84f6bd39f64571bfe88a0e97192f0fbf40e1f67f144ded
+2026-10-10 17:00:05,471 - INFO - Intermediate patch for sympy__sympy-13551 written to logs/run_evaluation/qwen38-swebench-n100-20261010/hosted_vllm__qwen3.8-flash-next/sympy__sympy-13551/patch.diff, now applying to container...
+2026-10-10 17:00:05,929 - INFO - >>>>> Applied Patch:
+Checking patch sympy/concrete/products.py...
+Applied patch sympy/concrete/products.py cleanly.
+
+2026-10-10 17:00:07,049 - INFO - Git diff before:
+diff --git a/sympy/concrete/products.py b/sympy/concrete/products.py
+index 66aafde2d..ee349f6fe 100644
+--- a/sympy/concrete/products.py
++++ b/sympy/concrete/products.py
+@@ -5,6 +5,7 @@
+ from sympy.core.singleton import S
+ from sympy.core.symbol import symbols
+ from sympy.concrete.expr_with_intlimits import ExprWithIntLimits
++from sympy.core.exprtools import factor_terms
+ from sympy.functions.elementary.exponential import exp, log
+ from sympy.polys import quo, roots
+ from sympy.simplify import powsimp
+@@ -275,18 +276,16 @@ def _eval_product(self, term, limits):
+             return poly.LC()**(n - a + 1) * A * B
+ 
+         elif term.is_Add:
+-            p, q = term.as_numer_denom()
+-            q = self._eval_product(q, (k, a, n))
+-            if q.is_Number:
+-
+-                # There is expression, which couldn't change by
+-                # as_numer_denom(). E.g. n**(2/3) + 1 --> (n**(2/3) + 1, 1).
+-                # We have to catch this case.
+-
+-                p = sum([self._eval_product(i, (k, a, n)) for i in p.as_coeff_Add()])
+-            else:
+-                p = self._eval_product(p, (k, a, n))
+-            return p / q
++            # A product cannot be distributed over a sum, so the only
++            # thing that can be done with a sum is to write it as a
++            # single fraction (which is a product) and evaluate the
++            # factors separately. If this is not possible, e.g. for
++            # Product(n + 1/2**k, (k, 0, n - 1)), the product is left
++            # unevaluated.
++
++            factored = factor_terms(term, fraction=True)
++            if factored.is_Mul:
++                return self._eval_product(factored, (k, a, n))
+ 
+         elif term.is_Mul:
+             exclude, include = [], []
+2026-10-10 17:00:07,050 - INFO - Eval script for sympy__sympy-13551 written to logs/run_evaluation/qwen38-swebench-n100-20261010/hosted_vllm__qwen3.8-flash-next/sympy__sympy-13551/eval.sh; copying to container...
+2026-10-10 17:00:51,744 - INFO - Test runtime: 44.57 seconds
+2026-10-10 17:00:51,746 - INFO - Test output for sympy__sympy-13551 written to logs/run_evaluation/qwen38-swebench-n100-20261010/hosted_vllm__qwen3.8-flash-next/sympy__sympy-13551/test_output.txt
+2026-10-10 17:00:51,956 - INFO - Git diff after:
+diff --git a/sympy/concrete/products.py b/sympy/concrete/products.py
+index 66aafde2d..ee349f6fe 100644
+--- a/sympy/concrete/products.py
++++ b/sympy/concrete/products.py
+@@ -5,6 +5,7 @@
+ from sympy.core.singleton import S
+ from sympy.core.symbol import symbols
+ from sympy.concrete.expr_with_intlimits import ExprWithIntLimits
++from sympy.core.exprtools import factor_terms
+ from sympy.functions.elementary.exponential import exp, log
+ from sympy.polys import quo, roots
+ from sympy.simplify import powsimp
+@@ -275,18 +276,16 @@ def _eval_product(self, term, limits):
+             return poly.LC()**(n - a + 1) * A * B
+ 
+         elif term.is_Add:
+-            p, q = term.as_numer_denom()
+-            q = self._eval_product(q, (k, a, n))
+-            if q.is_Number:
+-
+-                # There is expression, which couldn't change by
+-                # as_numer_denom(). E.g. n**(2/3) + 1 --> (n**(2/3) + 1, 1).
+-                # We have to catch this case.
+-
+-                p = sum([self._eval_product(i, (k, a, n)) for i in p.as_coeff_Add()])
+-            else:
+-                p = self._eval_product(p, (k, a, n))
+-            return p / q
++            # A product cannot be distributed over a sum, so the only
++            # thing that can be done with a sum is to write it as a
++            # single fraction (which is a product) and evaluate the
++            # factors separately. If this is not possible, e.g. for
++            # Product(n + 1/2**k, (k, 0, n - 1)), the product is left
++            # unevaluated.
++
++            factored = factor_terms(term, fraction=True)
++            if factored.is_Mul:
++                return self._eval_product(factored, (k, a, n))
+ 
+         elif term.is_Mul:
+             exclude, include = [], []
+2026-10-10 17:00:51,956 - INFO - Grading answer for sympy__sympy-13551...
+2026-10-10 17:00:51,957 - INFO - report: {'sympy__sympy-13551': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_issue_13546'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_karr_convention', 'test_karr_proposition_2a', 'test_karr_proposition_2b', 'test_simple_products', 'test_multiple_products', 'test_rational_products', 'test_special_products', 'test__eval_product', 'test_product_pow', 'test_infinite_product', 'test_conjugate_transpose', 'test_simplify', 'test_change_index', 'test_reorder', 'test_Product_is_convergent', 'test_reverse_order', 'test_issue_9983'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-13551: resolved: True
+2026-10-10 17:00:51,958 - INFO - Attempting to stop container sweb.eval.sympy__sympy-13551.qwen38-swebench-n100-20261010...
+2026-10-10 17:01:07,799 - INFO - Attempting to remove container sweb.eval.sympy__sympy-13551.qwen38-swebench-n100-20261010...
+2026-10-10 17:01:08,045 - INFO - Container sweb.eval.sympy__sympy-13551.qwen38-swebench-n100-20261010 removed.

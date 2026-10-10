@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "run_id": "qwen38-gpqa-diamond-20261009",
+  "suite_id": "warpcore-v2",
+  "execution_state": "validated",
+  "lifecycle": "current",
+  "history": [
+    {
+      "state": "planned",
+      "timestamp": "2026-10-09T21:33:47Z",
+      "note": "Campaign initialized by create_campaign"
+    },
+    {
+      "state": "preflight_passed",
+      "timestamp": "2026-10-09T21:34:18Z"
+    },
+    {
+      "state": "running",
+      "timestamp": "2026-10-09T21:34:18Z"
+    },
+    {
+      "state": "completed",
+      "timestamp": "2026-10-10T07:02:41Z"
+    },
+    {
+      "state": "validated",
+      "timestamp": "2026-10-10T22:32:15Z"
+    }
+  ]
+}

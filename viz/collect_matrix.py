@@ -52,6 +52,10 @@ QUALITY = {
         gsm8k="raw/quality/gsm8k/results_2026-08-18T22-22-03.403814.json",
         ifeval="raw/quality/ifeval/results_2026-08-19T01-18-15.177081.json",
         gpqa="raw/quality/gpqa/results_2026-08-19T11-45-14.035924.json"),
+    "qwen3.8-flash-next": dict(
+        gsm8k="runs/warpcore-v2/gsm8k/qwen38-gsm8k-20261009/raw/qwen3.8-flash-next/results_2026-10-09T08-53-54.878262.json",
+        ifeval="runs/warpcore-v2/ifeval/qwen38-ifeval-20261009/raw/qwen3.8-flash-next/results_2026-10-09T16-18-32.879926.json",
+        gpqa="runs/warpcore-v2/gpqa_diamond/qwen38-gpqa-diamond-20261009/raw/qwen3.8-flash-next/results_2026-10-10T02-02-39.391524.json"),
     "laguna-s-2.1-118b": dict(
         gsm8k="raw/quality/gsm8k/results_2026-08-22T04-37-53.389704.json",
         ifeval="raw/quality/ifeval/results_2026-08-22T06-10-16.893966.json"),
@@ -142,6 +146,18 @@ def collect() -> dict:
     light["value"], light["stderr"] = 76.26, 3.03
     light["note"] = "64k budget composite (32k=66.16, 16k=53.03)"
     light["src"] += " + raw/gpqa_64k_replay_results.json"
+
+    # Qwen3.8 GSM8K preserves the raw harness output and samples, then applies
+    # a run-local, evidence-retaining recovery for three parser-empty responses.
+    # Two recovered answers are correct, so the publication validator's
+    # full-denominator result is 1289/1319 rather than the raw harness 1287/1319.
+    # Keep this explicit until collect_matrix consumes canonical_matrix directly.
+    qwen38_gsm8k = out["qwen3.8-flash-next"]["gsm8k"]
+    qwen38_gsm8k["value"] = 97.73
+    qwen38_gsm8k["note"] = (
+        "validated full-denominator score 1289/1319; two correct answers restored "
+        "from three retained parser-empty responses")
+    qwen38_gsm8k["src"] += " + per_item.csv + raw/response_metadata.jsonl"
 
     # ---- pi-30: RETIRED 2026-09-04, deliberately not collected.
     #

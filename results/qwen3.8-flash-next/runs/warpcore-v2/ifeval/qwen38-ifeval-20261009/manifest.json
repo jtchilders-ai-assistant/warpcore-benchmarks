@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "suite_id": "warpcore-v2",
+  "suite_schema_version": 2,
+  "run_id": "qwen38-ifeval-20261009",
+  "benchmark": "ifeval",
+  "adapter_hash": "97bab3e38a38b9403d4878f51d13822cdda5e8204e5a3f17702c96aee60bb8fd",
+  "suite_input_hashes": {
+    "suite/warpcore-v2.yaml": "5340b473f6c590380d01dc95008c1d46634722b314fa723059da799877dc3a80",
+    "suite/tasks/ifeval_v4.yaml": "3d8a3eb32de03f6a23ac87b46951d972a4ec7cb137e753365c0271594e38f84b"
+  },
+  "serving_profile_digest": "sha256:39f8f0c0801ef68ede86aedde5cb03fde5ffc84349bc356dfb93567b33803b2e",
+  "model": {
+    "slug": "qwen3.8-flash-next",
+    "id": "qwen3.8-flash-next",
+    "revision": "fc694b54fb0174e0913e6adf86691ef85a4ead47"
+  },
+  "serving": {
+    "image_digest": "sha256:ce9fb15b8b64aa4facc84d6fdd8691d57a5bf8a71b9d4b51aeac2148ca1b9fb2",
+    "engine": "vllm",
+    "engine_version": "0.31.0",
+    "effective_args": [
+      "--quantization=modelopt-mixed-nvfp4",
+      "--reasoning-parser=qwen3",
+      "--tool-call-parser=qwen3_coder",
+      "--tokenizer=/hf/hub/models--nvidia--Qwen3.8-Flash-Next-NVFP4/snapshots/fc694b54fb0174e0913e6adf86691ef85a4ead47",
+      "--moe-backend=flashinfer-cutlass",
+      "--max-model-len=262144",
+      "--gpu-memory-utilization=0.8",
+      "--max-num-seqs=256",
+      "--engine=vllm",
+      "--engine-version=0.31.0",
+      "--env=HF_HUB_OFFLINE=1",
+      "--env=VLLM_MTP_DRAFT_VOCAB=/opt/llm/draft_vocab_65536.npy",
+      "--env=VLLM_PLE_MMAP=1",
+      "--env=VLLM_QSA_DET_TOPK=1"
+    ],
+    "environment": {
+      "HF_HUB_OFFLINE": "1",
+      "VLLM_MTP_DRAFT_VOCAB": "/opt/llm/draft_vocab_65536.npy",
+      "VLLM_PLE_MMAP": "1",
+      "VLLM_QSA_DET_TOPK": "1"
+    },
+    "hardware_id": "dgx-spark-gb10"
+  },
+  "item_inventory": {
+    "expected": 541,
+    "submitted": 541
+  },
+  "timing": {
+    "started_utc": "2026-10-09T14:23:42Z",
+    "completed_utc": "2026-10-09T21:18:34Z"
+  },
+  "artifact_inventory": {
+    "samples_jsonl_gz": true,
+    "per_item_csv": true,
+    "run_log": true,
+    "command_txt": true,
+    "done_sentinel": true
+  }
+}

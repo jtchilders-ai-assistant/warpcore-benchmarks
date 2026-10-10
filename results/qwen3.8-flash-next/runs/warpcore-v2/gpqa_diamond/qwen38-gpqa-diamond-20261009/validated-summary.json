@@ -1,0 +1,20 @@
+{
+  "run_id": "qwen38-gpqa-diamond-20261009",
+  "benchmark": "gpqa_diamond",
+  "suite": "warpcore-v2",
+  "adapter": "qwen3.8-flash-next",
+  "execution_state": "completed",
+  "lifecycle": "current",
+  "validated_at_utc": "2026-10-10T07:02:41Z",
+  "inventory": {"expected": 198, "submitted": 198, "reconciled": true},
+  "dispositions": {
+    "correct": 174,
+    "wrong": 16,
+    "budget_truncated_length": 8,
+    "parser_empty_stop_empty": 0,
+    "raw_empty_stop_nothing": 0,
+    "budget_empty_content": 7,
+    "infrastructure_ungraded": 0
+  },
+  "headline": "174 / 198 = 87.88% (full inventory; no exclusions; 8 budget-truncated length items retained as wrong, not excluded)"
+}

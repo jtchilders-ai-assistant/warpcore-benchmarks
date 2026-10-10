@@ -1,0 +1,85 @@
+2026-10-10 16:55:17,633 - INFO - Creating container for pylint-dev__pylint-6903...
+2026-10-10 16:55:17,768 - INFO - Container for pylint-dev__pylint-6903 created: aa719954aaf545b57801745a4e30390d6277a598b5d783ad3eefd74d58287636
+2026-10-10 16:55:18,068 - INFO - Container for pylint-dev__pylint-6903 started: aa719954aaf545b57801745a4e30390d6277a598b5d783ad3eefd74d58287636
+2026-10-10 16:55:18,069 - INFO - Intermediate patch for pylint-dev__pylint-6903 written to logs/run_evaluation/qwen38-swebench-n100-20261010/hosted_vllm__qwen3.8-flash-next/pylint-dev__pylint-6903/patch.diff, now applying to container...
+2026-10-10 16:55:18,425 - INFO - >>>>> Applied Patch:
+Checking patch doc/whatsnew/2/2.14/full.rst...
+Checking patch pylint/lint/run.py...
+Applied patch doc/whatsnew/2/2.14/full.rst cleanly.
+Applied patch pylint/lint/run.py cleanly.
+
+2026-10-10 16:55:19,631 - INFO - Git diff before:
+diff --git a/doc/whatsnew/2/2.14/full.rst b/doc/whatsnew/2/2.14/full.rst
+index d39bc4b8..42704993 100644
+--- a/doc/whatsnew/2/2.14/full.rst
++++ b/doc/whatsnew/2/2.14/full.rst
+@@ -5,6 +5,11 @@ What's New in Pylint 2.14.2?
+ ----------------------------
+ Release date: TBA
+ 
++* Don't crash if ``pylint.run._query_cpu()`` is run within a Kubernetes Pod, that has only
++  a fraction of a cpu core assigned. Just go with one process then.
++
++  Closes #6902
++
+ * Fixed a false positive in ``consider-using-f-string`` if the left side of a ``%`` is not a string.
+ 
+   Closes #6689
+diff --git a/pylint/lint/run.py b/pylint/lint/run.py
+index a7e5d557..27a4d9d8 100644
+--- a/pylint/lint/run.py
++++ b/pylint/lint/run.py
+@@ -58,6 +58,13 @@ def _query_cpu() -> int | None:
+             cpu_shares = int(file.read().rstrip())
+         # For AWS, gives correct value * 1024.
+         avail_cpu = int(cpu_shares / 1024)
++
++    # In K8s Pods also a fraction of a single core could be available
++    # As multiprocessing is not able to run only a "fraction" of process
++    # assume we have 1 CPU available
++    if avail_cpu == 0:
++        avail_cpu = 1
++
+     return avail_cpu
+2026-10-10 16:55:19,631 - INFO - Eval script for pylint-dev__pylint-6903 written to logs/run_evaluation/qwen38-swebench-n100-20261010/hosted_vllm__qwen3.8-flash-next/pylint-dev__pylint-6903/eval.sh; copying to container...
+2026-10-10 16:55:46,891 - INFO - Test runtime: 27.15 seconds
+2026-10-10 16:55:46,892 - INFO - Test output for pylint-dev__pylint-6903 written to logs/run_evaluation/qwen38-swebench-n100-20261010/hosted_vllm__qwen3.8-flash-next/pylint-dev__pylint-6903/test_output.txt
+2026-10-10 16:55:46,982 - INFO - Git diff after:
+diff --git a/doc/whatsnew/2/2.14/full.rst b/doc/whatsnew/2/2.14/full.rst
+index d39bc4b8..42704993 100644
+--- a/doc/whatsnew/2/2.14/full.rst
++++ b/doc/whatsnew/2/2.14/full.rst
+@@ -5,6 +5,11 @@ What's New in Pylint 2.14.2?
+ ----------------------------
+ Release date: TBA
+ 
++* Don't crash if ``pylint.run._query_cpu()`` is run within a Kubernetes Pod, that has only
++  a fraction of a cpu core assigned. Just go with one process then.
++
++  Closes #6902
++
+ * Fixed a false positive in ``consider-using-f-string`` if the left side of a ``%`` is not a string.
+ 
+   Closes #6689
+diff --git a/pylint/lint/run.py b/pylint/lint/run.py
+index a7e5d557..27a4d9d8 100644
+--- a/pylint/lint/run.py
++++ b/pylint/lint/run.py
+@@ -58,6 +58,13 @@ def _query_cpu() -> int | None:
+             cpu_shares = int(file.read().rstrip())
+         # For AWS, gives correct value * 1024.
+         avail_cpu = int(cpu_shares / 1024)
++
++    # In K8s Pods also a fraction of a single core could be available
++    # As multiprocessing is not able to run only a "fraction" of process
++    # assume we have 1 CPU available
++    if avail_cpu == 0:
++        avail_cpu = 1
++
+     return avail_cpu
+2026-10-10 16:55:46,982 - INFO - Grading answer for pylint-dev__pylint-6903...
+2026-10-10 16:55:46,983 - INFO - report: {'pylint-dev__pylint-6903': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['tests/test_pylint_runners.py::test_pylint_run_jobs_equal_zero_dont_crash_with_cpu_fraction'], 'failure': []}, 'PASS_TO_PASS': {'success': ['tests/test_pylint_runners.py::test_runner[run_epylint]', 'tests/test_pylint_runners.py::test_runner[run_pylint]', 'tests/test_pylint_runners.py::test_runner[run_pyreverse]', 'tests/test_pylint_runners.py::test_runner[run_symilar]', 'tests/test_pylint_runners.py::test_runner_with_arguments[run_epylint]', 'tests/test_pylint_runners.py::test_runner_with_arguments[run_pylint]', 'tests/test_pylint_runners.py::test_runner_with_arguments[run_pyreverse]', 'tests/test_pylint_runners.py::test_runner_with_arguments[run_symilar]'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for pylint-dev__pylint-6903: resolved: True
+2026-10-10 16:55:46,983 - INFO - Attempting to stop container sweb.eval.pylint-dev__pylint-6903.qwen38-swebench-n100-20261010...
+2026-10-10 16:56:02,246 - INFO - Attempting to remove container sweb.eval.pylint-dev__pylint-6903.qwen38-swebench-n100-20261010...
+2026-10-10 16:56:02,444 - INFO - Container sweb.eval.pylint-dev__pylint-6903.qwen38-swebench-n100-20261010 removed.

@@ -1,0 +1,35 @@
+diff --git a/django/contrib/auth/checks.py b/django/contrib/auth/checks.py
+index 65fc266f7e..646ac9f725 100644
+--- a/django/contrib/auth/checks.py
++++ b/django/contrib/auth/checks.py
+@@ -51,8 +51,12 @@ def check_user_model(app_configs=None, **kwargs):
+             )
+         )
+ 
+-    # Check that the username field is unique
+-    if not cls._meta.get_field(cls.USERNAME_FIELD).unique:
++    # Check that the username field is unique. The uniqueness is validated if
++    # there is a unique constraint on the field.
++    if not cls._meta.get_field(cls.USERNAME_FIELD).unique and not any(
++        constraint.fields == (cls.USERNAME_FIELD,)
++        for constraint in cls._meta.total_unique_constraints
++    ):
+         if (settings.AUTHENTICATION_BACKENDS ==
+                 ['django.contrib.auth.backends.ModelBackend']):
+             errors.append(
+diff --git a/docs/releases/3.2.txt b/docs/releases/3.2.txt
+index d61f66733d..37e748d5bc 100644
+--- a/docs/releases/3.2.txt
++++ b/docs/releases/3.2.txt
+@@ -86,6 +86,11 @@ Minor features
+ * The default iteration count for the PBKDF2 password hasher is increased from
+   216,000 to 260,000.
+ 
++* The ``auth.E003`` and ``auth.W004`` checks now consider a
++  :class:`~django.db.models.UniqueConstraint` covering only the field named by
++  :attr:`~django.contrib.auth.models.CustomUser.USERNAME_FIELD` as making it
++  unique.
++
+ * The default variant for the Argon2 password hasher is changed to Argon2id.
+   ``memory_cost`` and ``parallelism`` are increased to 102,400 and 8
+   respectively to match the ``argon2-cffi`` defaults.

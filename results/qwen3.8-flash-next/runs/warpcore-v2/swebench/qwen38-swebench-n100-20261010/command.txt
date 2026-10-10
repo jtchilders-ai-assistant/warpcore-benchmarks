@@ -1,0 +1,1 @@
+python3 viz/run_swebench.py --suite suite/warpcore-v2.yaml --adapter adapters/qwen3.8-flash-next.yaml --endpoint http://127.0.0.1:18000/v1 --run-id qwen38-swebench-n100-20261010 --model qwen3.8-flash-next

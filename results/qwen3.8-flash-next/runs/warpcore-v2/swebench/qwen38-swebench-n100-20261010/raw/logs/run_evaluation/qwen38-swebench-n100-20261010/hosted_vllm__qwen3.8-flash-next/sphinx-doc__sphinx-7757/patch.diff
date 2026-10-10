@@ -1,0 +1,51 @@
+diff --git a/CHANGES b/CHANGES
+index 6c2761c53..3fd128f0b 100644
+--- a/CHANGES
++++ b/CHANGES
+@@ -131,6 +131,7 @@ Bugs fixed
+   in global scope, e.g., ``::A::B``.
+ * C, fix rendering and xrefs in nested names explicitly starting
+   in global scope, e.g., ``.A.B``.
++* #7768: python: The default value of positional only argument is ignored
+ 
+ Testing
+ --------
+diff --git a/sphinx/util/inspect.py b/sphinx/util/inspect.py
+index 15f0d66e2..716ba32a2 100644
+--- a/sphinx/util/inspect.py
++++ b/sphinx/util/inspect.py
+@@ -520,21 +520,22 @@ def signature_from_str(signature: str) -> inspect.Signature:
+     args = definition.args
+     params = []
+ 
+-    if hasattr(args, "posonlyargs"):
+-        for arg in args.posonlyargs:  # type: ignore
+-            annotation = ast_unparse(arg.annotation) or Parameter.empty
+-            params.append(Parameter(arg.arg, Parameter.POSITIONAL_ONLY,
+-                                    annotation=annotation))
+-
+-    for i, arg in enumerate(args.args):
+-        if len(args.args) - i <= len(args.defaults):
+-            default = ast_unparse(args.defaults[-len(args.args) + i])
++    # PEP-570: positional only arguments are stored in "posonlyargs" (py3.8+).
++    # The "defaults" list holds the default values of the last arguments of the
++    # concatenated list of posonlyargs and args.
++    posonlyargs = getattr(args, 'posonlyargs', [])  # type: ignore
++    positional = list(posonlyargs) + list(args.args)
++    defaults = ([Parameter.empty] * (len(positional) - len(args.defaults)) +
++                [ast_unparse(default) for default in args.defaults])
++
++    for i, (arg, default) in enumerate(zip(positional, defaults)):
++        if i < len(posonlyargs):
++            kind = Parameter.POSITIONAL_ONLY
+         else:
+-            default = Parameter.empty
++            kind = Parameter.POSITIONAL_OR_KEYWORD
+ 
+         annotation = ast_unparse(arg.annotation) or Parameter.empty
+-        params.append(Parameter(arg.arg, Parameter.POSITIONAL_OR_KEYWORD,
+-                                default=default, annotation=annotation))
++        params.append(Parameter(arg.arg, kind, default=default, annotation=annotation))
+ 
+     if args.vararg:
+         annotation = ast_unparse(args.vararg.annotation) or Parameter.empty

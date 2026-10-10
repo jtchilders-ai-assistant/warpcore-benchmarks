@@ -54,6 +54,10 @@ EXPECTED_SELECTED = {
         submitted=76, resolved=57, expected=100,
         unresolved=19, empty_patch=24, grading_error=0, incomplete=0,
     ),
+    "qwen3.8-flash-next": dict(
+        submitted=100, resolved=97, expected=100,
+        unresolved=3, empty_patch=0, grading_error=0, incomplete=0,
+    ),
 }
 
 # Frozen seed-42 n=100 instance IDs
@@ -65,8 +69,8 @@ FROZEN_IDS: set[str] = set(json.loads(INSTANCES_PATH.read_text()))
 # 1. Source selection
 # ---------------------------------------------------------------------------
 
-def test_selected_swebench_reports_returns_all_six_models() -> None:
-    """selected_swebench_reports returns exactly the six known models."""
+def test_selected_swebench_reports_returns_all_known_models() -> None:
+    """selected_swebench_reports returns exactly the known selected models."""
     reports = selected_swebench_reports(REPO)
     assert set(reports.keys()) == set(EXPECTED_SELECTED.keys())
 

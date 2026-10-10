@@ -1,0 +1,85 @@
+2026-10-10 16:51:32,205 - INFO - Creating container for django__django-15851...
+2026-10-10 16:51:32,353 - INFO - Container for django__django-15851 created: 7aa1630d456a53d6ae9c1b4b2a9ed359fcc019f1106974f39c9900d8fb538ac2
+2026-10-10 16:51:32,637 - INFO - Container for django__django-15851 started: 7aa1630d456a53d6ae9c1b4b2a9ed359fcc019f1106974f39c9900d8fb538ac2
+2026-10-10 16:51:32,639 - INFO - Intermediate patch for django__django-15851 written to logs/run_evaluation/qwen38-swebench-n100-20261010/hosted_vllm__qwen3.8-flash-next/django__django-15851/patch.diff, now applying to container...
+2026-10-10 16:51:33,012 - INFO - >>>>> Applied Patch:
+Checking patch django/db/backends/postgresql/client.py...
+Checking patch docs/releases/4.2.txt...
+Applied patch django/db/backends/postgresql/client.py cleanly.
+Applied patch docs/releases/4.2.txt cleanly.
+
+2026-10-10 16:51:37,628 - INFO - Git diff before:
+diff --git a/django/db/backends/postgresql/client.py b/django/db/backends/postgresql/client.py
+index 4c9bd63546..3b5ddafaca 100644
+--- a/django/db/backends/postgresql/client.py
++++ b/django/db/backends/postgresql/client.py
+@@ -32,9 +32,9 @@ class DatabaseClient(BaseDatabaseClient):
+             args += ["-h", host]
+         if port:
+             args += ["-p", str(port)]
++        args.extend(parameters)
+         if dbname:
+             args += [dbname]
+-        args.extend(parameters)
+ 
+         env = {}
+         if passwd:
+diff --git a/docs/releases/4.2.txt b/docs/releases/4.2.txt
+index 413e9a9471..5a949e7b66 100644
+--- a/docs/releases/4.2.txt
++++ b/docs/releases/4.2.txt
+@@ -317,3 +317,12 @@ Miscellaneous
+   for using Python's :py:mod:`secrets` module to generate passwords.
+ 
+ * The ``AlterIndexTogether`` migration operation is deprecated.
++
++.. _bugfixes-4.2:
++
++Bugfixes
++========
++
++* :djadmin:`dbshell` on PostgreSQL now passes arguments provided after ``--``
++  before the database name, as required by ``psql``, e.g. ``django-admin
++  dbshell -- -c 'select current_user'``.
+2026-10-10 16:51:37,629 - INFO - Eval script for django__django-15851 written to logs/run_evaluation/qwen38-swebench-n100-20261010/hosted_vllm__qwen3.8-flash-next/django__django-15851/eval.sh; copying to container...
+2026-10-10 16:51:48,640 - INFO - Test runtime: 10.81 seconds
+2026-10-10 16:51:48,641 - INFO - Test output for django__django-15851 written to logs/run_evaluation/qwen38-swebench-n100-20261010/hosted_vllm__qwen3.8-flash-next/django__django-15851/test_output.txt
+2026-10-10 16:51:48,780 - INFO - Git diff after:
+diff --git a/django/db/backends/postgresql/client.py b/django/db/backends/postgresql/client.py
+index 4c9bd63546..3b5ddafaca 100644
+--- a/django/db/backends/postgresql/client.py
++++ b/django/db/backends/postgresql/client.py
+@@ -32,9 +32,9 @@ class DatabaseClient(BaseDatabaseClient):
+             args += ["-h", host]
+         if port:
+             args += ["-p", str(port)]
++        args.extend(parameters)
+         if dbname:
+             args += [dbname]
+-        args.extend(parameters)
+ 
+         env = {}
+         if passwd:
+diff --git a/docs/releases/4.2.txt b/docs/releases/4.2.txt
+index 413e9a9471..5a949e7b66 100644
+--- a/docs/releases/4.2.txt
++++ b/docs/releases/4.2.txt
+@@ -317,3 +317,12 @@ Miscellaneous
+   for using Python's :py:mod:`secrets` module to generate passwords.
+ 
+ * The ``AlterIndexTogether`` migration operation is deprecated.
++
++.. _bugfixes-4.2:
++
++Bugfixes
++========
++
++* :djadmin:`dbshell` on PostgreSQL now passes arguments provided after ``--``
++  before the database name, as required by ``psql``, e.g. ``django-admin
++  dbshell -- -c 'select current_user'``.
+2026-10-10 16:51:48,780 - INFO - Grading answer for django__django-15851...
+2026-10-10 16:51:48,780 - INFO - report: {'django__django-15851': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_parameters (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_accent (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_basic (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_column (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_crash_password_does_not_leak (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_nopass (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_passfile (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_service (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_ssl_certificate (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-15851: resolved: True
+2026-10-10 16:51:48,781 - INFO - Attempting to stop container sweb.eval.django__django-15851.qwen38-swebench-n100-20261010...
+2026-10-10 16:52:04,030 - INFO - Attempting to remove container sweb.eval.django__django-15851.qwen38-swebench-n100-20261010...
+2026-10-10 16:52:04,189 - INFO - Container sweb.eval.django__django-15851.qwen38-swebench-n100-20261010 removed.

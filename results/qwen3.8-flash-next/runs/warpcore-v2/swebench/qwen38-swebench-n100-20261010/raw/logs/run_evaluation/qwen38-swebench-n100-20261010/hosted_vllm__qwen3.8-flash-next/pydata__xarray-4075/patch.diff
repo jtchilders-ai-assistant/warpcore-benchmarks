@@ -1,0 +1,81 @@
+diff --git a/doc/whats-new.rst b/doc/whats-new.rst
+index 447aaf5b..89390f41 100644
+--- a/doc/whats-new.rst
++++ b/doc/whats-new.rst
+@@ -33,6 +33,9 @@ Breaking changes
+   <https://matplotlib.org/api/prev_api_changes/api_changes_3.1.0.html#passing-a-line2d-s-drawstyle-together-with-the-linestyle-is-deprecated>`_.
+   (:pull:`3274`)
+   By `Elliott Sales de Andrade <https://github.com/QuLogic>`_
++- Boolean ``weights`` are no longer supported by the weighted reductions
++  (:py:meth:`DataArray.weighted` and :py:meth:`Dataset.weighted`), since they
++  led to incorrect results. Cast them to float or int instead. (:issue:`4057`)
+ 
+ New Features
+ ~~~~~~~~~~~~
+@@ -85,6 +88,9 @@ New Features
+ 
+ Bug fixes
+ ~~~~~~~~~
++- Fix the weighted reductions (:py:meth:`DataArray.weighted`) for integer
++  ``weights`` by promoting them to float, ensuring valid dtype promotions.
++  (:issue:`4057`)
+ - Support dark mode in VS code (:issue:`4024`)
+   By `Keisuke Fujii <https://github.com/fujiisoup>`_.
+ - ``ValueError`` is raised when ``fill_value`` is not a scalar in :py:meth:`full_like`. (:issue:`3977`)
+diff --git a/xarray/core/common.py b/xarray/core/common.py
+index e343f342..45b7584f 100644
+--- a/xarray/core/common.py
++++ b/xarray/core/common.py
+@@ -778,6 +778,7 @@ class DataWithCoords(SupportsArithmetic, AttrAccessMixin):
+         -----
+         ``weights`` must be a DataArray and cannot contain missing values.
+         Missing values can be replaced by ``weights.fillna(0)``.
++        Boolean weights are not supported; cast them to float or int instead.
+         """
+ 
+         return self._weighted_cls(self, weights)
+diff --git a/xarray/core/weighted.py b/xarray/core/weighted.py
+index 996d2e4c..c3524f12 100644
+--- a/xarray/core/weighted.py
++++ b/xarray/core/weighted.py
+@@ -1,5 +1,7 @@
+ from typing import TYPE_CHECKING, Hashable, Iterable, Optional, Union, overload
+ 
++import numpy as np
++
+ from .computation import dot
+ from .options import _get_keep_attrs
+ 
+@@ -92,7 +94,8 @@ class Weighted:
+         Notes
+         -----
+         ``weights`` must be a ``DataArray`` and cannot contain missing values.
+-        Missing values can be replaced by ``weights.fillna(0)``.
++        Missing values can be replaced by ``weights.fillna(0)``. Weights of
++        boolean dtype are not supported; cast them to float or int instead.
+         """
+ 
+         from .dataarray import DataArray
+@@ -100,12 +103,22 @@ class Weighted:
+         if not isinstance(weights, DataArray):
+             raise ValueError("`weights` must be a DataArray")
+ 
++        if weights.dtype.kind == "b":
++            raise ValueError(
++                "Boolean `weights` are not supported. Cast the `weights` to float or int, or set missing values to 0 "
++                "(`weights = weights.astype(int) * weights`)."
++            )
++
+         if weights.isnull().any():
+             raise ValueError(
+                 "`weights` cannot contain missing values. "
+                 "Missing values can be replaced by `weights.fillna(0)`."
+             )
+ 
++        # This transforms weights to float, if necessary, ensuring valid dtype
++        # promotions downstream
++        weights = weights.astype(np.promote_types(weights.dtype, np.float32))
++
+         self.obj = obj
+         self.weights = weights
+ 

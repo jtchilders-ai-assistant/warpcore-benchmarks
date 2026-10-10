@@ -1,0 +1,73 @@
+diff --git a/sympy/geometry/point.py b/sympy/geometry/point.py
+index 593048464..75a9f334a 100644
+--- a/sympy/geometry/point.py
++++ b/sympy/geometry/point.py
+@@ -234,6 +234,28 @@ def ambient_dimension(self):
+         will be n"""
+         return len(self)
+ 
++    @staticmethod
++    def _normalize_dimension(*points):
++        """Return the points as points of the same dimension.
++
++        Notes
++        =====
++
++        A point having fewer coordinates than another is interpreted
++        as lying in the higher dimensional space with the missing
++        coordinates set to zero -- e.g. `Point(1, 2)` represents the
++        same location as `Point(1, 2, 0)`. Padding the points in this
++        way makes it possible to work with points of different
++        dimensions without silently ignoring the coordinates of the
++        higher dimensional point.
++        """
++        points = [p if isinstance(p, Point) else Point(p) for p in points]
++        dim = max(len(p) for p in points)
++        for i, p in enumerate(points):
++            if len(p) != dim:
++                points[i] = Point(list(p) + [S.Zero]*(dim - len(p)))
++        return points
++
+     def distance(self, p):
+         """The Euclidean distance from self to point p.
+ 
+@@ -265,9 +287,16 @@ def distance(self, p):
+         >>> p3.distance(Point(0, 0))
+         sqrt(x**2 + y**2)
+ 
++        Points of different dimensions are compared in the space of
++        the higher dimension (the missing coordinates of the lower
++        dimensional point being 0):
++
++        >>> Point(2, 0).distance(Point(1, 0, 2))
++        sqrt(5)
++
+         """
+-        return sqrt(sum([(a - b)**2 for a, b in zip(
+-            self.args, p.args if isinstance(p, Point) else p)]))
++        s, p = Point._normalize_dimension(self, p)
++        return sqrt(sum([(a - b)**2 for a, b in zip(s.args, p.args)]))
+ 
+     def taxicab_distance(self, p):
+         """The Taxicab Distance from self to point p.
+@@ -299,8 +328,8 @@ def taxicab_distance(self, p):
+         7
+ 
+         """
+-        p = Point(p)
+-        return sum(abs(a - b) for a, b in zip(self.args, p.args))
++        s, p = Point._normalize_dimension(self, p)
++        return sum(abs(a - b) for a, b in zip(s.args, p.args))
+ 
+     def midpoint(self, p):
+         """The midpoint between self and point p.
+@@ -329,7 +358,8 @@ def midpoint(self, p):
+         Point2D(7, 3)
+ 
+         """
+-        return Point([simplify((a + b)*S.Half) for a, b in zip(self.args, p.args)])
++        s, p = Point._normalize_dimension(self, p)
++        return Point([simplify((a + b)*S.Half) for a, b in zip(s.args, p.args)])
+ 
+     def evalf(self, prec=None, **options):
+         """Evaluate the coordinates of the point.

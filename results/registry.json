@@ -389,6 +389,66 @@
       "note": "Canonical warpcore-v2 SWE-bench Verified frozen seed-42 n=100 campaign. Full denominator: 61 resolved, 18 submitted but unresolved, and 21 empty/non-submitted; generation produced 79 Submitted, 13 LimitsExceeded, 7 ContextWindowExceededError, and 1 RepeatedFormatError. Official grading had 0 errors and 0 incomplete instances.",
       "v1_validated": true,
       "run_dir": "results/qwen3.6-35b-a3b-prismaquant-4.75bit/runs/warpcore-v2/swebench/qwen36-prisma-swebench-n100-20261002"
+    },
+    {
+      "id": "qwen3.8-flash-next/gsm8k/warpcore-v2/qwen38-gsm8k-20261009",
+      "status": "current",
+      "paths": [
+        "results/qwen3.8-flash-next/runs/warpcore-v2/gsm8k/qwen38-gsm8k-20261009/raw/qwen3.8-flash-next/results_2026-10-09T08-53-54.878262.json",
+        "results/qwen3.8-flash-next/runs/warpcore-v2/gsm8k/qwen38-gsm8k-20261009/raw/qwen3.8-flash-next/samples_gsm8k_cot_zeroshot_clean_2026-10-09T08-53-54.878262.jsonl.gz",
+        "results/qwen3.8-flash-next/runs/warpcore-v2/gsm8k/qwen38-gsm8k-20261009/per_item.csv",
+        "results/qwen3.8-flash-next/runs/warpcore-v2/gsm8k/qwen38-gsm8k-20261009/raw/response_metadata.jsonl"
+      ],
+      "note": "Canonical warpcore-v2 GSM8K run (97.73%, 1289/1319).",
+      "v1_validated": true,
+      "run_dir": "results/qwen3.8-flash-next/runs/warpcore-v2/gsm8k/qwen38-gsm8k-20261009"
+    },
+    {
+      "id": "qwen3.8-flash-next/ifeval/warpcore-v2/qwen38-ifeval-20261009",
+      "status": "current",
+      "paths": [
+        "results/qwen3.8-flash-next/runs/warpcore-v2/ifeval/qwen38-ifeval-20261009/raw/qwen3.8-flash-next/results_2026-10-09T16-18-32.879926.json",
+        "results/qwen3.8-flash-next/runs/warpcore-v2/ifeval/qwen38-ifeval-20261009/raw/qwen3.8-flash-next/samples_ifeval_2026-10-09T16-18-32.879926.jsonl.gz",
+        "results/qwen3.8-flash-next/runs/warpcore-v2/ifeval/qwen38-ifeval-20261009/per_item.csv"
+      ],
+      "note": "Canonical warpcore-v2 IFEval run (89.09%, 482/541). Eighteen responses ended at the 65,536-token ceiling with empty visible content and remain failures in the denominator.",
+      "v1_validated": true,
+      "run_dir": "results/qwen3.8-flash-next/runs/warpcore-v2/ifeval/qwen38-ifeval-20261009"
+    },
+    {
+      "id": "qwen3.8-flash-next/gpqa-diamond/warpcore-v2/qwen38-gpqa-diamond-20261009",
+      "status": "current",
+      "paths": [
+        "results/qwen3.8-flash-next/runs/warpcore-v2/gpqa_diamond/qwen38-gpqa-diamond-20261009/raw/qwen3.8-flash-next/results_2026-10-10T02-02-39.391524.json",
+        "results/qwen3.8-flash-next/runs/warpcore-v2/gpqa_diamond/qwen38-gpqa-diamond-20261009/raw/qwen3.8-flash-next/samples_gpqa_diamond_cot_zeroshot_clean_2026-10-10T02-02-39.391524.jsonl.gz",
+        "results/qwen3.8-flash-next/runs/warpcore-v2/gpqa_diamond/qwen38-gpqa-diamond-20261009/per_item.csv"
+      ],
+      "note": "Canonical warpcore-v2 GPQA-Diamond run (87.88%, 174/198). Eight responses ended at the 65,536-token ceiling; seven had empty visible content. All eight remain failures in the denominator.",
+      "v1_validated": true,
+      "run_dir": "results/qwen3.8-flash-next/runs/warpcore-v2/gpqa_diamond/qwen38-gpqa-diamond-20261009"
+    },
+    {
+      "id": "qwen3.8-flash-next/swebench/warpcore-v2/qwen38-swebench-n100-20261010",
+      "status": "current",
+      "paths": [
+        "results/qwen3.8-flash-next/runs/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/grading_results.json",
+        "results/qwen3.8-flash-next/runs/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/preds.json",
+        "results/qwen3.8-flash-next/runs/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/exit_statuses.json"
+      ],
+      "note": "Canonical warpcore-v2 SWE-bench Verified frozen seed-42 n=100. 97 resolved, 3 unresolved, 0 empty/error/incomplete; submitted 100; provenance normalized-complete.",
+      "v1_validated": true,
+      "run_dir": "results/qwen3.8-flash-next/runs/warpcore-v2/swebench/qwen38-swebench-n100-20261010"
+    },
+    {
+      "id": "qwen3.8-flash-next/throughput/warpcore-v2/qwen38-flash-throughput-resume-20261008",
+      "status": "current",
+      "paths": [
+        "results/qwen3.8-flash-next/raw/throughput_sweep/validated-summary.json",
+        "results/qwen3.8-flash-next/raw/throughput_sweep/sweep.log",
+        "results/qwen3.8-flash-next/raw/throughput_sweep/vllm_sweep.sh"
+      ],
+      "note": "Validated on-box fixed-shape throughput sweep: 1904/1904 successful requests, peak 129.93 output tok/s at c=64, with c=32 through c=256 within 95% of peak.",
+      "v1_validated": true
     }
   ]
 }

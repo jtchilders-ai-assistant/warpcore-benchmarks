@@ -1,0 +1,34 @@
+diff --git a/lib/matplotlib/cbook.py b/lib/matplotlib/cbook.py
+index c9699b2e21..df0638d372 100644
+--- a/lib/matplotlib/cbook.py
++++ b/lib/matplotlib/cbook.py
+@@ -788,6 +788,29 @@ class Grouper:
+     def __init__(self, init=()):
+         self._mapping = {weakref.ref(x): [weakref.ref(x)] for x in init}
+ 
++    def __getstate__(self):
++        # Convert weak refs to strong ones (weak refs themselves are not
++        # picklable) and drop the ones that are already dead.  All members of
++        # a group share the same list object, so the grouping must be kept.
++        groups = {}
++        mapping = {}
++        for key, siblings in self._mapping.items():
++            obj = key()
++            if obj is None:
++                continue
++            group = groups.setdefault(
++                id(siblings), [v() for v in siblings if v() is not None])
++            mapping[obj] = group
++        return {**vars(self), "_mapping": mapping}
++
++    def __setstate__(self, state):
++        vars(self).update(state)
++        # Convert strong refs back to weak ones, reusing the group lists.
++        groups = {id(vs): [*map(weakref.ref, vs)]
++                  for vs in state["_mapping"].values()}
++        self._mapping = {weakref.ref(k): groups[id(vs)]
++                         for k, vs in state["_mapping"].items()}
++
+     def __contains__(self, item):
+         return weakref.ref(item) in self._mapping
+ 

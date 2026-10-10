@@ -1,0 +1,54 @@
+diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py
+index ee45bb941e..155b72cf0c 100644
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -763,8 +763,16 @@ class Field(RegisterLookupMixin):
+             if not getattr(cls, self.attname, None):
+                 setattr(cls, self.attname, self.descriptor_class(self))
+         if self.choices is not None:
+-            setattr(cls, 'get_%s_display' % self.name,
+-                    partialmethod(cls._get_FIELD_display, field=self))
++            # Don't override a get_FOO_display() method defined explicitly on
++            # this class, but don't check methods derived from inheritance, to
++            # allow overriding inherited choices. For more complex inheritance
++            # structures users should override contribute_to_class().
++            if 'get_%s_display' % self.name not in cls.__dict__:
++                setattr(
++                    cls,
++                    'get_%s_display' % self.name,
++                    partialmethod(cls._get_FIELD_display, field=self),
++                )
+ 
+     def get_filter_kwargs_for_object(self, obj):
+         """
+diff --git a/docs/ref/models/instances.txt b/docs/ref/models/instances.txt
+index 396300d035..04f68901e6 100644
+--- a/docs/ref/models/instances.txt
++++ b/docs/ref/models/instances.txt
+@@ -817,6 +817,15 @@ Note that in the case of identical date values, these methods will use the
+ primary key as a tie-breaker. This guarantees that no records are skipped or
+ duplicated. That also means you cannot use those methods on unsaved objects.
+ 
++.. admonition:: Overriding extra instance methods
++
++    In most cases overriding or inheriting ``get_FOO_display()``,
++    ``get_next_by_FOO()``, and ``get_previous_by_FOO()`` should work as
++    expected. Since they are added by the metaclass however, it is not
++    practical to account for all possible inheritance structures. In more
++    complex cases you should override ``Field.contribute_to_class()`` to set
++    the methods you need.
++
+ Other attributes
+ ================
+ 
+diff --git a/docs/releases/2.2.7.txt b/docs/releases/2.2.7.txt
+index cf1f52a685..537508225b 100644
+--- a/docs/releases/2.2.7.txt
++++ b/docs/releases/2.2.7.txt
+@@ -21,3 +21,6 @@ Bugfixes
+ * Fixed migrations crash on PostgreSQL when adding an
+   :class:`~django.db.models.Index` with fields ordering and
+   :attr:`~.Index.opclasses` (:ticket:`30903`).
++
++* Restored the ability to override
++  :meth:`~django.db.models.Model.get_FOO_display` (:ticket:`30931`).

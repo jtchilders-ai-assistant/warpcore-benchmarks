@@ -1,0 +1,929 @@
+This is mini-swe-agent version 2.4.6.
+Check the v2 migration guide at https://klieret.short.gy/mini-v2-migration
+Loading global config from '/Users/jchilders/Library/Application 
+Support/mini-swe-agent/.env'
+minisweagent: INFO: Results will be saved to                                    
+/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs/
+warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw                          
+Logging to '/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/minisweagent.log'
+minisweagent: INFO: Loading dataset princeton-nlp/SWE-bench_Verified, split     
+test...                                                                         
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+minisweagent: INFO: Instance filter: 500 -> 100 instances                       
+minisweagent: INFO: Running on 100 instances...                                 
+minisweagent: INFO: Building agent config from specs:                           
+['/var/folders/f0/7qqjjvb16hj4y5dhlshf643m0000gn/T/swe_config_ndmdk702.yaml']   
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-1f5fb64e -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.astropy_1776_astropy-13453:latest sleep 2h  
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-6d5ef92a -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.astropy_1776_astropy-14096:latest sleep 2h  
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-fb69f73c -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.astropy_1776_astropy-13977:latest sleep 2h  
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-afabce8f -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.astropy_1776_astropy-14369:latest sleep 2h  
+minisweagent.environment: INFO: Started container minisweagent-6d5ef92a with ID 
+4915ef3f031bde00b1f584c7493d43e2104c348c58b034d487f38be146d6bd86                
+minisweagent.environment: INFO: Started container minisweagent-afabce8f with ID 
+96ea1757bcada10d37baf6a30adccacacb642745d9293bfb6b3a92c7df0b82f0                
+minisweagent.environment: INFO: Started container minisweagent-fb69f73c with ID 
+3fd97ebe1e76e704082b2c98fb21463dcafc4eb34c181718ca16a6025f42c090                
+minisweagent.environment: INFO: Started container minisweagent-1f5fb64e with ID 
+c67f833abe469d59e903a771a31a9d48f2bdbf88e255cc83121d56b04516c343                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/astropy__astropy-14369/a
+stropy__astropy-14369.traj.json'                                                
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-f0321620 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.astropy_1776_astropy-8872:latest sleep 2h   
+minisweagent.environment: INFO: Started container minisweagent-f0321620 with ID 
+be410ab762959dba4192cb82d93b0c82c7cef60ff3c26b516c5f01b2efaff848                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/astropy__astropy-14096/a
+stropy__astropy-14096.traj.json'                                                
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-b1290763 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-10973:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-b1290763 with ID 
+c1acd4305bac0a59c3e2ad83ab02755bb3a707d15924b4afb753b0ed93726a19                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/astropy__astropy-13453/a
+stropy__astropy-13453.traj.json'                                                
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-f2f9569f -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-11163:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-f2f9569f with ID 
+151337047b4b99b94adfdb5788f5853d378405f109a4f94c22e322afcb538866                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/astropy__astropy-13977/a
+stropy__astropy-13977.traj.json'                                                
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-1192ebed -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-11239:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-1192ebed with ID 
+f067144580f6c876000bd3ca5a3fba720ca719f3c522d918ecc1dfd6e3aff60d                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-10973/dja
+ngo__django-10973.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-7d1b4f4e -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-11299:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-7d1b4f4e with ID 
+8e597e81fe979509ccf33c5a4bafd0791db1946f0b992dc989d0b670e326c7aa                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-11163/dja
+ngo__django-11163.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-da6603fd -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-11477:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-da6603fd with ID 
+665e82e95155e5d802c5c98b511bc92e72fb53a7960393fbcb6c594f206843e6                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-11239/dja
+ngo__django-11239.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-2be265b2 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-11551:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-2be265b2 with ID 
+58b2ce7c3b8932a625059617b72c050b5f40bb27225f9f66c1f7da4790347a48                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-11299/dja
+ngo__django-11299.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-a368a0f4 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-11749:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-a368a0f4 with ID 
+69b2437d7d3b518e8862f7e18b213ed1c1ee398590369494170318cf7aff57a9                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/astropy__astropy-8872/as
+tropy__astropy-8872.traj.json'                                                  
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-f9be1403 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-11999:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-f9be1403 with ID 
+16116cf50acb2a49b38f0343518a4e91e422a8a578d662870efc09eae109be68                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-11551/dja
+ngo__django-11551.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-a431dc75 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-12143:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-a431dc75 with ID 
+09b5c18be1109984fb48ceb8a10b999f6108c88f887a82ce9aaddd9240bbd450                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-11749/dja
+ngo__django-11749.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-cf750dd1 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-12193:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-cf750dd1 with ID 
+b3bfc8aaa5dd764ccb00fe041782dd9c3cceaa433ba368a0e4a2b50922001e41                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-12143/dja
+ngo__django-12143.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-68ea83b6 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-12273:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-68ea83b6 with ID 
+669f8891f07a916d6ec6b039f3dae4b591480a623307d51b66ee70e2601e5be4                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-11999/dja
+ngo__django-11999.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-0cb94394 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-12754:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-0cb94394 with ID 
+93f703c679bacb2aa44f554eb84e6bb565626930fb6a49c8afcad8a885079cc2                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-11477/dja
+ngo__django-11477.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-ad855348 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-12774:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-ad855348 with ID 
+96b55b2940e27c7bcff1cb8df4a2bd5422ef67b0a79d4955ab1153fcc31069eb                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-12193/dja
+ngo__django-12193.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-71b67129 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-13012:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-71b67129 with ID 
+b13dbfaed012ed98e3a5cc50163a66e2caebd3d7e96aa0d4ec316baa19b7c139                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-12774/dja
+ngo__django-12774.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-418105c8 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-13023:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-418105c8 with ID 
+e455b2cd6369ecca60563648f8377b8d94fdeb284cfaf6884c67ee9537aa189b                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-12754/dja
+ngo__django-12754.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-80a52ba9 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-13028:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-80a52ba9 with ID 
+a6d13c33f9b0aafa26edd6997d26dcdce685eef2895b8693818afc886377717d                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-13023/dja
+ngo__django-13023.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-bf54facc -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-13033:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-bf54facc with ID 
+2456a70375d89315e911228587e9a7acef3222591a4ba82db0876940301d9fdb                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-13012/dja
+ngo__django-13012.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-86d6eacf -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-13089:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-86d6eacf with ID 
+b3d69d34d5686b80a40b41f464cd217d4e174785711591dab2ead814c616f1ca                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-13028/dja
+ngo__django-13028.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-9c125402 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-13128:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-9c125402 with ID 
+4a317eba6065286d8e2f3b906689615c14e644334db8f264a5435ccaba7b9e98                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-13089/dja
+ngo__django-13089.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-9f76ade7 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-13568:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-9f76ade7 with ID 
+19ee403db8eb658ab7c7bc29447dc50c81525d3795a651417151d786787591b9                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-12273/dja
+ngo__django-12273.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-f7e8e363 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-13794:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-f7e8e363 with ID 
+9f82575a2de3b8ccc5de4d40fb111766d140bc044661988beb40d6c2fe83ad1b                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-13568/dja
+ngo__django-13568.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-c2367f74 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-13809:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-c2367f74 with ID 
+a5fd622dfb921bd8c67f56cc9f98fec720245b79643f958417aa8ce519afa6bd                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-13033/dja
+ngo__django-13033.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-cc2c5fed -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-13820:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-cc2c5fed with ID 
+c8004869410cf72d29fad7bb9b11d0373158e93d00f99e2b9b7c025cac90b4a7                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-13128/dja
+ngo__django-13128.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-627ca155 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-14017:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-627ca155 with ID 
+4b1897a30e495f75afc4836637d6a9ca6279e97e365bf68a882d2a75f94ffe3f                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-13820/dja
+ngo__django-13820.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-d6f37ca9 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-14053:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-d6f37ca9 with ID 
+223e82dc6917d3743ff82371dde31e903c6c25f29373fc94269c6e381f6eddb9                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-13809/dja
+ngo__django-13809.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-988c2258 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-14351:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-988c2258 with ID 
+5d41c13c958288a816d06d7e3d41b82d10ca64e6be14ad48cec2a31e2b5ffd51                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-13794/dja
+ngo__django-13794.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-c97d939c -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-14404:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-c97d939c with ID 
+c55e4f6b1e512abba36b571e6638aff48b8477631ff755be3cc0e69cb5daaa7b                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-14053/dja
+ngo__django-14053.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-d9c609f0 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-14434:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-d9c609f0 with ID 
+077bce69b5f1fce09b29485ae216bcec7bbcaccb596654e8aa6e1e9a2f2c52b0                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-14434/dja
+ngo__django-14434.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-3cb50383 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-14493:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-3cb50383 with ID 
+245c64b2cd18b7e6885d6a9bcdec2925cbebdb40e25f45a58ac7f6056825de08                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-14404/dja
+ngo__django-14404.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-88b82bba -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-14559:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-88b82bba with ID 
+ab9f5421015b0d3568d661545922e39517cf5c6d048c0ae680f0994ba8698f85                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-14017/dja
+ngo__django-14017.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-8b7c5985 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-14608:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-8b7c5985 with ID 
+114e4f9ab23e078d8eeb5d2a7ac7b1ea138ddba536f573facc790be57c15a82b                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-14559/dja
+ngo__django-14559.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-fc7870a5 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-14631:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-fc7870a5 with ID 
+e94062f02e7acfbd989d9d5118425f0bc37e983b938f5ce772ed31f76a3ac6e7                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-14493/dja
+ngo__django-14493.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-8eccfce7 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-14672:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-8eccfce7 with ID 
+2539dadb650996f0613459e0fba4e23be64ad56196f6983c4c6bfed6b7728139                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-14672/dja
+ngo__django-14672.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-b3bb8f28 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-14792:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-b3bb8f28 with ID 
+8ddb7620bee6b2fc41e61e310ae81a37db42813abf365188861868800a0b7956                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-14608/dja
+ngo__django-14608.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-67230d06 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-15037:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-67230d06 with ID 
+f70598cec8738301fd75a51578bd679b8aa070a2934be9ef18a94eedd379c3b6                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-14351/dja
+ngo__django-14351.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-768d1662 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-15103:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-768d1662 with ID 
+c7cb2feaf6f2a910cf4af3fe860396620061689c8beb9d29595dada3a4988a4f                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-15103/dja
+ngo__django-15103.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-a134325d -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-15128:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-a134325d with ID 
+7bd8839aa5d1dea11c1ea67882a2233c4f1fc9c2b6c2aeefbb1f792dd0dfe9cb                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-14631/dja
+ngo__django-14631.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-d836a084 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-15252:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-d836a084 with ID 
+a343fe414441dd5e96f832ba603aba535af17ce92146a449c7ab420eb6b41365                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-15037/dja
+ngo__django-15037.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-6b1d9040 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-15277:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-6b1d9040 with ID 
+383ae1e4aaf170dd1f64e2b271e2302a7aaae4024035bca9dc25dbac3e108cdf                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-15252/dja
+ngo__django-15252.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-1b5351b8 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-15315:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-1b5351b8 with ID 
+95bb662c2f419a9ce191d4d3b3382b52787c510e8094142f17675ace96bc1059                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-15128/dja
+ngo__django-15128.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-2e264ed6 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-15368:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-2e264ed6 with ID 
+21e114387de00b8475a75aef77ba13d3b72b95e6a6291502ea1e07888a037c13                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-14792/dja
+ngo__django-14792.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-bd7dd4d1 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-15569:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-bd7dd4d1 with ID 
+47f706c2561eeefb3a67bf49bfdef126dea1c5d7c4ef6e864a121d12ddaf3e2e                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-15277/dja
+ngo__django-15277.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-8e781195 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-15851:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-8e781195 with ID 
+f1cd3d821ca51cb95d23b38969a05e8c3c597df58c1193f6e5d88a9f50b12983                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-15315/dja
+ngo__django-15315.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-51f40771 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-15916:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-51f40771 with ID 
+902aa3e048ddbff1e9babb62a4dec8a8ebdb7c0d94ca3767e4a246356561258f                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-15851/dja
+ngo__django-15851.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-0c3fcc7d -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-15930:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-0c3fcc7d with ID 
+a12d525d91e75614c8246fde1408d5adafac0735b15539a732791bf251b0e4a1                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-15569/dja
+ngo__django-15569.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-975c900c -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-15957:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-975c900c with ID 
+8c85680c84030a706a82aa079317a78518cdd50e2805429004411567cf60216a                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-15368/dja
+ngo__django-15368.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-124e2443 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-15987:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-124e2443 with ID 
+476112a92ac2354fbe82fb123fbce51c657e2532c2a346582942880b26736026                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-15916/dja
+ngo__django-15916.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-4ca46d72 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-16082:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-4ca46d72 with ID 
+ee377d5ff1acc41edc7566a580d2842f7efa6073f7c73facc2126dee419b1693                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-15987/dja
+ngo__django-15987.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-2b324cad -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-16116:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-2b324cad with ID 
+7662216b1dacf92e115093032327a22c0020f325a42eda36eef46fb363950a88                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-16082/dja
+ngo__django-16082.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-efb4eaf6 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-16263:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-efb4eaf6 with ID 
+c956b3209e36d4ee2023ca8cd089badfd78c6293fafc0817fc95c170f13530a5                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-15930/dja
+ngo__django-15930.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-72259d32 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-16454:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-72259d32 with ID 
+8adc341efae1074ae1dc88b7c0c9e6b04d6c5664b4556a2a12b9bcfc9326d303                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-15957/dja
+ngo__django-15957.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-8689689b -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-16485:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-8689689b with ID 
+b3eb631251a139874c71949a18dcdd3713b97bd40d8e7b3a1f16019cb828fba9                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-16454/dja
+ngo__django-16454.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-fd2f8068 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-16901:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-fd2f8068 with ID 
+03f79014029bd37bbdd0c9730bef7b7482b835fc709532a954a6f0bef1efb75e                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-16116/dja
+ngo__django-16116.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-05f13c7c -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-16938:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-05f13c7c with ID 
+1c970ae4b3da50f7b55fde80b0aa7593045c22f81cd6ee263827da6c04e63fb4                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-16485/dja
+ngo__django-16485.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-d7996146 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-17084:latest sleep 2h    
+minisweagent.environment: INFO: Started container minisweagent-d7996146 with ID 
+6f081a51b4413b01d22f990dc2117b279cc222a8839ea53d1ceb8235a9fb5d6a                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-16263/dja
+ngo__django-16263.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-9d5aaf87 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.django_1776_django-7530:latest sleep 2h     
+minisweagent.environment: INFO: Started container minisweagent-9d5aaf87 with ID 
+d3ae67443d13f4d0b3e1e241ff90b5362962a6535ec626313be6918ceb405d22                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-16938/dja
+ngo__django-16938.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-5165bf54 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.matplotlib_1776_matplotlib-22871:latest     
+sleep 2h                                                                        
+minisweagent.environment: INFO: Started container minisweagent-5165bf54 with ID 
+7a1fcd22167fff7d0c9fc7a227e3c55f8da1ac069ada2310b628ba6dac7e4cf5                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-16901/dja
+ngo__django-16901.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-ce9486c0 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.matplotlib_1776_matplotlib-25332:latest     
+sleep 2h                                                                        
+minisweagent.environment: INFO: Started container minisweagent-ce9486c0 with ID 
+7dfa29d0f5e8f37fb49edc467edfa93dc6f334b6dc229e9b3a019b6d7352a32b                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-7530/djan
+go__django-7530.traj.json'                                                      
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-b2a1af87 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.pallets_1776_flask-5014:latest sleep 2h     
+minisweagent.environment: INFO: Started container minisweagent-b2a1af87 with ID 
+b535e5b982089610bbc5239f8072f7d043dd8be998263d9de193f9e9273d8c42                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/django__django-17084/dja
+ngo__django-17084.traj.json'                                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-b972b038 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.psf_1776_requests-1766:latest sleep 2h      
+minisweagent.environment: INFO: Started container minisweagent-b972b038 with ID 
+297b767905f0e6e3718f83f5982d1fa161c6760fe39a3fc1b68f3f86070d9922                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/pallets__flask-5014/pall
+ets__flask-5014.traj.json'                                                      
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-d4109343 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.psf_1776_requests-6028:latest sleep 2h      
+minisweagent.environment: INFO: Started container minisweagent-d4109343 with ID 
+427267b1a15a0d73a97746e0cda52d995cd8e1c641e62fa774511c6104745fed                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/matplotlib__matplotlib-2
+2871/matplotlib__matplotlib-22871.traj.json'                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-c5d39d12 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.pydata_1776_xarray-3993:latest sleep 2h     
+minisweagent.environment: INFO: Started container minisweagent-c5d39d12 with ID 
+5a1d74c883575db17857122e64940a3be8bb054a571a1a7bd9592cc0c4f96295                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/psf__requests-1766/psf__
+requests-1766.traj.json'                                                        
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-57fcc8e6 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.pydata_1776_xarray-4075:latest sleep 2h     
+minisweagent.environment: INFO: Started container minisweagent-57fcc8e6 with ID 
+6be4916f9dd0636b0f675ff0f7c9a91c458c71821cb16defb8cdd28b5080dbb3                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/pydata__xarray-3993/pyda
+ta__xarray-3993.traj.json'                                                      
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-c3687751 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.pydata_1776_xarray-6938:latest sleep 2h     
+minisweagent.environment: INFO: Started container minisweagent-c3687751 with ID 
+f34fc49bef3c57227628147046259d11d61eac395f03c17b272700cfb7246a64                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/pydata__xarray-4075/pyda
+ta__xarray-4075.traj.json'                                                      
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-a0af23fb -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.pylint-dev_1776_pylint-4551:latest sleep 2h 
+minisweagent.environment: INFO: Started container minisweagent-a0af23fb with ID 
+bd00c6de0b749ee1d44e0699df04073aa195b8f981e3ffa9fe737698570c0199                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/psf__requests-6028/psf__
+requests-6028.traj.json'                                                        
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-73b84bb3 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.pylint-dev_1776_pylint-6903:latest sleep 2h 
+minisweagent.environment: INFO: Started container minisweagent-73b84bb3 with ID 
+a68ee8a583a20ebc29c4d8536d58488259c15858c32b8a725bda822b214ebe8f                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/matplotlib__matplotlib-2
+5332/matplotlib__matplotlib-25332.traj.json'                                    
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-8032c8f4 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.pytest-dev_1776_pytest-5262:latest sleep 2h 
+minisweagent.environment: INFO: Started container minisweagent-8032c8f4 with ID 
+66cd2af7ba600e6764305b506e71266f67ea656bfe236006d55e8e11d09f5870                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/pylint-dev__pylint-6903/
+pylint-dev__pylint-6903.traj.json'                                              
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-7df6575e -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.pytest-dev_1776_pytest-5631:latest sleep 2h 
+minisweagent.environment: INFO: Started container minisweagent-7df6575e with ID 
+19602f42b0894e8814e4d91ea7e8027cfb5a403fed262cf65950a78111a25a74                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/pytest-dev__pytest-5262/
+pytest-dev__pytest-5262.traj.json'                                              
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-893eb1d0 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.pytest-dev_1776_pytest-7205:latest sleep 2h 
+minisweagent.environment: INFO: Started container minisweagent-893eb1d0 with ID 
+a7b701633656fe7c8b9814f1de6caaccb11a0850343a3d6bd70448aba31616e9                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/pylint-dev__pylint-4551/
+pylint-dev__pylint-4551.traj.json'                                              
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-41213514 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.pytest-dev_1776_pytest-7521:latest sleep 2h 
+minisweagent.environment: INFO: Started container minisweagent-41213514 with ID 
+3f4c1f4f25efb3d00ab0304c80170e942384f698c648bffea692d84aa1638018                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/pytest-dev__pytest-7205/
+pytest-dev__pytest-7205.traj.json'                                              
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-0151f079 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-13135:latest 
+sleep 2h                                                                        
+minisweagent.environment: INFO: Started container minisweagent-0151f079 with ID 
+baed0c0efe90ec64aee1653d06ecbed53cd28424ae2d5f763a024cf23068b9d2                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/pytest-dev__pytest-5631/
+pytest-dev__pytest-5631.traj.json'                                              
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-6f3c835e -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-14629:latest 
+sleep 2h                                                                        
+minisweagent.environment: INFO: Started container minisweagent-6f3c835e with ID 
+17a6b5328cf1680ccf2d010f04da8d57ed0c3fc44c7ed102e5082e57c5a33560                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/pytest-dev__pytest-7521/
+pytest-dev__pytest-7521.traj.json'                                              
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-11ca5863 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-14710:latest 
+sleep 2h                                                                        
+minisweagent.environment: INFO: Started container minisweagent-11ca5863 with ID 
+eb6ef8e041898a2bd6842617a3e20138ff941840a58b84477ea51a002010699b                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/scikit-learn__scikit-lea
+rn-13135/scikit-learn__scikit-learn-13135.traj.json'                            
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-9a754fde -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-14894:latest 
+sleep 2h                                                                        
+minisweagent.environment: INFO: Started container minisweagent-9a754fde with ID 
+d205e66ef02338b3ed4bc6d4cc697fefca388114cb7a1d63bb28e649c723780d                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/scikit-learn__scikit-lea
+rn-14894/scikit-learn__scikit-learn-14894.traj.json'                            
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-5c04429f -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-25232:latest 
+sleep 2h                                                                        
+minisweagent.environment: INFO: Started container minisweagent-5c04429f with ID 
+523ad9f85e084674966ad8591babe50fe6a5b16a15befd5c645fbe61f5d9c8a1                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/scikit-learn__scikit-lea
+rn-14629/scikit-learn__scikit-learn-14629.traj.json'                            
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-054a69f3 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-10449:latest sleep 2h
+minisweagent.environment: INFO: Started container minisweagent-054a69f3 with ID 
+813fdb744cd178eebd5cc7a7d9a25c7c69fbc95ef9f698f7c3493968742c1812                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/scikit-learn__scikit-lea
+rn-14710/scikit-learn__scikit-learn-14710.traj.json'                            
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-c5435cb4 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-7440:latest sleep 2h 
+minisweagent.environment: INFO: Started container minisweagent-c5435cb4 with ID 
+d597448d83a456459d07b7d808e69b43ff77ca0687cda1bb5458e9999222e39c                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/pydata__xarray-6938/pyda
+ta__xarray-6938.traj.json'                                                      
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-87e2f18e -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-7757:latest sleep 2h 
+minisweagent.environment: INFO: Started container minisweagent-87e2f18e with ID 
+08bae501ced3eebae6ee995885f55cc6e76ad60d8a968f8976b05a4048fc75bc                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/sphinx-doc__sphinx-10449
+/sphinx-doc__sphinx-10449.traj.json'                                            
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-76339e3e -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-7910:latest sleep 2h 
+minisweagent.environment: INFO: Started container minisweagent-76339e3e with ID 
+078e5e58df11cd4e5c0056cfa048dbb57c51d1b2f4c2586e3c3a57ecd2a97d25                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/scikit-learn__scikit-lea
+rn-25232/scikit-learn__scikit-learn-25232.traj.json'                            
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-c548b645 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-7985:latest sleep 2h 
+minisweagent.environment: INFO: Started container minisweagent-c548b645 with ID 
+3b656010ba199c65fb83986adb8b9302d3c3acab4e85521efdfb1ebe8c02e933                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/sphinx-doc__sphinx-7757/
+sphinx-doc__sphinx-7757.traj.json'                                              
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-28be8704 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-8459:latest sleep 2h 
+minisweagent.environment: INFO: Started container minisweagent-28be8704 with ID 
+fc060efe839cee02c7a8e01bdeb82aef73c3d2b66d925579ea8dad15bd9b8d27                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/sphinx-doc__sphinx-7985/
+sphinx-doc__sphinx-7985.traj.json'                                              
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-9739e4d2 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-8593:latest sleep 2h 
+minisweagent.environment: INFO: Started container minisweagent-9739e4d2 with ID 
+4e80896fc8a33203101280bba60e2acc732fc2375a7e73b90c09589f0bdf11f2                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/sphinx-doc__sphinx-7440/
+sphinx-doc__sphinx-7440.traj.json'                                              
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-8c645df8 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-8595:latest sleep 2h 
+minisweagent.environment: INFO: Started container minisweagent-8c645df8 with ID 
+61182cb54ee1306b9ccdcc4145fd336c8c5d86202d69f04a43b72f27de510cc0                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/sphinx-doc__sphinx-8459/
+sphinx-doc__sphinx-8459.traj.json'                                              
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-ae539b47 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-9281:latest sleep 2h 
+minisweagent.environment: INFO: Started container minisweagent-ae539b47 with ID 
+69f8d13af517e455fbcfd7b86cc12337a715d7c9c658aa014a8b648462e7cf3c                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/sphinx-doc__sphinx-7910/
+sphinx-doc__sphinx-7910.traj.json'                                              
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-91e4b99d -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-9591:latest sleep 2h 
+minisweagent.environment: INFO: Started container minisweagent-91e4b99d with ID 
+1b2d6b8991469913058aaedc0b6a74c313e612f5d78d45fa14493436bfb69746                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/sphinx-doc__sphinx-9591/
+sphinx-doc__sphinx-9591.traj.json'                                              
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-2a9b638f -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-11618:latest sleep 2h      
+minisweagent.environment: INFO: Started container minisweagent-2a9b638f with ID 
+a326a83b5d33a852ba9fbf3ca7b85dce6f91c8a06e119d2cefcf783d65df74ef                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/sphinx-doc__sphinx-8593/
+sphinx-doc__sphinx-8593.traj.json'                                              
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-53a6f77c -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-12096:latest sleep 2h      
+minisweagent.environment: INFO: Started container minisweagent-53a6f77c with ID 
+c41d7ab52f18780c2a497f99408cd76449e91ffcea5b25a6d11dd8d62974d05c                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/sphinx-doc__sphinx-8595/
+sphinx-doc__sphinx-8595.traj.json'                                              
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-5b3e34c5 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-13551:latest sleep 2h      
+minisweagent.environment: INFO: Started container minisweagent-5b3e34c5 with ID 
+2b606f673a67b6b4964965bcfc7b3a9bba7f07e38c12c37435b24e9d5814ada3                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/sphinx-doc__sphinx-9281/
+sphinx-doc__sphinx-9281.traj.json'                                              
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-26de8da2 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-13852:latest sleep 2h      
+minisweagent.environment: INFO: Started container minisweagent-26de8da2 with ID 
+3a10859f292268a7504dd3476492cd65e6b83623d3c3ccbab3c2408509067ad4                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/sympy__sympy-12096/sympy
+__sympy-12096.traj.json'                                                        
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-d1d6ef89 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-13974:latest sleep 2h      
+minisweagent.environment: INFO: Started container minisweagent-d1d6ef89 with ID 
+b5380c521ac721fa70e0141e6f2ac33969a84d6706a136ee82fc2a86bcef8463                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/sympy__sympy-11618/sympy
+__sympy-11618.traj.json'                                                        
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-97780da3 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-14248:latest sleep 2h      
+minisweagent.environment: INFO: Started container minisweagent-97780da3 with ID 
+5aeab12a7dcdca51818fb0839632439db4b5b1449a509f9ad09a6b6494dcb0df                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/sympy__sympy-13974/sympy
+__sympy-13974.traj.json'                                                        
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-164182d5 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-15976:latest sleep 2h      
+minisweagent.environment: INFO: Started container minisweagent-164182d5 with ID 
+594fc24c187e22f60b4abf205942b9036b76d428f30f4f330eee637c289f35ff                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/sympy__sympy-13852/sympy
+__sympy-13852.traj.json'                                                        
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-8d1a999c -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-17655:latest sleep 2h      
+minisweagent.environment: INFO: Started container minisweagent-8d1a999c with ID 
+cf61179f522940a046120a76da15dccb3ac30d36219d8950b6acd3274cfb4c8f                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/sympy__sympy-15976/sympy
+__sympy-15976.traj.json'                                                        
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-870ccae9 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-19040:latest sleep 2h      
+minisweagent.environment: INFO: Started container minisweagent-870ccae9 with ID 
+01f25083396da4ab4f3d6177e43a8787c919c2c55094914f7e8cbe3ae0419074                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/sympy__sympy-13551/sympy
+__sympy-13551.traj.json'                                                        
+minisweagent.environment: DEBUG: Starting container with command: docker run -d 
+--name minisweagent-90b8afc8 -w /testbed --rm                                   
+docker.io/swebench/sweb.eval.x86_64.sympy_1776_sympy-20916:latest sleep 2h      
+minisweagent.environment: INFO: Started container minisweagent-90b8afc8 with ID 
+9807cf2ff337df1fe2d3ef29bb5d58b50d3d7a02ca4b9692e90203af6f7ff61d                
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/sympy__sympy-14248/sympy
+__sympy-14248.traj.json'                                                        
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/sympy__sympy-20916/sympy
+__sympy-20916.traj.json'                                                        
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/sympy__sympy-19040/sympy
+__sympy-19040.traj.json'                                                        
+minisweagent: INFO: Saved trajectory to                                         
+'/Users/jchilders/workspaces/warpcore-benchmarks/results/qwen3.8-flash-next/runs
+/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/sympy__sympy-17655/sympy
+__sympy-17655.traj.json'                                                        
+  Overall Progress ($0.00) ━━━━━━━━━━━━━━━━━━━ 100/100 100% 7:48:21 eta: 0:00:00
+┏━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Exit Status ┃ Count ┃ Most recent instances                                  ┃
+┡━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ Submitted   │   100 │ sympy__sympy-17655, sympy__sympy-19040,                │
+│             │       │ sympy__sympy...                                        │
+└─────────────┴───────┴────────────────────────────────────────────────────────┘

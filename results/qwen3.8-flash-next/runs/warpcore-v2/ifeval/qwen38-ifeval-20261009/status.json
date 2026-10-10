@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "run_id": "qwen38-ifeval-20261009",
+  "suite_id": "warpcore-v2",
+  "execution_state": "validated",
+  "lifecycle": "current",
+  "history": [
+    {
+      "state": "planned",
+      "timestamp": "2026-10-09T14:23:42Z",
+      "note": "Campaign initialized by create_campaign"
+    },
+    {
+      "state": "preflight_passed",
+      "timestamp": "2026-10-09T14:24:13Z"
+    },
+    {
+      "state": "running",
+      "timestamp": "2026-10-09T14:24:13Z"
+    },
+    {
+      "state": "completed",
+      "timestamp": "2026-10-09T21:18:34Z"
+    },
+    {
+      "state": "validated",
+      "timestamp": "2026-10-10T22:32:15Z"
+    }
+  ]
+}

@@ -179,5 +179,35 @@
    "submitted": 89,
    "value": 57.0
   }
+ },
+ "qwen3.8-flash-next": {
+  "gpqa": {
+   "src": "runs/warpcore-v2/gpqa_diamond/qwen38-gpqa-diamond-20261009/raw/qwen3.8-flash-next/results_2026-10-10T02-02-39.391524.json",
+   "stderr": 2.33,
+   "value": 87.88
+  },
+  "gsm8k": {
+   "note": "validated full-denominator score 1289/1319; two correct answers restored from three retained parser-empty responses",
+   "src": "runs/warpcore-v2/gsm8k/qwen38-gsm8k-20261009/raw/qwen3.8-flash-next/results_2026-10-09T08-53-54.878262.json + per_item.csv + raw/response_metadata.jsonl",
+   "stderr": 0.42,
+   "value": 97.73
+  },
+  "ifeval": {
+   "src": "runs/warpcore-v2/ifeval/qwen38-ifeval-20261009/raw/qwen3.8-flash-next/results_2026-10-09T16-18-32.879926.json",
+   "stderr": 1.34,
+   "value": 89.09
+  },
+  "swebench": {
+   "empty_patch": 0,
+   "expected": 100,
+   "grading_error": 0,
+   "incomplete": 0,
+   "lifecycle": "current",
+   "provenance": "normalized-complete",
+   "resolve_rate": 97.0,
+   "src": "results/qwen3.8-flash-next/runs/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/grading_results.json",
+   "submitted": 100,
+   "value": 97.0
+  }
  }
 }
