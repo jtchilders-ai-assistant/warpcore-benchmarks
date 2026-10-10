@@ -38,6 +38,7 @@ C = {
     "qwen3.6-35b-a3b": "#56B4E9",
     "qwen3.6-35b-a3b-prismaquant-4.75bit": "#000000",
     "laguna-s-2.1-118b": "#7F7F7F",
+    "qwen3.8-flash-next": "#E67E22",
 }
 SHORT = {
     "gpt-oss-120b": "gpt-oss-120b",
@@ -49,6 +50,7 @@ SHORT = {
     "qwen3.6-35b-a3b": "Qwen3.6-35B",
     "qwen3.6-35b-a3b-prismaquant-4.75bit": "Qwen3.6-35B-Prisma",
     "laguna-s-2.1-118b": "Laguna-S-2.1-118B",
+    "qwen3.8-flash-next": "Qwen3.8-Flash-Next",
 }
 TINY = {
     "ornith-35b": "Ornith 1.0",
@@ -57,6 +59,7 @@ TINY = {
     "qwen3.6-35b-a3b": "Qwen3.6",
     "qwen3.6-35b-a3b-prismaquant-4.75bit": "Qwen3.6 Prisma",
     "laguna-s-2.1-118b": "Laguna",
+    "qwen3.8-flash-next": "Qwen3.8",
 }
 
 # The models with a SWE-bench Verified n=100 run on the IDENTICAL seed-42 set,
@@ -78,7 +81,8 @@ SWEBENCH_RESULTS = {
         "results/qwen3.6-35b-a3b/runs/warpcore-v1/swebench/qwen36-swebench-n100-20260919/raw/grading_results.json",
 }
 SWE_ORDER = ["ornith-35b", "ornith-1.5-35b-a3b", "laguna-s-2.1-118b",
-             "nemotron-3.5-lightning-30b", "qwen3.6-35b-a3b"]
+             "nemotron-3.5-lightning-30b", "qwen3.6-35b-a3b",
+             "qwen3.8-flash-next"]
 
 # Item counts per benchmark (harness configs / model cards).
 N_ITEMS = {"gsm8k": 1319, "ifeval": 541, "gpqa": 198, "swebench": 100}

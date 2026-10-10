@@ -1,0 +1,166 @@
+diff --git a/django/db/backends/mysql/operations.py b/django/db/backends/mysql/operations.py
+index 89730cee29..c2f0f8f7b8 100644
+--- a/django/db/backends/mysql/operations.py
++++ b/django/db/backends/mysql/operations.py
+@@ -2,6 +2,7 @@ import uuid
+ 
+ from django.conf import settings
+ from django.db.backends.base.operations import BaseDatabaseOperations
++from django.db.backends.utils import split_tzname_delta
+ from django.utils import timezone
+ from django.utils.encoding import force_str
+ 
+@@ -76,11 +77,8 @@ class DatabaseOperations(BaseDatabaseOperations):
+             return "DATE(%s)" % (field_name)
+ 
+     def _prepare_tzname_delta(self, tzname):
+-        if '+' in tzname:
+-            return tzname[tzname.find('+'):]
+-        elif '-' in tzname:
+-            return tzname[tzname.find('-'):]
+-        return tzname
++        tzname, sign, offset = split_tzname_delta(tzname)
++        return '%s%s' % (sign, offset) if offset else tzname
+ 
+     def _convert_field_to_tz(self, field_name, tzname):
+         if tzname and settings.USE_TZ and self.connection.timezone_name != tzname:
+diff --git a/django/db/backends/oracle/operations.py b/django/db/backends/oracle/operations.py
+index 4cfc7da070..5905c468f5 100644
+--- a/django/db/backends/oracle/operations.py
++++ b/django/db/backends/oracle/operations.py
+@@ -5,7 +5,9 @@ from functools import lru_cache
+ from django.conf import settings
+ from django.db import DatabaseError, NotSupportedError
+ from django.db.backends.base.operations import BaseDatabaseOperations
+-from django.db.backends.utils import strip_quotes, truncate_name
++from django.db.backends.utils import (
++    split_tzname_delta, strip_quotes, truncate_name,
++)
+ from django.db.models import AutoField, Exists, ExpressionWrapper, Lookup
+ from django.db.models.expressions import RawSQL
+ from django.db.models.sql.where import WhereNode
+@@ -108,11 +110,8 @@ END;
+     _tzname_re = _lazy_re_compile(r'^[\w/:+-]+$')
+ 
+     def _prepare_tzname_delta(self, tzname):
+-        if '+' in tzname:
+-            return tzname[tzname.find('+'):]
+-        elif '-' in tzname:
+-            return tzname[tzname.find('-'):]
+-        return tzname
++        tzname, sign, offset = split_tzname_delta(tzname)
++        return '%s%s' % (sign, offset) if offset else tzname
+ 
+     def _convert_field_to_tz(self, field_name, tzname):
+         if not (settings.USE_TZ and tzname):
+diff --git a/django/db/backends/postgresql/operations.py b/django/db/backends/postgresql/operations.py
+index 8d19872bea..1b219d6e07 100644
+--- a/django/db/backends/postgresql/operations.py
++++ b/django/db/backends/postgresql/operations.py
+@@ -2,6 +2,7 @@ from psycopg2.extras import Inet
+ 
+ from django.conf import settings
+ from django.db.backends.base.operations import BaseDatabaseOperations
++from django.db.backends.utils import split_tzname_delta
+ 
+ 
+ class DatabaseOperations(BaseDatabaseOperations):
+@@ -44,10 +45,10 @@ class DatabaseOperations(BaseDatabaseOperations):
+         return "DATE_TRUNC('%s', %s)" % (lookup_type, field_name)
+ 
+     def _prepare_tzname_delta(self, tzname):
+-        if '+' in tzname:
+-            return tzname.replace('+', '-')
+-        elif '-' in tzname:
+-            return tzname.replace('-', '+')
++        tzname, sign, offset = split_tzname_delta(tzname)
++        if offset:
++            sign = '-' if sign == '+' else '+'
++            return '%s%s%s' % (tzname, sign, offset)
+         return tzname
+ 
+     def _convert_field_to_tz(self, field_name, tzname):
+diff --git a/django/db/backends/sqlite3/base.py b/django/db/backends/sqlite3/base.py
+index a64190f0d0..bcf3a2d497 100644
+--- a/django/db/backends/sqlite3/base.py
++++ b/django/db/backends/sqlite3/base.py
+@@ -433,14 +433,11 @@ def _sqlite_datetime_parse(dt, tzname=None, conn_tzname=None):
+     if conn_tzname:
+         dt = dt.replace(tzinfo=pytz.timezone(conn_tzname))
+     if tzname is not None and tzname != conn_tzname:
+-        sign_index = tzname.find('+') + tzname.find('-') + 1
+-        if sign_index > -1:
+-            sign = tzname[sign_index]
+-            tzname, offset = tzname.split(sign)
+-            if offset:
+-                hours, minutes = offset.split(':')
+-                offset_delta = datetime.timedelta(hours=int(hours), minutes=int(minutes))
+-                dt += offset_delta if sign == '+' else -offset_delta
++        tzname, sign, offset = backend_utils.split_tzname_delta(tzname)
++        if offset:
++            hours, minutes = offset.split(':')
++            offset_delta = datetime.timedelta(hours=int(hours), minutes=int(minutes))
++            dt += offset_delta if sign == '+' else -offset_delta
+         dt = timezone.localtime(dt, pytz.timezone(tzname))
+     return dt
+ 
+diff --git a/django/db/backends/utils.py b/django/db/backends/utils.py
+index c342cf79b5..ff7523742f 100644
+--- a/django/db/backends/utils.py
++++ b/django/db/backends/utils.py
+@@ -7,6 +7,7 @@ import time
+ from contextlib import contextmanager
+ 
+ from django.db import NotSupportedError
++from django.utils.dateparse import parse_time
+ 
+ logger = logging.getLogger('django.db.backends')
+ 
+@@ -130,6 +131,18 @@ class CursorDebugWrapper(CursorWrapper):
+             )
+ 
+ 
++def split_tzname_delta(tzname):
++    """
++    Split a time zone name into a 3-tuple of (name, sign, offset).
++    """
++    for sign in ['+', '-']:
++        if sign in tzname:
++            name, offset = tzname.rsplit(sign, 1)
++            if offset and parse_time(offset):
++                return name, sign, offset
++    return tzname, None, None
++
++
+ ###############################################
+ # Converters from database (string) to Python #
+ ###############################################
+diff --git a/django/utils/timezone.py b/django/utils/timezone.py
+index bb2b6b9594..0f5d012c59 100644
+--- a/django/utils/timezone.py
++++ b/django/utils/timezone.py
+@@ -72,8 +72,11 @@ def get_current_timezone_name():
+ 
+ 
+ def _get_timezone_name(timezone):
+-    """Return the name of ``timezone``."""
+-    return str(timezone)
++    """
++    Return the offset for fixed offset timezones, or the name of timezone if
++    not set.
++    """
++    return timezone.tzname(None) or str(timezone)
+ 
+ # Timezone selection functions.
+ 
+diff --git a/docs/releases/3.2.7.txt b/docs/releases/3.2.7.txt
+index 0219460649..644e71dafd 100644
+--- a/docs/releases/3.2.7.txt
++++ b/docs/releases/3.2.7.txt
+@@ -9,4 +9,5 @@ Django 3.2.7 fixes several bugs in 3.2.6.
+ Bugfixes
+ ========
+ 
+-* ...
++* Fixed a regression in Django 3.2 that caused the incorrect offset extraction
++  from fixed offset timezones (:ticket:`32992`).

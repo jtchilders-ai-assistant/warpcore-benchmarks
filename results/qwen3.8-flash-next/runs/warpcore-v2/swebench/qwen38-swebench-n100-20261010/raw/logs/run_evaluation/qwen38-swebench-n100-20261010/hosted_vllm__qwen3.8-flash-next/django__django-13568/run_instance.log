@@ -1,0 +1,91 @@
+2026-10-10 16:47:10,710 - INFO - Creating container for django__django-13568...
+2026-10-10 16:47:10,887 - INFO - Container for django__django-13568 created: 94d445e88a2ecf2667feb507ba47d8035ffaf116b884a94213e8c4a66d3639a6
+2026-10-10 16:47:11,258 - INFO - Container for django__django-13568 started: 94d445e88a2ecf2667feb507ba47d8035ffaf116b884a94213e8c4a66d3639a6
+2026-10-10 16:47:11,261 - INFO - Intermediate patch for django__django-13568 written to logs/run_evaluation/qwen38-swebench-n100-20261010/hosted_vllm__qwen3.8-flash-next/django__django-13568/patch.diff, now applying to container...
+2026-10-10 16:47:11,718 - INFO - >>>>> Applied Patch:
+Checking patch django/contrib/auth/checks.py...
+Checking patch docs/releases/3.2.txt...
+Applied patch django/contrib/auth/checks.py cleanly.
+Applied patch docs/releases/3.2.txt cleanly.
+
+2026-10-10 16:47:15,507 - INFO - Git diff before:
+diff --git a/django/contrib/auth/checks.py b/django/contrib/auth/checks.py
+index 65fc266f7e..646ac9f725 100644
+--- a/django/contrib/auth/checks.py
++++ b/django/contrib/auth/checks.py
+@@ -51,8 +51,12 @@ def check_user_model(app_configs=None, **kwargs):
+             )
+         )
+ 
+-    # Check that the username field is unique
+-    if not cls._meta.get_field(cls.USERNAME_FIELD).unique:
++    # Check that the username field is unique. The uniqueness is validated if
++    # there is a unique constraint on the field.
++    if not cls._meta.get_field(cls.USERNAME_FIELD).unique and not any(
++        constraint.fields == (cls.USERNAME_FIELD,)
++        for constraint in cls._meta.total_unique_constraints
++    ):
+         if (settings.AUTHENTICATION_BACKENDS ==
+                 ['django.contrib.auth.backends.ModelBackend']):
+             errors.append(
+diff --git a/docs/releases/3.2.txt b/docs/releases/3.2.txt
+index d61f66733d..37e748d5bc 100644
+--- a/docs/releases/3.2.txt
++++ b/docs/releases/3.2.txt
+@@ -86,6 +86,11 @@ Minor features
+ * The default iteration count for the PBKDF2 password hasher is increased from
+   216,000 to 260,000.
+ 
++* The ``auth.E003`` and ``auth.W004`` checks now consider a
++  :class:`~django.db.models.UniqueConstraint` covering only the field named by
++  :attr:`~django.contrib.auth.models.CustomUser.USERNAME_FIELD` as making it
++  unique.
++
+ * The default variant for the Argon2 password hasher is changed to Argon2id.
+   ``memory_cost`` and ``parallelism`` are increased to 102,400 and 8
+   respectively to match the ``argon2-cffi`` defaults.
+2026-10-10 16:47:15,508 - INFO - Eval script for django__django-13568 written to logs/run_evaluation/qwen38-swebench-n100-20261010/hosted_vllm__qwen3.8-flash-next/django__django-13568/eval.sh; copying to container...
+2026-10-10 16:47:27,320 - INFO - Test runtime: 11.70 seconds
+2026-10-10 16:47:27,320 - INFO - Test output for django__django-13568 written to logs/run_evaluation/qwen38-swebench-n100-20261010/hosted_vllm__qwen3.8-flash-next/django__django-13568/test_output.txt
+2026-10-10 16:47:27,412 - INFO - Git diff after:
+diff --git a/django/contrib/auth/checks.py b/django/contrib/auth/checks.py
+index 65fc266f7e..646ac9f725 100644
+--- a/django/contrib/auth/checks.py
++++ b/django/contrib/auth/checks.py
+@@ -51,8 +51,12 @@ def check_user_model(app_configs=None, **kwargs):
+             )
+         )
+ 
+-    # Check that the username field is unique
+-    if not cls._meta.get_field(cls.USERNAME_FIELD).unique:
++    # Check that the username field is unique. The uniqueness is validated if
++    # there is a unique constraint on the field.
++    if not cls._meta.get_field(cls.USERNAME_FIELD).unique and not any(
++        constraint.fields == (cls.USERNAME_FIELD,)
++        for constraint in cls._meta.total_unique_constraints
++    ):
+         if (settings.AUTHENTICATION_BACKENDS ==
+                 ['django.contrib.auth.backends.ModelBackend']):
+             errors.append(
+diff --git a/docs/releases/3.2.txt b/docs/releases/3.2.txt
+index d61f66733d..37e748d5bc 100644
+--- a/docs/releases/3.2.txt
++++ b/docs/releases/3.2.txt
+@@ -86,6 +86,11 @@ Minor features
+ * The default iteration count for the PBKDF2 password hasher is increased from
+   216,000 to 260,000.
+ 
++* The ``auth.E003`` and ``auth.W004`` checks now consider a
++  :class:`~django.db.models.UniqueConstraint` covering only the field named by
++  :attr:`~django.contrib.auth.models.CustomUser.USERNAME_FIELD` as making it
++  unique.
++
+ * The default variant for the Argon2 password hasher is changed to Argon2id.
+   ``memory_cost`` and ``parallelism`` are increased to 102,400 and 8
+   respectively to match the ``argon2-cffi`` defaults.
+2026-10-10 16:47:27,412 - INFO - Grading answer for django__django-13568...
+2026-10-10 16:47:27,412 - INFO - report: {'django__django-13568': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_username_unique_with_model_constraint (auth_tests.test_checks.UserModelChecksTests)'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_clashing_custom_permissions (auth_tests.test_checks.ModelsPermissionsChecksTests)', 'test_clashing_default_permissions (auth_tests.test_checks.ModelsPermissionsChecksTests)', 'test_custom_permission_codename_max_length (auth_tests.test_checks.ModelsPermissionsChecksTests)', 'test_custom_permission_name_max_length (auth_tests.test_checks.ModelsPermissionsChecksTests)', 'test_empty_default_permissions (auth_tests.test_checks.ModelsPermissionsChecksTests)', 'test_model_name_max_length (auth_tests.test_checks.ModelsPermissionsChecksTests)', 'test_non_clashing_custom_permissions (auth_tests.test_checks.ModelsPermissionsChecksTests)', 'test_verbose_name_max_length (auth_tests.test_checks.ModelsPermissionsChecksTests)', 'test_is_anonymous_authenticated_methods (auth_tests.test_checks.UserModelChecksTests)', 'REQUIRED_FIELDS should be a list.', 'test_username_non_unique (auth_tests.test_checks.UserModelChecksTests)', 'USERNAME_FIELD should not appear in REQUIRED_FIELDS.', 'test_username_partially_unique (auth_tests.test_checks.UserModelChecksTests)'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-13568: resolved: True
+2026-10-10 16:47:27,413 - INFO - Attempting to stop container sweb.eval.django__django-13568.qwen38-swebench-n100-20261010...
+2026-10-10 16:47:42,615 - INFO - Attempting to remove container sweb.eval.django__django-13568.qwen38-swebench-n100-20261010...
+2026-10-10 16:47:42,898 - INFO - Container sweb.eval.django__django-13568.qwen38-swebench-n100-20261010 removed.

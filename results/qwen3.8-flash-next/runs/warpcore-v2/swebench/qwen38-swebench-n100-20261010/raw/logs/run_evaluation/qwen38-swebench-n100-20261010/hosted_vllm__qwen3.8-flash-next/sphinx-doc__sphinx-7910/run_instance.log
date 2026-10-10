@@ -1,0 +1,121 @@
+2026-10-10 16:57:50,894 - INFO - Creating container for sphinx-doc__sphinx-7910...
+2026-10-10 16:57:51,106 - INFO - Container for sphinx-doc__sphinx-7910 created: ce8a39224f43eb47d8a85603a03a98a9594a164c3d32b8e78a69880f24de720a
+2026-10-10 16:57:51,461 - INFO - Container for sphinx-doc__sphinx-7910 started: ce8a39224f43eb47d8a85603a03a98a9594a164c3d32b8e78a69880f24de720a
+2026-10-10 16:57:51,462 - INFO - Intermediate patch for sphinx-doc__sphinx-7910 written to logs/run_evaluation/qwen38-swebench-n100-20261010/hosted_vllm__qwen3.8-flash-next/sphinx-doc__sphinx-7910/patch.diff, now applying to container...
+2026-10-10 16:57:51,924 - INFO - >>>>> Applied Patch:
+Checking patch CHANGES...
+Checking patch sphinx/ext/napoleon/__init__.py...
+Checking patch sphinx/testing/util.py...
+Applied patch CHANGES cleanly.
+Applied patch sphinx/ext/napoleon/__init__.py cleanly.
+Applied patch sphinx/testing/util.py cleanly.
+
+2026-10-10 16:57:53,122 - INFO - Git diff before:
+diff --git a/CHANGES b/CHANGES
+index 894b9447a..2e47ffcfb 100644
+--- a/CHANGES
++++ b/CHANGES
+@@ -24,6 +24,7 @@ Features added
+ Bugs fixed
+ ----------
+ 
++* #4258: napoleon: decorated special methods are not shown
+ * #7886: autodoc: TypeError is raised on mocking generic-typed classes
+ * #7839: autosummary: cannot handle umlauts in function names
+ * #7865: autosummary: Failed to extract summary line when abbreviations found
+diff --git a/sphinx/ext/napoleon/__init__.py b/sphinx/ext/napoleon/__init__.py
+index 10b1ff3a3..2b1818425 100644
+--- a/sphinx/ext/napoleon/__init__.py
++++ b/sphinx/ext/napoleon/__init__.py
+@@ -13,6 +13,7 @@ from typing import Any, Dict, List
+ from sphinx import __display_version__ as __version__
+ from sphinx.application import Sphinx
+ from sphinx.ext.napoleon.docstring import GoogleDocstring, NumpyDocstring
++from sphinx.util import inspect
+ 
+ 
+ class Config:
+@@ -438,7 +439,7 @@ def _skip_member(app: Sphinx, what: str, name: str, obj: Any,
+                         mod_path = cls_path.split('.')
+                         cls = functools.reduce(getattr, mod_path, mod)
+                     else:
+-                        cls = obj.__globals__[cls_path]
++                        cls = inspect.unwrap(obj).__globals__[cls_path]
+                 except Exception:
+                     cls_is_owner = False
+                 else:
+diff --git a/sphinx/testing/util.py b/sphinx/testing/util.py
+index 450241f55..b18f9e07c 100644
+--- a/sphinx/testing/util.py
++++ b/sphinx/testing/util.py
+@@ -7,12 +7,13 @@
+     :copyright: Copyright 2007-2020 by the Sphinx team, see AUTHORS.
+     :license: BSD, see LICENSE for details.
+ """
++import functools
+ import os
+ import re
+ import sys
+ import warnings
+ from io import StringIO
+-from typing import Any, Dict, Generator, IO, List, Pattern
++from typing import Any, Callable, Dict, Generator, IO, List, Pattern
+ from xml.etree import ElementTree
+ 
+ from docutils import nodes
+@@ -195,3 +196,11 @@ def find_files(root: str, suffix: bool = None) -> Generator[str, None, None]:
+ 
+ def strip_escseq(text: str) -> str:
+     return re.sub('\x1b.*?m', '', text)
++
++
++def simple_decorator(f: Callable) -> Callable:
++    """A simple decorator that does nothing, for tests to use."""
++    @functools.wraps(f)
++    def wrapper(*args: Any, **kwargs: Any) -> Any:
++        return f(*args, **kwargs)
++    return wrapper
+2026-10-10 16:57:53,122 - INFO - Eval script for sphinx-doc__sphinx-7910 written to logs/run_evaluation/qwen38-swebench-n100-20261010/hosted_vllm__qwen3.8-flash-next/sphinx-doc__sphinx-7910/eval.sh; copying to container...
+2026-10-10 16:58:01,470 - INFO - Test runtime: 8.22 seconds
+2026-10-10 16:58:01,471 - INFO - Test output for sphinx-doc__sphinx-7910 written to logs/run_evaluation/qwen38-swebench-n100-20261010/hosted_vllm__qwen3.8-flash-next/sphinx-doc__sphinx-7910/test_output.txt
+2026-10-10 16:58:01,709 - INFO - Git diff after:
+diff --git a/CHANGES b/CHANGES
+index 894b9447a..2e47ffcfb 100644
+--- a/CHANGES
++++ b/CHANGES
+@@ -24,6 +24,7 @@ Features added
+ Bugs fixed
+ ----------
+ 
++* #4258: napoleon: decorated special methods are not shown
+ * #7886: autodoc: TypeError is raised on mocking generic-typed classes
+ * #7839: autosummary: cannot handle umlauts in function names
+ * #7865: autosummary: Failed to extract summary line when abbreviations found
+diff --git a/sphinx/ext/napoleon/__init__.py b/sphinx/ext/napoleon/__init__.py
+index 10b1ff3a3..2b1818425 100644
+--- a/sphinx/ext/napoleon/__init__.py
++++ b/sphinx/ext/napoleon/__init__.py
+@@ -13,6 +13,7 @@ from typing import Any, Dict, List
+ from sphinx import __display_version__ as __version__
+ from sphinx.application import Sphinx
+ from sphinx.ext.napoleon.docstring import GoogleDocstring, NumpyDocstring
++from sphinx.util import inspect
+ 
+ 
+ class Config:
+@@ -438,7 +439,7 @@ def _skip_member(app: Sphinx, what: str, name: str, obj: Any,
+                         mod_path = cls_path.split('.')
+                         cls = functools.reduce(getattr, mod_path, mod)
+                     else:
+-                        cls = obj.__globals__[cls_path]
++                        cls = inspect.unwrap(obj).__globals__[cls_path]
+                 except Exception:
+                     cls_is_owner = False
+                 else:
+2026-10-10 16:58:01,709 - INFO - Git diff changed after running eval script
+2026-10-10 16:58:01,710 - INFO - Grading answer for sphinx-doc__sphinx-7910...
+2026-10-10 16:58:01,711 - INFO - report: {'sphinx-doc__sphinx-7910': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['tests/test_ext_napoleon.py::SkipMemberTest::test_class_decorated_doc'], 'failure': []}, 'PASS_TO_PASS': {'success': ['tests/test_ext_napoleon.py::ProcessDocstringTest::test_modify_in_place', 'tests/test_ext_napoleon.py::SetupTest::test_add_config_values', 'tests/test_ext_napoleon.py::SetupTest::test_unknown_app_type', 'tests/test_ext_napoleon.py::SkipMemberTest::test_class_private_doc', 'tests/test_ext_napoleon.py::SkipMemberTest::test_class_private_undoc', 'tests/test_ext_napoleon.py::SkipMemberTest::test_class_special_doc', 'tests/test_ext_napoleon.py::SkipMemberTest::test_class_special_undoc', 'tests/test_ext_napoleon.py::SkipMemberTest::test_exception_private_doc', 'tests/test_ext_napoleon.py::SkipMemberTest::test_exception_private_undoc', 'tests/test_ext_napoleon.py::SkipMemberTest::test_exception_special_doc', 'tests/test_ext_napoleon.py::SkipMemberTest::test_exception_special_undoc', 'tests/test_ext_napoleon.py::SkipMemberTest::test_module_private_doc', 'tests/test_ext_napoleon.py::SkipMemberTest::test_module_private_undoc', 'tests/test_ext_napoleon.py::SkipMemberTest::test_module_special_doc', 'tests/test_ext_napoleon.py::SkipMemberTest::test_module_special_undoc', 'tests/test_ext_napoleon.py::SkipMemberTest::test_namedtuple'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sphinx-doc__sphinx-7910: resolved: True
+2026-10-10 16:58:01,712 - INFO - Attempting to stop container sweb.eval.sphinx-doc__sphinx-7910.qwen38-swebench-n100-20261010...
+2026-10-10 16:58:16,998 - INFO - Attempting to remove container sweb.eval.sphinx-doc__sphinx-7910.qwen38-swebench-n100-20261010...
+2026-10-10 16:58:17,231 - INFO - Container sweb.eval.sphinx-doc__sphinx-7910.qwen38-swebench-n100-20261010 removed.

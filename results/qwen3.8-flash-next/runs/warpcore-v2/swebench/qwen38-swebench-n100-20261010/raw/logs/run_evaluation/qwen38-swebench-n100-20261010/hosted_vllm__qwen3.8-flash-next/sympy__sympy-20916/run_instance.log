@@ -1,0 +1,45 @@
+2026-10-10 17:01:48,237 - INFO - Creating container for sympy__sympy-20916...
+2026-10-10 17:01:48,425 - INFO - Container for sympy__sympy-20916 created: 87aef1c526aaa4a16f3f409fbdddbc5c6d9bd25a6b63c87fe3f71b7d7f8104fc
+2026-10-10 17:01:48,809 - INFO - Container for sympy__sympy-20916 started: 87aef1c526aaa4a16f3f409fbdddbc5c6d9bd25a6b63c87fe3f71b7d7f8104fc
+2026-10-10 17:01:48,809 - INFO - Intermediate patch for sympy__sympy-20916 written to logs/run_evaluation/qwen38-swebench-n100-20261010/hosted_vllm__qwen3.8-flash-next/sympy__sympy-20916/patch.diff, now applying to container...
+2026-10-10 17:01:49,251 - INFO - >>>>> Applied Patch:
+Checking patch sympy/printing/conventions.py...
+Applied patch sympy/printing/conventions.py cleanly.
+
+2026-10-10 17:01:51,067 - INFO - Git diff before:
+diff --git a/sympy/printing/conventions.py b/sympy/printing/conventions.py
+index 9a3be6bbe9..83d8896421 100644
+--- a/sympy/printing/conventions.py
++++ b/sympy/printing/conventions.py
+@@ -7,7 +7,7 @@
+ from collections.abc import Iterable
+ from sympy import Derivative
+ 
+-_name_with_digits_p = re.compile(r'^([a-zA-Z]+)([0-9]+)$')
++_name_with_digits_p = re.compile(r'^([^\W\d_]+)(\d+)$', re.U)
+ 
+ 
+ def split_super_sub(text):
+2026-10-10 17:01:51,067 - INFO - Eval script for sympy__sympy-20916 written to logs/run_evaluation/qwen38-swebench-n100-20261010/hosted_vllm__qwen3.8-flash-next/sympy__sympy-20916/eval.sh; copying to container...
+2026-10-10 17:02:01,123 - INFO - Test runtime: 9.89 seconds
+2026-10-10 17:02:01,123 - INFO - Test output for sympy__sympy-20916 written to logs/run_evaluation/qwen38-swebench-n100-20261010/hosted_vllm__qwen3.8-flash-next/sympy__sympy-20916/test_output.txt
+2026-10-10 17:02:01,295 - INFO - Git diff after:
+diff --git a/sympy/printing/conventions.py b/sympy/printing/conventions.py
+index 9a3be6bbe9..83d8896421 100644
+--- a/sympy/printing/conventions.py
++++ b/sympy/printing/conventions.py
+@@ -7,7 +7,7 @@
+ from collections.abc import Iterable
+ from sympy import Derivative
+ 
+-_name_with_digits_p = re.compile(r'^([a-zA-Z]+)([0-9]+)$')
++_name_with_digits_p = re.compile(r'^([^\W\d_]+)(\d+)$', re.U)
+ 
+ 
+ def split_super_sub(text):
+2026-10-10 17:02:01,296 - INFO - Grading answer for sympy__sympy-20916...
+2026-10-10 17:02:01,296 - INFO - report: {'sympy__sympy-20916': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_super_sub'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_requires_partial'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-20916: resolved: True
+2026-10-10 17:02:01,297 - INFO - Attempting to stop container sweb.eval.sympy__sympy-20916.qwen38-swebench-n100-20261010...
+2026-10-10 17:02:16,626 - INFO - Attempting to remove container sweb.eval.sympy__sympy-20916.qwen38-swebench-n100-20261010...
+2026-10-10 17:02:16,888 - INFO - Container sweb.eval.sympy__sympy-20916.qwen38-swebench-n100-20261010 removed.

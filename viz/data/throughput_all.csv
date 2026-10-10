@@ -102,3 +102,13 @@ qwen3.6-35b-a3b-prismaquant-4.75bit,32,96,96.0,43.31,567.43,958.9,639.56,2941.25
 qwen3.6-35b-a3b-prismaquant-4.75bit,64,192,192.0,70.76,694.66,1761.74,1027.1,6661.12,79.04,results/qwen3.6-35b-a3b-prismaquant-4.75bit/raw/throughput_sweep/sweep.log
 qwen3.6-35b-a3b-prismaquant-4.75bit,96,288,288.0,96.68,762.64,2691.97,1346.79,11425.01,107.14,results/qwen3.6-35b-a3b-prismaquant-4.75bit/raw/throughput_sweep/sweep.log
 qwen3.6-35b-a3b-prismaquant-4.75bit,128,384,384.0,122.56,802.07,3689.06,1640.18,16561.39,135.19,results/qwen3.6-35b-a3b-prismaquant-4.75bit/raw/throughput_sweep/sweep.log
+qwen3.8-flash-next,2,32,32.0,212.62,38.53,488.91,476.74,652.88,50.12,results/qwen3.8-flash-next/raw/throughput_sweep/sweep.log
+qwen3.8-flash-next,4,32,32.0,145.63,56.25,590.64,527.4,939.59,66.94,results/qwen3.8-flash-next/raw/throughput_sweep/sweep.log
+qwen3.8-flash-next,8,32,32.0,102.04,80.28,918.09,655.81,1648.76,88.14,results/qwen3.8-flash-next/raw/throughput_sweep/sweep.log
+qwen3.8-flash-next,16,48,48.0,113.99,107.8,1754.92,1097.46,3356.32,130.19,results/qwen3.8-flash-next/raw/throughput_sweep/sweep.log
+qwen3.8-flash-next,32,96,96.0,194.95,126.06,19105.55,20773.64,35501.72,152.29,results/qwen3.8-flash-next/raw/throughput_sweep/sweep.log
+qwen3.8-flash-next,64,192,192.0,378.29,129.93,70570.04,81984.68,97017.37,152.0,results/qwen3.8-flash-next/raw/throughput_sweep/sweep.log
+qwen3.8-flash-next,96,288,288.0,573.72,128.51,123656.15,145219.64,161042.29,156.96,results/qwen3.8-flash-next/raw/throughput_sweep/sweep.log
+qwen3.8-flash-next,128,384,384.0,771.72,127.38,175585.21,208235.95,222334.78,157.36,results/qwen3.8-flash-next/raw/throughput_sweep/sweep.log
+qwen3.8-flash-next,192,384,384.0,785.36,125.17,258061.11,335612.68,357012.87,160.71,results/qwen3.8-flash-next/raw/throughput_sweep/sweep.log
+qwen3.8-flash-next,256,384,384.0,773.51,127.09,308564.75,352318.58,482057.77,158.06,results/qwen3.8-flash-next/raw/throughput_sweep/sweep.log

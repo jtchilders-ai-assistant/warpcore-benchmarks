@@ -1,0 +1,293 @@
+2026-10-10 17:01:08,427 - INFO - Creating container for sympy__sympy-17655...
+2026-10-10 17:01:08,633 - INFO - Container for sympy__sympy-17655 created: 5cffc686fd5462f8598615a6bdf99ae417bae96e7477a971ffcf3cd66a6e38af
+2026-10-10 17:01:09,216 - INFO - Container for sympy__sympy-17655 started: 5cffc686fd5462f8598615a6bdf99ae417bae96e7477a971ffcf3cd66a6e38af
+2026-10-10 17:01:09,217 - INFO - Intermediate patch for sympy__sympy-17655 written to logs/run_evaluation/qwen38-swebench-n100-20261010/hosted_vllm__qwen3.8-flash-next/sympy__sympy-17655/patch.diff, now applying to container...
+2026-10-10 17:01:09,685 - INFO - >>>>> Applied Patch:
+Checking patch sympy/geometry/point.py...
+Applied patch sympy/geometry/point.py cleanly.
+
+2026-10-10 17:01:11,942 - INFO - Git diff before:
+diff --git a/sympy/geometry/point.py b/sympy/geometry/point.py
+index 7c978c47be..2429dd7a3e 100644
+--- a/sympy/geometry/point.py
++++ b/sympy/geometry/point.py
+@@ -105,6 +105,13 @@ class Point(GeometryEntity):
+ 
+     is_Point = True
+ 
++    # Point is not an Expr but it knows how to combine itself with
++    # other objects using the arithmetic operations defined below.
++    # A priority higher than the one of Expr makes sure that those
++    # operations are used (instead of the generic ones of Expr) when
++    # a Point is combined with a number, e.g. in `2*Point(1, 2)`.
++    _op_priority = 11.0
++
+     def __new__(cls, *args, **kwargs):
+         evaluate = kwargs.get('evaluate', global_evaluate[0])
+         on_morph = kwargs.get('on_morph', 'ignore')
+@@ -269,12 +276,24 @@ def __mul__(self, factor):
+         >>> Point(1, 2)*11/10
+         Point2D(11/10, 11/5)
+ 
++        The factor must be a scalar, not another Point:
++
++        >>> Point(1, 2)*Point(3, 4)
++        Traceback (most recent call last):
++        ...
++        TypeError:
++        Expecting a scalar factor, not `Point2D`
++
+         See Also
+         ========
+ 
+         sympy.geometry.point.Point.scale
+         """
+         factor = sympify(factor)
++        if not isinstance(factor, Expr):
++            raise TypeError(filldedent('''
++                Expecting a scalar factor, not `{}`'''
++                                       .format(func_name(factor))))
+         coords = [simplify(x*factor) for x in self.args]
+         return Point(coords, evaluate=False)
+ 
+@@ -283,6 +302,85 @@ def __neg__(self):
+         coords = [-x for x in self.args]
+         return Point(coords, evaluate=False)
+ 
++    def __radd__(self, other):
++        """Add self to other.
++
++        Notes
++        =====
++
++        >>> from sympy.geometry.point import Point
++
++        A sequence of coordinates can be added to a Point from
++        either side:
++
++        >>> Point(1, 2) + (3, 4)
++        Point2D(4, 6)
++        >>> (3, 4) + Point(1, 2)
++        Point2D(4, 6)
++
++        See Also
++        ========
++
++        sympy.geometry.point.Point.__add__
++        """
++        return self + other
++
++    def __rdiv__(self, divisor):
++        """Divide a factor by point's coordinates.
++
++        Notes
++        =====
++
++        Dividing a factor by a Point is not defined:
++
++        >>> from sympy.geometry.point import Point
++        >>> 2/Point(1, 2)
++        Traceback (most recent call last):
++        ...
++        GeometryError: Don't know how to divide 2 by a Point object
++
++        See Also
++        ========
++
++        sympy.geometry.point.Point.__div__
++        """
++        raise GeometryError(
++            "Don't know how to divide {} by a Point object".format(divisor))
++
++    def __rmul__(self, factor):
++        """Multiply a factor by point's coordinates.
++
++        Notes
++        =====
++
++        >>> from sympy.geometry.point import Point
++        >>> 2*Point(1, 2)
++        Point2D(2, 4)
++
++        See Also
++        ========
++
++        sympy.geometry.point.Point.__mul__
++        """
++        return self.__mul__(factor)
++
++    def __rsub__(self, other):
++        """Subtract self from other.
++
++        Notes
++        =====
++
++        >>> from sympy.geometry.point import Point
++        >>> (3, 4) - Point(1, 2)
++        Point2D(2, 2)
++
++        See Also
++        ========
++
++        sympy.geometry.point.Point.__sub__
++        """
++        return -self + other
++
+     def __sub__(self, other):
+         """Subtract two points, or subtract a factor from this point's
+         coordinates."""
+@@ -853,6 +951,7 @@ def unit(self):
+     n = evalf
+ 
+     __truediv__ = __div__
++    __rtruediv__ = __rdiv__
+ 
+ class Point2D(Point):
+     """A point in a 2-dimensional Euclidean space.
+2026-10-10 17:01:11,943 - INFO - Eval script for sympy__sympy-17655 written to logs/run_evaluation/qwen38-swebench-n100-20261010/hosted_vllm__qwen3.8-flash-next/sympy__sympy-17655/eval.sh; copying to container...
+2026-10-10 17:02:10,029 - INFO - Test runtime: 57.94 seconds
+2026-10-10 17:02:10,029 - INFO - Test output for sympy__sympy-17655 written to logs/run_evaluation/qwen38-swebench-n100-20261010/hosted_vllm__qwen3.8-flash-next/sympy__sympy-17655/test_output.txt
+2026-10-10 17:02:10,159 - INFO - Git diff after:
+diff --git a/sympy/geometry/point.py b/sympy/geometry/point.py
+index 7c978c47be..2429dd7a3e 100644
+--- a/sympy/geometry/point.py
++++ b/sympy/geometry/point.py
+@@ -105,6 +105,13 @@ class Point(GeometryEntity):
+ 
+     is_Point = True
+ 
++    # Point is not an Expr but it knows how to combine itself with
++    # other objects using the arithmetic operations defined below.
++    # A priority higher than the one of Expr makes sure that those
++    # operations are used (instead of the generic ones of Expr) when
++    # a Point is combined with a number, e.g. in `2*Point(1, 2)`.
++    _op_priority = 11.0
++
+     def __new__(cls, *args, **kwargs):
+         evaluate = kwargs.get('evaluate', global_evaluate[0])
+         on_morph = kwargs.get('on_morph', 'ignore')
+@@ -269,12 +276,24 @@ def __mul__(self, factor):
+         >>> Point(1, 2)*11/10
+         Point2D(11/10, 11/5)
+ 
++        The factor must be a scalar, not another Point:
++
++        >>> Point(1, 2)*Point(3, 4)
++        Traceback (most recent call last):
++        ...
++        TypeError:
++        Expecting a scalar factor, not `Point2D`
++
+         See Also
+         ========
+ 
+         sympy.geometry.point.Point.scale
+         """
+         factor = sympify(factor)
++        if not isinstance(factor, Expr):
++            raise TypeError(filldedent('''
++                Expecting a scalar factor, not `{}`'''
++                                       .format(func_name(factor))))
+         coords = [simplify(x*factor) for x in self.args]
+         return Point(coords, evaluate=False)
+ 
+@@ -283,6 +302,85 @@ def __neg__(self):
+         coords = [-x for x in self.args]
+         return Point(coords, evaluate=False)
+ 
++    def __radd__(self, other):
++        """Add self to other.
++
++        Notes
++        =====
++
++        >>> from sympy.geometry.point import Point
++
++        A sequence of coordinates can be added to a Point from
++        either side:
++
++        >>> Point(1, 2) + (3, 4)
++        Point2D(4, 6)
++        >>> (3, 4) + Point(1, 2)
++        Point2D(4, 6)
++
++        See Also
++        ========
++
++        sympy.geometry.point.Point.__add__
++        """
++        return self + other
++
++    def __rdiv__(self, divisor):
++        """Divide a factor by point's coordinates.
++
++        Notes
++        =====
++
++        Dividing a factor by a Point is not defined:
++
++        >>> from sympy.geometry.point import Point
++        >>> 2/Point(1, 2)
++        Traceback (most recent call last):
++        ...
++        GeometryError: Don't know how to divide 2 by a Point object
++
++        See Also
++        ========
++
++        sympy.geometry.point.Point.__div__
++        """
++        raise GeometryError(
++            "Don't know how to divide {} by a Point object".format(divisor))
++
++    def __rmul__(self, factor):
++        """Multiply a factor by point's coordinates.
++
++        Notes
++        =====
++
++        >>> from sympy.geometry.point import Point
++        >>> 2*Point(1, 2)
++        Point2D(2, 4)
++
++        See Also
++        ========
++
++        sympy.geometry.point.Point.__mul__
++        """
++        return self.__mul__(factor)
++
++    def __rsub__(self, other):
++        """Subtract self from other.
++
++        Notes
++        =====
++
++        >>> from sympy.geometry.point import Point
++        >>> (3, 4) - Point(1, 2)
++        Point2D(2, 2)
++
++        See Also
++        ========
++
++        sympy.geometry.point.Point.__sub__
++        """
++        return -self + other
++
+     def __sub__(self, other):
+         """Subtract two points, or subtract a factor from this point's
+         coordinates."""
+@@ -853,6 +951,7 @@ def unit(self):
+     n = evalf
+ 
+     __truediv__ = __div__
++    __rtruediv__ = __rdiv__
+ 
+ class Point2D(Point):
+     """A point in a 2-dimensional Euclidean space.
+2026-10-10 17:02:10,159 - INFO - Grading answer for sympy__sympy-17655...
+2026-10-10 17:02:10,160 - INFO - report: {'sympy__sympy-17655': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_point', 'test_point3D'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_Point2D', 'test_issue_9214', 'test_issue_11617', 'test_transform', 'test_concyclic_doctest_bug', 'test_arguments', 'test_unit', 'test_dot', 'test__normalize_dimension'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sympy__sympy-17655: resolved: True
+2026-10-10 17:02:10,161 - INFO - Attempting to stop container sweb.eval.sympy__sympy-17655.qwen38-swebench-n100-20261010...
+2026-10-10 17:02:25,510 - INFO - Attempting to remove container sweb.eval.sympy__sympy-17655.qwen38-swebench-n100-20261010...
+2026-10-10 17:02:25,709 - INFO - Container sweb.eval.sympy__sympy-17655.qwen38-swebench-n100-20261010 removed.

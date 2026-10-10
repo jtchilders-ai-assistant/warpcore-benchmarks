@@ -1,0 +1,48 @@
+diff --git a/django/db/models/sql/query.py b/django/db/models/sql/query.py
+index 13a6809dd8..1fa9acbc86 100644
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -403,6 +403,7 @@ class Query(BaseExpression):
+         # Store annotation mask prior to temporarily adding aggregations for
+         # resolving purpose to facilitate their subsequent removal.
+         refs_subquery = False
++        refs_window = False
+         replacements = {}
+         annotation_select_mask = self.annotation_select_mask
+         for alias, aggregate_expr in aggregate_exprs.items():
+@@ -415,9 +416,14 @@ class Query(BaseExpression):
+             # Temporarily add aggregate to annotations to allow remaining
+             # members of `aggregates` to resolve against each others.
+             self.append_annotation_mask([alias])
++            aggregate_refs = aggregate.get_refs()
+             refs_subquery |= any(
+                 getattr(self.annotations[ref], "subquery", False)
+-                for ref in aggregate.get_refs()
++                for ref in aggregate_refs
++            )
++            refs_window |= any(
++                getattr(self.annotations[ref], "contains_over_clause", True)
++                for ref in aggregate_refs
+             )
+             aggregate = aggregate.replace_expressions(replacements)
+             self.annotations[alias] = aggregate
+@@ -451,6 +457,7 @@ class Query(BaseExpression):
+             or self.is_sliced
+             or has_existing_aggregation
+             or refs_subquery
++            or refs_window
+             or qualify
+             or self.distinct
+             or self.combinator
+diff --git a/docs/releases/4.2.4.txt b/docs/releases/4.2.4.txt
+index e8fd225516..3921dd9b3e 100644
+--- a/docs/releases/4.2.4.txt
++++ b/docs/releases/4.2.4.txt
+@@ -9,4 +9,6 @@ Django 4.2.4 fixes several bugs in 4.2.3.
+ Bugfixes
+ ========
+ 
+-* ...
++* Fixed a regression in Django 4.2 that caused a crash of
++  ``QuerySet.aggregate()`` with aggregates referencing window functions
++  (:ticket:`34717`).

@@ -1,0 +1,91 @@
+2026-10-10 16:44:46,652 - INFO - Creating container for django__django-11239...
+2026-10-10 16:44:46,837 - INFO - Container for django__django-11239 created: 9433ecaba0de16c28ebe7dbc18249be121c55168443aeb7d661cd8ca517ee0d7
+2026-10-10 16:44:47,163 - INFO - Container for django__django-11239 started: 9433ecaba0de16c28ebe7dbc18249be121c55168443aeb7d661cd8ca517ee0d7
+2026-10-10 16:44:47,168 - INFO - Intermediate patch for django__django-11239 written to logs/run_evaluation/qwen38-swebench-n100-20261010/hosted_vllm__qwen3.8-flash-next/django__django-11239/patch.diff, now applying to container...
+2026-10-10 16:44:47,562 - INFO - >>>>> Applied Patch:
+Checking patch django/db/backends/postgresql/client.py...
+Applied patch django/db/backends/postgresql/client.py cleanly.
+
+2026-10-10 16:44:51,830 - INFO - Git diff before:
+diff --git a/django/db/backends/postgresql/client.py b/django/db/backends/postgresql/client.py
+index cf4df76882..7f5215d6fd 100644
+--- a/django/db/backends/postgresql/client.py
++++ b/django/db/backends/postgresql/client.py
+@@ -17,6 +17,10 @@ class DatabaseClient(BaseDatabaseClient):
+         dbname = conn_params.get('database', '')
+         user = conn_params.get('user', '')
+         passwd = conn_params.get('password', '')
++        sslmode = conn_params.get('sslmode', '')
++        sslrootcert = conn_params.get('sslrootcert', '')
++        sslcert = conn_params.get('sslcert', '')
++        sslkey = conn_params.get('sslkey', '')
+ 
+         if user:
+             args += ['-U', user]
+@@ -26,10 +30,19 @@ class DatabaseClient(BaseDatabaseClient):
+             args += ['-p', str(port)]
+         args += [dbname]
+ 
+-        sigint_handler = signal.getsignal(signal.SIGINT)
+         subprocess_env = os.environ.copy()
+         if passwd:
+             subprocess_env['PGPASSWORD'] = str(passwd)
++        if sslmode:
++            subprocess_env['PGSSLMODE'] = str(sslmode)
++        if sslrootcert:
++            subprocess_env['PGSSLROOTCERT'] = str(sslrootcert)
++        if sslcert:
++            subprocess_env['PGSSLCERT'] = str(sslcert)
++        if sslkey:
++            subprocess_env['PGSSLKEY'] = str(sslkey)
++
++        sigint_handler = signal.getsignal(signal.SIGINT)
+         try:
+             # Allow SIGINT to pass to psql to abort queries.
+             signal.signal(signal.SIGINT, signal.SIG_IGN)
+2026-10-10 16:44:51,831 - INFO - Eval script for django__django-11239 written to logs/run_evaluation/qwen38-swebench-n100-20261010/hosted_vllm__qwen3.8-flash-next/django__django-11239/eval.sh; copying to container...
+2026-10-10 16:45:05,631 - INFO - Test runtime: 13.64 seconds
+2026-10-10 16:45:05,631 - INFO - Test output for django__django-11239 written to logs/run_evaluation/qwen38-swebench-n100-20261010/hosted_vllm__qwen3.8-flash-next/django__django-11239/test_output.txt
+2026-10-10 16:45:05,726 - INFO - Git diff after:
+diff --git a/django/db/backends/postgresql/client.py b/django/db/backends/postgresql/client.py
+index cf4df76882..7f5215d6fd 100644
+--- a/django/db/backends/postgresql/client.py
++++ b/django/db/backends/postgresql/client.py
+@@ -17,6 +17,10 @@ class DatabaseClient(BaseDatabaseClient):
+         dbname = conn_params.get('database', '')
+         user = conn_params.get('user', '')
+         passwd = conn_params.get('password', '')
++        sslmode = conn_params.get('sslmode', '')
++        sslrootcert = conn_params.get('sslrootcert', '')
++        sslcert = conn_params.get('sslcert', '')
++        sslkey = conn_params.get('sslkey', '')
+ 
+         if user:
+             args += ['-U', user]
+@@ -26,10 +30,19 @@ class DatabaseClient(BaseDatabaseClient):
+             args += ['-p', str(port)]
+         args += [dbname]
+ 
+-        sigint_handler = signal.getsignal(signal.SIGINT)
+         subprocess_env = os.environ.copy()
+         if passwd:
+             subprocess_env['PGPASSWORD'] = str(passwd)
++        if sslmode:
++            subprocess_env['PGSSLMODE'] = str(sslmode)
++        if sslrootcert:
++            subprocess_env['PGSSLROOTCERT'] = str(sslrootcert)
++        if sslcert:
++            subprocess_env['PGSSLCERT'] = str(sslcert)
++        if sslkey:
++            subprocess_env['PGSSLKEY'] = str(sslkey)
++
++        sigint_handler = signal.getsignal(signal.SIGINT)
+         try:
+             # Allow SIGINT to pass to psql to abort queries.
+             signal.signal(signal.SIGINT, signal.SIG_IGN)
+2026-10-10 16:45:05,726 - INFO - Grading answer for django__django-11239...
+2026-10-10 16:45:05,727 - INFO - report: {'django__django-11239': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': True, 'tests_status': {'FAIL_TO_PASS': {'success': ['test_ssl_certificate (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)'], 'failure': []}, 'PASS_TO_PASS': {'success': ['test_accent (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_basic (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_column (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'test_nopass (dbshell.test_postgresql.PostgreSqlDbshellCommandTestCase)', 'SIGINT is ignored in Python and passed to psql to abort quries.'], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for django__django-11239: resolved: True
+2026-10-10 16:45:05,727 - INFO - Attempting to stop container sweb.eval.django__django-11239.qwen38-swebench-n100-20261010...
+2026-10-10 16:45:21,022 - INFO - Attempting to remove container sweb.eval.django__django-11239.qwen38-swebench-n100-20261010...
+2026-10-10 16:45:21,270 - INFO - Container sweb.eval.django__django-11239.qwen38-swebench-n100-20261010 removed.

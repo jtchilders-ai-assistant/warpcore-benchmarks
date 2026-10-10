@@ -94,5 +94,18 @@
   "src": "results/qwen3.6-35b-a3b/runs/warpcore-v1/swebench/qwen36-swebench-n100-20260919/raw/grading_results.json",
   "statuses_cover": 100,
   "verdicts": 87
+ },
+ "qwen3.8-flash-next": {
+  "attributed": false,
+  "causes": {},
+  "fair_n": 100,
+  "fair_pct": 97.0,
+  "infra_excluded": 0,
+  "no_verdict": 0,
+  "nominal_pct": 97.0,
+  "note": "no exit_statuses artifact committed",
+  "resolved": 97,
+  "src": "results/qwen3.8-flash-next/runs/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/grading_results.json",
+  "verdicts": 100
  }
 }

@@ -1,0 +1,71 @@
+2026-10-10 16:58:47,564 - INFO - Creating container for sphinx-doc__sphinx-8595...
+2026-10-10 16:58:47,755 - INFO - Container for sphinx-doc__sphinx-8595 created: c15be40f2d8b84fddc126e5ef0595f397fee3d0da1c9e020d07d48bb6eda72e9
+2026-10-10 16:58:48,337 - INFO - Container for sphinx-doc__sphinx-8595 started: c15be40f2d8b84fddc126e5ef0595f397fee3d0da1c9e020d07d48bb6eda72e9
+2026-10-10 16:58:48,337 - INFO - Intermediate patch for sphinx-doc__sphinx-8595 written to logs/run_evaluation/qwen38-swebench-n100-20261010/hosted_vllm__qwen3.8-flash-next/sphinx-doc__sphinx-8595/patch.diff, now applying to container...
+2026-10-10 16:58:48,717 - INFO - >>>>> Applied Patch:
+Checking patch CHANGES...
+Checking patch sphinx/ext/autodoc/__init__.py...
+Applied patch CHANGES cleanly.
+Applied patch sphinx/ext/autodoc/__init__.py cleanly.
+
+2026-10-10 16:58:50,205 - INFO - Git diff before:
+diff --git a/CHANGES b/CHANGES
+index bdf3be3b8..cea042be2 100644
+--- a/CHANGES
++++ b/CHANGES
+@@ -25,6 +25,7 @@ Bugs fixed
+ * #741: autodoc: inherited-members doesn't work for instance attributes on super
+   class
+ * #8592: autodoc: ``:meta public:`` does not effect to variables
++* #8599: autodoc: empty ``__all__`` attribute is ignored
+ 
+ Testing
+ --------
+diff --git a/sphinx/ext/autodoc/__init__.py b/sphinx/ext/autodoc/__init__.py
+index d85d79617..c9f90acca 100644
+--- a/sphinx/ext/autodoc/__init__.py
++++ b/sphinx/ext/autodoc/__init__.py
+@@ -1074,7 +1074,7 @@ class ModuleDocumenter(Documenter):
+     def get_object_members(self, want_all: bool) -> Tuple[bool, ObjectMembers]:
+         members = self.get_module_members()
+         if want_all:
+-            if not self.__all__:
++            if self.__all__ is None:
+                 # for implicit module members, check __module__ to avoid
+                 # documenting imported objects
+                 return True, list(members.values())
+2026-10-10 16:58:50,206 - INFO - Eval script for sphinx-doc__sphinx-8595 written to logs/run_evaluation/qwen38-swebench-n100-20261010/hosted_vllm__qwen3.8-flash-next/sphinx-doc__sphinx-8595/eval.sh; copying to container...
+2026-10-10 16:58:59,963 - INFO - Test runtime: 9.58 seconds
+2026-10-10 16:58:59,963 - INFO - Test output for sphinx-doc__sphinx-8595 written to logs/run_evaluation/qwen38-swebench-n100-20261010/hosted_vllm__qwen3.8-flash-next/sphinx-doc__sphinx-8595/test_output.txt
+2026-10-10 16:59:00,125 - INFO - Git diff after:
+diff --git a/CHANGES b/CHANGES
+index bdf3be3b8..cea042be2 100644
+--- a/CHANGES
++++ b/CHANGES
+@@ -25,6 +25,7 @@ Bugs fixed
+ * #741: autodoc: inherited-members doesn't work for instance attributes on super
+   class
+ * #8592: autodoc: ``:meta public:`` does not effect to variables
++* #8599: autodoc: empty ``__all__`` attribute is ignored
+ 
+ Testing
+ --------
+diff --git a/sphinx/ext/autodoc/__init__.py b/sphinx/ext/autodoc/__init__.py
+index d85d79617..c9f90acca 100644
+--- a/sphinx/ext/autodoc/__init__.py
++++ b/sphinx/ext/autodoc/__init__.py
+@@ -1074,7 +1074,7 @@ class ModuleDocumenter(Documenter):
+     def get_object_members(self, want_all: bool) -> Tuple[bool, ObjectMembers]:
+         members = self.get_module_members()
+         if want_all:
+-            if not self.__all__:
++            if self.__all__ is None:
+                 # for implicit module members, check __module__ to avoid
+                 # documenting imported objects
+                 return True, list(members.values())
+2026-10-10 16:59:00,126 - INFO - Grading answer for sphinx-doc__sphinx-8595...
+2026-10-10 16:59:00,138 - INFO - report: {'sphinx-doc__sphinx-8595': {'patch_is_None': False, 'patch_exists': True, 'patch_successfully_applied': True, 'resolved': False, 'tests_status': {'FAIL_TO_PASS': {'success': [], 'failure': ['tests/test_ext_autodoc_automodule.py::test_empty_all']}, 'PASS_TO_PASS': {'success': [], 'failure': []}, 'FAIL_TO_FAIL': {'success': [], 'failure': []}, 'PASS_TO_FAIL': {'success': [], 'failure': []}}}}
+Result for sphinx-doc__sphinx-8595: resolved: False
+2026-10-10 16:59:00,138 - INFO - Attempting to stop container sweb.eval.sphinx-doc__sphinx-8595.qwen38-swebench-n100-20261010...
+2026-10-10 16:59:15,454 - INFO - Attempting to remove container sweb.eval.sphinx-doc__sphinx-8595.qwen38-swebench-n100-20261010...
+2026-10-10 16:59:15,727 - INFO - Container sweb.eval.sphinx-doc__sphinx-8595.qwen38-swebench-n100-20261010 removed.

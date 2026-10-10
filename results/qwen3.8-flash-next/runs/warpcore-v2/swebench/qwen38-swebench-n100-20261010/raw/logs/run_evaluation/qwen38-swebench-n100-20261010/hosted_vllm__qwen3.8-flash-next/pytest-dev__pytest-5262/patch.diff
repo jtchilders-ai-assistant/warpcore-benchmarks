@@ -1,0 +1,28 @@
+diff --git a/changelog/5296.bugfix.rst b/changelog/5296.bugfix.rst
+new file mode 100644
+index 00000000..be7094c9
+--- /dev/null
++++ b/changelog/5296.bugfix.rst
+@@ -0,0 +1,4 @@
++``EncodedFile.mode`` now strips the binary mode flag, which means that
++``sys.stdout.mode`` no longer contains ``b`` in ``fd`` capture mode (the default).
++Libraries (such as ``youtube-dl``) which inspect the mode to decide whether to
++write ``bytes`` or ``str`` now write text as expected.
+diff --git a/src/_pytest/capture.py b/src/_pytest/capture.py
+index 25eab7fd..d02152dc 100644
+--- a/src/_pytest/capture.py
++++ b/src/_pytest/capture.py
+@@ -447,6 +447,13 @@ class EncodedFile(object):
+         """Ensure that file.name is a string."""
+         return repr(self.buffer)
+ 
++    @property
++    def mode(self):
++        # The underlying buffer is opened in binary mode (it receives the
++        # encoded data), but this object provides a text interface, i.e.
++        # "b" must not be part of the advertised mode (issue #5296).
++        return self.buffer.mode.replace("b", "")
++
+     def __getattr__(self, name):
+         return getattr(object.__getattribute__(self, "buffer"), name)
+ 

@@ -1,0 +1,29 @@
+# Canonical serving adapter for NVIDIA Qwen3.8-Flash-Next NVFP4 on one GB10.
+# Identity and effective settings were captured from the live qwen38-flash
+# container before the warpcore-v2 quality campaign.
+
+adapter_schema_version: 1
+campaign_status: canonical
+
+model:
+  slug: qwen3.8-flash-next
+  id: qwen3.8-flash-next
+  revision: fc694b54fb0174e0913e6adf86691ef85a4ead47
+
+serving:
+  image: sha256:ce9fb15b8b64aa4facc84d6fdd8691d57a5bf8a71b9d4b51aeac2148ca1b9fb2
+  engine: vllm
+  engine_version: 0.31.0
+  quantization: modelopt-mixed-nvfp4
+  reasoning_parser: qwen3
+  tool_call_parser: qwen3_coder
+  tokenizer: /hf/hub/models--nvidia--Qwen3.8-Flash-Next-NVFP4/snapshots/fc694b54fb0174e0913e6adf86691ef85a4ead47
+  moe_backend: flashinfer-cutlass
+  max_model_len: 262144
+  gpu_memory_utilization: 0.8
+  max_num_seqs: 256
+  environment:
+    HF_HUB_OFFLINE: "1"
+    VLLM_MTP_DRAFT_VOCAB: /opt/llm/draft_vocab_65536.npy
+    VLLM_PLE_MMAP: "1"
+    VLLM_QSA_DET_TOPK: "1"

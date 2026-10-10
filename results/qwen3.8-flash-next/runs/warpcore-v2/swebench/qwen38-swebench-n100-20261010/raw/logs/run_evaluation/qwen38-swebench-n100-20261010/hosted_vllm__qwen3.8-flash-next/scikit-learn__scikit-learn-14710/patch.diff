@@ -1,0 +1,40 @@
+diff --git a/doc/whats_new/v0.22.rst b/doc/whats_new/v0.22.rst
+index e1aa1cd86..5160deb44 100644
+--- a/doc/whats_new/v0.22.rst
++++ b/doc/whats_new/v0.22.rst
+@@ -132,6 +132,10 @@ Changelog
+     method for both estimators. :pr:`13769` by `Nicolas Hug`_.
+   - |Fix| Estimators now bin the training and validation data separately to
+     avoid any data leak. :pr:`13933` by `Nicolas Hug`_.
++  - |Fix| Fixed a bug in early stopping where the scores of
++    :class:`ensemble.HistGradientBoostingClassifier` were computed against the
++    encoded targets instead of the original ones, which would raise when the
++    targets were not numeric (e.g. strings). :issue:`14885` by `Nicolas Hug`_.
+ 
+   Note that pickles from 0.21 will not work in 0.22.
+ 
+diff --git a/sklearn/ensemble/_hist_gradient_boosting/gradient_boosting.py b/sklearn/ensemble/_hist_gradient_boosting/gradient_boosting.py
+index ad6a5a8ca..2d5a9c10e 100644
+--- a/sklearn/ensemble/_hist_gradient_boosting/gradient_boosting.py
++++ b/sklearn/ensemble/_hist_gradient_boosting/gradient_boosting.py
+@@ -426,11 +426,20 @@ class BaseHistGradientBoosting(BaseEstimator, ABC):
+ 
+         Scores are computed on validation data or on training data.
+         """
++        if is_classifier(self):
++            # The scorers expect the original class labels, not the encoded
++            # ones (e.g. "cat" instead of 0). This is because the scorers
++            # compare y_true to the output of predict() or predict_proba(),
++            # which are always returned in the original space.
++            y_small_train = self.classes_[y_small_train.astype(int)]
++
+         self.train_score_.append(
+             self.scorer_(self, X_binned_small_train, y_small_train)
+         )
+ 
+         if self._use_validation_data:
++            if is_classifier(self):
++                y_val = self.classes_[y_val.astype(int)]
+             self.validation_score_.append(
+                 self.scorer_(self, X_binned_val, y_val)
+             )

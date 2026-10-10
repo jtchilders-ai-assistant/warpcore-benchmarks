@@ -80,6 +80,22 @@
         "sphinx-doc": "7/10",
         "sympy": "2/10"
       }
+    },
+    "qwen3.8-flash-next": {
+      "balanced_ci95_pp": [
+        88.3,
+        100.0
+      ],
+      "balanced_pct": 95.0,
+      "nominal_pct": 97.0,
+      "per_repo": {
+        "astropy": "4/5",
+        "django": "56/56",
+        "pytest-dev": "4/4",
+        "scikit-learn": "5/5",
+        "sphinx-doc": "9/10",
+        "sympy": "10/10"
+      }
     }
   },
   "repo_sizes": {

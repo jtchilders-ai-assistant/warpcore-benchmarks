@@ -84,6 +84,13 @@ def _source_bundles(repo: Path) -> dict[str, dict[str, Any]]:
             "lifecycle": "current",
             "is_legacy": False,
         },
+        "qwen3.8-flash-next": {
+            # validated warpcore-v2 run qwen38-swebench-n100-20261010 (97/100)
+            "grading": r / "results/qwen3.8-flash-next/runs/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/grading_results.json",
+            "predictions": r / "results/qwen3.8-flash-next/runs/warpcore-v2/swebench/qwen38-swebench-n100-20261010/raw/preds.json",
+            "lifecycle": "current",
+            "is_legacy": False,
+        },
         "qwen3.5-122b-a10b": {
             # noncanonical diagnostic trial
             "grading": r / "results/qwen3.5-122b-a10b/runs/warpcore-v1/swebench/qwen35-swebench-trial-n100-20260928/raw/grading_results.json",
